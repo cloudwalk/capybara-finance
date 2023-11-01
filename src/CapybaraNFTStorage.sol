@@ -13,6 +13,6 @@ abstract contract CapybaraNFTStorage {
     /// @notice The counter of the NFT token unique identifiers
     uint256 internal _tokenIdCounter;
 
-    /// @notice Rhe address of the associated lending market
+    /// @notice The address of the associated lending market
     address internal _market;
 }
