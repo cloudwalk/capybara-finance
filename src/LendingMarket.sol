@@ -112,7 +112,7 @@ contract LendingMarket is
     /// @notice Internal initializer of the upgradable contract
     /// @param nft_ The address of the NFT token associated with the lending market
     function __LendingMarket_init(address nft_) internal onlyInitializing {
-        //__Ownable_init_unchained(msg.sender);
+        __Ownable_init_unchained(msg.sender);
         __Pausable_init_unchained();
         __UUPSUpgradeable_init_unchained();
         __LendingMarket_init_unchained(nft_);
