@@ -27,7 +27,7 @@ contract LiquidityPoolFactory is Ownable, ILiquidityPoolFactory {
 
     /// @notice Contract constructor
     /// @param registry_ The address of the associated lending market
-    constructor(address registry_) Ownable(registry_)  {}
+    constructor(address registry_) Ownable(registry_) {}
 
     /************************************************
      *  FUNCTIONS
