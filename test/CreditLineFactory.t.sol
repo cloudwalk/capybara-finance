@@ -9,45 +9,92 @@ import {CreditLineConfigurable} from "src/lines/CreditLineConfigurable.sol";
 
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
+/// @title CreditLineFactoryTest contract
+/// @notice Tests for the CreditLineFactory contract
+/// @author CloudWalk Inc. (See https://cloudwalk.io)
 contract CreditLineFactoryTest is Test {
-    event CreditLineCreated(address indexed market, uint16 indexed kind, address creditLine);
+    /************************************************
+     *  Events
+     ***********************************************/
 
-    address public constant EXPECTED_LINE_ADDRESS = 0x104fBc016F4bb334D775a19E8A6510109AC63E00;
-    address public constant ATTACKER = 0x447a8BAfc4747Aa92583d6a5ddB839DA91ded5A5;
+    event CreditLineCreated(address indexed market, address indexed lender, uint16 indexed kind, address creditLine);
 
-    bytes public constant data = "";
-
-    uint16 public constant KIND = 1;
+    /************************************************
+     *  Variables
+     ***********************************************/
 
     CreditLineFactory public factory;
 
+    address public immutable OWNER = address(this);
+    address public constant MARKET = address(bytes20(keccak256("market")));
+    address public constant LENDER = address(bytes20(keccak256("lender")));
+    address public constant ATTACKER = address(bytes20(keccak256("attacker")));
+    address public constant CREATED_CREDIT_LINE_ADDRESS = 0x104fBc016F4bb334D775a19E8A6510109AC63E00;
+
+    uint16 public constant CREDIT_LINE_KIND_OK = 1;
+    uint16 public constant CREDIT_LINE_KIND_FAKE = 2;
+
+    bytes public constant CREATE_DATA = "0x123fff";
+
+
+    /********************************************************
+     *  Setup and configuration
+     *******************************************************/
+
     function setUp() public {
-        factory = new CreditLineFactory(address(this));
+        factory = new CreditLineFactory(OWNER);
     }
+
+    /********************************************************
+     *  Tests for constructor
+     *******************************************************/
 
     function test_constructor() public {
-        assertEq(factory.owner(), address(this));
+        assertEq(factory.owner(), OWNER);
     }
 
-    function test_createCreditLine() public {
-        vm.expectEmit(true, true, true, true, address(factory));
-        emit CreditLineCreated(address(this), KIND, EXPECTED_LINE_ADDRESS);
-        address line = factory.createCreditLine(address(this), address(this), KIND, data);
+    function test_constructor_Revert_IfOwnerIsZeroAddress() public {
+        vm.prank(OWNER);
+        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableInvalidOwner.selector, address(0)));
+        factory = new CreditLineFactory(address(0));
+    }
 
-        assertEq(CreditLineConfigurable(line).lender(), address(this));
-        assertEq(CreditLineConfigurable(line).market(), address(this));
+    /********************************************************
+     *  Tests for `createCreditLine` function
+     *******************************************************/
+
+    function test_createCreditLine() public {
+        vm.prank(OWNER);
+        vm.expectEmit(true, true, true, true, address(factory));
+        emit CreditLineCreated(MARKET, LENDER, CREDIT_LINE_KIND_OK, CREATED_CREDIT_LINE_ADDRESS);
+        address line = factory.createCreditLine(MARKET, LENDER, CREDIT_LINE_KIND_OK, CREATE_DATA);
+
+        assertEq(CreditLineConfigurable(line).lender(), LENDER);
+        assertEq(CreditLineConfigurable(line).market(), MARKET);
+        assertEq(CreditLineConfigurable(line).kind(), CREDIT_LINE_KIND_OK);
     }
 
     function test_createCreditLine_Revert_IfUnsupportedKind() public {
-        vm.expectRevert(abi.encodeWithSelector(CreditLineFactory.UnsupportedKind.selector, 0));
-        factory.createCreditLine(address(this), address(this), 0, data);
+        vm.prank(OWNER);
+        vm.expectRevert(abi.encodeWithSelector(CreditLineFactory.UnsupportedKind.selector, CREDIT_LINE_KIND_FAKE));
+        factory.createCreditLine(MARKET, LENDER, CREDIT_LINE_KIND_FAKE, CREATE_DATA);
     }
 
     function test_createCreditLine_Revert_IfCallerNotOwner() public {
-        vm.startPrank(ATTACKER);
+        vm.prank(ATTACKER);
         vm.expectRevert(
-            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, address(ATTACKER))
+            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER)
         );
-        factory.createCreditLine(address(this), address(this), KIND, data);
+        factory.createCreditLine(MARKET, LENDER, CREDIT_LINE_KIND_OK, CREATE_DATA);
+    }
+
+    /********************************************************
+     *  Tests for `supportedKinds` function
+     *******************************************************/
+
+    function test_supportedKinds() public {
+        uint16[] memory kinds = factory.supportedKinds();
+        assertEq(kinds.length, 1);
+        assertEq(kinds[0], CREDIT_LINE_KIND_OK);
     }
 }

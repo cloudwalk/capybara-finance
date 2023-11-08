@@ -14,7 +14,7 @@ import {CreditLineConfigurable} from "./CreditLineConfigurable.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 contract CreditLineFactory is Ownable, ICreditLineFactory {
     /************************************************
-     *  ERRORS
+     *  Errors
      ***********************************************/
 
     /// @notice Thrown when the requested credit line kind is not supported
@@ -22,7 +22,7 @@ contract CreditLineFactory is Ownable, ICreditLineFactory {
     error UnsupportedKind(uint16 kind);
 
     /************************************************
-     *  CONSTRUCTOR
+     *  Constructor
      ***********************************************/
 
     /// @notice Contract constructor
@@ -30,7 +30,7 @@ contract CreditLineFactory is Ownable, ICreditLineFactory {
     constructor(address registry_) Ownable(registry_) {}
 
     /************************************************
-     *  FUNCTIONS
+     *  Functions
      ***********************************************/
 
     /// @inheritdoc ICreditLineFactory
@@ -45,6 +45,13 @@ contract CreditLineFactory is Ownable, ICreditLineFactory {
 
         creditLine = address(new CreditLineConfigurable(market, lender));
 
-        emit CreditLineCreated(msg.sender, kind, creditLine);
+        emit CreditLineCreated(market, lender, kind, creditLine);
+    }
+
+    /// @inheritdoc ICreditLineFactory
+    function supportedKinds() external pure override returns (uint16[] memory) {
+        uint16[] memory kinds = new uint16[](1);
+        kinds[0] = 1;
+        return kinds;
     }
 }
