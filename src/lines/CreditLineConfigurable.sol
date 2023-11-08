@@ -14,9 +14,9 @@ import {ICreditLineConfigurable} from "../interfaces/ICreditLineConfigurable.sol
 /// @title CreditLineConfigurable contract
 /// @notice Implementation of the configurable credit line contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-contract CreditLineConfigurable is Ownable, Pausable, ICreditLineConfigurable, ICreditLine {
+contract CreditLineConfigurable is Ownable, Pausable, ICreditLine, ICreditLineConfigurable {
     /************************************************
-     *  STORAGE
+     *  Storage
      ***********************************************/
 
     /// @notice The rate base used together with interest rate
@@ -38,7 +38,7 @@ contract CreditLineConfigurable is Ownable, Pausable, ICreditLineConfigurable, I
     mapping(address => BorrowerConfig) internal _borrowers;
 
     /************************************************
-     *  ERRORS
+     *  Errors
      ***********************************************/
 
     /// @notice Thrown when the credit line configuration is invalid
@@ -55,7 +55,7 @@ contract CreditLineConfigurable is Ownable, Pausable, ICreditLineConfigurable, I
     error ArrayLengthMismatch();
 
     /************************************************
-     *  MODIFIERS
+     *  Modifiers
      ***********************************************/
 
     /// @notice Throws if called by any account other than the market
@@ -75,7 +75,7 @@ contract CreditLineConfigurable is Ownable, Pausable, ICreditLineConfigurable, I
     }
 
     /************************************************
-     *  CONSTRUCTOR
+     *  Constructor
      ***********************************************/
 
     /// @notice Contract constructor
@@ -86,6 +86,8 @@ contract CreditLineConfigurable is Ownable, Pausable, ICreditLineConfigurable, I
             revert Error.InvalidAddress();
         }
         if (lender_ == address(0)) {
+            // This should never happen since the lender is the contract owner,
+            // and the owner address is checked to be non-zero by the Ownable
             revert Error.InvalidAddress();
         }
 
@@ -93,7 +95,7 @@ contract CreditLineConfigurable is Ownable, Pausable, ICreditLineConfigurable, I
     }
 
     /************************************************
-     *  OWNER FUCTIONS
+     *  Owner functions
      ***********************************************/
 
     /// @notice Pauses the contract
@@ -140,7 +142,7 @@ contract CreditLineConfigurable is Ownable, Pausable, ICreditLineConfigurable, I
     }
 
     /************************************************
-     *  ADMIN FUCTIONS
+     *  Admin functions
      ***********************************************/
 
     /// @inheritdoc ICreditLineConfigurable
@@ -164,7 +166,7 @@ contract CreditLineConfigurable is Ownable, Pausable, ICreditLineConfigurable, I
     }
 
     /************************************************
-     *  MARKET FUCTIONS
+     *  Market functions
      ***********************************************/
 
     /// @inheritdoc ICreditLine
@@ -190,7 +192,7 @@ contract CreditLineConfigurable is Ownable, Pausable, ICreditLineConfigurable, I
     }
 
     /************************************************
-     *  VIEW FUCTIONS
+     *  View functions
      ***********************************************/
 
     /// @inheritdoc ICreditLine
@@ -205,14 +207,14 @@ contract CreditLineConfigurable is Ownable, Pausable, ICreditLineConfigurable, I
         BorrowerConfig memory borrowerConfig = _borrowers[borrower];
         CreditLineConfig memory lineConfig = _config;
 
+        if (block.timestamp > borrowerConfig.expiration) {
+            revert BorrowerConfigurationExpired();
+        }
         if (amount > borrowerConfig.maxBorrowAmount) {
             revert Error.InvalidAmount();
         }
         if (amount < borrowerConfig.minBorrowAmount) {
             revert Error.InvalidAmount();
-        }
-        if (block.timestamp > borrowerConfig.expiration) {
-            revert BorrowerConfigurationExpired();
         }
         if (amount > _config.maxBorrowAmount) {
             revert Error.InvalidAmount();
@@ -279,7 +281,7 @@ contract CreditLineConfigurable is Ownable, Pausable, ICreditLineConfigurable, I
     }
 
     /************************************************
-     *  INTERNAL FUCTIONS
+     *  Internal functions
      ***********************************************/
 
     /// @notice Updates the credit line configuration
@@ -312,12 +314,6 @@ contract CreditLineConfigurable is Ownable, Pausable, ICreditLineConfigurable, I
     function _configureBorrower(address borrower, BorrowerConfig memory config) internal {
         if (borrower == address(0)) {
             revert Error.InvalidAddress();
-        }
-        if (config.minBorrowAmount < _config.minBorrowAmount) {
-            revert Error.InvalidAmount();
-        }
-        if (config.maxBorrowAmount > _config.maxBorrowAmount) {
-            revert Error.InvalidAmount();
         }
         if (_config.addonPeriodCostRate != 0 || _config.addonFixedCostRate != 0) {
             if (config.addonRecipient == address(0)) {

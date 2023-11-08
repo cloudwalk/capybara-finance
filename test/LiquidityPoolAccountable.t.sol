@@ -403,7 +403,6 @@ contract LiquidityPoolAccountableTest is Test {
             interestRatePrimary: INIT_LOAN_INTEREST,
             interestRateSecondary: INIT_LOAN_INTEREST,
             addonRecipient: address(0),
-            addonAmount: 0,
             interestFormula: Interest.Formula.Simple,
             policy: ICreditLineConfigurable.BorrowPolicy.Decrease
         });
