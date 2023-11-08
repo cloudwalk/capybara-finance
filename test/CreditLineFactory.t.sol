@@ -25,7 +25,7 @@ contract CreditLineFactoryTest is Test {
 
     CreditLineFactory public factory;
 
-    address public immutable OWNER = address(this);
+    address public immutable REGISTRY = address(this);
     address public constant MARKET = address(bytes20(keccak256("market")));
     address public constant LENDER = address(bytes20(keccak256("lender")));
     address public constant ATTACKER = address(bytes20(keccak256("attacker")));
@@ -42,7 +42,7 @@ contract CreditLineFactoryTest is Test {
      *******************************************************/
 
     function setUp() public {
-        factory = new CreditLineFactory(OWNER);
+        factory = new CreditLineFactory(REGISTRY);
     }
 
     /********************************************************
@@ -50,11 +50,11 @@ contract CreditLineFactoryTest is Test {
      *******************************************************/
 
     function test_constructor() public {
-        assertEq(factory.owner(), OWNER);
+        assertEq(factory.owner(), REGISTRY);
     }
 
-    function test_constructor_Revert_IfOwnerIsZeroAddress() public {
-        vm.prank(OWNER);
+    function test_constructor_Revert_IfRegistryIsZeroAddress() public {
+        vm.prank(REGISTRY);
         vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableInvalidOwner.selector, address(0)));
         factory = new CreditLineFactory(address(0));
     }
@@ -64,7 +64,7 @@ contract CreditLineFactoryTest is Test {
      *******************************************************/
 
     function test_createCreditLine() public {
-        vm.prank(OWNER);
+        vm.prank(REGISTRY);
         vm.expectEmit(true, true, true, true, address(factory));
         emit CreditLineCreated(MARKET, LENDER, CREDIT_LINE_KIND_OK, CREATED_CREDIT_LINE_ADDRESS);
         address line = factory.createCreditLine(MARKET, LENDER, CREDIT_LINE_KIND_OK, CREATE_DATA);
@@ -75,12 +75,12 @@ contract CreditLineFactoryTest is Test {
     }
 
     function test_createCreditLine_Revert_IfUnsupportedKind() public {
-        vm.prank(OWNER);
+        vm.prank(REGISTRY);
         vm.expectRevert(abi.encodeWithSelector(CreditLineFactory.UnsupportedKind.selector, CREDIT_LINE_KIND_FAKE));
         factory.createCreditLine(MARKET, LENDER, CREDIT_LINE_KIND_FAKE, CREATE_DATA);
     }
 
-    function test_createCreditLine_Revert_IfCallerNotOwner() public {
+    function test_createCreditLine_Revert_IfCallerNotRegistry() public {
         vm.prank(ATTACKER);
         vm.expectRevert(
             abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER)
