@@ -14,7 +14,7 @@ import {LiquidityPoolAccountable} from "./LiquidityPoolAccountable.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 contract LiquidityPoolFactory is Ownable, ILiquidityPoolFactory {
     /************************************************
-     *  ERRORS
+     *  Errors
      ***********************************************/
 
     /// @notice Thrown when the requested liquidity pool kind is not supported
@@ -22,7 +22,7 @@ contract LiquidityPoolFactory is Ownable, ILiquidityPoolFactory {
     error UnsupportedKind(uint16 kind);
 
     /************************************************
-     *  CONSTRUCTOR
+     *  Constructor
      ***********************************************/
 
     /// @notice Contract constructor
@@ -30,7 +30,7 @@ contract LiquidityPoolFactory is Ownable, ILiquidityPoolFactory {
     constructor(address registry_) Ownable(registry_) {}
 
     /************************************************
-     *  FUNCTIONS
+     *  Functions
      ***********************************************/
 
     /// @inheritdoc ILiquidityPoolFactory
@@ -45,6 +45,13 @@ contract LiquidityPoolFactory is Ownable, ILiquidityPoolFactory {
 
         liquidityPool = address(new LiquidityPoolAccountable(market, lender));
 
-        emit LiquidityPoolCreated(msg.sender, kind, liquidityPool);
+        emit LiquidityPoolCreated(market, lender, kind, liquidityPool);
+    }
+
+    /// @inheritdoc ILiquidityPoolFactory
+    function supportedKinds() external pure override returns (uint16[] memory) {
+        uint16[] memory kinds = new uint16[](1);
+        kinds[0] = 1;
+        return kinds;
     }
 }
