@@ -222,6 +222,7 @@ contract CreditLineConfigurableTest is Test {
     }
 
     function test_unpause_RevertIfContractNotPaused() public {
+        assertEq(line.paused(), false);
         vm.prank(LENDER);
         vm.expectRevert(PausableUpgradeable.ExpectedPause.selector);
         line.unpause();

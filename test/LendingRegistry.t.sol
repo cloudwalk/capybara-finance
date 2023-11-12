@@ -4,138 +4,126 @@ pragma solidity 0.8.20;
 
 import "forge-std/Test.sol";
 
-import {LiquidityPoolAccountable} from "../src/pools/LiquidityPoolAccountable.sol";
-import {CreditLineConfigurable} from "../src/lines/CreditLineConfigurable.sol";
-import {Interest} from "src/libraries/Interest.sol";
-import {Loan} from "src/libraries/Loan.sol";
-import {CapybaraNFT} from "../src/CapybaraNFT.sol";
-import {LendingRegistry} from "../src/LendingRegistry.sol";
-import {Token} from "./mocks/Token.sol";
-import {CreditLineFactory} from "src/lines/CreditLineFactory.sol";
-import {LiquidityPoolFactory} from "../src/pools/LiquidityPoolFactory.sol";
-import {LendingRegistry} from "../src/LendingRegistry.sol";
-import {LendingMarket} from "../src/LendingMarket.sol";
-
-import {Error} from "../src/libraries/Error.sol";
-
-import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
-import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+
+import {Error} from "../src/libraries/Error.sol";
+import {LendingRegistry} from "../src/LendingRegistry.sol";
+import {LendingMarketMock} from "../src/LendingMarketMock.sol";
+import {CreditLineFactoryMock} from "../src/lines/CreditLineFactoryMock.sol";
+import {LiquidityPoolFactoryMock} from "../src/pools/LiquidityPoolFactoryMock.sol";
 
 contract LendingRegistryTest is Test {
-    event CreditLineRegistered(address indexed lender, address indexed creditLine);
-    event LiquidityPoolRegistered(address indexed lender, address indexed liquidityPool);
-    event CreditLineCreated(address indexed lender, address creditLine);
-    event LiquidityPoolCreated(address indexed lender, address liquidityPool);
+
+    /************************************************
+     *  Events
+     ***********************************************/
+
     event CreditLineFactorySet(address newFactory, address oldFactory);
     event LiquidityPoolFactorySet(address newFactory, address oldFactory);
 
-    string public constant TOKEN_NAME = "CapybaraFinance";
-    string public constant TOKEN_SYMBOL = "CAPY";
+    event CreditLineCreated(address indexed lender, address creditLine);
+    event LiquidityPoolCreated(address indexed lender, address liquidityPool);
 
-    address public constant ATTACKER = 0x447a8BAfc4747Aa92583d6a5ddB839DA91ded5A5;
-    address public constant EXPECTED_CONTRACT_ADDRESS = 0xDDA0a8D7486686d36449792617565E6C474fBa3f;
+    event RegisterCreditLineCalled(address indexed lender, address indexed creditLine);
+    event RegisterLiquidityPoolCalled(address indexed lender, address indexed liquidityPool);
 
-    uint16 public constant KIND = 1;
-    uint256 public constant MINT_AMOUNT = 1000000;
+    event CreateCreditLineCalled(address indexed market, address indexed lender, uint16 indexed kind, bytes data);
+    event CreateLiquidityPoolCalled(address indexed market, address indexed lender, uint16 indexed kind, bytes data);
 
-    LiquidityPoolAccountable public pool;
-    CreditLineConfigurable public line;
-    Token public token;
-    LendingMarket public marketLogic;
-    LendingMarket public market;
-    CapybaraNFT public nftLogic;
-    CapybaraNFT public nft;
-    LendingRegistry public registryLogic;
+    /************************************************
+     *  Variables
+     ***********************************************/
+
     LendingRegistry public registry;
+    LendingMarketMock public lendingMarket;
+    CreditLineFactoryMock public creditLineFactory;
+    LiquidityPoolFactoryMock public liquidityPoolFactory;
+
+    /************************************************
+     *  Constants
+     ***********************************************/
+
+    address public constant OWNER = address(bytes20(keccak256("owner")));
+    address public constant LENDER = address(bytes20(keccak256("lender")));
+    address public constant ATTACKER = address(bytes20(keccak256("attacker")));
+    address public constant CREDIT_LINE = address(bytes20(keccak256("credit_line")));
+    address public constant LIQUIDITY_POOL = address(bytes20(keccak256("liquidity_pool")));
+    address public constant CREDIT_LINE_FACTORY_1 = address(bytes20(keccak256("credit_line_factory_1")));
+    address public constant CREDIT_LINE_FACTORY_2 = address(bytes20(keccak256("credit_line_factory_2")));
+    address public constant LIQUIDITY_POOL_FACTORY_1 = address(bytes20(keccak256("liquidity_pool_factory_1")));
+    address public constant LIQUIDITY_POOL_FACTORY_2 = address(bytes20(keccak256("liquidity_pool_factory_2")));
+    address public constant EXPECTED_CONTRACT_ADDRESS = address(bytes20(keccak256("expected_contract_address")));
+    uint16 public constant KIND = 1;
+
+    /************************************************
+     *  Setup and configuration
+     ***********************************************/
 
     function setUp() public {
-        token = new Token(MINT_AMOUNT);
-        nftLogic = new CapybaraNFT();
-        marketLogic = new LendingMarket();
-        registryLogic = new LendingRegistry();
-
-        ERC1967Proxy marketProxy = new ERC1967Proxy(address(marketLogic), "");
-        ERC1967Proxy nftProxy = new ERC1967Proxy(address(nftLogic), "");
+        LendingRegistry registryLogic =  new LendingRegistry();
         ERC1967Proxy registryProxy = new ERC1967Proxy(address(registryLogic), "");
 
-        market = LendingMarket(address(marketProxy));
-
-        nft = CapybaraNFT(address(nftProxy));
-        nft.initialize(TOKEN_NAME, TOKEN_SYMBOL, address(market));
-
-        market.initialize(address(nft));
+        lendingMarket = new LendingMarketMock();
+        creditLineFactory = new CreditLineFactoryMock();
+        liquidityPoolFactory = new LiquidityPoolFactoryMock();
 
         registry = LendingRegistry(address(registryProxy));
-        registry.initialize(address(market));
+        registry.initialize(address(lendingMarket));
 
-        market.setRegistry(address(registry));
-
-        pool = new LiquidityPoolAccountable(address(market), address(this));
-        line = new CreditLineConfigurable(address(market), address(this));
-
-        token.approve(address(pool), type(uint256).max);
-        token.approve(address(market), type(uint256).max);
-
-        vm.prank(address(pool));
-        token.approve(address(market), type(uint256).max);
+        registry.transferOwnership(OWNER);
     }
 
+    /************************************************
+     *  Test `initialize` function
+     ***********************************************/
+
     function test_initialize() public {
-        nftLogic = new CapybaraNFT();
-        marketLogic = new LendingMarket();
-        registryLogic = new LendingRegistry();
-
-        ERC1967Proxy marketProxy = new ERC1967Proxy(address(marketLogic), "");
-        ERC1967Proxy nftProxy = new ERC1967Proxy(address(nftLogic), "");
-        ERC1967Proxy registryProxy = new ERC1967Proxy(address(registryLogic), "");
-
-        market = LendingMarket(address(marketProxy));
-
-        nft = CapybaraNFT(address(nftProxy));
-        nft.initialize(TOKEN_NAME, TOKEN_SYMBOL, address(market));
-
-        market.initialize(address(nft));
-
-        registry = LendingRegistry(address(registryProxy));
-        registry.initialize(address(market));
-
-        pool = new LiquidityPoolAccountable(address(market), address(this));
-        line = new CreditLineConfigurable(address(market), address(this));
-
-        assertEq(registry.owner(), address(this));
-        assertEq(registry.market(), address(market));
+        assertEq(registry.owner(), OWNER);
+        assertEq(registry.market(), address(lendingMarket));
     }
 
     function test_initialize_Revert_IfCalledSecondTime() public {
+        vm.prank(OWNER);
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        registry.initialize(address(this));
+        registry.initialize(address(lendingMarket));
     }
 
+    /************************************************
+     *  Test `pause` function
+     ***********************************************/
+
     function test_pause() public {
+        vm.startPrank(OWNER);
         assertEq(registry.paused(), false);
         registry.pause();
         assertEq(registry.paused(), true);
     }
 
     function test_pause_Revert_IfCallerNotOwner() public {
-        vm.expectRevert(
-            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, address(ATTACKER))
-        );
         vm.prank(ATTACKER);
+        vm.expectRevert(
+            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER)
+        );
         registry.pause();
     }
 
     function test_pause_Revert_IfContractPaused() public {
+        vm.startPrank(OWNER);
         registry.pause();
         assertEq(registry.paused(), true);
         vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
         registry.pause();
     }
 
+    /************************************************
+     *  Test `unpause` function
+     ***********************************************/
+
     function test_unpause() public {
+        vm.startPrank(OWNER);
         assertEq(registry.paused(), false);
         registry.pause();
         assertEq(registry.paused(), true);
@@ -144,9 +132,10 @@ contract LendingRegistryTest is Test {
     }
 
     function test_unpause_Revert_IfCallerNotOwner() public {
+        vm.prank(OWNER);
         registry.pause();
         vm.expectRevert(
-            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, address(ATTACKER))
+            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER)
         );
         vm.prank(ATTACKER);
         registry.unpause();
@@ -154,147 +143,182 @@ contract LendingRegistryTest is Test {
 
     function test_unpause_Revert_IfContractNotPaused() public {
         assertEq(registry.paused(), false);
+        vm.prank(OWNER);
         vm.expectRevert(PausableUpgradeable.ExpectedPause.selector);
         registry.unpause();
     }
 
-    function test_setCreditLineFactory() public {
-        vm.expectEmit(true, true, true, true, address(registry));
-        emit CreditLineFactorySet(address(this), address(0));
-        registry.setCreditLineFactory(address(this));
-
-        assertEq(registry.creditLineFactory(), address(this));
-    }
-
-    function test_setCreditLineFactory_Revert_IfCallerNotOwner() public {
-        vm.expectRevert(
-            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, address(ATTACKER))
-        );
-        vm.prank(ATTACKER);
-        registry.setCreditLineFactory(address(this));
-    }
-
-    function test_setCreditLineFactory_Revert_IfAlreadyConfigured() public {
-        registry.setCreditLineFactory(address(this));
-        vm.expectRevert(Error.AlreadyConfigured.selector);
-        registry.setCreditLineFactory(address(this));
-    }
-
-    function test_setLiquidityPoolFactory() public {
-        vm.expectEmit(true, true, true, true, address(registry));
-        emit LiquidityPoolFactorySet(address(this), address(0));
-        registry.setLiquidityPoolFactory(address(this));
-
-        assertEq(registry.liquidityPoolFactory(), address(this));
-    }
-
-    function test_setLiquidityPoolFactory_Revert_IfCallerNotOwner() public {
-        vm.expectRevert(
-            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, address(ATTACKER))
-        );
-        vm.prank(ATTACKER);
-        registry.setLiquidityPoolFactory(address(this));
-    }
-
-    function test_setLiquidityPoolFactory_Revert_IfAlreadyConfigured() public {
-        registry.setLiquidityPoolFactory(address(this));
-
-        vm.expectRevert(Error.AlreadyConfigured.selector);
-        registry.setLiquidityPoolFactory(address(this));
-    }
-
-    function test_createCreditLine() public {
-        CreditLineFactory factory = new CreditLineFactory(address(registry));
-        registry.setCreditLineFactory(address(factory));
-
-        vm.expectEmit(true, true, true, true, address(registry));
-        emit CreditLineCreated(address(this), EXPECTED_CONTRACT_ADDRESS);
-        registry.createCreditLine(KIND);
-
-        assertEq(CreditLineConfigurable(EXPECTED_CONTRACT_ADDRESS).market(), address(market));
-        assertEq(CreditLineConfigurable(EXPECTED_CONTRACT_ADDRESS).lender(), address(this));
-    }
-
-    function test_createCreditLine_Revert_IfFactoryNotConfigured() public {
-        vm.expectRevert(LendingRegistry.CreditLineFactoryNotSet.selector);
-        registry.createCreditLine(KIND);
-    }
-
-    function test_createLiquidityPool() public {
-        LiquidityPoolFactory factory = new LiquidityPoolFactory(address(registry));
-        registry.setLiquidityPoolFactory(address(factory));
-
-        vm.expectEmit(true, true, true, true, address(registry));
-        emit LiquidityPoolCreated(address(this), EXPECTED_CONTRACT_ADDRESS);
-        registry.createLiquidityPool(KIND);
-    }
-
-    function test_createLiquidityPool_Revert_IfFactoryNotConfigured() public {
-        vm.expectRevert(LendingRegistry.LiquidityPoolFactoryNotSet.selector);
-        registry.createLiquidityPool(KIND);
-    }
+    /************************************************
+     *  Test `registerCreditLine` function
+     ***********************************************/
 
     function test_registerCreditLine() public {
-        vm.expectEmit(true, true, true, true, address(market));
-        emit CreditLineRegistered(address(this), address(line));
-        registry.registerCreditLine(address(this), address(line));
-
-        assertEq(market.getLender(address(line)), address(this));
-    }
-
-    function test_registerCreditLine_Revert_IfLenderAddressZero() public {
-        vm.expectRevert(Error.InvalidAddress.selector);
-        registry.registerCreditLine(address(0), address(line));
-    }
-
-    function test_registerCreditLine_Revert_IfCreditLineAddressZero() public {
-        vm.expectRevert(Error.InvalidAddress.selector);
-        registry.registerCreditLine(address(this), address(0));
-    }
-
-    function test_registerCreditLine_Revert_IfCreditLineIsAlreadyRegistered() public {
-        registry.registerCreditLine(address(this), address(line));
-        vm.expectRevert(LendingMarket.CreditLineAlreadyRegistered.selector);
-        registry.registerCreditLine(address(this), address(line));
+        vm.prank(OWNER);
+        vm.expectEmit(true, true, true, true, address(lendingMarket));
+        emit RegisterCreditLineCalled(LENDER, CREDIT_LINE);
+        registry.registerCreditLine(LENDER, CREDIT_LINE);
     }
 
     function test_registerCreditLine_Revert_IfCallerNotOwner() public {
         vm.startPrank(ATTACKER);
         vm.expectRevert(
-            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, address(ATTACKER))
+            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER)
         );
-        registry.registerCreditLine(address(this), address(line));
+        registry.registerCreditLine(LENDER, CREDIT_LINE);
     }
+
+    /************************************************
+     *  Test `registerLiquidityPool` function
+     ***********************************************/
 
     function test_registerLiquidityPool() public {
-        vm.expectEmit(true, true, true, true, address(market));
-        emit LiquidityPoolRegistered(address(this), address(pool));
-        registry.registerLiquidityPool(address(this), address(pool));
-
-        assertEq(market.getLiquidityPool(address(this)), address(pool));
-    }
-
-    function test_registerLiquidityPool_Revert_lfLenderAddressZero() public {
-        vm.expectRevert(Error.InvalidAddress.selector);
-        registry.registerLiquidityPool(address(0), address(pool));
-    }
-
-    function test_registerLiquidityPool_Revert_IfPoolAddressZero() public {
-        vm.expectRevert(Error.InvalidAddress.selector);
-        registry.registerLiquidityPool(address(this), address(0));
-    }
-
-    function test_registerLiquidityPool_Revert_IfPoolIsAlreadyRegistered() public {
-        registry.registerLiquidityPool(address(this), address(pool));
-        vm.expectRevert(LendingMarket.LiquidityPoolAlreadyRegistered.selector);
-        registry.registerLiquidityPool(address(this), address(pool));
+        vm.prank(OWNER);
+        vm.expectEmit(true, true, true, true, address(lendingMarket));
+        emit RegisterLiquidityPoolCalled(LENDER, LIQUIDITY_POOL);
+        registry.registerLiquidityPool(LENDER, LIQUIDITY_POOL);
     }
 
     function test_registerLiquidityPool_Revert_IfCallerNotOwner() public {
-        vm.startPrank(ATTACKER);
+        vm.prank(ATTACKER);
         vm.expectRevert(
-            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, address(ATTACKER))
+            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER)
         );
-        registry.registerLiquidityPool(address(this), address(pool));
+        registry.registerLiquidityPool(LENDER, LIQUIDITY_POOL);
+    }
+
+    /************************************************
+     *  Test `setCreditLineFactory` function
+     ***********************************************/
+
+    function test_setCreditLineFactory() public {
+        assertEq(registry.creditLineFactory(), address(0));
+
+        vm.startPrank(OWNER);
+
+        vm.expectEmit(true, true, true, true, address(registry));
+        emit CreditLineFactorySet(CREDIT_LINE_FACTORY_1, address(0));
+        registry.setCreditLineFactory(CREDIT_LINE_FACTORY_1);
+        assertEq(registry.creditLineFactory(), CREDIT_LINE_FACTORY_1);
+
+        vm.expectEmit(true, true, true, true, address(registry));
+        emit CreditLineFactorySet(CREDIT_LINE_FACTORY_2, CREDIT_LINE_FACTORY_1);
+        registry.setCreditLineFactory(CREDIT_LINE_FACTORY_2);
+        assertEq(registry.creditLineFactory(), CREDIT_LINE_FACTORY_2);
+
+        vm.expectEmit(true, true, true, true, address(registry));
+        emit CreditLineFactorySet(address(0), CREDIT_LINE_FACTORY_2);
+        registry.setCreditLineFactory(address(0));
+        assertEq(registry.creditLineFactory(), address(0));
+    }
+
+    function test_setCreditLineFactory_Revert_IfCallerNotOwner() public {
+        vm.prank(ATTACKER);
+        vm.expectRevert(
+            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER)
+        );
+        registry.setCreditLineFactory(CREDIT_LINE_FACTORY_1);
+    }
+
+    function test_setCreditLineFactory_Revert_IfAlreadyConfigured() public {
+        vm.startPrank(OWNER);
+        registry.setCreditLineFactory(CREDIT_LINE_FACTORY_1);
+        vm.expectRevert(Error.AlreadyConfigured.selector);
+        registry.setCreditLineFactory(CREDIT_LINE_FACTORY_1);
+    }
+
+    /************************************************
+     *  Test `setLiquidityPoolFactory` function
+     ***********************************************/
+
+    function test_setLiquidityPoolFactory() public {
+        assertEq(registry.liquidityPoolFactory(), address(0));
+
+        vm.startPrank(OWNER);
+
+        vm.expectEmit(true, true, true, true, address(registry));
+        emit LiquidityPoolFactorySet(LIQUIDITY_POOL_FACTORY_1, address(0));
+        registry.setLiquidityPoolFactory(LIQUIDITY_POOL_FACTORY_1);
+        assertEq(registry.liquidityPoolFactory(), LIQUIDITY_POOL_FACTORY_1);
+
+        vm.expectEmit(true, true, true, true, address(registry));
+        emit LiquidityPoolFactorySet(LIQUIDITY_POOL_FACTORY_2, LIQUIDITY_POOL_FACTORY_1);
+        registry.setLiquidityPoolFactory(LIQUIDITY_POOL_FACTORY_2);
+        assertEq(registry.liquidityPoolFactory(), LIQUIDITY_POOL_FACTORY_2);
+
+        vm.expectEmit(true, true, true, true, address(registry));
+        emit LiquidityPoolFactorySet(address(0), LIQUIDITY_POOL_FACTORY_2);
+        registry.setLiquidityPoolFactory(address(0));
+        assertEq(registry.liquidityPoolFactory(), address(0));
+    }
+
+    function test_setLiquidityPoolFactory_Revert_IfCallerNotOwner() public {
+        vm.prank(ATTACKER);
+        vm.expectRevert(
+            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER)
+        );
+        registry.setLiquidityPoolFactory(LIQUIDITY_POOL_FACTORY_1);
+    }
+
+    function test_setLiquidityPoolFactory_Revert_IfAlreadyConfigured() public {
+        vm.startPrank(OWNER);
+        registry.setLiquidityPoolFactory(LIQUIDITY_POOL_FACTORY_1);
+        vm.expectRevert(Error.AlreadyConfigured.selector);
+        registry.setLiquidityPoolFactory(LIQUIDITY_POOL_FACTORY_1);
+    }
+
+    /************************************************
+     *  Test `createCreditLine` function
+     ***********************************************/
+
+    function test_createCreditLine() public {
+        vm.startPrank(OWNER);
+
+        creditLineFactory.setCreditLineAddress(EXPECTED_CONTRACT_ADDRESS);
+        registry.setCreditLineFactory(address(creditLineFactory));
+
+        vm.expectEmit(true, true, true, true, address(creditLineFactory));
+        emit CreateCreditLineCalled(address(lendingMarket), OWNER, KIND, "0x");
+
+        vm.expectEmit(true, true, true, true, address(registry));
+        emit CreditLineCreated(OWNER, EXPECTED_CONTRACT_ADDRESS);
+
+        vm.expectEmit(true, true, true, true, address(lendingMarket));
+        emit RegisterCreditLineCalled(OWNER, EXPECTED_CONTRACT_ADDRESS);
+
+        registry.createCreditLine(KIND);
+    }
+
+    function test_createCreditLine_Revert_IfFactoryNotConfigured() public {
+        vm.prank(OWNER);
+        vm.expectRevert(LendingRegistry.CreditLineFactoryNotSet.selector);
+        registry.createCreditLine(KIND);
+    }
+
+    /************************************************
+     *  Test `createLiquidityPool` function
+     ***********************************************/
+
+    function test_createLiquidityPool() public {
+        vm.startPrank(OWNER);
+
+        liquidityPoolFactory.setLiquidityPoolAddress(EXPECTED_CONTRACT_ADDRESS);
+        registry.setLiquidityPoolFactory(address(liquidityPoolFactory));
+
+        vm.expectEmit(true, true, true, true, address(liquidityPoolFactory));
+        emit CreateLiquidityPoolCalled(address(lendingMarket), OWNER, KIND, "0x");
+
+        vm.expectEmit(true, true, true, true, address(registry));
+        emit LiquidityPoolCreated(OWNER, EXPECTED_CONTRACT_ADDRESS);
+
+        vm.expectEmit(true, true, true, true, address(lendingMarket));
+        emit RegisterLiquidityPoolCalled(OWNER, EXPECTED_CONTRACT_ADDRESS);
+
+        registry.createLiquidityPool(KIND);
+    }
+
+    function test_createLiquidityPool_Revert_IfFactoryNotConfigured() public {
+        vm.prank(OWNER);
+        vm.expectRevert(LendingRegistry.LiquidityPoolFactoryNotSet.selector);
+        registry.createLiquidityPool(KIND);
     }
 }

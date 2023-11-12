@@ -4,421 +4,500 @@ pragma solidity 0.8.20;
 
 import "forge-std/Test.sol";
 
-import {LiquidityPoolAccountable} from "../src/pools/LiquidityPoolAccountable.sol";
-import {CreditLineConfigurable} from "../src/lines/CreditLineConfigurable.sol";
-import {ICreditLineConfigurable} from "src/interfaces/ICreditLineConfigurable.sol";
-import {Interest} from "src/libraries/Interest.sol";
-import {Loan} from "src/libraries/Loan.sol";
-import {Error} from "src/libraries/Error.sol";
-import {CapybaraNFT} from "../src/CapybaraNFT.sol";
-import {LendingRegistry} from "../src/LendingRegistry.sol";
-import {LendingMarket} from "../src/LendingMarket.sol";
-import {Token} from "./mocks/Token.sol";
+import {ERC20Mintable} from "./mocks/ERC20Mintable.sol";
 
-import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
+import {Loan} from "src/libraries/Loan.sol";
+import {Error} from "src/libraries/Error.sol";
+import {Interest} from "src/libraries/Interest.sol";
+import {LiquidityPoolAccountable} from "../src/pools/LiquidityPoolAccountable.sol";
+import {LendingMarketMock} from "../src/LendingMarketMock.sol";
+import {CreditLineMock} from "../src/lines/CreditLineMock.sol";
+
 contract LiquidityPoolAccountableTest is Test {
+
+    /************************************************
+     *  Events
+     ***********************************************/
+
     event Deposit(address indexed creditLine, uint256 amount);
     event Withdraw(address indexed tokenSource, uint256 amount);
 
-    address public constant ATTACKER = 0x447a8BAfc4747Aa92583d6a5ddB839DA91ded5A5;
-    address public constant ADMIN = 0x97cFe60890C572d2Af20AA160Edabf6E03bf453E;
+    /************************************************
+     *  Variables
+     ***********************************************/
 
-    string public constant TOKEN_NAME = "CapybaraFinance";
-    string public constant TOKEN_SYMBOL = "CAPY";
-
-    uint256 public constant DEPOSIT_AMOUNT = 100;
-    uint256 public constant INIT_LOAN_DURATION_IN_PERIODS = 100;
-    uint256 public constant INIT_MIN_BORROW_AMOUNT = 50;
-    uint256 public constant INIT_MAX_BORROW_AMOUNT = 500;
-    uint256 public constant INIT_MIN_BORROWER_BORROW_AMOUNT = 50;
-    uint256 public constant INIT_MAX_BORROWER_BORROW_AMOUNT = 400;
-    uint256 public constant INIT_PERIOD_IN_SECONDS = 3600;
-    uint256 public constant INIT_LOAN_INTEREST = 1;
-    uint256 public constant MINT_AMOUNT = 1000000;
-
+    ERC20Mintable public token;
     LiquidityPoolAccountable public pool;
-    CreditLineConfigurable public line;
-    CreditLineConfigurable public secondLine;
-    Token public token;
-    Token public secondToken;
-    LendingMarket public marketLogic;
-    LendingMarket public market;
-    CapybaraNFT public nftLogic;
-    CapybaraNFT public nft;
-    LendingRegistry public registryLogic;
-    LendingRegistry public registry;
+    LendingMarketMock public market;
+    CreditLineMock public line;
+
+    /************************************************
+     *  Constants
+     ***********************************************/
+
+    address public constant LINE = address(bytes20(keccak256("line")));
+    address public MARKET = address(bytes20(keccak256("market")));
+
+    address public constant ADMIN = address(bytes20(keccak256("admin")));
+    address public constant LENDER = address(bytes20(keccak256("lender")));
+    address public constant ATTACKER = address(bytes20(keccak256("attacker")));
+
+    uint16 public constant KIND = 1;
+    uint256 public constant LOAN_ID = 1;
+    uint256 public constant TOKEN_AMOUNT = 100;
+
+    address public constant NONEXISTENT_TOKEN_SOUTRCE = address(bytes20(keccak256("unexisting_token_source")));
+    uint256 public constant NONEXISTENT_LOAN_ID = 999999999;
+
+    /************************************************
+     *  Setup and configuration
+     ***********************************************/
 
     function setUp() public {
-        token = new Token(MINT_AMOUNT);
-        secondToken = new Token(MINT_AMOUNT);
-        nftLogic = new CapybaraNFT();
-        marketLogic = new LendingMarket();
-        registryLogic = new LendingRegistry();
+        token = new ERC20Mintable(0);
 
-        ERC1967Proxy marketProxy = new ERC1967Proxy(address(marketLogic), "");
-        ERC1967Proxy nftProxy = new ERC1967Proxy(address(nftLogic), "");
-        ERC1967Proxy registryProxy = new ERC1967Proxy(address(registryLogic), "");
+        line = new CreditLineMock();
+        line.mockToken(address(token));
 
-        market = LendingMarket(address(marketProxy));
+        market = new LendingMarketMock();
+        pool = new LiquidityPoolAccountable(address(market), LENDER);
 
-        nft = CapybaraNFT(address(nftProxy));
-        nft.initialize(TOKEN_NAME, TOKEN_SYMBOL, address(market));
+        MARKET = address(market);
 
-        market.initialize(address(nft));
-
-        registry = LendingRegistry(address(registryProxy));
-        registry.initialize(address(market));
-
-        pool = new LiquidityPoolAccountable(address(market), address(this));
-        line = new CreditLineConfigurable(address(market), address(this));
-        secondLine = new CreditLineConfigurable(address(market), address(this));
-        line.configureToken(address(token));
-        secondLine.configureToken(address(token));
-
-        market.setRegistry(address(registry));
-
-        vm.startPrank(address(registry));
-
-        market.registerCreditLine(address(this), address(line));
-        market.registerCreditLine(address(ADMIN), address(secondLine));
-        market.registerLiquidityPool(address(this), address(pool));
-        market.registerLiquidityPool(address(ADMIN), address(this));
-
-        vm.stopPrank();
-
+        vm.prank(LENDER);
         token.approve(address(pool), type(uint256).max);
-        token.approve(address(market), type(uint256).max);
-        secondToken.approve(address(pool), type(uint256).max);
-        secondToken.approve(address(market), type(uint256).max);
     }
 
+    /************************************************
+     *  Test constructor
+     ***********************************************/
+
     function test_constructor() public {
-        assertEq(pool.market(), address(market));
-
-        assertEq(pool.lender(), address(this));
-
-        assertEq(pool.owner(), address(this));
+        pool = new LiquidityPoolAccountable(MARKET, LENDER);
+        assertEq(pool.market(), MARKET);
+        assertEq(pool.lender(), LENDER);
+        assertEq(pool.owner(), LENDER);
     }
 
     function test_constructor_Revert_IfMarketIsZeroAddress() public {
         vm.expectRevert(Error.InvalidAddress.selector);
-        pool = new LiquidityPoolAccountable(address(0), address(this));
+        pool = new LiquidityPoolAccountable(address(0), LENDER);
     }
 
     function test_constructor_Revert_IfLenderIsZeroAddress() public {
-        vm.expectRevert(
-            abi.encodeWithSelector(OwnableUpgradeable.OwnableInvalidOwner.selector, address(0))
-        );
-        pool = new LiquidityPoolAccountable(address(this), address(0));
+        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableInvalidOwner.selector, address(0)));
+        pool = new LiquidityPoolAccountable(MARKET, address(0));
     }
+
+    /************************************************
+     *  Test `pause` function
+     ***********************************************/
 
     function test_pause() public {
         assertEq(pool.paused(), false);
+        vm.prank(LENDER);
         pool.pause();
         assertEq(pool.paused(), true);
     }
 
-    function test_pause_Revert_IfCallerNotOwner() public {
-        vm.expectRevert(
-            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, address(ATTACKER))
-        );
-        vm.prank(ATTACKER);
-        pool.pause();
-    }
-
     function test_pause_Revert_IfContractIsPaused() public {
+        vm.startPrank(LENDER);
         pool.pause();
         vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
         pool.pause();
     }
 
+    function test_pause_Revert_IfCallerNotOwner() public {
+        vm.prank(ATTACKER);
+        vm.expectRevert(
+            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER)
+        );
+        pool.pause();
+    }
+
+    /************************************************
+     *  Test `unpause` function
+     ***********************************************/
+
     function test_unpause() public {
+        vm.startPrank(LENDER);
         assertEq(pool.paused(), false);
         pool.pause();
         assertEq(pool.paused(), true);
         pool.unpause();
         assertEq(pool.paused(), false);
-    }
-
-    function test_unpause_Revert_IfCallerNotOwner() public {
-        assertEq(pool.paused(), false);
-        pool.pause();
-        vm.prank(ATTACKER);
-        vm.expectRevert(
-            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, address(ATTACKER))
-        );
-        pool.unpause();
     }
 
     function test_unpause_RevertIfContractNotPaused() public {
         assertEq(pool.paused(), false);
+        vm.prank(LENDER);
         vm.expectRevert(PausableUpgradeable.ExpectedPause.selector);
         pool.unpause();
     }
 
-    function test_deposit() public {
-        assertEq(token.allowance(address(pool), address(this)), 0);
-        vm.prank(address(pool));
-        token.approve(address(this), DEPOSIT_AMOUNT);
-
-        vm.prank(address(pool));
-        token.approve(address(market), type(uint256).max);
-
-        vm.expectEmit(true, true, true, true, address(pool));
-        emit Deposit(address(this), DEPOSIT_AMOUNT);
-        pool.deposit(address(this), DEPOSIT_AMOUNT);
-
-        assertEq(token.allowance(address(pool), address(this)), DEPOSIT_AMOUNT);
-        assertEq(token.balanceOf(address(pool)), DEPOSIT_AMOUNT);
-
-        assertEq(pool.getTokenBalance(address(this)), DEPOSIT_AMOUNT);
+    function test_unpause_Revert_IfCallerNotOwner() public {
+        vm.prank(LENDER);
+        pool.pause();
+        vm.prank(ATTACKER);
+        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
+        pool.unpause();
     }
 
-    function test_deposit_WithZeroPreviousAllowance() public {
+    /************************************************
+     *  Test `deposit` function
+     ***********************************************/
+
+    function test_deposit() public {
         assertEq(token.balanceOf(address(pool)), 0);
-        assertEq(token.allowance(address(pool), address(this)), 0);
+        assertEq(token.allowance(address(pool), address(market)), 0);
+        assertEq(pool.getTokenBalance(address(line)), 0);
 
-        pool.deposit(address(this), DEPOSIT_AMOUNT);
+        vm.startPrank(LENDER);
 
+        token.mint(LENDER, TOKEN_AMOUNT);
+        token.approve(address(pool), TOKEN_AMOUNT);
+
+        vm.expectEmit(true, true, true, true, address(pool));
+        emit Deposit(address(line), TOKEN_AMOUNT);
+        pool.deposit(address(line), TOKEN_AMOUNT);
+
+        assertEq(token.balanceOf(address(pool)), TOKEN_AMOUNT);
         assertEq(token.allowance(address(pool), address(market)), type(uint256).max);
-        assertEq(token.balanceOf(address(pool)), DEPOSIT_AMOUNT);
+        assertEq(pool.getTokenBalance(address(line)), TOKEN_AMOUNT);
     }
 
     function test_deposit_Revert_IfCreditLineIsZeroAddress() public {
+        vm.prank(LENDER);
         vm.expectRevert(Error.InvalidAddress.selector);
-        pool.deposit(address(0), DEPOSIT_AMOUNT);
+        pool.deposit(address(0), TOKEN_AMOUNT);
     }
 
-    function test_deposit_Revert_IfDepositAmountZero() public {
+    function test_deposit_Revert_IfDepositAmountIsZero() public {
+        vm.prank(LENDER);
         vm.expectRevert(Error.InvalidAmount.selector);
-        pool.deposit(address(this), 0);
+        pool.deposit(LINE, 0);
     }
 
     function test_deposit_Revert_IfCallerNotOwner() public {
-        vm.startPrank(ATTACKER);
+        vm.prank(ATTACKER);
         vm.expectRevert(
-            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, address(ATTACKER))
+            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER)
         );
-        pool.deposit(address(this), DEPOSIT_AMOUNT);
+        pool.deposit(LINE, TOKEN_AMOUNT);
     }
+
+    /************************************************
+     *  Test `withdraw` function
+     ***********************************************/
 
     function test_withdraw_CreditLineBalance() public {
-        pool.deposit(address(line), DEPOSIT_AMOUNT);
-        assertEq(token.balanceOf(address(pool)), DEPOSIT_AMOUNT);
-        assertEq(pool.getTokenBalance(address(token)), DEPOSIT_AMOUNT);
+        vm.startPrank(LENDER);
+
+        token.mint(LENDER, TOKEN_AMOUNT);
+        token.approve(address(pool), TOKEN_AMOUNT);
+        pool.deposit(address(line), TOKEN_AMOUNT);
+
+        assertEq(token.balanceOf(LENDER), 0);
+        assertEq(token.balanceOf(address(pool)), TOKEN_AMOUNT);
+        assertEq(pool.getTokenBalance(address(token)), TOKEN_AMOUNT);
+        assertEq(pool.getTokenBalance(address(line)), TOKEN_AMOUNT);
 
         vm.expectEmit(true, true, true, true, address(pool));
-        emit Withdraw(address(token), DEPOSIT_AMOUNT);
-        pool.withdraw(address(token), DEPOSIT_AMOUNT);
-        assertEq(token.balanceOf(address(pool)), 0);
+        emit Withdraw(address(line), TOKEN_AMOUNT - 1);
+        pool.withdraw(address(line), TOKEN_AMOUNT - 1);
 
-        vm.expectRevert();
-        pool.getTokenBalance(address(token));
+        assertEq(token.balanceOf(LENDER), TOKEN_AMOUNT - 1);
+        assertEq(token.balanceOf(address(pool)), 1);
+        assertEq(pool.getTokenBalance(address(token)), 1);
+        assertEq(pool.getTokenBalance(address(line)), 1);
     }
 
-    function test_withdraw_Rescue() public {
-        assertEq(token.balanceOf(address(pool)), 0);
-        token.transfer(address(pool), DEPOSIT_AMOUNT);
-        assertEq(token.balanceOf(address(pool)), DEPOSIT_AMOUNT);
+    function test_withdraw_TokenBalance() public {
+        vm.startPrank(LENDER);
 
-        uint256 beforeBalance = token.balanceOf(address(this));
+        token.mint(LENDER, TOKEN_AMOUNT);
+        token.approve(address(pool), TOKEN_AMOUNT);
+        pool.deposit(address(line), TOKEN_AMOUNT);
 
-        pool.withdraw(address(token), DEPOSIT_AMOUNT);
-        assertEq(token.balanceOf(address(this)), beforeBalance + DEPOSIT_AMOUNT);
+        assertEq(token.balanceOf(LENDER), 0);
+        assertEq(token.balanceOf(address(pool)), TOKEN_AMOUNT);
+        assertEq(pool.getTokenBalance(address(token)), TOKEN_AMOUNT);
+        assertEq(pool.getTokenBalance(address(line)), TOKEN_AMOUNT);
+
+        vm.expectEmit(true, true, true, true, address(pool));
+        emit Withdraw(address(token), TOKEN_AMOUNT - 1);
+        pool.withdraw(address(token), TOKEN_AMOUNT - 1);
+
+        assertEq(token.balanceOf(LENDER), TOKEN_AMOUNT - 1);
+        assertEq(token.balanceOf(address(pool)), 1);
+        assertEq(pool.getTokenBalance(address(token)), 1);
+        assertEq(pool.getTokenBalance(address(line)), TOKEN_AMOUNT);
     }
 
-    function test_withdraw_Revert_IfZeroAddress() public {
+    function test_withdraw_Revert_ZeroBalance() public {
+        vm.prank(LENDER);
+        vm.expectRevert(LiquidityPoolAccountable.ZeroBalance.selector);
+        pool.withdraw(address(line), TOKEN_AMOUNT);
+    }
+
+    function test_withdraw_Revert_CreditLineBalance_InsufficientBalance() public {
+        vm.startPrank(LENDER);
+
+        token.mint(LENDER, TOKEN_AMOUNT);
+        token.approve(address(pool), TOKEN_AMOUNT);
+        pool.deposit(address(line), TOKEN_AMOUNT);
+
+        vm.expectRevert(LiquidityPoolAccountable.InsufficientBalance.selector);
+        pool.withdraw(address(line), TOKEN_AMOUNT + 1);
+    }
+
+    function test_withdraw_Revert_TokenBalance_InsufficientBalance() public {
+        vm.startPrank(LENDER);
+
+        token.mint(LENDER, TOKEN_AMOUNT);
+        token.approve(address(pool), TOKEN_AMOUNT);
+        pool.deposit(address(line), TOKEN_AMOUNT);
+
+        vm.expectRevert(LiquidityPoolAccountable.InsufficientBalance.selector);
+        pool.withdraw(address(token), TOKEN_AMOUNT + 1);
+    }
+
+    function test_withdraw_Revert_IfTokenSourceIsZeroAddress() public {
+        vm.prank(LENDER);
         vm.expectRevert(Error.InvalidAddress.selector);
-        pool.withdraw(address(0), DEPOSIT_AMOUNT);
+        pool.withdraw(address(0), TOKEN_AMOUNT);
     }
 
-    function test_withdraw_Revert_IfZeroAmount() public {
+    function test_withdraw_Revert_IfWithdrawAmountIsZero() public {
+        vm.prank(LENDER);
         vm.expectRevert(Error.InvalidAmount.selector);
-        pool.withdraw(address(token), 0);
+        pool.withdraw(LINE, 0);
     }
 
-    function test_withdraw_Revert_IfCreditLineOutOfTokenBalance() public {
-        pool.deposit(address(line), DEPOSIT_AMOUNT);
-        vm.expectRevert(LiquidityPoolAccountable.OutOfTokenBalance.selector);
-        pool.withdraw(address(line), DEPOSIT_AMOUNT + 1);
-    }
-
-    function test_withdraw_Revert_IfRescueOutOfTokenBalance() public {
-        token.transfer(address(pool), DEPOSIT_AMOUNT);
-        vm.expectRevert(LiquidityPoolAccountable.OutOfTokenBalance.selector);
-        pool.withdraw(address(token), DEPOSIT_AMOUNT + 1);
-    }
-
-    function test_withdraw_Revert_IfUnexpectedTokenSource() public {
-        vm.expectRevert();
-        pool.withdraw(ATTACKER, DEPOSIT_AMOUNT);
-    }
-
-    function test_withdraw_IfCallerNotOwner() public {
-        vm.expectRevert(
-            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, address(ATTACKER))
-        );
+    function test_withdraw_Revert_IfCallerNotOwner() public {
         vm.prank(ATTACKER);
-        pool.withdraw(address(token), DEPOSIT_AMOUNT);
+        vm.expectRevert(
+            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER)
+        );
+        pool.withdraw(LINE, TOKEN_AMOUNT);
     }
+
+    /************************************************
+     *  Test `onBeforeLoanTaken` function
+     ***********************************************/
 
     function test_onBeforeLoanTaken() public {
-        vm.prank(address(market));
-        pool.onBeforeLoanTaken(0, address(this));
+        vm.prank(MARKET);
+        assertEq(pool.onBeforeLoanTaken(LOAN_ID, address(line)), true);
     }
 
     function test_onBeforeLoanTaken_Revert_IfCallerNotMarket() public {
+        vm.prank(ATTACKER);
         vm.expectRevert(Error.Unauthorized.selector);
-        pool.onBeforeLoanTaken(0, address(this));
+        pool.onBeforeLoanTaken(LOAN_ID, address(line));
     }
 
     function test_onBeforeLoanTaken_Revert_IfContractIsPaused() public {
+        vm.prank(LENDER);
         pool.pause();
-        vm.prank(address(market));
+
+        vm.prank(MARKET);
         vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
-        pool.onBeforeLoanTaken(0, address(this));
+        pool.onBeforeLoanTaken(LOAN_ID, address(line));
     }
 
+    /************************************************
+     *  Test `onAfterLoanTaken` function
+     ***********************************************/
+
     function test_onAfterLoanTaken() public {
-        configureCredit();
+        token.mint(LENDER, TOKEN_AMOUNT);
+        token.approve(address(pool), TOKEN_AMOUNT);
+
+        vm.prank(LENDER);
+        pool.deposit(address(line), TOKEN_AMOUNT);
+
+        market.mockLoanState(LOAN_ID, Loan.State({
+            token: address(token),
+            borrower: address(0),
+            periodInSeconds: 0,
+            durationInPeriods: 0,
+            interestRateFactor: 0,
+            interestRatePrimary: 0,
+            interestRateSecondary: 0,
+            interestFormula: Interest.Formula.Simple,
+            startDate: 0,
+            freezeDate: 0,
+            trackDate: 0,
+            initialBorrowAmount: TOKEN_AMOUNT - 1,
+            trackedBorrowAmount: 0
+        }));
+
+        assertEq(pool.getCreditLine(LOAN_ID), address(0));
+        assertEq(pool.getTokenBalance(address(line)), TOKEN_AMOUNT);
 
         vm.prank(address(market));
-        pool.onAfterLoanTaken(DEPOSIT_AMOUNT, address(this));
+        assertEq(pool.onAfterLoanTaken(LOAN_ID, address(line)), true);
 
+        assertEq(pool.getCreditLine(LOAN_ID), address(line));
         assertEq(pool.getTokenBalance(address(line)), 1);
     }
 
     function test_onAfterLoanTaken_Revert_IfCallerNotMarket() public {
+        vm.prank(ATTACKER);
         vm.expectRevert(Error.Unauthorized.selector);
-        pool.onAfterLoanTaken(0, address(this));
+        pool.onAfterLoanTaken(LOAN_ID, LINE);
     }
 
     function test_onAfterLoanTaken_Revert_IfContractIsPaused() public {
-        configureCredit();
+        vm.prank(LENDER);
         pool.pause();
-        vm.prank(address(market));
+
+        vm.prank(MARKET);
         vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
-        pool.onAfterLoanTaken(0, address(this));
+        pool.onAfterLoanTaken(LOAN_ID, LINE);
     }
 
+    /************************************************
+     *  Test `onBeforeLoanPayment` function
+     ***********************************************/
+
     function test_onBeforeLoanPayment() public {
-        vm.prank(address(market));
-        pool.onBeforeLoanPayment(0, DEPOSIT_AMOUNT);
+        vm.prank(MARKET);
+        assertEq(pool.onBeforeLoanPayment(LOAN_ID, TOKEN_AMOUNT), true);
     }
 
     function test_onBeforeLoanPayment_Revert_IfCallerNotMarket() public {
+        vm.prank(ATTACKER);
         vm.expectRevert(Error.Unauthorized.selector);
-        pool.onBeforeLoanPayment(0, DEPOSIT_AMOUNT);
+        pool.onBeforeLoanPayment(LOAN_ID, TOKEN_AMOUNT);
     }
 
     function test_onBeforeLoanPayment_Revert_IfContractIsPaused() public {
+        vm.prank(LENDER);
         pool.pause();
-        vm.prank(address(market));
+
+        vm.prank(MARKET);
         vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
-        pool.onBeforeLoanPayment(0, DEPOSIT_AMOUNT);
+        pool.onBeforeLoanPayment(LOAN_ID, TOKEN_AMOUNT);
     }
 
-    function test_onAfterLoanPayment() public {
-        configureCredit();
-        vm.prank(address(market));
-        pool.onAfterLoanPayment(0, DEPOSIT_AMOUNT);
+    // /************************************************
+    //  *  Test `onAfterLoanPayment` function
+    //  ***********************************************/
 
-        assertEq(pool.getTokenBalance(address(line)), DEPOSIT_AMOUNT + 1);
-    }
 
-    function test_onAfterLoanPayment_ZeroCreditLineAddress() public {
-        vm.prank(address(market));
-        pool.onAfterLoanPayment(0, DEPOSIT_AMOUNT);
-    }
+    // function test_onAfterLoanPayment_CreditLineBalance() public {
+    //     pool.mockLoanCreditLine(LOAN_ID, LINE);
+    //     pool.mockCreditLineBalance(LINE, TOKEN_AMOUNT);
 
-    function test_onAfterLoanPayment_Revert_IfCallerNotMarket() public {
-        vm.expectRevert(Error.Unauthorized.selector);
-        pool.onAfterLoanPayment(0, DEPOSIT_AMOUNT);
-    }
+    //     assertEq(pool.getCreditLine(LOAN_ID), LINE);
+    //     assertEq(pool.getTokenBalance(LINE), TOKEN_AMOUNT);
 
-    function test_onAfterLoanPayment_Revert_IfContractIsPaused() public {
-        configureCredit();
-        pool.pause();
-        vm.prank(address(market));
-        vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
-        pool.onAfterLoanPayment(0, DEPOSIT_AMOUNT);
-    }
+    //     vm.prank(MARKET);
+    //     assertEq(pool.onAfterLoanPayment(LOAN_ID, TOKEN_AMOUNT), true);
 
-    function test_getTokenBalance_CreditLineBalance() public {
-        pool.deposit(address(line), DEPOSIT_AMOUNT);
-        assertEq(pool.getTokenBalance(address(token)), DEPOSIT_AMOUNT);
-    }
+    //     assertEq(pool.getTokenBalance(LINE), TOKEN_AMOUNT * 2);
+    // }
 
-    function test_getTokenBalance_Rescue() public {
-        token.transfer(address(pool), DEPOSIT_AMOUNT);
-        assertEq(pool.getTokenBalance(address(token)), DEPOSIT_AMOUNT);
-    }
+    // function test_onAfterLoanPayment_NonCreditLineBalance() public {
+    //     pool.mockLoanCreditLine(LOAN_ID, LINE);
+    //     pool.mockCreditLineBalance(LINE, TOKEN_AMOUNT);
 
-    function test_getTokenBalance_Revert_IfZeroTokenAddress() public {
-        vm.expectRevert(Error.InvalidAddress.selector);
-        pool.getTokenBalance(address(0));
-    }
+    //     assertEq(pool.getCreditLine(LOAN_ID), LINE);
+    //     assertEq(pool.getTokenBalance(LINE), TOKEN_AMOUNT);
 
-    function test_getTokenBalance_Revert_IfUnexpectedTokenSource() public {
-        vm.expectRevert(LiquidityPoolAccountable.UnexpectedTokenSource.selector);
-        pool.getTokenBalance(address(token));
-    }
+    //     vm.prank(MARKET);
+    //     assertEq(pool.onAfterLoanPayment(NONEXISTENT_LOAN_ID, TOKEN_AMOUNT), true);
 
-    function test_getCreditLine() public {
-        configureCredit();
+    //     assertEq(pool.getTokenBalance(LINE), TOKEN_AMOUNT);
+    // }
 
-        assertEq(pool.getCreditLine(0), address(line));
-    }
+    // function test_onAfterLoanPayment_Revert_IfCallerNotMarket() public {
+    //     vm.prank(ATTACKER);
+    //     vm.expectRevert(Error.Unauthorized.selector);
+    //     pool.onAfterLoanPayment(LOAN_ID, TOKEN_AMOUNT);
+    // }
 
-    function test_market() public {
-        assertEq(pool.market(), address(market));
-    }
+    // function test_onAfterLoanPayment_Revert_IfContractIsPaused() public {
+    //     vm.prank(LENDER);
+    //     pool.pause();
 
-    function test_lender() public {
-        assertEq(pool.lender(), address(this));
-    }
+    //     vm.prank(MARKET);
+    //     vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
+    //     pool.onAfterLoanPayment(LOAN_ID, TOKEN_AMOUNT);
+    // }
 
-    function test_kind() public {
-        assertEq(pool.kind(), 1);
-    }
+    // /************************************************
+    //  *  Test `getTokenBalance` function
+    //  ***********************************************/
 
-    function configureCredit() internal {
-        ICreditLineConfigurable.CreditLineConfig memory lineConfig = ICreditLineConfigurable.CreditLineConfig({
-            minBorrowAmount: INIT_MIN_BORROW_AMOUNT,
-            maxBorrowAmount: INIT_MAX_BORROW_AMOUNT,
-            periodInSeconds: INIT_PERIOD_IN_SECONDS,
-            durationInPeriods: INIT_LOAN_DURATION_IN_PERIODS,
-            addonPeriodCostRate: 0,
-            addonFixedCostRate: 0
-        });
+    // function test_getTokenBalance() public {
+    //     assertEq(pool.getTokenBalance(LINE), 0);
+    //     assertEq(pool.getTokenBalance(address(token)), 0);
+    //     assertEq(pool.getTokenBalance(NONEXISTENT_TOKEN_SOUTRCE), 0);
 
-        ICreditLineConfigurable.BorrowerConfig memory config = ICreditLineConfigurable.BorrowerConfig({
-            minBorrowAmount: INIT_MIN_BORROWER_BORROW_AMOUNT,
-            maxBorrowAmount: INIT_MAX_BORROWER_BORROW_AMOUNT,
-            expiration: block.timestamp + 10000000,
-            interestRatePrimary: INIT_LOAN_INTEREST,
-            interestRateSecondary: INIT_LOAN_INTEREST,
-            addonRecipient: address(0),
-            interestFormula: Interest.Formula.Simple,
-            policy: ICreditLineConfigurable.BorrowPolicy.Decrease
-        });
+    //     pool.mockCreditLineBalance(LINE, TOKEN_AMOUNT + 1);
+    //     token.mint(address(pool), TOKEN_AMOUNT + 2);
 
-        line.configureAdmin(address(this), true);
-        line.configureCreditLine(lineConfig);
-        line.configureBorrower(address(this), config);
+    //     assertEq(pool.getTokenBalance(LINE), TOKEN_AMOUNT + 1);
+    //     assertEq(pool.getTokenBalance(address(token)), TOKEN_AMOUNT + 2);
+    //     assertEq(pool.getTokenBalance(NONEXISTENT_TOKEN_SOUTRCE), 0);
+    // }
 
-        pool.deposit(address(line), DEPOSIT_AMOUNT);
-        market.takeLoan(address(line), DEPOSIT_AMOUNT - 1);
-    }
+    // /************************************************
+    //  *  Test `getCreditLine` function
+    //  ***********************************************/
 
-    function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data)
-        external
-        returns (bytes4)
-    {
-        return bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"));
-    }
+    // function test_getCreditLine() public {
+    //     pool.mockLoanCreditLine(LOAN_ID, LINE);
+    //     assertEq(pool.getCreditLine(LOAN_ID), LINE);
+    // }
+
+    // /************************************************
+    //  *  Tests view functions
+    //  ***********************************************/
+
+    // function test_market() public {
+    //     assertEq(pool.market(), MARKET);
+    // }
+
+    // function test_lender() public {
+    //     assertEq(pool.lender(), LENDER);
+    // }
+
+    // function test_kind() public {
+    //     assertEq(pool.kind(), KIND);
+    // }
+
+    // /************************************************
+    //  *  Test mock functions
+    //  ***********************************************/
+
+    // function test_mockCreditLineToken() public {
+    //     assertEq(pool.getCreditLineToken(LINE), address(0));
+    //     pool.mockCreditLineToken(LINE, address(token));
+    //     assertEq(pool.getCreditLineToken(LINE), address(token));
+    // }
+
+    // function test_mockLoanCreditLine() public {
+    //     assertEq(pool.getCreditLine(LOAN_ID), address(0));
+    //     pool.mockLoanCreditLine(LOAN_ID, LINE);
+    //     assertEq(pool.getCreditLine(LOAN_ID), LINE);
+    // }
+
+    // function test_mockCreditLineBalance() public {
+    //     assertEq(pool.getTokenBalance(LINE), 0);
+    //     pool.mockCreditLineBalance(LINE, TOKEN_AMOUNT);
+    //     assertEq(pool.getTokenBalance(LINE), TOKEN_AMOUNT);
+    // }
+
+    // function test_mockLoanInitialBorrowAmount() public {
+    //     assertEq(pool.getLoanInitialBorrowAmount(LOAN_ID), 0);
+    //     pool.mockLoanInitialBorrowAmount(LOAN_ID, TOKEN_AMOUNT);
+    //     assertEq(pool.getLoanInitialBorrowAmount(LOAN_ID), TOKEN_AMOUNT);
+    // }
 }

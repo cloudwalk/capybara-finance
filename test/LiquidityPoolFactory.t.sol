@@ -65,7 +65,7 @@ contract LiquidityPoolFactoryTest is Test {
     function test_createLiquidityPool() public {
         vm.prank(REGISTRY);
         vm.expectEmit(true, true, true, true, address(factory));
-        emit LiquidityPoolCreated(REGISTRY, LENDER, LIQUIDITY_POOL_KIND_OK, CREATED_LIQUIDITY_POOL_ADDRESS);
+        emit LiquidityPoolCreated(MARKET, LENDER, LIQUIDITY_POOL_KIND_OK, CREATED_LIQUIDITY_POOL_ADDRESS);
         address pool = factory.createLiquidityPool(MARKET, LENDER, LIQUIDITY_POOL_KIND_OK, CREATE_DATA);
 
         assertEq(LiquidityPoolAccountable(pool).lender(), LENDER);

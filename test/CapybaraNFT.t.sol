@@ -8,7 +8,7 @@ import {LiquidityPoolAccountable} from "../src/pools/LiquidityPoolAccountable.so
 import {CreditLineConfigurable} from "../src/lines/CreditLineConfigurable.sol";
 import {CapybaraNFT} from "../src/CapybaraNFT.sol";
 import {LendingRegistry} from "../src/LendingRegistry.sol";
-import {Token} from "./mocks/Token.sol";
+import {ERC20Mintable} from "./mocks/ERC20Mintable.sol";
 import {LendingMarket} from "../src/LendingMarket.sol";
 
 import {Error} from "../src/libraries/Error.sol";
@@ -28,7 +28,7 @@ contract CapybaraNftTest is Test {
 
     LiquidityPoolAccountable public pool;
     CreditLineConfigurable public line;
-    Token public token;
+    ERC20Mintable public token;
     LendingMarket public marketLogic;
     LendingMarket public market;
     CapybaraNFT public nftLogic;
@@ -37,7 +37,7 @@ contract CapybaraNftTest is Test {
     LendingRegistry public registry;
 
     function setUp() public {
-        token = new Token(MINT_AMOUNT);
+        token = new ERC20Mintable(MINT_AMOUNT);
         nftLogic = new CapybaraNFT();
         marketLogic = new LendingMarket();
         registryLogic = new LendingRegistry();
@@ -105,7 +105,7 @@ contract CapybaraNftTest is Test {
 
     function test_pause_Revert_IfCallerNotOwner() public {
         vm.expectRevert(
-            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, address(ATTACKER))
+            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER)
         );
         vm.prank(ATTACKER);
         nft.pause();
@@ -129,7 +129,7 @@ contract CapybaraNftTest is Test {
     function test_unpause_Revert_IfCallerNotOwner() public {
         nft.pause();
         vm.expectRevert(
-            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, address(ATTACKER))
+            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER)
         );
         vm.prank(ATTACKER);
         nft.unpause();

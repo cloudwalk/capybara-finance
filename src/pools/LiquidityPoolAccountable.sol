@@ -18,11 +18,11 @@ import {ILendingMarket} from "../interfaces/core/ILendingMarket.sol";
 /// @title LiquidityPoolAccountable contract
 /// @notice Implementation of the accountable liquidity pool contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-contract LiquidityPoolAccountable is Ownable, Pausable, ILiquidityPoolAccountable, ILiquidityPool {
+contract LiquidityPoolAccountable is Ownable, Pausable, ILiquidityPool, ILiquidityPoolAccountable {
     using SafeERC20 for IERC20;
 
     /************************************************
-     *  STORAGE
+     *  Storage
      ***********************************************/
 
     /// @notice The address of the associated lending market
@@ -34,18 +34,15 @@ contract LiquidityPoolAccountable is Ownable, Pausable, ILiquidityPoolAccountabl
     /// @notice Mapping of credit line address to its token balance
     mapping(address => uint256) internal _creditLineBalances;
 
-    /// @notice Mapping of non credit line to its token balance
-    mapping(address => uint256) internal _nonCreditLineBalances;
-
     /************************************************
-     *  ERRORS
+     *  Errors
      ***********************************************/
 
-    /// @notice Thrown when the token source is not expected
-    error UnexpectedTokenSource();
+    /// @notice Thrown when the token source balance is zero
+    error ZeroBalance();
 
-    /// @notice Thrown when the token balance is not enough
-    error OutOfTokenBalance();
+    /// @notice Thrown when the token source balance is insufficient
+    error InsufficientBalance();
 
     /************************************************
      *  MODIFIERS
@@ -60,7 +57,7 @@ contract LiquidityPoolAccountable is Ownable, Pausable, ILiquidityPoolAccountabl
     }
 
     /************************************************
-     *  CONSTRUCTOR
+     *  Constructor
      ***********************************************/
 
     /// @notice Contract constructor
@@ -78,7 +75,7 @@ contract LiquidityPoolAccountable is Ownable, Pausable, ILiquidityPoolAccountabl
     }
 
     /************************************************
-     *  OWNER FUNCTIONS
+     *  Owner functions
      ***********************************************/
 
     /// @notice Pauses the contract
@@ -100,15 +97,15 @@ contract LiquidityPoolAccountable is Ownable, Pausable, ILiquidityPoolAccountabl
             revert Error.InvalidAmount();
         }
 
-        address token = ICreditLine(creditLine).token();
+        IERC20 token = IERC20(_creditLineToken(creditLine));
 
-        if (IERC20(token).allowance(address(this), _market) == 0) {
-            IERC20(token).approve(_market, type(uint256).max);
+        if (token.allowance(address(this), _market) == 0) {
+            token.approve(_market, type(uint256).max);
         }
 
         _creditLineBalances[creditLine] += amount;
 
-        IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
+        token.safeTransferFrom(msg.sender, address(this), amount);
 
         emit Deposit(creditLine, amount);
     }
@@ -122,55 +119,33 @@ contract LiquidityPoolAccountable is Ownable, Pausable, ILiquidityPoolAccountabl
             revert Error.InvalidAmount();
         }
 
-        // withdraw from credit line balance
+        // Withdraw credit line balance
         uint256 balance = _creditLineBalances[tokenSource];
         if (balance != 0) {
             if (balance < amount) {
-                revert OutOfTokenBalance();
+                revert InsufficientBalance();
             }
-
             _creditLineBalances[tokenSource] -= amount;
-
-            address token = ICreditLine(tokenSource).token();
-            IERC20(token).safeTransfer(msg.sender, amount);
-
+            IERC20(_creditLineToken(tokenSource)).safeTransfer(msg.sender, amount);
             emit Withdraw(tokenSource, amount);
-
             return;
         }
 
-        // withdraw from non credit line balance
-        balance = _nonCreditLineBalances[tokenSource];
-        if (balance != 0) {
+        // Withdraw token balance
+        bytes memory data = abi.encodeWithSelector(IERC20.balanceOf.selector, address(this));
+        (bool success, bytes memory returnData) = tokenSource.staticcall(data);
+        if (success && returnData.length == 32) {
+            balance = abi.decode(returnData, (uint256));
             if (balance < amount) {
-                revert OutOfTokenBalance();
+                revert InsufficientBalance();
             }
-
-            _nonCreditLineBalances[tokenSource] -= amount;
-
             IERC20(tokenSource).safeTransfer(msg.sender, amount);
-
             emit Withdraw(tokenSource, amount);
-
             return;
-        }
+        } else { }
 
-        // rescue tokens
-        balance = IERC20(tokenSource).balanceOf(address(this));
-        if (balance != 0) {
-            if (balance < amount) {
-                revert OutOfTokenBalance();
-            }
-
-            IERC20(tokenSource).safeTransfer(msg.sender, amount);
-
-            emit Withdraw(tokenSource, amount);
-
-            return;
-        }
-
-        // revert
-        revert UnexpectedTokenSource();
+        // Revert with zero balance error
+        revert ZeroBalance();
     }
 
     /************************************************
@@ -178,26 +153,30 @@ contract LiquidityPoolAccountable is Ownable, Pausable, ILiquidityPoolAccountabl
      ***********************************************/
 
     /// @inheritdoc ILiquidityPool
-    function onBeforeLoanTaken(uint256 loanId, address creditLine) external whenNotPaused onlyMarket {}
-
-    /// @inheritdoc ILiquidityPool
-    function onAfterLoanTaken(uint256 loanId, address creditLine) external whenNotPaused onlyMarket {
-        Loan.State memory loan = ILendingMarket(_market).getLoanStored(loanId);
-        _creditLineBalances[creditLine] -= loan.initialBorrowAmount;
-        _creditLines[loanId] = creditLine;
+    function onBeforeLoanTaken(uint256 loanId, address creditLine) external whenNotPaused onlyMarket returns (bool) {
+        return true;
     }
 
     /// @inheritdoc ILiquidityPool
-    function onBeforeLoanPayment(uint256 loanId, uint256 amount) external whenNotPaused onlyMarket {}
+    function onAfterLoanTaken(uint256 loanId, address creditLine) external whenNotPaused onlyMarket returns (bool) {
+        _creditLineBalances[creditLine] -= _loanInitialBorrowAmount(loanId);
+        _creditLines[loanId] = creditLine;
+        return true;
+    }
 
     /// @inheritdoc ILiquidityPool
-    function onAfterLoanPayment(uint256 loanId, uint256 amount) external whenNotPaused onlyMarket {
+    function onBeforeLoanPayment(uint256 loanId, uint256 amount) external whenNotPaused onlyMarket returns (bool) {
+        return true;
+    }
+
+    /// @inheritdoc ILiquidityPool
+    function onAfterLoanPayment(uint256 loanId, uint256 amount) external whenNotPaused onlyMarket returns (bool) {
         address creditLine = _creditLines[loanId];
         if (creditLine != address(0)) {
             _creditLineBalances[creditLine] += amount;
+            return true;
         } else {
-            Loan.State memory loan = ILendingMarket(_market).getLoanStored(loanId);
-            _nonCreditLineBalances[loan.token] += amount;
+            return true;
         }
     }
 
@@ -207,30 +186,20 @@ contract LiquidityPoolAccountable is Ownable, Pausable, ILiquidityPoolAccountabl
 
     /// @inheritdoc ILiquidityPoolAccountable
     function getTokenBalance(address tokenSource) external view returns (uint256) {
-        if (tokenSource == address(0)) {
-            revert Error.InvalidAddress();
-        }
-
-        // credit line balance
+        // Return credit line balance
         uint256 balance = _creditLineBalances[tokenSource];
         if (balance != 0) {
             return balance;
         }
 
-        // non credit line balance
-        balance = _nonCreditLineBalances[tokenSource];
-        if (balance != 0) {
-            return balance;
+        // Return token balance
+        bytes memory data = abi.encodeWithSelector(IERC20.balanceOf.selector, address(this));
+        (bool success, bytes memory returnData) = tokenSource.staticcall(data);
+        if (success && returnData.length == 32) {
+            return abi.decode(returnData, (uint256));
+        } else {
+            return 0;
         }
-
-        // native token balance
-        balance = IERC20(tokenSource).balanceOf(address(this));
-        if (balance != 0) {
-            return balance;
-        }
-
-        // revert
-        revert UnexpectedTokenSource();
     }
 
     /// @inheritdoc ILiquidityPoolAccountable
@@ -251,5 +220,13 @@ contract LiquidityPoolAccountable is Ownable, Pausable, ILiquidityPoolAccountabl
     /// @inheritdoc ILiquidityPool
     function kind() external pure returns (uint16) {
         return 1;
+    }
+
+    function _loanInitialBorrowAmount(uint256 loanId) internal virtual view returns (uint256) {
+        return ILendingMarket(_market).getLoanStored(loanId).initialBorrowAmount;
+    }
+
+    function _creditLineToken(address creditLine) internal virtual view returns (address) {
+        return ICreditLine(creditLine).token();
     }
 }

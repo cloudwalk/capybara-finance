@@ -11,7 +11,7 @@ import {Interest} from "src/libraries/Interest.sol";
 import {Loan} from "src/libraries/Loan.sol";
 import {CapybaraNFT} from "../src/CapybaraNFT.sol";
 import {LendingRegistry} from "../src/LendingRegistry.sol";
-import {Token} from "./mocks/Token.sol";
+import {ERC20Mintable} from "./mocks/ERC20Mintable.sol";
 import {LendingRegistry} from "../src/LendingRegistry.sol";
 import {LendingMarket} from "../src/LendingMarket.sol";
 
@@ -64,7 +64,7 @@ contract LendingMarketTest is Test {
 
     LiquidityPoolAccountable public pool;
     CreditLineConfigurable public line;
-    Token public token;
+    ERC20Mintable public token;
     LendingMarket public marketLogic;
     LendingMarket public market;
     CapybaraNFT public nftLogic;
@@ -73,7 +73,7 @@ contract LendingMarketTest is Test {
     LendingRegistry public registry;
 
     function setUp() public {
-        token = new Token(MINT_AMOUNT);
+        token = new ERC20Mintable(MINT_AMOUNT);
         nftLogic = new CapybaraNFT();
         marketLogic = new LendingMarket();
         registryLogic = new LendingRegistry();
@@ -123,7 +123,7 @@ contract LendingMarketTest is Test {
         assertEq(market.paused(), false);
         vm.prank(ATTACKER);
         vm.expectRevert(
-            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, address(ATTACKER))
+            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER)
         );
         market.pause();
     }
@@ -153,7 +153,7 @@ contract LendingMarketTest is Test {
         market.pause();
         vm.prank(ATTACKER);
         vm.expectRevert(
-            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, address(ATTACKER))
+            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER)
         );
         market.unpause();
     }
