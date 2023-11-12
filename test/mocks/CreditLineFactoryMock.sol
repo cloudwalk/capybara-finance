@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.20;
 
-import {ICreditLineFactory} from "../interfaces/ICreditLineFactory.sol";
+import {ICreditLineFactory} from "src/interfaces/ICreditLineFactory.sol";
 
 
 contract CreditLineFactoryMock is ICreditLineFactory {

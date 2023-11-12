@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.20;
 
-import {ILiquidityPoolFactory} from "../interfaces/ILiquidityPoolFactory.sol";
+import {ILiquidityPoolFactory} from "src/interfaces/ILiquidityPoolFactory.sol";
 
 contract LiquidityPoolFactoryMock is ILiquidityPoolFactory {
     error NotImplemented();

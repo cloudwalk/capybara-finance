@@ -9,11 +9,11 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
-import {Error} from "../src/libraries/Error.sol";
-import {LendingRegistry} from "../src/LendingRegistry.sol";
-import {LendingMarketMock} from "../src/LendingMarketMock.sol";
-import {CreditLineFactoryMock} from "../src/lines/CreditLineFactoryMock.sol";
-import {LiquidityPoolFactoryMock} from "../src/pools/LiquidityPoolFactoryMock.sol";
+import {Error} from "src/libraries/Error.sol";
+import {LendingRegistry} from "src/LendingRegistry.sol";
+import {LendingMarketMock} from "./mocks/LendingMarketMock.sol";
+import {CreditLineFactoryMock} from "./mocks/CreditLineFactoryMock.sol";
+import {LiquidityPoolFactoryMock} from "./mocks/LiquidityPoolFactoryMock.sol";
 
 contract LendingRegistryTest is Test {
 

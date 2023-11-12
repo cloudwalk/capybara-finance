@@ -4,23 +4,23 @@ pragma solidity 0.8.20;
 
 import "forge-std/Test.sol";
 
-import {LiquidityPoolAccountable} from "../src/pools/LiquidityPoolAccountable.sol";
-import {CreditLineConfigurable} from "../src/lines/CreditLineConfigurable.sol";
-import {ICreditLineConfigurable} from "src/interfaces/ICreditLineConfigurable.sol";
-import {Interest} from "src/libraries/Interest.sol";
-import {Loan} from "src/libraries/Loan.sol";
-import {CapybaraNFT} from "../src/CapybaraNFT.sol";
-import {LendingRegistry} from "../src/LendingRegistry.sol";
-import {ERC20Mintable} from "./mocks/ERC20Mintable.sol";
-import {LendingRegistry} from "../src/LendingRegistry.sol";
-import {LendingMarket} from "../src/LendingMarket.sol";
-
-import {Error} from "../src/libraries/Error.sol";
-
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
+
+import {LiquidityPoolAccountable} from "src/pools/LiquidityPoolAccountable.sol";
+import {CreditLineConfigurable} from "src/lines/CreditLineConfigurable.sol";
+import {ICreditLineConfigurable} from "src/interfaces/ICreditLineConfigurable.sol";
+import {Interest} from "src/libraries/Interest.sol";
+import {Loan} from "src/libraries/Loan.sol";
+import {CapybaraNFT} from "src/CapybaraNFT.sol";
+import {LendingRegistry} from "src/LendingRegistry.sol";
+import {LendingRegistry} from "src/LendingRegistry.sol";
+import {LendingMarket} from "src/LendingMarket.sol";
+import {ERC20Mintable} from "./mocks/ERC20Mintable.sol";
+
+import {Error} from "src/libraries/Error.sol";
 
 contract LendingMarketTest is Test {
     event CreditLineRegistered(address indexed lender, address indexed creditLine);

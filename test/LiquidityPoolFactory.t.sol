@@ -4,10 +4,11 @@ pragma solidity 0.8.20;
 
 import "forge-std/Test.sol";
 
-import {LiquidityPoolAccountable} from "../src/pools/LiquidityPoolAccountable.sol";
-import {LiquidityPoolFactory} from "../src/pools/LiquidityPoolFactory.sol";
-
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+
+import {LiquidityPoolAccountable} from "src/pools/LiquidityPoolAccountable.sol";
+import {LiquidityPoolFactory} from "src/pools/LiquidityPoolFactory.sol";
+
 
 /// @title LiquidityPoolFactoryTest contract
 /// @notice Tests for the LiquidityPoolFactory contract

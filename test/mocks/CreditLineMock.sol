@@ -5,11 +5,11 @@ pragma solidity 0.8.20;
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 
-import {Loan} from "../libraries/Loan.sol";
-import {Error} from "../libraries/Error.sol";
+import {Loan} from "src/libraries/Loan.sol";
+import {Error} from "src/libraries/Error.sol";
 
-import {ICreditLine} from "../interfaces/core/ICreditLine.sol";
-import {ICreditLineConfigurable} from "../interfaces/ICreditLineConfigurable.sol";
+import {ICreditLine} from "src/interfaces/core/ICreditLine.sol";
+import {ICreditLineConfigurable} from "src/interfaces/ICreditLineConfigurable.sol";
 
 
 contract CreditLineMock is ICreditLine {

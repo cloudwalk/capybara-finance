@@ -4,7 +4,6 @@ pragma solidity 0.8.20;
 
 import "forge-std/Test.sol";
 
-import {ERC20Mintable} from "./mocks/ERC20Mintable.sol";
 
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
@@ -12,9 +11,10 @@ import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Pau
 import {Loan} from "src/libraries/Loan.sol";
 import {Error} from "src/libraries/Error.sol";
 import {Interest} from "src/libraries/Interest.sol";
-import {LiquidityPoolAccountable} from "../src/pools/LiquidityPoolAccountable.sol";
-import {LendingMarketMock} from "../src/LendingMarketMock.sol";
-import {CreditLineMock} from "../src/lines/CreditLineMock.sol";
+import {LiquidityPoolAccountable} from "src/pools/LiquidityPoolAccountable.sol";
+import {LendingMarketMock} from "./mocks/LendingMarketMock.sol";
+import {CreditLineMock} from "./mocks/CreditLineMock.sol";
+import {ERC20Mintable} from "./mocks/ERC20Mintable.sol";
 
 contract LiquidityPoolAccountableTest is Test {
 

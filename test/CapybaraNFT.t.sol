@@ -4,19 +4,19 @@ pragma solidity 0.8.20;
 
 import "forge-std/Test.sol";
 
-import {LiquidityPoolAccountable} from "../src/pools/LiquidityPoolAccountable.sol";
-import {CreditLineConfigurable} from "../src/lines/CreditLineConfigurable.sol";
-import {CapybaraNFT} from "../src/CapybaraNFT.sol";
-import {LendingRegistry} from "../src/LendingRegistry.sol";
-import {ERC20Mintable} from "./mocks/ERC20Mintable.sol";
-import {LendingMarket} from "../src/LendingMarket.sol";
-
-import {Error} from "../src/libraries/Error.sol";
-
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
+
+import {LiquidityPoolAccountable} from "src/pools/LiquidityPoolAccountable.sol";
+import {CreditLineConfigurable} from "src/lines/CreditLineConfigurable.sol";
+import {CapybaraNFT} from "src/CapybaraNFT.sol";
+import {LendingRegistry} from "src/LendingRegistry.sol";
+import {ERC20Mintable} from "./mocks/ERC20Mintable.sol";
+import {LendingMarket} from "src/LendingMarket.sol";
+
+import {Error} from "src/libraries/Error.sol";
 
 contract CapybaraNftTest is Test {
     string public constant TOKEN_NAME = "CapybaraFinance";
