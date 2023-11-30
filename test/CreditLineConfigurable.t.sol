@@ -80,7 +80,8 @@ contract CreditLineConfigurableTest is Test {
      ***********************************************/
 
     function setUp() public {
-        creditLine = new CreditLineConfigurable(MARKET, LENDER);
+        creditLine = new CreditLineConfigurable();
+        creditLine.initialize(MARKET, LENDER);
     }
 
     function configureCreditLine() public returns (ICreditLineConfigurable.CreditLineConfig memory) {
@@ -169,20 +170,23 @@ contract CreditLineConfigurableTest is Test {
      ***********************************************/
 
     function test_constructor() public {
-        creditLine = new CreditLineConfigurable(MARKET, LENDER);
+        creditLine = new CreditLineConfigurable();
+        creditLine.initialize(MARKET, LENDER);
         assertEq(creditLine.market(), MARKET);
         assertEq(creditLine.lender(), LENDER);
         assertEq(creditLine.owner(), LENDER);
     }
 
     function test_constructor_Revert_IfMarketIsZeroAddress() public {
+        creditLine = new CreditLineConfigurable();
         vm.expectRevert(Error.ZeroAddress.selector);
-        creditLine = new CreditLineConfigurable(address(0), LENDER);
+        creditLine.initialize(address(0), LENDER);
     }
 
     function test_constructor_Revert_IfLenderIsZeroAddress() public {
+        creditLine = new CreditLineConfigurable();
         vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableInvalidOwner.selector, address(0)));
-        creditLine = new CreditLineConfigurable(MARKET, address(0));
+        creditLine.initialize(MARKET, address(0));
     }
 
     /************************************************

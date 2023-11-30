@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.20;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
 import {Loan} from "../libraries/Loan.sol";
 import {Error} from "../libraries/Error.sol";
@@ -13,7 +13,7 @@ import {ICreditLineConfigurable} from "../interfaces/ICreditLineConfigurable.sol
 /// @title CreditLineConfigurable contract
 /// @notice Implementation of the configurable credit line contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-contract CreditLineConfigurable is Ownable, Pausable, ICreditLine, ICreditLineConfigurable {
+contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICreditLine, ICreditLineConfigurable {
     /************************************************
      *  Storage
      ***********************************************/
@@ -22,7 +22,7 @@ contract CreditLineConfigurable is Ownable, Pausable, ICreditLine, ICreditLineCo
     uint256 public constant INTEREST_RATE_FACTOR = 10 ** 6;
 
     /// @notice The address of the associated lending market
-    address internal immutable _market;
+    address internal _market;
 
     /// @notice The address of the associated token
     address internal _token;
@@ -77,10 +77,36 @@ contract CreditLineConfigurable is Ownable, Pausable, ICreditLine, ICreditLineCo
      *  Constructor
      ***********************************************/
 
-    /// @notice Contract constructor
+    // /// @dev Constructor that prohibits the initialization of the implementation of the upgradable contract
+    // /// @custom:oz-upgrades-unsafe-allow constructor
+    // constructor() {
+    //     _disableInitializers();
+    // }
+
+    /************************************************
+     *  Initializers
+     ***********************************************/
+
+    /// @notice Initializer of the upgradable contract
     /// @param market_ The address of the associated lending market
     /// @param lender_ The address of the associated lender
-    constructor(address market_, address lender_) Ownable(lender_) {
+    function initialize(address market_, address lender_) external initializer {
+        __CreditLineConfigurable_init(market_, lender_);
+    }
+
+    /// @notice Internal initializer of the upgradable contract
+    /// @param market_ The address of the associated lending market
+    /// @param lender_ The address of the associated lender
+    function __CreditLineConfigurable_init(address market_, address lender_) internal onlyInitializing {
+        __Ownable_init_unchained(lender_);
+        __Pausable_init_unchained();
+        __CreditLineConfigurable_init_unchained(market_, lender_);
+    }
+
+    /// @notice Unchained internal initializer of the upgradable contract
+    /// @param market_ The address of the associated lending market
+    /// @param lender_ The address of the associated lender
+    function __CreditLineConfigurable_init_unchained(address market_, address lender_) internal onlyInitializing {
         if (market_ == address(0)) {
             revert Error.ZeroAddress();
         }

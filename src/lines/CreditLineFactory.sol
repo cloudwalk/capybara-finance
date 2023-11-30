@@ -37,15 +37,18 @@ contract CreditLineFactory is Ownable, ICreditLineFactory {
     function createCreditLine(address market, address lender, uint16 kind, bytes calldata data)
         external
         onlyOwner
-        returns (address creditLine)
+        returns (address)
     {
         if (kind != 1) {
             revert UnsupportedKind(kind);
         }
 
-        creditLine = address(new CreditLineConfigurable(market, lender));
+        CreditLineConfigurable creditLine = new CreditLineConfigurable();
+        creditLine.initialize(market, lender);
 
-        emit CreditLineCreated(market, lender, kind, creditLine);
+        emit CreditLineCreated(market, lender, kind, address(creditLine));
+
+        return address(creditLine);
     }
 
     /// @inheritdoc ICreditLineFactory
