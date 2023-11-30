@@ -7,7 +7,6 @@ import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 
 import {Loan} from "../libraries/Loan.sol";
 import {Error} from "../libraries/Error.sol";
-
 import {ICreditLine} from "../interfaces/core/ICreditLine.sol";
 import {ICreditLineConfigurable} from "../interfaces/ICreditLineConfigurable.sol";
 
@@ -83,12 +82,12 @@ contract CreditLineConfigurable is Ownable, Pausable, ICreditLine, ICreditLineCo
     /// @param lender_ The address of the associated lender
     constructor(address market_, address lender_) Ownable(lender_) {
         if (market_ == address(0)) {
-            revert Error.InvalidAddress();
+            revert Error.ZeroAddress();
         }
         if (lender_ == address(0)) {
             // This should never happen since the lender is the contract owner,
             // and the owner address is checked to be non-zero by the Ownable
-            revert Error.InvalidAddress();
+            revert Error.ZeroAddress();
         }
 
         _market = market_;
@@ -111,7 +110,7 @@ contract CreditLineConfigurable is Ownable, Pausable, ICreditLine, ICreditLineCo
     /// @inheritdoc ICreditLineConfigurable
     function configureToken(address token_) external onlyOwner {
         if (token_ == address(0)) {
-            revert Error.InvalidAddress();
+            revert Error.ZeroAddress();
         }
         if (_token != address(0)) {
             revert Error.AlreadyConfigured();
@@ -125,7 +124,7 @@ contract CreditLineConfigurable is Ownable, Pausable, ICreditLine, ICreditLineCo
     /// @inheritdoc ICreditLineConfigurable
     function configureAdmin(address admin, bool adminStatus) external onlyOwner {
         if (admin == address(0)) {
-            revert Error.InvalidAddress();
+            revert Error.ZeroAddress();
         }
         if (_admins[admin] == adminStatus) {
             revert Error.AlreadyConfigured();
@@ -198,7 +197,7 @@ contract CreditLineConfigurable is Ownable, Pausable, ICreditLine, ICreditLineCo
     /// @inheritdoc ICreditLine
     function determineLoanTerms(address borrower, uint256 amount) public view returns (Loan.Terms memory terms) {
         if (borrower == address(0)) {
-            revert Error.InvalidAddress();
+            revert Error.ZeroAddress();
         }
         if (amount == 0) {
             revert Error.InvalidAmount();
@@ -313,8 +312,15 @@ contract CreditLineConfigurable is Ownable, Pausable, ICreditLine, ICreditLineCo
     /// @param config The new borrower configuration
     function _configureBorrower(address borrower, BorrowerConfig memory config) internal {
         if (borrower == address(0)) {
-            revert Error.InvalidAddress();
+            revert Error.ZeroAddress();
         }
+
+        // TODO
+        // // Add more, expiration in past for example
+        // if(config.minBorrowAmount > config.maxBorrowAmount) {
+        //     revert InvalidBorrowerConfiguration("Min borrow amount cannot be greater than max borrow amount");
+        // }
+
         if (_config.addonPeriodCostRate != 0 || _config.addonFixedCostRate != 0) {
             if (config.addonRecipient == address(0)) {
                 revert InvalidCreditLineConfiguration("Addon recipient address cannot be zero");

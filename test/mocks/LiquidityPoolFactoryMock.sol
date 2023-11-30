@@ -4,8 +4,14 @@ pragma solidity 0.8.20;
 
 import {ILiquidityPoolFactory} from "src/interfaces/ILiquidityPoolFactory.sol";
 
+/// @title LiquidityPoolFactoryMock contract
+/// @notice Liquidity pool factory mock contract used for testing
+/// @author CloudWalk Inc. (See https://cloudwalk.io)
 contract LiquidityPoolFactoryMock is ILiquidityPoolFactory {
-    error NotImplemented();
+
+    /************************************************
+     *  Events
+     ***********************************************/
 
     event CreateLiquidityPoolCalled(
         address indexed market,
@@ -14,11 +20,21 @@ contract LiquidityPoolFactoryMock is ILiquidityPoolFactory {
         bytes data
     );
 
+    /************************************************
+     *  Errors
+     ***********************************************/
+
+    error NotImplemented();
+
+    /************************************************
+     *  Storage variables
+     ***********************************************/
+
     address _liquidityPoolAddress;
 
-    function setLiquidityPoolAddress(address liquidityPoolAddress) external {
-        _liquidityPoolAddress = liquidityPoolAddress;
-    }
+    /************************************************
+     *  ILiquidityPoolFactory functions
+     ***********************************************/
 
     function createLiquidityPool(
         address market,
@@ -32,5 +48,13 @@ contract LiquidityPoolFactoryMock is ILiquidityPoolFactory {
 
     function supportedKinds() external pure override returns (uint16[] memory) {
         revert NotImplemented();
+    }
+
+    /************************************************
+     *  Mock functions
+     ***********************************************/
+
+    function mockLiquidityPoolAddress(address liquidityPoolAddress) external {
+        _liquidityPoolAddress = liquidityPoolAddress;
     }
 }

@@ -23,61 +23,61 @@ interface ILendingMarket {
     event LiquidityPoolRegistered(address indexed lender, address indexed liquidityPool);
 
     /// @notice Emitted when a loan is taken
-    /// @param loandId The unique identifier of the loan
+    /// @param loanId The unique identifier of the loan
     /// @param borrower The address of the borrower
     /// @param borrowAmount The initial principal amount of the loan
-    event LoanTaken(uint256 indexed loandId, address indexed borrower, uint256 borrowAmount);
+    event LoanTaken(uint256 indexed loanId, address indexed borrower, uint256 borrowAmount);
 
-    /// @notice Emitted when a loan is repaid (fully)
-    /// @param loandId The unique identifier of the loan
-    event LoanRepaid(uint256 indexed loandId, address indexed borrower);
+    /// @notice Emitted when a loan is frozen
+    /// @param loanId The unique identifier of the loan
+    /// @param freezeDate The date when the loan was frozen
+    event LoanFrozen(uint256 indexed loanId, uint256 freezeDate);
+
+    /// @notice Emitted when a loan is unfrozen
+    /// @param loanId The unique identifier of the loan
+    /// @param unfreezeDate The date when the loan was unfrozen
+    event LoanUnfrozen(uint256 indexed loanId, uint256 unfreezeDate);
 
     /// @notice Emitted when a loan is repaid (fully or partially)
-    /// @param loandId The unique identifier of the loan
+    /// @param loanId The unique identifier of the loan
     /// @param repayer The address of the repayer
     /// @param borrower The address of the borrower
     /// @param repayAmount The amount of the repayment
     /// @param remainingBalance The remaining balance of the loan
-    event LoanRepayment(
-        uint256 indexed loandId,
+    event LoanRepaid(
+        uint256 indexed loanId,
         address indexed repayer,
         address indexed borrower,
         uint256 repayAmount,
         uint256 remainingBalance
     );
 
-    /// @notice Emitted when the status of the loan is changed
-    /// @param loandId The unique identifier of the loan
-    /// @param newStatus The new status of the loan
-    /// @param oldStatus The old status of the loan
-    event LoanStatusChanged(uint256 indexed loandId, Loan.Status indexed newStatus, Loan.Status indexed oldStatus);
-
     /// @notice Emitted when the duration of the loan is updated
-    /// @param loandId The unique identifier of the loan
+    /// @param loanId The unique identifier of the loan
     /// @param newDuration The new duration of the loan in periods
     /// @param oldDuration The old duration of the loan in periods
-    event LoanDurationUpdated(uint256 indexed loandId, uint256 indexed newDuration, uint256 indexed oldDuration);
+    event LoanDurationUpdated(uint256 indexed loanId, uint256 indexed newDuration, uint256 indexed oldDuration);
 
     /// @notice Emitted when the moratorium of the loan is updated
-    /// @param loandId The unique identifier of the loan
-    /// @param newMoratorium The new moratorium of the loan in periods
-    /// @param oldMoratorium The old moratorium of the loan in periods
-    event LoanMoratoriumUpdated(uint256 indexed loandId, uint256 indexed newMoratorium, uint256 indexed oldMoratorium);
+    /// @param loanId The unique identifier of the loan
+    /// @param fromDate The start date of the moratorium period
+    /// @param moratorimPeriods The number of periods of the moratorium
+    event LoanMoratoriumUpdated(uint256 indexed loanId, uint256 indexed fromDate, uint256 indexed moratorimPeriods);
 
     /// @notice Emitted when the primary interest rate of the loan is updated
-    /// @param loandId The unique identifier of the loan
+    /// @param loanId The unique identifier of the loan
     /// @param newInterestRate The new primary interest rate of the loan
     /// @param oldInterestRate The old primary interest rate of the loan
     event LoanInterestRatePrimaryUpdated(
-        uint256 indexed loandId, uint256 indexed newInterestRate, uint256 indexed oldInterestRate
+        uint256 indexed loanId, uint256 indexed newInterestRate, uint256 indexed oldInterestRate
     );
 
     /// @notice Emitted when the secondary interest rate of the loan is updated
-    /// @param loandId The unique identifier of the loan
+    /// @param loanId The unique identifier of the loan
     /// @param newInterestRate The new secondary interest rate of the loan
     /// @param oldInterestRate The old secondary interest rate of the loan
     event LoanInterestRateSecondaryUpdated(
-        uint256 indexed loandId, uint256 indexed newInterestRate, uint256 indexed oldInterestRate
+        uint256 indexed loanId, uint256 indexed newInterestRate, uint256 indexed oldInterestRate
     );
 
     /// @notice Emitted when the lender of the credit line is updated
@@ -87,9 +87,9 @@ interface ILendingMarket {
     event CreditLineLenderUpdated(address indexed creditLine, address indexed newLender, address indexed oldLender);
 
     /// @notice Emitted when the registry contract is updated
-    /// @param oldRegistry The address of the old registry
     /// @param newRegistry The address of the new registry
-    event RegistryUpdated(address indexed oldRegistry, address indexed newRegistry);
+    /// @param oldRegistry The address of the old registry
+    event RegistryUpdated(address indexed newRegistry, address indexed oldRegistry);
 
     /************************************************
      *  BORROWER FUNCTIONS
@@ -98,7 +98,8 @@ interface ILendingMarket {
     /// @notice Takes a loan from a credit line
     /// @param creditLine The address of the desired credit line
     /// @param amount The desired loan amount
-    function takeLoan(address creditLine, uint256 amount) external;
+    /// @return The unique identifier of the loan
+    function takeLoan(address creditLine, uint256 amount) external returns (uint256);
 
     /// @notice Repays a loan
     /// @param loanId The unique identifier of the loan to be repaid
@@ -158,21 +159,32 @@ interface ILendingMarket {
 
     /// @notice Retrieves the credit line lender
     /// @param creditLine The address of the credit line to check
-    /// @return The address of the lender associated with a credit line
     function getLender(address creditLine) external view returns (address);
 
     /// @notice Retrieves the lender's liquidity pool
     /// @param lender The address of the lender to check
-    /// @return The address of the liquidity pool associated with a lender
     function getLiquidityPool(address lender) external view returns (address);
-
-    /// @notice Retrieves the stored state of a loan
-    /// @param loanId The unique identifier of the loan to check
-    /// @return The struct containing the stored state of the loan
-    function getLoanStored(uint256 loanId) external view returns (Loan.State memory);
 
     /// @notice Retrieves the current state of a loan
     /// @param loanId The unique identifier of the loan to check
-    /// @return The struct containing the current state of the loan
-    function getLoanCurrent(uint256 loanId) external view returns (Loan.Status, Loan.State memory);
+    /// @return The struct containing the stored state of the loan
+    function getLoan(uint256 loanId) external view returns (Loan.State memory);
+
+    /// @notice Retrieves the preview state of a loan given a repayment amount and date
+    /// @param loanId The unique identifier of the loan to check
+    /// @param repayAmount The amount to be repaid in the preview
+    /// @param repayDate The date of the repayment in the preview
+    /// @return The struct containing the preview state of the loan
+    function getLoanPreview(uint256 loanId, uint256 repayAmount, uint256 repayDate) external view returns (Loan.State memory);
+
+    /// @notice Retrieves the outstanding balance of a loan
+    /// @param loanId The unique identifier of the loan to check
+    function getOutstandingBalance(uint256 loanId) external view returns (uint256);
+
+    /// @notice Retrieves the current period of the loan
+    /// @param loanId The unique identifier of the loan to check
+    function getCurrentPeriodDate(uint loanId) external view returns (uint256);
+
+    /// @notice Returns the registry address
+    function registry() external view returns (address);
 }

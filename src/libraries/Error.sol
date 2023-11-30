@@ -9,11 +9,11 @@ library Error {
     /// @notice Thrown when the caller is not authorized
     error Unauthorized();
 
+    /// @notice Thrown when the specified address is zero
+    error ZeroAddress();
+
     /// @notice Thrown when the specified amount is invalid
     error InvalidAmount();
-
-    /// @notice Thrown when the specified address is invalid
-    error InvalidAddress();
 
     /// @notice Thrown when the configuration is already applied
     error AlreadyConfigured();

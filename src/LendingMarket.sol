@@ -3,11 +3,12 @@
 pragma solidity 0.8.20;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
+import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+import {ERC721EnumerableUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import {Loan} from "./libraries/Loan.sol";
@@ -30,20 +31,28 @@ contract LendingMarket is
     Initializable,
     OwnableUpgradeable,
     PausableUpgradeable,
+    ERC721Upgradeable,
+    ERC721EnumerableUpgradeable,
     UUPSUpgradeable,
     ILendingMarket
 {
     using SafeERC20 for IERC20;
 
     /************************************************
-     *  ERRORS
+     *  Errors
      ***********************************************/
 
     /// @notice Thrown when the loan does not exist
     error LoanNotExist();
 
+    /// @notice Thrown when the loan does not exist
+    error LoanNotFrozen();
+
     /// @notice Thrown when the loan is already repaid
     error LoanAlreadyRepaid();
+
+    /// @notice Thrown when the loan is already frozen
+    error LoanAlreadyFrozen();
 
     /// @notice Thrown when the credit line is not registered
     error CreditLineNotRegistered();
@@ -57,20 +66,17 @@ contract LendingMarket is
     /// @notice Thrown when the liquidity pool is already registered
     error LiquidityPoolAlreadyRegistered();
 
-    /// @notice Thrown when the loan status is inappropriate
-    error InappropriateLoanStatus();
-
-    /// @notice Thrown when the interest rate is inappropriate
+    /// @notice Thrown when provided with an inappropriate interest rate
     error InappropriateInterestRate();
 
-    /// @notice Thrown when the loan duration is inappropriate
+    /// @notice Thrown when provided with an inappropriate loan duration
     error InappropriateLoanDuration();
 
-    /// @notice Thrown when the loan moratorium is inappropriate
+    /// @notice Thrown when provided with an inappropriate loan moratorium
     error InappropriateLoanMoratorium();
 
     /************************************************
-     *  MODIFIERS
+     *  Modifiers
      ***********************************************/
 
     /// @notice Throws if called by any account other than the registry
@@ -82,15 +88,28 @@ contract LendingMarket is
     }
 
     /// @notice Throws if called by any account other than the loan holder
+    /// @param loanId The unique identifier of the loan to check
     modifier onlyLoanHolder(uint256 loanId) {
-        if (IERC721(_nft).ownerOf(loanId) != msg.sender) {
+        if (ownerOf(loanId) != msg.sender) {
             revert Error.Unauthorized();
         }
         _;
     }
 
+    /// @notice Throws if the loan does not exist or is already repaid
+    /// @param loanId The unique identifier of the loan to check
+    modifier onlyOngoingLoan(uint256 loanId) {
+        if (_loans[loanId].token == address(0)) {
+            revert LoanNotExist();
+        }
+        if (_loans[loanId].trackedBorrowAmount == 0) {
+            revert LoanAlreadyRepaid();
+        }
+        _;
+    }
+
     /************************************************
-     *  CONSTRUCTOR
+     *  Constructor
      ***********************************************/
 
     /// @dev Constructor that prohibits the initialization of the implementation of the upgradable contract
@@ -100,36 +119,34 @@ contract LendingMarket is
     }
 
     /************************************************
-     *  INITIALIZERS
+     *  Initializers
      ***********************************************/
 
     /// @notice Initializer of the upgradable contract
-    /// @param nft_ The address of the NFT token associated with the lending market
-    function initialize(address nft_) external initializer {
-        __LendingMarket_init(nft_);
+    /// @param name_ The name of the NFT token that will represent the loans
+    /// @param symbol_ The symbol of the NFT token that will represent the loans
+    function initialize(string memory name_, string memory symbol_) external initializer {
+        __LendingMarket_init(name_, symbol_);
     }
 
     /// @notice Internal initializer of the upgradable contract
-    /// @param nft_ The address of the NFT token associated with the lending market
-    function __LendingMarket_init(address nft_) internal onlyInitializing {
+    /// @param name_ The name of the NFT token that will represent the loans
+    /// @param symbol_ The symbol of the NFT token that will represent the loans
+    function __LendingMarket_init(string memory name_, string memory symbol_) internal onlyInitializing {
         __Ownable_init_unchained(msg.sender);
         __Pausable_init_unchained();
+        __ERC721_init_unchained(name_, symbol_);
+        __ERC721Enumerable_init_unchained();
         __UUPSUpgradeable_init_unchained();
-        __LendingMarket_init_unchained(nft_);
+        __LendingMarket_init_unchained();
     }
 
     /// @notice Unchained internal initializer of the upgradable contract
-    /// @param nft_ The address of the NFT token associated with the lending market
-    function __LendingMarket_init_unchained(address nft_) internal onlyInitializing {
-        if (nft_ == address(0)) {
-            revert Error.InvalidAddress();
-        }
-
-        _nft = nft_;
+    function __LendingMarket_init_unchained() internal onlyInitializing {
     }
 
     /************************************************
-     *  OWNER FUNCTIONS
+     *  Owner functions
      ***********************************************/
 
     /// @notice Pauses the contract
@@ -145,9 +162,6 @@ contract LendingMarket is
     /// @notice Sets the address of the registry contract
     /// @param newRegistry The address of the new registry contract
     function setRegistry(address newRegistry) external onlyOwner {
-        if (newRegistry == address(0)) {
-            revert Error.InvalidAddress();
-        }
         if (newRegistry == _registry) {
             revert Error.AlreadyConfigured();
         }
@@ -158,100 +172,183 @@ contract LendingMarket is
     }
 
     /************************************************
-     *  REGISTRY FUNCTIONS
+     *  Registry functions
      ***********************************************/
 
     /// @inheritdoc ILendingMarket
     function registerCreditLine(address lender, address creditLine) external whenNotPaused onlyRegistry {
-        _registerCreditLine(lender, creditLine);
+        if (lender == address(0)) {
+            revert Error.ZeroAddress();
+        }
+        if (creditLine == address(0)) {
+            revert Error.ZeroAddress();
+        }
+        if (_creditLines[creditLine] != address(0)) {
+            revert CreditLineAlreadyRegistered();
+        }
+
+        emit CreditLineRegistered(lender, creditLine);
+
+        _creditLines[creditLine] = lender;
     }
 
     /// @inheritdoc ILendingMarket
     function registerLiquidityPool(address lender, address liquidityPool) external whenNotPaused onlyRegistry {
-        _registerLiquidityPool(lender, liquidityPool);
-    }
-
-    /************************************************
-     *  BORROWER FUNCTIONS
-     ***********************************************/
-
-    /// @inheritdoc ILendingMarket
-    function takeLoan(address creditLine, uint256 amount) external whenNotPaused {
-        _takeLoan(msg.sender, creditLine, amount);
-    }
-
-    /// @inheritdoc ILendingMarket
-    function repayLoan(uint256 loanId, uint256 amount) external whenNotPaused {
-        _repayLoan(msg.sender, loanId, amount);
-    }
-
-    /************************************************
-     *  LOAN HOLDER FUNCTIONS
-     ***********************************************/
-
-    /// @inheritdoc ILendingMarket
-    function freeze(uint256 loanId) external onlyLoanHolder(loanId) whenNotPaused {
-        Loan.State storage loan = _loans[loanId];
-        Loan.Status status = _getStatus(loan);
-
-        if (status == Loan.Status.Nonexistent) {
-            revert LoanNotExist();
+        if (lender == address(0)) {
+            revert Error.ZeroAddress();
         }
-        if (status == Loan.Status.Frozen || status == Loan.Status.Repaid || status == Loan.Status.Recovered) {
-            revert InappropriateLoanStatus();
+        if (liquidityPool == address(0)) {
+            revert Error.ZeroAddress();
+        }
+        if (_liquidityPools[lender] != address(0)) {
+            revert LiquidityPoolAlreadyRegistered();
+        }
+
+        emit LiquidityPoolRegistered(lender, liquidityPool);
+
+        _liquidityPools[lender] = liquidityPool;
+    }
+
+    /************************************************
+     *  Borrower functions
+     ***********************************************/
+
+    /// @inheritdoc ILendingMarket
+    function takeLoan(address creditLine, uint256 amount) external whenNotPaused returns (uint256) {
+        if (creditLine == address(0)) {
+            revert Error.ZeroAddress();
+        }
+        if (amount == 0) {
+            revert Error.InvalidAmount();
+        }
+
+        address lender = _creditLines[creditLine];
+        address pool = _liquidityPools[lender];
+
+        if (lender == address(0)) {
+            revert CreditLineNotRegistered();
+        }
+        if (pool == address(0)) {
+            revert LiquidityPoolNotRegistered();
+        }
+
+        // TODO Revert with error message
+        Loan.Terms memory terms = ICreditLine(creditLine).onLoanTaken(msg.sender, amount);
+
+        uint256 startDate = calculatePeriodDate(terms.periodInSeconds, 0, 0);
+        uint256 totalAmount = amount + terms.addonAmount;
+
+        uint256 id = _safeMint(lender);
+
+        Loan.State memory loan = Loan.State({
+            token: terms.token,
+            borrower: msg.sender,
+            periodInSeconds: terms.periodInSeconds,
+            durationInPeriods: terms.durationInPeriods,
+            interestRateFactor: terms.interestRateFactor,
+            interestRatePrimary: terms.interestRatePrimary,
+            interestRateSecondary: terms.interestRateSecondary,
+            interestFormula: terms.interestFormula,
+            startDate: startDate,
+            freezeDate: 0,
+            trackDate: startDate,
+            initialBorrowAmount: totalAmount,
+            trackedBorrowAmount: totalAmount
+        });
+
+        _loans[id] = loan;
+
+        ILiquidityPool(pool).onBeforeLoanTaken(id, creditLine);
+        IERC20(terms.token).safeTransferFrom(pool, msg.sender, amount);
+        if (terms.addonAmount != 0) {
+            IERC20(terms.token).safeTransferFrom(pool, terms.addonRecipient, terms.addonAmount);
+        }
+        ILiquidityPool(pool).onAfterLoanTaken(id, creditLine);
+
+        emit LoanTaken(id, msg.sender, totalAmount);
+
+        return id;
+    }
+
+    /// @inheritdoc ILendingMarket
+    function repayLoan(uint256 loanId, uint256 amount) external whenNotPaused onlyOngoingLoan(loanId) {
+        if (amount == 0) {
+            revert Error.InvalidAmount();
+        }
+
+        Loan.State storage loan = _loans[loanId];
+        (uint256 outstandingBalance, uint256 currentDate) = _outstandingBalance(loan);
+
+        if (amount == type(uint256).max) {
+            amount = outstandingBalance;
+        } else if (amount > outstandingBalance) {
+            revert Error.InvalidAmount();
+        }
+
+        outstandingBalance -= amount;
+        loan.trackedBorrowAmount = outstandingBalance;
+        loan.trackDate = currentDate;
+
+        address pool = _liquidityPools[ownerOf(loanId)];
+        ILiquidityPool(pool).onBeforeLoanPayment(loanId, amount);
+        IERC20(loan.token).transferFrom(msg.sender, pool, amount);
+        ILiquidityPool(pool).onAfterLoanPayment(loanId, amount);
+
+        emit LoanRepaid(loanId, msg.sender, loan.borrower, amount, outstandingBalance);
+
+        if (outstandingBalance == 0) {
+            // TODO can lender borrow from himself?
+            _safeTransfer(ownerOf(loanId), loan.borrower, loanId, "");
+        }
+    }
+
+    /************************************************
+     *  Loan holder functions
+     ***********************************************/
+
+    /// @inheritdoc ILendingMarket
+    function freeze(uint256 loanId) external whenNotPaused onlyOngoingLoan(loanId) onlyLoanHolder(loanId) {
+        Loan.State storage loan = _loans[loanId];
+
+        if (loan.freezeDate != 0) {
+            revert LoanAlreadyFrozen();
         }
 
         loan.freezeDate = calculatePeriodDate(loan.periodInSeconds, 0, 0);
 
-        Loan.Status newStatus = _getStatus(loan);
-
-        if (newStatus != status) {
-            emit LoanStatusChanged(loanId, newStatus, status);
-        }
+        emit LoanFrozen(loanId, loan.freezeDate);
     }
 
     /// @inheritdoc ILendingMarket
-    function unfreeze(uint256 loanId) external onlyLoanHolder(loanId) whenNotPaused {
+    function unfreeze(uint256 loanId) external whenNotPaused onlyOngoingLoan(loanId) onlyLoanHolder(loanId)  {
         Loan.State storage loan = _loans[loanId];
-        Loan.Status status = _getStatus(loan);
 
-        if (status == Loan.Status.Nonexistent) {
-            revert LoanNotExist();
-        }
-        if (status != Loan.Status.Frozen) {
-            revert InappropriateLoanStatus();
+        if (loan.freezeDate == 0) {
+            revert LoanNotFrozen();
         }
 
         uint256 currentDate = calculatePeriodDate(loan.periodInSeconds, 0, 0);
-        uint256 newTrackDate = currentDate - (loan.freezeDate - loan.trackDate);
-        if (newTrackDate > loan.trackDate) {
-            loan.trackDate = newTrackDate;
+        uint256 frozenPeriods = (currentDate - loan.freezeDate) / loan.periodInSeconds;
+
+        if (frozenPeriods > 0) {
+            loan.trackDate += frozenPeriods * loan.periodInSeconds;
+            loan.durationInPeriods += frozenPeriods;
         }
 
         loan.freezeDate = 0;
 
-        Loan.Status newStatus = _getStatus(loan);
-
-        if (newStatus != status) {
-            emit LoanStatusChanged(loanId, newStatus, status);
-        }
+        emit LoanUnfrozen(loanId, currentDate);
     }
 
     /// @inheritdoc ILendingMarket
     function updateLoanDuration(uint256 loanId, uint256 newDurationInPeriods)
         external
         whenNotPaused
+        onlyOngoingLoan(loanId)
         onlyLoanHolder(loanId)
     {
         Loan.State storage loan = _loans[loanId];
-        Loan.Status status = _getStatus(loan);
 
-        if (status == Loan.Status.Nonexistent) {
-            revert LoanNotExist();
-        }
-        if (status == Loan.Status.Repaid || status == Loan.Status.Recovered) {
-            revert InappropriateLoanStatus();
-        }
         if (newDurationInPeriods <= loan.durationInPeriods) {
             revert InappropriateLoanDuration();
         }
@@ -259,64 +356,41 @@ contract LendingMarket is
         emit LoanDurationUpdated(loanId, newDurationInPeriods, loan.durationInPeriods);
 
         loan.durationInPeriods = newDurationInPeriods;
-
-        Loan.Status newStatus = _getStatus(loan);
-
-        if (newStatus != status) {
-            emit LoanStatusChanged(loanId, newStatus, status);
-        }
     }
 
     /// @inheritdoc ILendingMarket
     function updateLoanMoratorium(uint256 loanId, uint256 newMoratoriumInPeriods)
         external
         whenNotPaused
+        onlyOngoingLoan(loanId)
         onlyLoanHolder(loanId)
     {
         Loan.State storage loan = _loans[loanId];
-        Loan.Status status = _getStatus(loan);
-
-        if (status == Loan.Status.Nonexistent) {
-            revert LoanNotExist();
-        }
-        if (status == Loan.Status.Repaid || status == Loan.Status.Recovered) {
-            revert InappropriateLoanStatus();
-        }
 
         uint256 currentDate = calculatePeriodDate(loan.periodInSeconds, 0, 0);
-        uint256 currentMoratoriumInPeriods =
-            loan.trackDate > currentDate ? (loan.trackDate - currentDate) / loan.periodInSeconds : 0;
+        uint256 currentMoratoriumInPeriods = 0;
+        if (loan.trackDate > currentDate) {
+            currentMoratoriumInPeriods = (loan.trackDate - currentDate) / loan.periodInSeconds;
+        }
 
         if (newMoratoriumInPeriods <= currentMoratoriumInPeriods) {
             revert InappropriateLoanMoratorium();
         }
 
-        emit LoanMoratoriumUpdated(loanId, newMoratoriumInPeriods, currentMoratoriumInPeriods);
+        emit LoanMoratoriumUpdated(loanId, loan.trackDate, newMoratoriumInPeriods);
 
         loan.trackDate += newMoratoriumInPeriods * loan.periodInSeconds;
-
-        Loan.Status newStatus = _getStatus(loan);
-
-        if (newStatus != status) {
-            emit LoanStatusChanged(loanId, newStatus, status);
-        }
     }
 
     /// @inheritdoc ILendingMarket
     function updateLoanInterestRatePrimary(uint256 loanId, uint256 newInterestRate)
         external
         whenNotPaused
+        onlyOngoingLoan(loanId)
         onlyLoanHolder(loanId)
     {
         Loan.State storage loan = _loans[loanId];
-        Loan.Status status = _getStatus(loan);
 
-        if (status == Loan.Status.Nonexistent) {
-            revert LoanNotExist();
-        }
-        if (status == Loan.Status.Repaid || status == Loan.Status.Recovered) {
-            revert InappropriateLoanStatus();
-        }
         if (newInterestRate >= loan.interestRatePrimary) {
             revert InappropriateInterestRate();
         }
@@ -330,17 +404,11 @@ contract LendingMarket is
     function updateLoanInterestRateSecondary(uint256 loanId, uint256 newInterestRate)
         external
         whenNotPaused
+        onlyOngoingLoan(loanId)
         onlyLoanHolder(loanId)
     {
         Loan.State storage loan = _loans[loanId];
-        Loan.Status status = _getStatus(loan);
 
-        if (status == Loan.Status.Nonexistent) {
-            revert LoanNotExist();
-        }
-        if (status == Loan.Status.Repaid || status == Loan.Status.Recovered) {
-            revert InappropriateLoanStatus();
-        }
         if (newInterestRate >= loan.interestRateSecondary) {
             revert InappropriateInterestRate();
         }
@@ -362,7 +430,7 @@ contract LendingMarket is
     }
 
     /************************************************
-     *  VIEW FUNCTIONS
+     *  View functions
      ***********************************************/
 
     /// @inheritdoc ILendingMarket
@@ -376,15 +444,29 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ILendingMarket
-    function getLoanStored(uint256 loanId) external view returns (Loan.State memory) {
+    function getLoan(uint256 loanId) external view returns (Loan.State memory) {
         return _loans[loanId];
     }
 
     /// @inheritdoc ILendingMarket
-    function getLoanCurrent(uint256 loanId) external view returns (Loan.Status, Loan.State memory) {
-        Loan.State storage loanState = _loans[loanId];
-        Loan.Status loanStatus = _getStatus(loanState);
-        return (loanStatus, _loans[loanId]);
+    function getLoanPreview(uint256 loanId, uint256 repayAmount, uint256 repayDate) external view returns (Loan.State memory) {
+        revert Error.NotImplemented();
+    }
+
+    /// @inheritdoc ILendingMarket
+    function getOutstandingBalance(uint256 loanId) external view returns (uint256) {
+        (uint256 outstandingBalance, ) = _outstandingBalance(_loans[loanId]);
+        return outstandingBalance;
+    }
+
+    /// @inheritdoc ILendingMarket
+    function getCurrentPeriodDate(uint loanId) external view returns (uint256) {
+        return calculatePeriodDate(_loans[loanId].periodInSeconds, 0, 0);
+    }
+
+    /// @inheritdoc ILendingMarket
+    function registry() external view returns (address) {
+        return _registry;
     }
 
     /// @notice Calculates the period date based on the current timestamp
@@ -417,161 +499,38 @@ contract LendingMarket is
     }
 
     /************************************************
-     *  INTERNAL FUNCTIONS
+     *  Internal functions
      ***********************************************/
 
-    /// @notice Registers a new credit line
-    /// @param lender The address of the credit line lender
-    /// @param creditLine The address of the credit line contract
-    function _registerCreditLine(address lender, address creditLine) internal {
-        if (lender == address(0)) {
-            revert Error.InvalidAddress();
-        }
-        if (creditLine == address(0)) {
-            revert Error.InvalidAddress();
-        }
-        if (_creditLines[creditLine] != address(0)) {
-            revert CreditLineAlreadyRegistered();
-        }
-
-        _creditLines[creditLine] = lender;
-
-        emit CreditLineRegistered(lender, creditLine);
-    }
-
-    /// @notice Registers a new liquidity pool
-    /// @param lender The address of the liquidity pool lender
-    /// @param liquidityPool The address of the liquidity pool contract
-    function _registerLiquidityPool(address lender, address liquidityPool) internal {
-        if (lender == address(0)) {
-            revert Error.InvalidAddress();
-        }
-        if (liquidityPool == address(0)) {
-            revert Error.InvalidAddress();
-        }
-        if (_liquidityPools[lender] != address(0)) {
-            revert LiquidityPoolAlreadyRegistered();
-        }
-
-        _liquidityPools[lender] = liquidityPool;
-
-        emit LiquidityPoolRegistered(lender, liquidityPool);
-    }
-
-    /// @notice Retrieves the status of a loan
-    /// @param self The loan state struct to check the status of
-    function _getStatus(Loan.State storage self) internal view returns (Loan.Status) {
-        if (self.token == address(0)) {
-            return Loan.Status.Nonexistent;
-        }
-
-        if (self.freezeDate != 0) {
-            return Loan.Status.Frozen;
-        }
-
-        if (self.trackedBorrowAmount == 0) {
-            if (self.trackDate < self.startDate + self.periodInSeconds * self.durationInPeriods) {
-                return Loan.Status.Repaid;
-            } else {
-                return Loan.Status.Recovered;
-            }
-        } else {
-            uint256 currentDate = calculatePeriodDate(self.periodInSeconds, 0, 0);
-            if (currentDate < self.startDate + self.periodInSeconds * self.durationInPeriods) {
-                return Loan.Status.Active;
-            } else {
-                return Loan.Status.Defaulted;
-            }
-        }
-    }
-
-    /// @notice Takes a loan
-    /// @param borrower The address of the borrower
-    /// @param creditLine The address of the credit line contract
-    /// @param amount The amount of the loan
-    function _takeLoan(address borrower, address creditLine, uint256 amount) internal {
-        if (creditLine == address(0)) {
-            revert Error.InvalidAddress();
-        }
-        if (amount == 0) {
-            revert Error.InvalidAmount();
-        }
-
-        address lender = _creditLines[creditLine];
-        address pool = _liquidityPools[lender];
-
-        if (lender == address(0)) {
-            revert CreditLineNotRegistered();
-        }
-        if (pool == address(0)) {
-            revert LiquidityPoolNotRegistered();
-        }
-
-        Loan.Terms memory terms = ICreditLine(creditLine).onLoanTaken(borrower, amount);
-
-        uint256 startDate = calculatePeriodDate(terms.periodInSeconds, 0, 0);
-        uint256 totalAmount = amount + terms.addonAmount;
-
-        uint256 id = ICapybaraNFT(_nft).safeMint(lender);
-
-        Loan.State memory loan = Loan.State({
-            token: terms.token,
-            borrower: borrower,
-            periodInSeconds: terms.periodInSeconds,
-            durationInPeriods: terms.durationInPeriods,
-            interestRateFactor: terms.interestRateFactor,
-            interestRatePrimary: terms.interestRatePrimary,
-            interestRateSecondary: terms.interestRateSecondary,
-            interestFormula: terms.interestFormula,
-            startDate: startDate,
-            freezeDate: 0,
-            trackDate: startDate,
-            initialBorrowAmount: totalAmount,
-            trackedBorrowAmount: totalAmount
-        });
-
-        _loans[id] = loan;
-
-        ILiquidityPool(pool).onBeforeLoanTaken(id, creditLine);
-        IERC20(terms.token).safeTransferFrom(pool, borrower, amount);
-        if (terms.addonAmount != 0) {
-            IERC20(terms.token).safeTransferFrom(pool, terms.addonRecipient, terms.addonAmount);
-        }
-        ILiquidityPool(pool).onAfterLoanTaken(id, creditLine);
-
-        emit LoanTaken(id, borrower, totalAmount);
-    }
-
-    /// @notice Repays a loan
-    /// @param repayer The address of the repayer
-    /// @param loanId The identifier of the loan
-    /// @param amount The amount to be repaid
-    function _repayLoan(address repayer, uint256 loanId, uint256 amount) internal {
-        if (repayer == address(0)) {
-            revert Error.InvalidAddress();
-        }
-        if (amount == 0) {
-            revert Error.InvalidAmount();
-        }
-
-        Loan.State storage loan = _loans[loanId];
-        Loan.Status status = _getStatus(loan);
-
-        if (status == Loan.Status.Nonexistent) {
-            revert LoanNotExist();
-        }
-        if (status == Loan.Status.Repaid || status == Loan.Status.Recovered) {
-            revert InappropriateLoanStatus();
-        }
-
+    function _outstandingBalance(Loan.State storage loan) internal view returns (uint256, uint256) {
         uint256 outstandingBalance = loan.trackedBorrowAmount;
-        uint256 currentDate = loan.freezeDate == 0 ? calculatePeriodDate(loan.periodInSeconds, 0, 0) : loan.freezeDate;
+
+        uint256 currentDate = calculatePeriodDate(loan.periodInSeconds, 0, 0);
+        if (loan.freezeDate != 0) {
+            currentDate = loan.freezeDate;
+        }
+
+        // We have three dates to consider:
+        // 1. currentDate: the current date
+        // 2. trackDate: the date when the loan was last tracked
+        // 3. dueDate: the date when the loan is due
+
+        // The total number of possible scenarios is 9:
+        // 1. currentDate < trackDate < dueDate
+        // 2. currentDate < trackDate > dueDate
+        // 3. currentDate > trackDate < dueDate
+        // 4. currentDate > trackDate > dueDate
+        // 5. currentDate < dueDate < trackDate
+        // 6. currentDate < dueDate > trackDate
+        // 7. currentDate > dueDate < trackDate
+        // 8. currentDate > dueDate > trackDate
+        // 9. currentDate = dueDate = trackDate
 
         if (currentDate > loan.trackDate) {
             uint256 dueDate = loan.startDate + loan.durationInPeriods * loan.periodInSeconds;
 
             if (currentDate < dueDate) {
-                outstandingBalance = InterestMath.calculateOutstandingBalance(
+                outstandingBalance = calculateOutstandingBalance(
                     outstandingBalance,
                     (currentDate - loan.trackDate) / loan.periodInSeconds,
                     loan.interestRatePrimary,
@@ -579,7 +538,7 @@ contract LendingMarket is
                     loan.interestFormula
                 );
             } else if (loan.trackDate >= dueDate) {
-                outstandingBalance = InterestMath.calculateOutstandingBalance(
+                outstandingBalance = calculateOutstandingBalance(
                     outstandingBalance,
                     (currentDate - loan.trackDate) / loan.periodInSeconds,
                     loan.interestRateSecondary,
@@ -587,7 +546,7 @@ contract LendingMarket is
                     loan.interestFormula
                 );
             } else {
-                outstandingBalance = InterestMath.calculateOutstandingBalance(
+                outstandingBalance = calculateOutstandingBalance(
                     outstandingBalance,
                     (dueDate - loan.trackDate) / loan.periodInSeconds,
                     loan.interestRatePrimary,
@@ -597,28 +556,47 @@ contract LendingMarket is
             }
         }
 
-        loan.trackDate = currentDate;
+        return (outstandingBalance, currentDate);
+    }
 
-        if (amount == type(uint256).max) {
-            amount = outstandingBalance;
-        } else if (amount > outstandingBalance) {
-            revert Error.InvalidAmount();
-        }
+    function _safeMint(address to) internal returns (uint256) {
+        uint256 tokenId = _tokenIdCounter;
+        _tokenIdCounter++;
 
-        outstandingBalance -= amount;
-        loan.trackedBorrowAmount = outstandingBalance;
+        _safeMint(to, tokenId);
+        _approve(_market, tokenId, address(0));
 
-        address pool = _liquidityPools[IERC721(_nft).ownerOf(loanId)];
-        ILiquidityPool(pool).onBeforeLoanPayment(loanId, amount);
-        IERC20(loan.token).transferFrom(repayer, pool, amount);
-        ILiquidityPool(pool).onAfterLoanPayment(loanId, amount);
+        return tokenId;
+    }
 
-        emit LoanRepayment(loanId, repayer, loan.borrower, amount, outstandingBalance);
+    /// @inheritdoc ERC721Upgradeable
+    function _update(address to, uint256 tokenId, address auth)
+        internal
+        override(ERC721Upgradeable, ERC721EnumerableUpgradeable)
+        whenNotPaused
+        returns (address)
+    {
+        return super._update(to, tokenId, auth);
+    }
 
-        if (outstandingBalance == 0) {
-            IERC721(_nft).safeTransferFrom(IERC721(_nft).ownerOf(loanId), loan.borrower, loanId);
-            emit LoanRepaid(loanId, loan.borrower);
-        }
+    /// @inheritdoc ERC721Upgradeable
+    function _increaseBalance(address account, uint128 value)
+        internal
+        override(ERC721Upgradeable, ERC721EnumerableUpgradeable)
+        whenNotPaused
+    {
+        super._increaseBalance(account, value);
+    }
+
+    /// @inheritdoc ERC721Upgradeable
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        override(ERC721Upgradeable, ERC721EnumerableUpgradeable)
+        returns (bool)
+    {
+        // TODO Don't we want to add custom interfaces?
+        return super.supportsInterface(interfaceId);
     }
 
     /// @inheritdoc UUPSUpgradeable

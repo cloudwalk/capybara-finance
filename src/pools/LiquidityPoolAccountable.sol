@@ -2,14 +2,13 @@
 
 pragma solidity 0.8.20;
 
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {Loan} from "../libraries/Loan.sol";
 import {Error} from "../libraries/Error.sol";
-
 import {ICreditLine} from "../interfaces/core/ICreditLine.sol";
 import {ILiquidityPool} from "../interfaces/core/ILiquidityPool.sol";
 import {ILiquidityPoolAccountable} from "../interfaces/ILiquidityPoolAccountable.sol";
@@ -45,7 +44,7 @@ contract LiquidityPoolAccountable is Ownable, Pausable, ILiquidityPool, ILiquidi
     error InsufficientBalance();
 
     /************************************************
-     *  MODIFIERS
+     *  Modifiers
      ***********************************************/
 
     /// @notice Throws if called by any account other than the market
@@ -65,10 +64,10 @@ contract LiquidityPoolAccountable is Ownable, Pausable, ILiquidityPool, ILiquidi
     /// @param lender_ The address of the associated lender
     constructor(address market_, address lender_) Ownable(lender_) {
         if (market_ == address(0)) {
-            revert Error.InvalidAddress();
+            revert Error.ZeroAddress();
         }
         if (lender_ == address(0)) {
-            revert Error.InvalidAddress();
+            revert Error.ZeroAddress();
         }
 
         _market = market_;
@@ -91,29 +90,26 @@ contract LiquidityPoolAccountable is Ownable, Pausable, ILiquidityPool, ILiquidi
     /// @inheritdoc ILiquidityPoolAccountable
     function deposit(address creditLine, uint256 amount) external onlyOwner {
         if (creditLine == address(0)) {
-            revert Error.InvalidAddress();
+            revert Error.ZeroAddress();
         }
         if (amount == 0) {
             revert Error.InvalidAmount();
         }
 
-        IERC20 token = IERC20(_creditLineToken(creditLine));
-
+        IERC20 token = IERC20(ICreditLine(creditLine).token());
         if (token.allowance(address(this), _market) == 0) {
             token.approve(_market, type(uint256).max);
         }
 
         _creditLineBalances[creditLine] += amount;
-
         token.safeTransferFrom(msg.sender, address(this), amount);
-
         emit Deposit(creditLine, amount);
     }
 
     /// @inheritdoc ILiquidityPoolAccountable
     function withdraw(address tokenSource, uint256 amount) external onlyOwner {
         if (tokenSource == address(0)) {
-            revert Error.InvalidAddress();
+            revert Error.ZeroAddress();
         }
         if (amount == 0) {
             revert Error.InvalidAmount();
@@ -126,7 +122,7 @@ contract LiquidityPoolAccountable is Ownable, Pausable, ILiquidityPool, ILiquidi
                 revert InsufficientBalance();
             }
             _creditLineBalances[tokenSource] -= amount;
-            IERC20(_creditLineToken(tokenSource)).safeTransfer(msg.sender, amount);
+            IERC20(ICreditLine(tokenSource).token()).safeTransfer(msg.sender, amount);
             emit Withdraw(tokenSource, amount);
             return;
         }
@@ -149,7 +145,7 @@ contract LiquidityPoolAccountable is Ownable, Pausable, ILiquidityPool, ILiquidi
     }
 
     /************************************************
-     *  MARKET FUNCTIONS
+     *  Market functions
      ***********************************************/
 
     /// @inheritdoc ILiquidityPool
@@ -159,8 +155,9 @@ contract LiquidityPoolAccountable is Ownable, Pausable, ILiquidityPool, ILiquidi
 
     /// @inheritdoc ILiquidityPool
     function onAfterLoanTaken(uint256 loanId, address creditLine) external whenNotPaused onlyMarket returns (bool) {
-        _creditLineBalances[creditLine] -= _loanInitialBorrowAmount(loanId);
+        _creditLineBalances[creditLine] -= ILendingMarket(_market).getLoan(loanId).initialBorrowAmount;
         _creditLines[loanId] = creditLine;
+
         return true;
     }
 
@@ -174,14 +171,13 @@ contract LiquidityPoolAccountable is Ownable, Pausable, ILiquidityPool, ILiquidi
         address creditLine = _creditLines[loanId];
         if (creditLine != address(0)) {
             _creditLineBalances[creditLine] += amount;
-            return true;
-        } else {
-            return true;
         }
+
+        return true;
     }
 
     /************************************************
-     *  VIEW FUNCTIONS
+     *  View functions
      ***********************************************/
 
     /// @inheritdoc ILiquidityPoolAccountable
@@ -197,9 +193,9 @@ contract LiquidityPoolAccountable is Ownable, Pausable, ILiquidityPool, ILiquidi
         (bool success, bytes memory returnData) = tokenSource.staticcall(data);
         if (success && returnData.length == 32) {
             return abi.decode(returnData, (uint256));
-        } else {
-            return 0;
         }
+
+        return 0;
     }
 
     /// @inheritdoc ILiquidityPoolAccountable
@@ -220,13 +216,5 @@ contract LiquidityPoolAccountable is Ownable, Pausable, ILiquidityPool, ILiquidi
     /// @inheritdoc ILiquidityPool
     function kind() external pure returns (uint16) {
         return 1;
-    }
-
-    function _loanInitialBorrowAmount(uint256 loanId) internal virtual view returns (uint256) {
-        return ILendingMarket(_market).getLoanStored(loanId).initialBorrowAmount;
-    }
-
-    function _creditLineToken(address creditLine) internal virtual view returns (address) {
-        return ICreditLine(creditLine).token();
     }
 }

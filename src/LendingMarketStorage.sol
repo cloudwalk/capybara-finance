@@ -12,8 +12,8 @@ abstract contract LendingMarketStorage {
      *  STORAGE
      ***********************************************/
 
-    /// @notice The address of the NFT token
-    address internal _nft;
+    // /// @notice The address of the NFT token
+    // address internal _nft;
 
     /// @notice The address of the lending registry
     address internal _registry;
@@ -26,6 +26,15 @@ abstract contract LendingMarketStorage {
 
     /// @notice The mapping of loan identifier to stored loan state
     mapping(uint256 => Loan.State) internal _loans;
+
+//
+    /// @notice The counter of the NFT token unique identifiers
+    uint256 internal _tokenIdCounter;
+
+    /// @notice The address of the associated lending market
+    address internal _market;
+
+//
 
     /// @dev This empty reserved space is put in place to allow future versions
     /// to add new variables without shifting down storage in the inheritance chain

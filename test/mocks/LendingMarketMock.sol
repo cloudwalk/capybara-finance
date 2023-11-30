@@ -6,16 +6,13 @@ import {Loan} from "src/libraries/Loan.sol";
 import {ILendingMarket} from "src/interfaces/core/ILendingMarket.sol";
 
 /// @title LendingMarket contract
-/// @notice Implementation of the lending market contract
+/// @notice Lending market mock contract used for testing
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-contract LendingMarketMock is ILendingMarket
-{
+contract LendingMarketMock is ILendingMarket {
 
     /************************************************
-     *  EVENTS
+     *  Events
      ***********************************************/
-
-    /// registerCreditLine(lender, creditLine);
 
     event RegisterCreditLineCalled(address indexed lender, address indexed creditLine);
 
@@ -24,21 +21,22 @@ contract LendingMarketMock is ILendingMarket
     error NotImplemented();
 
     /************************************************
-     *  BORROWER FUNCTIONS
+     *  Storage variables
      ***********************************************/
 
-    function takeLoan(address creditLine, uint256 amount) external {
+    mapping (uint256 => Loan.State) _loanState;
+
+    /************************************************
+     *  ILendingMarket functions
+     ***********************************************/
+
+    function takeLoan(address creditLine, uint256 amount) external returns (uint256) {
         revert NotImplemented();
     }
 
     function repayLoan(uint256 loanId, uint256 amount) external {
         revert NotImplemented();
     }
-
-    /************************************************
-     *  LOAN HOLDER FUNCTIONS
-     ***********************************************/
-
 
     function freeze(uint256 loanId) external {
         revert NotImplemented();
@@ -76,10 +74,6 @@ contract LendingMarketMock is ILendingMarket
         emit RegisterLiquidityPoolCalled(lender, liquidityPool);
     }
 
-    /************************************************
-     *  VIEW FUNCTIONS
-     ***********************************************/
-
     function getLender(address creditLine) external view returns (address) {
         revert NotImplemented();
     }
@@ -88,17 +82,31 @@ contract LendingMarketMock is ILendingMarket
         revert NotImplemented();
     }
 
-    function getLoanStored(uint256 loanId) external view returns (Loan.State memory) {
-        return _loanStateMock[loanId];
+    function getLoan(uint256 loanId) external view returns (Loan.State memory) {
+        return _loanState[loanId];
     }
 
-    function getLoanCurrent(uint256 loanId) external view returns (Loan.Status, Loan.State memory) {
+    function getLoanPreview(uint256 loanId, uint256 repayAmount, uint256 repayDate) external view returns (Loan.State memory) {
         revert NotImplemented();
     }
 
-    mapping (uint256 => Loan.State) _loanStateMock;
+    function getOutstandingBalance(uint256 loanId) external view returns (uint256) {
+        revert NotImplemented();
+    }
+
+    function getCurrentPeriodDate(uint loanId) external view returns (uint256) {
+        revert NotImplemented();
+    }
+
+    function registry() external view returns (address) {
+        revert NotImplemented();
+    }
+
+    /************************************************
+     *  Mock functions
+     ***********************************************/
 
     function mockLoanState(uint256 loanId, Loan.State memory state) external {
-        _loanStateMock[loanId] = state;
+        _loanState[loanId] = state;
     }
 }

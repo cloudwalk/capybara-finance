@@ -4,10 +4,14 @@ pragma solidity 0.8.20;
 
 import {ICreditLineFactory} from "src/interfaces/ICreditLineFactory.sol";
 
-
+/// @title CreditLineFactoryMock contract
+/// @notice Credit line factory mock contract used for testing
+/// @author CloudWalk Inc. (See https://cloudwalk.io)
 contract CreditLineFactoryMock is ICreditLineFactory {
 
-    error NotImplemented();
+    /************************************************
+     *  Events
+     ***********************************************/
 
     event CreateCreditLineCalled(
         address indexed market,
@@ -16,11 +20,21 @@ contract CreditLineFactoryMock is ICreditLineFactory {
         bytes data
     );
 
-    address _creditLineAddress;
+    /************************************************
+     *  Errors
+     ***********************************************/
 
-    function setCreditLineAddress(address creditLineAddress) external {
-        _creditLineAddress = creditLineAddress;
-    }
+    error NotImplemented();
+
+    /************************************************
+     *  Storage variables
+     ***********************************************/
+
+    address private _creditLineAddress;
+
+    /************************************************
+     *  ICreditLineFactory functions
+     ***********************************************/
 
     function createCreditLine(address market, address lender, uint16 kind, bytes calldata data)
         external
@@ -32,5 +46,13 @@ contract CreditLineFactoryMock is ICreditLineFactory {
 
     function supportedKinds() external pure override returns (uint16[] memory) {
         revert NotImplemented();
+    }
+
+    /************************************************
+     *  Mock functions
+     ***********************************************/
+
+    function mockCreditLineAddress(address creditLineAddress) external {
+        _creditLineAddress = creditLineAddress;
     }
 }

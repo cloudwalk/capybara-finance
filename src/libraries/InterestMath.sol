@@ -9,21 +9,21 @@ import {Interest} from "./Interest.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 library InterestMath {
     /************************************************
-     *  CONSTANTS
+     *  Constants
      ***********************************************/
 
     /// @notice The maximum compouning step used when calculating the outstanding balance
     uint256 constant MAX_COMPOUND_STEP = 10;
 
     /************************************************
-     *  ERRORS
+     *  Errors
      ***********************************************/
 
     /// @notice Thrown when the specified interest formula is not implemented
     error InterestFormulaNotImplemented();
 
     /************************************************
-     *  PUBLIC FUNCTIONS
+     *  Public functions
      ***********************************************/
 
     /// @notice Calculates the outstanding balance of a loan
@@ -48,7 +48,7 @@ library InterestMath {
     }
 
     /************************************************
-     *  PRIVATE FUNCTIONS
+     *  Private functions
      ***********************************************/
 
     /// @notice Calculates the outstanding balance using the compound interest formula

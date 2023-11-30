@@ -4,10 +4,11 @@ pragma solidity 0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-/// @title ERC20Mintable contract
-/// @notice Mintable ERC20 token contract used for testing
+/// @title ERC20Test contract
+/// @notice ERC20 token mock contract used for testing
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-contract ERC20Mintable is ERC20 {
+contract ERC20Test is ERC20 {
+    /// @notice Contract constructor
     constructor(uint256 amount) ERC20("ERC20 Test", "TEST") {
         _mint(msg.sender, amount * 10 ** decimals());
     }

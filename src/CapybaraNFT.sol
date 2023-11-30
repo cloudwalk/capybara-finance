@@ -83,7 +83,7 @@ contract CapybaraNFT is
     /// @param market_ The address of the associated lending market
     function __CapybaraNFT_init_unchained(address market_) internal onlyInitializing {
         if (market_ == address(0)) {
-            revert Error.InvalidAddress();
+            revert Error.ZeroAddress();
         }
 
         _market = market_;
