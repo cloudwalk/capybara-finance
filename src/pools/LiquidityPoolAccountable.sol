@@ -2,10 +2,10 @@
 
 pragma solidity 0.8.20;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
 import {Loan} from "../libraries/Loan.sol";
 import {Error} from "../libraries/Error.sol";
@@ -17,7 +17,7 @@ import {ILendingMarket} from "../interfaces/core/ILendingMarket.sol";
 /// @title LiquidityPoolAccountable contract
 /// @notice Implementation of the accountable liquidity pool contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-contract LiquidityPoolAccountable is Ownable, Pausable, ILiquidityPool, ILiquidityPoolAccountable {
+contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, ILiquidityPool, ILiquidityPoolAccountable {
     using SafeERC20 for IERC20;
 
     /************************************************
@@ -25,7 +25,7 @@ contract LiquidityPoolAccountable is Ownable, Pausable, ILiquidityPool, ILiquidi
      ***********************************************/
 
     /// @notice The address of the associated lending market
-    address internal immutable _market;
+    address internal _market;
 
     /// @notice The mapping of loan identifier to associated credit line
     mapping(uint256 => address) internal _creditLines;
@@ -56,13 +56,29 @@ contract LiquidityPoolAccountable is Ownable, Pausable, ILiquidityPool, ILiquidi
     }
 
     /************************************************
-     *  Constructor
+     *  Initializers
      ***********************************************/
 
-    /// @notice Contract constructor
+    /// @notice Initializer of the upgradable contract
     /// @param market_ The address of the associated lending market
     /// @param lender_ The address of the associated lender
-    constructor(address market_, address lender_) Ownable(lender_) {
+    function initialize(address market_, address lender_) external initializer {
+        __LiquidityPoolAccountable_init(market_, lender_);
+    }
+
+    /// @notice Internal initializer of the upgradable contract
+    /// @param market_ The address of the associated lending market
+    /// @param lender_ The address of the associated lender
+    function __LiquidityPoolAccountable_init(address market_, address lender_) internal onlyInitializing {
+        __Ownable_init_unchained(lender_);
+        __Pausable_init_unchained();
+        __LiquidityPoolAccountable_init_unchained(market_, lender_);
+    }
+
+    /// @notice Unchained internal initializer of the upgradable contract
+    /// @param market_ The address of the associated lending market
+    /// @param lender_ The address of the associated lender
+    function __LiquidityPoolAccountable_init_unchained(address market_, address lender_) internal onlyInitializing {
         if (market_ == address(0)) {
             revert Error.ZeroAddress();
         }

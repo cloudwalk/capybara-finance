@@ -36,15 +36,18 @@ contract LiquidityPoolFactory is Ownable, ILiquidityPoolFactory {
     function createLiquidityPool(address market, address lender, uint16 kind, bytes calldata data)
         external
         onlyOwner
-        returns (address liquidityPool)
+        returns (address)
     {
         if (kind != 1) {
             revert UnsupportedKind(kind);
         }
 
-        liquidityPool = address(new LiquidityPoolAccountable(market, lender));
+        LiquidityPoolAccountable liquidityPool = new LiquidityPoolAccountable();
+        liquidityPool.initialize(market, lender);
 
-        emit LiquidityPoolCreated(market, lender, kind, liquidityPool);
+        emit LiquidityPoolCreated(market, lender, kind, address(liquidityPool));
+
+        return address(liquidityPool);
     }
 
     /// @inheritdoc ILiquidityPoolFactory

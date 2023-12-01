@@ -55,7 +55,8 @@ contract LiquidityPoolAccountableTest is Test {
         creditLine = new CreditLineMock();
         creditLine.mockTokenAddress(address(token));
         lendingMarket = new LendingMarketMock();
-        liquidityPool = new LiquidityPoolAccountable(address(lendingMarket), LENDER);
+        liquidityPool = new LiquidityPoolAccountable();
+        liquidityPool.initialize(address(lendingMarket), LENDER);
     }
 
     function configureLender() public {
@@ -70,20 +71,23 @@ contract LiquidityPoolAccountableTest is Test {
      ***********************************************/
 
     function test_constructor() public {
-        liquidityPool = new LiquidityPoolAccountable(address(lendingMarket), LENDER);
+        liquidityPool = new LiquidityPoolAccountable();
+        liquidityPool.initialize(address(lendingMarket), LENDER);
         assertEq(liquidityPool.market(), address(lendingMarket));
         assertEq(liquidityPool.lender(), LENDER);
         assertEq(liquidityPool.owner(), LENDER);
     }
 
     function test_constructor_Revert_IfMarketIsZeroAddress() public {
+        liquidityPool = new LiquidityPoolAccountable();
         vm.expectRevert(Error.ZeroAddress.selector);
-        liquidityPool = new LiquidityPoolAccountable(address(0), LENDER);
+        liquidityPool.initialize(address(0), LENDER);
     }
 
     function test_constructor_Revert_IfLenderIsZeroAddress() public {
+        liquidityPool = new LiquidityPoolAccountable();
         vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableInvalidOwner.selector, address(0)));
-        liquidityPool = new LiquidityPoolAccountable(address(lendingMarket), address(0));
+        liquidityPool.initialize(address(lendingMarket), address(0));
     }
 
     /************************************************
