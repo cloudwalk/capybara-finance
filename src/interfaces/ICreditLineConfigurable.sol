@@ -58,6 +58,14 @@ interface ICreditLineConfigurable {
         uint256 periodInSeconds;
         /// @notice The total duration of the loan determined by the number of periods
         uint256 durationInPeriods;
+        /// @notice The minimum primary interest rate to be applied to the loan
+        uint256 minInterestRatePrimary;
+        /// @notice The maximum primary interest rate to be applied to the loan
+        uint256 maxInterestRatePrimary;
+        /// @notice The minimum secondary interest rate to be applied to the loan
+        uint256 minInterestRateSecondary;
+        /// @notice The maximum secondary interest rate to be applied to the loan
+        uint256 maxInterestRateSecondary;
         /// @notice The period cost rate to be used for additional payment calculation
         uint256 addonPeriodCostRate;
         /// @notice The fixed cost rate to be used for additional payment calculation

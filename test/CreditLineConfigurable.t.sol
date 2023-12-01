@@ -63,6 +63,10 @@ contract CreditLineConfigurableTest is Test {
     uint256 public constant INIT_CREDIT_LINE_DURATION_IN_PERIODS = 600;
     uint256 public constant INIT_CREDIT_LINE_ADDON_PERIOD_COST_RATE = 15;
     uint256 public constant INIT_CREDIT_LINE_ADDON_FIXED_COST_RATE = 20;
+    uint256 public constant INIT_CREDIT_LINE_MIN_INTEREST_RATE_PRIMARY = 499;
+    uint256 public constant INIT_CREDIT_LINE_MAX_INTEREST_RATE_PRIMARY = 501;
+    uint256 public constant INIT_CREDIT_LINE_MIN_INTEREST_RATE_SECONDARY = 599;
+    uint256 public constant INIT_CREDIT_LINE_MAX_INTEREST_RATE_SECONDARY = 601;
 
     uint256 public constant INIT_BORROWER_DURATION = 1000;
     uint256 public constant INIT_BORROWER_MIN_BORROW_AMOUNT = 2000;
@@ -99,6 +103,10 @@ contract CreditLineConfigurableTest is Test {
             maxBorrowAmount: INIT_CREDIT_LINE_MAX_BORROW_AMOUNT,
             periodInSeconds: INIT_CREDIT_LINE_PERIOD_IN_SECONDS,
             durationInPeriods: INIT_CREDIT_LINE_DURATION_IN_PERIODS,
+            minInterestRatePrimary: INIT_CREDIT_LINE_MIN_INTEREST_RATE_PRIMARY,
+            maxInterestRatePrimary: INIT_CREDIT_LINE_MAX_INTEREST_RATE_PRIMARY,
+            minInterestRateSecondary: INIT_CREDIT_LINE_MIN_INTEREST_RATE_SECONDARY,
+            maxInterestRateSecondary: INIT_CREDIT_LINE_MAX_INTEREST_RATE_SECONDARY,
             addonPeriodCostRate: INIT_CREDIT_LINE_ADDON_PERIOD_COST_RATE,
             addonFixedCostRate: INIT_CREDIT_LINE_ADDON_FIXED_COST_RATE
         });
