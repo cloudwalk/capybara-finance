@@ -6,10 +6,10 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 
 import {CreditLineConfigurable} from "./CreditLineConfigurable.sol";
 
-/// @title CreditLineConfigurable contract
-/// @notice Implementation of the configurable credit line contract
+/// @title CreditLineConfigurableUUPS contract
+/// @notice Implementation of an upgradeable version of the configurable credit line contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-contract CreditLineConfigurableUpgradeable is CreditLineConfigurable, UUPSUpgradeable {
+contract CreditLineConfigurableUUPS is CreditLineConfigurable, UUPSUpgradeable {
     /// @dev Constructor that prohibits the initialization of the implementation of the upgradable contract
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {

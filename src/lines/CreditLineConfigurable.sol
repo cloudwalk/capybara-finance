@@ -74,16 +74,6 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     }
 
     /************************************************
-     *  Constructor
-     ***********************************************/
-
-    // /// @dev Constructor that prohibits the initialization of the implementation of the upgradable contract
-    // /// @custom:oz-upgrades-unsafe-allow constructor
-    // constructor() {
-    //     _disableInitializers();
-    // }
-
-    /************************************************
      *  Initializers
      ***********************************************/
 
