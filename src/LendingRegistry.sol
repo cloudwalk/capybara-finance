@@ -5,7 +5,6 @@ pragma solidity 0.8.20;
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
-import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import {ICreditLine} from "./interfaces/core/ICreditLine.sol";
 import {ILiquidityPool} from "./interfaces/core/ILiquidityPool.sol";
@@ -25,7 +24,6 @@ contract LendingRegistry is
     Initializable,
     OwnableUpgradeable,
     PausableUpgradeable,
-    UUPSUpgradeable,
     ILendingRegistry
 {
     /************************************************
@@ -53,16 +51,6 @@ contract LendingRegistry is
     error LiquidityPoolFactoryNotSet();
 
     /************************************************
-     *  CONSTRUCTOR
-     ***********************************************/
-
-    /// @dev Constructor that prohibits the initialization of the implementation of the upgradable contract
-    /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() {
-        _disableInitializers();
-    }
-
-    /************************************************
      *  INITIALIZERS
      ***********************************************/
 
@@ -77,13 +65,16 @@ contract LendingRegistry is
     function __LendingRegistry_init(address market_) internal onlyInitializing {
         __Ownable_init_unchained(msg.sender);
         __Pausable_init_unchained();
-        __UUPSUpgradeable_init_unchained();
         __LendingRegistry_init_unchained(market_);
     }
 
     /// @notice Unchained internal initializer of the upgradable contract
     /// @param market_ The address of the associated lending market
     function __LendingRegistry_init_unchained(address market_) internal onlyInitializing {
+        if (market_ == address(0)) {
+            revert Error.ZeroAddress();
+        }
+
         _market = market_;
     }
 
@@ -188,11 +179,4 @@ contract LendingRegistry is
     function market() external view returns (address) {
         return _market;
     }
-
-    /************************************************
-     *  INTERNAL FUNCTIONS
-     ***********************************************/
-
-    /// @inheritdoc UUPSUpgradeable
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 }

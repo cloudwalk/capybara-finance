@@ -3,12 +3,12 @@
 pragma solidity 0.8.20;
 
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {LiquidityPoolFactory} from "./LiquidityPoolFactory.sol";
+import {LendingMarket} from "./LendingMarket.sol";
 
-/// @title LiquidityPoolFactoryUUPS contract
-/// @notice Implementation of the upgradeable liquidity pool factory contract
+/// @title LendingMarketUUPS contract
+/// @notice Implementation of the upgradeable lending market contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-contract LiquidityPoolFactoryUUPS is LiquidityPoolFactory, UUPSUpgradeable {
+contract LendingMarketUUPS is LendingMarket, UUPSUpgradeable {
     /// @dev Constructor that prohibits the initialization of the implementation of the upgradable contract
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {

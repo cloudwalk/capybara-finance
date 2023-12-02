@@ -9,7 +9,6 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import {ERC721EnumerableUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
-import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import {Loan} from "./libraries/Loan.sol";
 import {Error} from "./libraries/Error.sol";
@@ -33,7 +32,6 @@ contract LendingMarket is
     PausableUpgradeable,
     ERC721Upgradeable,
     ERC721EnumerableUpgradeable,
-    UUPSUpgradeable,
     ILendingMarket
 {
     using SafeERC20 for IERC20;
@@ -109,16 +107,6 @@ contract LendingMarket is
     }
 
     /************************************************
-     *  Constructor
-     ***********************************************/
-
-    /// @dev Constructor that prohibits the initialization of the implementation of the upgradable contract
-    /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() {
-        _disableInitializers();
-    }
-
-    /************************************************
      *  Initializers
      ***********************************************/
 
@@ -137,7 +125,6 @@ contract LendingMarket is
         __Pausable_init_unchained();
         __ERC721_init_unchained(name_, symbol_);
         __ERC721Enumerable_init_unchained();
-        __UUPSUpgradeable_init_unchained();
         __LendingMarket_init_unchained();
     }
 
@@ -502,6 +489,7 @@ contract LendingMarket is
      *  Internal functions
      ***********************************************/
 
+    /// @notice Calculates the outstanding balance of a loan and the current date
     function _outstandingBalance(Loan.State storage loan) internal view returns (uint256, uint256) {
         uint256 outstandingBalance = loan.trackedBorrowAmount;
 
@@ -559,6 +547,7 @@ contract LendingMarket is
         return (outstandingBalance, currentDate);
     }
 
+    /// @notice Creates a new NFT token and mints it to the lender
     function _safeMint(address to) internal returns (uint256) {
         uint256 tokenId = _tokenIdCounter;
         _tokenIdCounter++;
@@ -568,6 +557,10 @@ contract LendingMarket is
 
         return tokenId;
     }
+
+    /************************************************
+     *  ERC721 functions
+     ***********************************************/
 
     /// @inheritdoc ERC721Upgradeable
     function _update(address to, uint256 tokenId, address auth)
@@ -598,7 +591,4 @@ contract LendingMarket is
         // TODO Don't we want to add custom interfaces?
         return super.supportsInterface(interfaceId);
     }
-
-    /// @inheritdoc UUPSUpgradeable
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 }

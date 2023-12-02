@@ -1213,30 +1213,4 @@ contract LendingMarketTest is Test {
         assertEq(market.supportsInterface(0x5b5e139f), true); // ERC721Metadata
         assertEq(market.supportsInterface(0x780e9d63), true); // ERC721Enumerable
     }
-
-    function test_upgradeToAndCall() public {
-        address newMarket = address(new LendingMarket());
-
-        vm.prank(OWNER);
-        market.upgradeToAndCall(newMarket, "");
-
-        vm.prank(ATTACKER);
-        vm.expectRevert(
-            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER)
-        );
-        market.upgradeToAndCall(newMarket, "");
-    }
-
-
-    // function test_getLoan() public {
-    //     market.getLoan(0);
-    // }
-
-    // function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data)
-    //     external
-    //     pure
-    //     returns (bytes4)
-    // {
-    //     return bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"));
-    // }
 }
