@@ -12,9 +12,9 @@ import {Loan} from "src/libraries/Loan.sol";
 import {Error} from "src/libraries/Error.sol";
 import {Interest} from "src/libraries/Interest.sol";
 import {LendingMarket} from "src/LendingMarket.sol";
-import {CreditLineMock} from "./mocks/CreditLineMock.sol";
-import {LiquidityPoolMock} from "./mocks/LiquidityPoolMock.sol";
-import {ERC20Test} from "./mocks/ERC20Test.sol";
+import {CreditLineMock} from "src/mocks/CreditLineMock.sol";
+import {LiquidityPoolMock} from "src/mocks/LiquidityPoolMock.sol";
+import {ERC20Test} from "src/mocks/ERC20Test.sol";
 
 /// @title LendingMarketTest contract
 /// @notice Contains tests for the LendingMarket contract

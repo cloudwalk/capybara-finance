@@ -11,9 +11,9 @@ import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Pau
 
 import {Error} from "src/libraries/Error.sol";
 import {LendingRegistry} from "src/LendingRegistry.sol";
-import {LendingMarketMock} from "./mocks/LendingMarketMock.sol";
-import {CreditLineFactoryMock} from "./mocks/CreditLineFactoryMock.sol";
-import {LiquidityPoolFactoryMock} from "./mocks/LiquidityPoolFactoryMock.sol";
+import {LendingMarketMock} from "src/mocks/LendingMarketMock.sol";
+import {CreditLineFactoryMock} from "src/mocks/CreditLineFactoryMock.sol";
+import {LiquidityPoolFactoryMock} from "src/mocks/LiquidityPoolFactoryMock.sol";
 
 /// @title LendingRegistryTest contract
 /// @notice Contains tests for the LendingRegistry contract

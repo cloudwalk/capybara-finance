@@ -11,9 +11,9 @@ import {Loan} from "src/libraries/Loan.sol";
 import {Error} from "src/libraries/Error.sol";
 import {Interest} from "src/libraries/Interest.sol";
 import {LiquidityPoolAccountable} from "src/pools/LiquidityPoolAccountable.sol";
-import {LendingMarketMock} from "../mocks/LendingMarketMock.sol";
-import {CreditLineMock} from "../mocks/CreditLineMock.sol";
-import {ERC20Test} from "../mocks/ERC20Test.sol";
+import {LendingMarketMock} from "src/mocks/LendingMarketMock.sol";
+import {CreditLineMock} from "src/mocks/CreditLineMock.sol";
+import {ERC20Test} from "src/mocks/ERC20Test.sol";
 
 /// @title LiquidityPoolAccountableTest contract
 /// @notice Contains tests for the LiquidityPoolAccountable contract
