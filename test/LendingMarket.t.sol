@@ -1214,7 +1214,7 @@ contract LendingMarketTest is Test {
         assertEq(market.supportsInterface(0x780e9d63), true); // ERC721Enumerable
     }
 
-    function test_upgrade() public {
+    function test_upgradeToAndCall() public {
         address newMarket = address(new LendingMarket());
 
         vm.prank(OWNER);

@@ -42,7 +42,7 @@ contract CreditLineConfigurableUUPSTest is Test {
      *  Test `upgradeToAndCall` function
      ***********************************************/
 
-    function test_upgrade() public {
+    function test_upgradeToAndCall() public {
         address newImplemetation = address(new CreditLineConfigurableUUPS());
         vm.prank(LENDER);
         vm.expectEmit(true, true, true, true, address(proxy));
@@ -50,7 +50,7 @@ contract CreditLineConfigurableUUPSTest is Test {
         proxy.upgradeToAndCall(newImplemetation, "");
     }
 
-    function test_upgrade_Revert_IfNotOwner() public {
+    function test_upgradeToAndCall_Revert_IfNotOwner() public {
         address newImplemetation = address(new CreditLineConfigurableUUPS());
         vm.prank(ATTACKER);
         vm.expectRevert(

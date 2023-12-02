@@ -41,7 +41,7 @@ contract LiquidityPoolFactoryUUPSTest is Test {
      *  Test `upgradeToAndCall` function
      ***********************************************/
 
-    function test_upgrade() public {
+    function test_upgradeToAndCall() public {
         address newImplemetation = address(new LiquidityPoolFactoryUUPS());
         vm.prank(REGISTRY);
         vm.expectEmit(true, true, true, true, address(proxy));
@@ -49,7 +49,7 @@ contract LiquidityPoolFactoryUUPSTest is Test {
         proxy.upgradeToAndCall(newImplemetation, "");
     }
 
-    function test_upgrade_Revert_IfNotOwner() public {
+    function test_upgradeToAndCall_Revert_IfNotOwner() public {
         address newImplemetation = address(new LiquidityPoolFactoryUUPS());
         vm.prank(ATTACKER);
         vm.expectRevert(
