@@ -10,7 +10,7 @@ import {LiquidityPoolFactory} from "src/pools/LiquidityPoolFactory.sol";
 import {LiquidityPoolAccountable} from "src/pools/LiquidityPoolAccountable.sol";
 
 /// @title LiquidityPoolFactoryTest contract
-/// @notice Tests for the LiquidityPoolFactory contract
+/// @notice Contains tests for the LiquidityPoolFactory contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 contract LiquidityPoolFactoryTest is Test {
 

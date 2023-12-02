@@ -10,7 +10,7 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {LiquidityPoolFactoryUUPS} from "src/pools/LiquidityPoolFactoryUUPS.sol";
 
 /// @title LiquidityPoolFactoryUUPSTest contract
-/// @notice Tests for the LiquidityPoolFactoryUUPS contract
+/// @notice Contains tests for the LiquidityPoolFactoryUUPS contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 contract LiquidityPoolFactoryUUPSTest is Test {
     /************************************************

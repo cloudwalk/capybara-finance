@@ -16,7 +16,7 @@ import {CreditLineMock} from "../mocks/CreditLineMock.sol";
 import {ERC20Test} from "../mocks/ERC20Test.sol";
 
 /// @title LiquidityPoolAccountableTest contract
-/// @notice Tests for the LiquidityPoolAccountable contract
+/// @notice Contains tests for the LiquidityPoolAccountable contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 contract LiquidityPoolAccountableTest is Test {
 

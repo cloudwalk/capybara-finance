@@ -10,7 +10,7 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {CreditLineConfigurableUUPS} from "src/lines/CreditLineConfigurableUUPS.sol";
 
 /// @title CreditLineConfigurableUUPSTest contract
-/// @notice Tests for the CreditLineConfigurableUUPS contract
+/// @notice Contains tests for the CreditLineConfigurableUUPS contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 contract CreditLineConfigurableUUPSTest is Test {
     /************************************************

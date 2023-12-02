@@ -10,7 +10,7 @@ import {CreditLineFactory} from "src/lines/CreditLineFactory.sol";
 import {CreditLineConfigurable} from "src/lines/CreditLineConfigurable.sol";
 
 /// @title CreditLineFactoryTest contract
-/// @notice Tests for the CreditLineFactory contract
+/// @notice Contains tests for the CreditLineFactory contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 contract CreditLineFactoryTest is Test {
 

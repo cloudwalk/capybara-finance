@@ -16,7 +16,7 @@ import {CreditLineFactoryMock} from "./mocks/CreditLineFactoryMock.sol";
 import {LiquidityPoolFactoryMock} from "./mocks/LiquidityPoolFactoryMock.sol";
 
 /// @title LendingRegistryTest contract
-/// @notice Tests for the LendingRegistry contract
+/// @notice Contains tests for the LendingRegistry contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 contract LendingRegistryTest is Test {
 

@@ -14,7 +14,7 @@ import {ICreditLineConfigurable} from "src/interfaces/ICreditLineConfigurable.so
 import {CreditLineConfigurable} from "src/lines/CreditLineConfigurable.sol";
 
 /// @title CreditLineConfigurableTest contract
-/// @notice Tests for the CreditLineConfigurable contract
+/// @notice Contains tests for the CreditLineConfigurable contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 contract CreditLineConfigurableTest is Test {
     /************************************************

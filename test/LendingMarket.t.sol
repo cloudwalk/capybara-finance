@@ -17,7 +17,7 @@ import {LiquidityPoolMock} from "./mocks/LiquidityPoolMock.sol";
 import {ERC20Test} from "./mocks/ERC20Test.sol";
 
 /// @title LendingMarketTest contract
-/// @notice Tests for the LendingMarket contract
+/// @notice Contains tests for the LendingMarket contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 contract LendingMarketTest is Test {
 

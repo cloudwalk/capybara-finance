@@ -10,7 +10,7 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {LendingRegistryUUPS} from "src/LendingRegistryUUPS.sol";
 
 /// @title LendingRegistryUUPSTest contract
-/// @notice Tests for the LendingRegistryUUPS contract
+/// @notice Contains tests for the LendingRegistryUUPS contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 contract LendingRegistryUUPSTest is Test {
     /************************************************
