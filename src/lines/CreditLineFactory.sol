@@ -2,17 +2,17 @@
 
 pragma solidity 0.8.20;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
 import {ICreditLine} from "../interfaces/core/ICreditLine.sol";
 import {ICreditLineFactory} from "../interfaces/ICreditLineFactory.sol";
-
 import {CreditLineConfigurable} from "./CreditLineConfigurable.sol";
 
 /// @title CreditLineFactory contract
 /// @notice Implementation of the credit line factory contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-contract CreditLineFactory is Ownable, ICreditLineFactory {
+contract CreditLineFactory is OwnableUpgradeable, PausableUpgradeable, ICreditLineFactory {
     /************************************************
      *  Errors
      ***********************************************/
@@ -22,16 +22,39 @@ contract CreditLineFactory is Ownable, ICreditLineFactory {
     error UnsupportedKind(uint16 kind);
 
     /************************************************
-     *  Constructor
+     *  Initializers
      ***********************************************/
 
-    /// @notice Contract constructor
+    /// @notice Initializer of the upgradable contract
     /// @param registry_ The address of the associated lending market
-    constructor(address registry_) Ownable(registry_) {}
+    function initialize(address registry_) external initializer {
+        __CreditLineFactory_init(registry_);
+    }
+
+    /// @notice Internal initializer of the upgradable contract
+    /// @param registry_ The address of the associated lending market
+    function __CreditLineFactory_init(address registry_) internal onlyInitializing {
+        __Ownable_init_unchained(registry_);
+        __Pausable_init_unchained();
+        __CreditLineFactory_init_unchained();
+    }
+
+    /// @notice Unchained internal initializer of the upgradable contract
+    function __CreditLineFactory_init_unchained() internal onlyInitializing {}
 
     /************************************************
      *  Functions
      ***********************************************/
+
+    /// @notice Pauses the contract
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    /// @notice Unpauses the contract
+    function unpause() external onlyOwner {
+        _unpause();
+    }
 
     /// @inheritdoc ICreditLineFactory
     function createCreditLine(address market, address lender, uint16 kind, bytes calldata data)

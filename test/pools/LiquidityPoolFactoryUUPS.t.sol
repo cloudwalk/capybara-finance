@@ -1,0 +1,60 @@
+// SPDX-License-Identifier: MIT
+
+pragma solidity 0.8.20;
+
+import {Test} from "forge-std/Test.sol";
+
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+
+import {LiquidityPoolFactoryUUPS} from "src/pools/LiquidityPoolFactoryUUPS.sol";
+
+/// @title LiquidityPoolFactoryUUPSTest contract
+/// @notice Tests for the LiquidityPoolFactoryUUPS contract
+/// @author CloudWalk Inc. (See https://cloudwalk.io)
+contract LiquidityPoolFactoryUUPSTest is Test {
+    /************************************************
+     *  Events
+     ***********************************************/
+
+    event Upgraded(address indexed implementation);
+
+    /************************************************
+     *  Storage variables and constants
+     ***********************************************/
+
+    LiquidityPoolFactoryUUPS public proxy;
+
+    address public constant REGISTRY = address(bytes20(keccak256("registry")));
+    address public constant ATTACKER = address(bytes20(keccak256("attacker")));
+
+    /************************************************
+     *  Setup and configuration
+     ***********************************************/
+
+    function setUp() public {
+        proxy = LiquidityPoolFactoryUUPS(address(new ERC1967Proxy(address(new LiquidityPoolFactoryUUPS()), "")));
+        proxy.initialize(REGISTRY);
+    }
+
+    /************************************************
+     *  Test `upgradeToAndCall` function
+     ***********************************************/
+
+    function test_upgrade() public {
+        address newImplemetation = address(new LiquidityPoolFactoryUUPS());
+        vm.prank(REGISTRY);
+        vm.expectEmit(true, true, true, true, address(proxy));
+        emit Upgraded(newImplemetation);
+        proxy.upgradeToAndCall(newImplemetation, "");
+    }
+
+    function test_upgrade_Revert_IfNotOwner() public {
+        address newImplemetation = address(new LiquidityPoolFactoryUUPS());
+        vm.prank(ATTACKER);
+        vm.expectRevert(
+            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER)
+        );
+        proxy.upgradeToAndCall(newImplemetation, "");
+    }
+}
