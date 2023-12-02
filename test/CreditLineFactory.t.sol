@@ -41,7 +41,8 @@ contract CreditLineFactoryTest is Test {
      *******************************************************/
 
     function setUp() public {
-        factory = new CreditLineFactory(REGISTRY);
+        factory = new CreditLineFactory();
+        factory.initialize(REGISTRY);
     }
 
     /********************************************************
@@ -49,14 +50,16 @@ contract CreditLineFactoryTest is Test {
      *******************************************************/
 
     function test_constructor() public {
-        factory = new CreditLineFactory(REGISTRY);
+        factory = new CreditLineFactory();
+        factory.initialize(REGISTRY);
         assertEq(factory.owner(), REGISTRY);
     }
 
     function test_constructor_Revert_IfRegistryIsZeroAddress() public {
         vm.prank(REGISTRY);
+        factory = new CreditLineFactory();
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableInvalidOwner.selector, address(0)));
-        factory = new CreditLineFactory(address(0));
+        factory.initialize(address(0));
     }
 
     /********************************************************

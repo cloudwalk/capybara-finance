@@ -1,0 +1,21 @@
+// SPDX-License-Identifier: MIT
+
+pragma solidity 0.8.20;
+
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+
+import {LiquidityPoolFactory} from "./LiquidityPoolFactory.sol";
+
+/// @title LiquidityPoolFactoryUUPS contract
+/// @notice Implementation of the upgradeable version of the liquidity pool factory contract
+/// @author CloudWalk Inc. (See https://cloudwalk.io)
+contract LiquidityPoolFactoryUUPS is LiquidityPoolFactory, UUPSUpgradeable {
+    /// @dev Constructor that prohibits the initialization of the implementation of the upgradable contract
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
+    /// @inheritdoc UUPSUpgradeable
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+}

@@ -41,7 +41,8 @@ contract LiquidityPoolFactoryTest is Test {
      *******************************************************/
 
     function setUp() public {
-        factory = new LiquidityPoolFactory(REGISTRY);
+        factory = new LiquidityPoolFactory();
+        factory.initialize(REGISTRY);
     }
 
     /********************************************************
@@ -49,14 +50,16 @@ contract LiquidityPoolFactoryTest is Test {
      *******************************************************/
 
     function test_constructor() public {
-        factory = new LiquidityPoolFactory(REGISTRY);
+        factory = new LiquidityPoolFactory();
+        factory.initialize(REGISTRY);
         assertEq(factory.owner(), REGISTRY);
     }
 
     function test_constructor_Revert_IfRegistryIsZeroAddress() public {
         vm.prank(REGISTRY);
+        factory = new LiquidityPoolFactory();
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableInvalidOwner.selector, address(0)));
-        factory = new LiquidityPoolFactory(address(0));
+        factory.initialize(address(0));
     }
 
     /********************************************************
