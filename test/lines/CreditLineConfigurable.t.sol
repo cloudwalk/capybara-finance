@@ -307,9 +307,7 @@ contract CreditLineConfigurableTest is Test {
         config.minBorrowAmount = 0;
 
         vm.prank(LENDER);
-        vm.expectRevert(
-            CreditLineConfigurable.InvalidCreditLineConfiguration.selector
-        );
+        vm.expectRevert(CreditLineConfigurable.InvalidCreditLineConfiguration.selector);
         creditLine.configureCreditLine(config);
     }
 
@@ -318,9 +316,7 @@ contract CreditLineConfigurableTest is Test {
         config.maxBorrowAmount = 0;
 
         vm.prank(LENDER);
-        vm.expectRevert(
-            CreditLineConfigurable.InvalidCreditLineConfiguration.selector
-        );
+        vm.expectRevert(CreditLineConfigurable.InvalidCreditLineConfiguration.selector);
         creditLine.configureCreditLine(config);
     }
 
@@ -329,9 +325,7 @@ contract CreditLineConfigurableTest is Test {
         config.periodInSeconds = 0;
 
         vm.prank(LENDER);
-        vm.expectRevert(
-            CreditLineConfigurable.InvalidCreditLineConfiguration.selector
-        );
+        vm.expectRevert(CreditLineConfigurable.InvalidCreditLineConfiguration.selector);
         creditLine.configureCreditLine(config);
     }
 
@@ -340,9 +334,7 @@ contract CreditLineConfigurableTest is Test {
         config.durationInPeriods = 0;
 
         vm.prank(LENDER);
-        vm.expectRevert(
-            CreditLineConfigurable.InvalidCreditLineConfiguration.selector
-        );
+        vm.expectRevert(CreditLineConfigurable.InvalidCreditLineConfiguration.selector);
         creditLine.configureCreditLine(config);
     }
 
@@ -351,9 +343,7 @@ contract CreditLineConfigurableTest is Test {
         config.minBorrowAmount = config.maxBorrowAmount + 1;
 
         vm.prank(LENDER);
-        vm.expectRevert(
-            CreditLineConfigurable.InvalidCreditLineConfiguration.selector
-        );
+        vm.expectRevert(CreditLineConfigurable.InvalidCreditLineConfiguration.selector);
         creditLine.configureCreditLine(config);
     }
 
@@ -439,9 +429,7 @@ contract CreditLineConfigurableTest is Test {
         creditLine.configureCreditLine(creditLineConfig);
 
         vm.prank(ADMIN);
-        vm.expectRevert(
-            CreditLineConfigurable.InvalidCreditLineConfiguration.selector
-        );
+        vm.expectRevert(CreditLineConfigurable.InvalidCreditLineConfiguration.selector);
         creditLine.configureBorrower(ADMIN, borrowerConfig);
     }
 
@@ -469,9 +457,7 @@ contract CreditLineConfigurableTest is Test {
         creditLine.configureCreditLine(creditLineConfig);
 
         vm.prank(ADMIN);
-        vm.expectRevert(
-            CreditLineConfigurable.InvalidCreditLineConfiguration.selector
-        );
+        vm.expectRevert(CreditLineConfigurable.InvalidCreditLineConfiguration.selector);
         creditLine.configureBorrower(ADMIN, borrowerConfig);
     }
 

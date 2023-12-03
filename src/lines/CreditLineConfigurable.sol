@@ -163,7 +163,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         if (config.maxBorrowAmount == 0) {
             revert InvalidCreditLineConfiguration();
         }
-        if(config.minBorrowAmount > config.maxBorrowAmount) {
+        if (config.minBorrowAmount > config.maxBorrowAmount) {
             revert InvalidCreditLineConfiguration();
         }
         if (config.interestRateFactor == 0) {

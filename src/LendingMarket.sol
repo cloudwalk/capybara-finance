@@ -21,7 +21,6 @@ import {ILendingMarket} from "./interfaces/core/ILendingMarket.sol";
 import {ILiquidityPool} from "./interfaces/core/ILiquidityPool.sol";
 import {ICreditLine} from "./interfaces/core/ICreditLine.sol";
 
-
 /// @title LendingMarket contract
 /// @notice Implementation of the lending market contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
