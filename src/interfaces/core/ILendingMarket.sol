@@ -185,6 +185,6 @@ interface ILendingMarket {
     /// @param loanId The unique identifier of the loan to check
     function getCurrentPeriodDate(uint loanId) external view returns (uint256);
 
-    /// @notice Returns the registry address
+    /// @notice Retrieves the registry address
     function registry() external view returns (address);
 }

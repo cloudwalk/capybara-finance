@@ -220,8 +220,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
             revert Error.InvalidAmount();
         }
 
-        BorrowerConfig memory borrowerConfig = _borrowers[borrower];
-        //CreditLineConfig memory lineConfig = _config;
+        BorrowerConfig storage borrowerConfig = _borrowers[borrower];
 
         if (block.timestamp > borrowerConfig.expiration) {
             revert BorrowerConfigurationExpired();
@@ -291,9 +290,8 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     /// @notice Calculates the additional payment amount
     /// @param amount The initial principal amount of the loan
     function calculateAddonAmount(uint256 amount) public view returns (uint256) {
-        CreditLineConfig storage config = _config;
-        uint256 addonRate = config.addonFixedCostRate + config.addonPeriodCostRate * config.durationInPeriods;
-        return (amount * addonRate) / config.interestRateFactor;
+        uint256 addonRate = _config.addonFixedCostRate + _config.addonPeriodCostRate * _config.durationInPeriods;
+        return (amount * addonRate) / _config.interestRateFactor;
     }
 
     /************************************************
