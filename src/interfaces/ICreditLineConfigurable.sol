@@ -56,8 +56,10 @@ interface ICreditLineConfigurable {
         uint256 maxBorrowAmount;
         /// @notice The duration of the loan period specified in seconds
         uint256 periodInSeconds;
-        /// @notice The total duration of the loan determined by the number of periods
+        /// @notice The total duration of the loan determined in periods
         uint256 durationInPeriods;
+        /// @notice The interest rate factor used for interest calculation
+        uint256 interestRateFactor;
         /// @notice The minimum primary interest rate to be applied to the loan
         uint256 minInterestRatePrimary;
         /// @notice The maximum primary interest rate to be applied to the loan

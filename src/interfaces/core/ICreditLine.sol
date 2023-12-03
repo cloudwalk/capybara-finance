@@ -9,7 +9,7 @@ import {Loan} from "../../libraries/Loan.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 interface ICreditLine {
     /************************************************
-     *  FUNCTIONS
+     *  Functions
      ***********************************************/
 
     /// @notice A hook that is triggered by the market when a loan is taken

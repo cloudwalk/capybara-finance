@@ -27,7 +27,7 @@ contract LendingRegistry is
     ILendingRegistry
 {
     /************************************************
-     *  EVENTS
+     *  Events
      ***********************************************/
 
     /// @notice Emitted when the credit line factory is set
@@ -41,7 +41,7 @@ contract LendingRegistry is
     event LiquidityPoolFactorySet(address newFactory, address oldFactory);
 
     /************************************************
-     *  ERRORS
+     *  Errors
      ***********************************************/
 
     /// @notice Thrown when the credit line factory is not set
@@ -51,7 +51,7 @@ contract LendingRegistry is
     error LiquidityPoolFactoryNotSet();
 
     /************************************************
-     *  INITIALIZERS
+     *  Initializers
      ***********************************************/
 
     /// @notice Initializer of the upgradable contract
@@ -79,7 +79,7 @@ contract LendingRegistry is
     }
 
     /************************************************
-     *  OWNER FUNCTIONS
+     *  Owner functions
      ***********************************************/
 
     /// @notice Pauses the contract
@@ -131,7 +131,7 @@ contract LendingRegistry is
     }
 
     /************************************************
-     *  PUBLIC FUNCTIONS
+     *  Public functions
      ***********************************************/
 
     /// @inheritdoc ILendingRegistry
@@ -162,7 +162,7 @@ contract LendingRegistry is
     }
 
     /************************************************
-     *  VIEW FUNCTIONS
+     *  view functions
      ***********************************************/
 
     /// @inheritdoc ILendingRegistry

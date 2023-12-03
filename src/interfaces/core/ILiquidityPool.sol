@@ -7,7 +7,7 @@ pragma solidity 0.8.20;
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 interface ILiquidityPool {
     /************************************************
-     *  FUNCTIONS
+     *  Functions
      ***********************************************/
 
     /// @notice A hook that is triggered by the market before a loan is taken

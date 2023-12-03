@@ -18,9 +18,6 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
      *  Storage
      ***********************************************/
 
-    /// @notice The rate base used together with interest rate
-    uint256 public constant INTEREST_RATE_FACTOR = 10 ** 6;
-
     /// @notice The address of the associated lending market
     address internal _market;
 
@@ -224,7 +221,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         }
 
         BorrowerConfig memory borrowerConfig = _borrowers[borrower];
-        CreditLineConfig memory lineConfig = _config;
+        //CreditLineConfig memory lineConfig = _config;
 
         if (block.timestamp > borrowerConfig.expiration) {
             revert BorrowerConfigurationExpired();
@@ -245,11 +242,11 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         terms.token = _token;
         terms.periodInSeconds = _config.periodInSeconds;
         terms.durationInPeriods = _config.durationInPeriods;
+        terms.interestRateFactor = _config.interestRateFactor;
         terms.interestRatePrimary = borrowerConfig.interestRatePrimary;
         terms.interestRateSecondary = borrowerConfig.interestRateSecondary;
         terms.interestFormula = borrowerConfig.interestFormula;
         terms.addonRecipient = borrowerConfig.addonRecipient;
-        terms.interestRateFactor = INTEREST_RATE_FACTOR;
 
         if (terms.addonRecipient != address(0)) {
             terms.addonAmount = calculateAddonAmount(amount);
@@ -296,7 +293,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     function calculateAddonAmount(uint256 amount) public view returns (uint256) {
         CreditLineConfig storage config = _config;
         uint256 addonRate = config.addonFixedCostRate + config.addonPeriodCostRate * config.durationInPeriods;
-        return (amount * addonRate) / INTEREST_RATE_FACTOR;
+        return (amount * addonRate) / config.interestRateFactor;
     }
 
     /************************************************

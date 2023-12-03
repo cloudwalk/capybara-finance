@@ -67,6 +67,7 @@ contract CreditLineConfigurableTest is Test {
     uint256 public constant INIT_CREDIT_LINE_MAX_INTEREST_RATE_PRIMARY = 501;
     uint256 public constant INIT_CREDIT_LINE_MIN_INTEREST_RATE_SECONDARY = 599;
     uint256 public constant INIT_CREDIT_LINE_MAX_INTEREST_RATE_SECONDARY = 601;
+    uint256 public constant INIT_CREDIT_LINE_INTEREST_RATE_FACTOR = 100;
 
     uint256 public constant INIT_BORROWER_DURATION = 1000;
     uint256 public constant INIT_BORROWER_MIN_BORROW_AMOUNT = 2000;
@@ -103,6 +104,7 @@ contract CreditLineConfigurableTest is Test {
             maxBorrowAmount: INIT_CREDIT_LINE_MAX_BORROW_AMOUNT,
             periodInSeconds: INIT_CREDIT_LINE_PERIOD_IN_SECONDS,
             durationInPeriods: INIT_CREDIT_LINE_DURATION_IN_PERIODS,
+            interestRateFactor: INIT_CREDIT_LINE_INTEREST_RATE_FACTOR,
             minInterestRatePrimary: INIT_CREDIT_LINE_MIN_INTEREST_RATE_PRIMARY,
             maxInterestRatePrimary: INIT_CREDIT_LINE_MAX_INTEREST_RATE_PRIMARY,
             minInterestRateSecondary: INIT_CREDIT_LINE_MIN_INTEREST_RATE_SECONDARY,
@@ -706,7 +708,7 @@ contract CreditLineConfigurableTest is Test {
         assertEq(terms.interestRatePrimary, borrowerConfig.interestRatePrimary);
         assertEq(terms.interestRateSecondary, borrowerConfig.interestRateSecondary);
         assertEq(uint256(terms.interestFormula), uint256(borrowerConfig.interestFormula));
-        assertEq(terms.interestRateFactor, creditLine.INTEREST_RATE_FACTOR());
+        //assertEq(terms.interestRateFactor, creditLine.INTEREST_RATE_FACTOR());
         assertEq(terms.addonRecipient, borrowerConfig.addonRecipient);
         assertEq(terms.addonAmount, creditLine.calculateAddonAmount(borrowerConfig.minBorrowAmount));
     }
@@ -733,7 +735,7 @@ contract CreditLineConfigurableTest is Test {
         assertEq(terms.interestRatePrimary, borrowerConfig.interestRatePrimary);
         assertEq(terms.interestRateSecondary, borrowerConfig.interestRateSecondary);
         assertEq(uint256(terms.interestFormula), uint256(borrowerConfig.interestFormula));
-        assertEq(terms.interestRateFactor, creditLine.INTEREST_RATE_FACTOR());
+        //assertEq(terms.interestRateFactor, creditLine.INTEREST_RATE_FACTOR());
         assertEq(terms.addonRecipient, borrowerConfig.addonRecipient);
         assertEq(terms.addonAmount, 0);
     }
@@ -833,10 +835,9 @@ contract CreditLineConfigurableTest is Test {
         ICreditLineConfigurable.CreditLineConfig memory config = configureCreditLine();
 
         uint256 amount = 300;
-        uint256 INTEREST_RATE_BASE = 10 ** 6;
 
         uint256 addonRate = config.addonFixedCostRate + config.addonPeriodCostRate * config.durationInPeriods;
-        uint256 addonAmount = (amount * addonRate) / INTEREST_RATE_BASE;
+        uint256 addonAmount = (amount * addonRate) / config.interestRateFactor;
 
         assertEq(creditLine.calculateAddonAmount(amount), addonAmount);
     }

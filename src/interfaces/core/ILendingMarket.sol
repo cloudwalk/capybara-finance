@@ -9,7 +9,7 @@ pragma solidity 0.8.20;
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 interface ILendingMarket {
     /************************************************
-     *  EVENTS
+     *  Events
      ***********************************************/
 
     /// @notice Emitted when a credit line is registered
@@ -92,7 +92,7 @@ interface ILendingMarket {
     event RegistryUpdated(address indexed newRegistry, address indexed oldRegistry);
 
     /************************************************
-     *  BORROWER FUNCTIONS
+     *  Borrower functions
      ***********************************************/
 
     /// @notice Takes a loan from a credit line
@@ -107,7 +107,7 @@ interface ILendingMarket {
     function repayLoan(uint256 loanId, uint256 amount) external;
 
     /************************************************
-     *  LOAN HOLDER FUNCTIONS
+     *  Loan holder functions
      ***********************************************/
 
     /// @notice Freezes a loan
@@ -154,7 +154,7 @@ interface ILendingMarket {
     function registerLiquidityPool(address lender, address liquidityPool) external;
 
     /************************************************
-     *  VIEW FUNCTIONS
+     *  View functions
      ***********************************************/
 
     /// @notice Retrieves the credit line lender

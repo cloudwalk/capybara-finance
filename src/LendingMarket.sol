@@ -15,7 +15,6 @@ import {Error} from "./libraries/Error.sol";
 import {Interest} from "./libraries/Interest.sol";
 import {InterestMath} from "./libraries/InterestMath.sol";
 
-import {ICapybaraNFT} from "./interfaces/core/ICapybaraNFT.sol";
 import {ILendingMarket} from "./interfaces/core/ILendingMarket.sol";
 import {ILiquidityPool} from "./interfaces/core/ILiquidityPool.sol";
 import {ICreditLine} from "./interfaces/core/ICreditLine.sol";
@@ -219,7 +218,6 @@ contract LendingMarket is
             revert LiquidityPoolNotRegistered();
         }
 
-        // TODO Revert with error message
         Loan.Terms memory terms = ICreditLine(creditLine).onLoanTaken(msg.sender, amount);
 
         uint256 startDate = calculatePeriodDate(terms.periodInSeconds, 0, 0);
@@ -284,7 +282,6 @@ contract LendingMarket is
         emit LoanRepaid(loanId, msg.sender, loan.borrower, amount, outstandingBalance);
 
         if (outstandingBalance == 0) {
-            // TODO can lender borrow from himself?
             _safeTransfer(ownerOf(loanId), loan.borrower, loanId, "");
         }
     }
@@ -588,7 +585,6 @@ contract LendingMarket is
         override(ERC721Upgradeable, ERC721EnumerableUpgradeable)
         returns (bool)
     {
-        // TODO Don't we want to add custom interfaces?
         return super.supportsInterface(interfaceId);
     }
 }
