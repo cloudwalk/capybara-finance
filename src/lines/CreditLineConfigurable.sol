@@ -151,16 +151,22 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
 
     /// @inheritdoc ICreditLineConfigurable
     function configureCreditLine(CreditLineConfig memory config) external onlyOwner {
+        if (config.periodInSeconds == 0) {
+            revert InvalidCreditLineConfiguration();
+        }
+        if (config.durationInPeriods == 0) {
+            revert InvalidCreditLineConfiguration();
+        }
         if (config.minBorrowAmount == 0) {
             revert InvalidCreditLineConfiguration();
         }
         if (config.maxBorrowAmount == 0) {
             revert InvalidCreditLineConfiguration();
         }
-        if (config.periodInSeconds == 0) {
+        if(config.minBorrowAmount > config.maxBorrowAmount) {
             revert InvalidCreditLineConfiguration();
         }
-        if (config.durationInPeriods == 0) {
+        if (config.interestRateFactor == 0) {
             revert InvalidCreditLineConfiguration();
         }
         if (config.minInterestRatePrimary == 0) {
@@ -169,10 +175,13 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         if (config.maxInterestRatePrimary == 0) {
             revert InvalidCreditLineConfiguration();
         }
-        if (config.minBorrowAmount > config.maxBorrowAmount) {
+        if (config.minInterestRatePrimary > config.maxInterestRatePrimary) {
             revert InvalidCreditLineConfiguration();
         }
-        if (config.minInterestRatePrimary > config.maxInterestRatePrimary) {
+        if (config.minInterestRateSecondary == 0) {
+            revert InvalidCreditLineConfiguration();
+        }
+        if (config.maxInterestRateSecondary == 0) {
             revert InvalidCreditLineConfiguration();
         }
         if (config.minInterestRateSecondary > config.maxInterestRateSecondary) {
@@ -333,24 +342,27 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
             revert Error.ZeroAddress();
         }
 
-        // TODO Add more rules
-
         if (config.minBorrowAmount > config.maxBorrowAmount) {
             revert InvalidBorrowerConfiguration();
         }
-        if (config.interestRatePrimary > _config.maxInterestRatePrimary) {
+        if (config.minBorrowAmount < _config.minBorrowAmount) {
+            revert InvalidBorrowerConfiguration();
+        }
+        if (config.maxBorrowAmount > _config.maxBorrowAmount) {
             revert InvalidBorrowerConfiguration();
         }
         if (config.interestRatePrimary < _config.minInterestRatePrimary) {
             revert InvalidBorrowerConfiguration();
         }
-        if (config.interestRateSecondary > _config.maxInterestRateSecondary) {
+        if (config.interestRatePrimary > _config.maxInterestRatePrimary) {
             revert InvalidBorrowerConfiguration();
         }
         if (config.interestRateSecondary < _config.minInterestRateSecondary) {
             revert InvalidBorrowerConfiguration();
         }
-
+        if (config.interestRateSecondary > _config.maxInterestRateSecondary) {
+            revert InvalidBorrowerConfiguration();
+        }
         if (_config.addonPeriodCostRate != 0 || _config.addonFixedCostRate != 0) {
             if (config.addonRecipient == address(0)) {
                 revert InvalidCreditLineConfiguration();

@@ -72,12 +72,12 @@ interface ICreditLineConfigurable {
 
     /// @notice A struct that defines borrower configuration
     struct BorrowerConfig {
+        /// @notice The expiration date of the borrower configuration
+        uint256 expiration;
         /// @notice The minimum amount the borrower can take as a loan
         uint256 minBorrowAmount;
         /// @notice The maximum amount the borrower can take as a loan
         uint256 maxBorrowAmount;
-        /// @notice The expiration date of the borrower configuration
-        uint256 expiration;
         /// @notice The primary interest rate to be applied to the loan
         uint256 interestRatePrimary;
         /// @notice The secondary interest rate to be applied to the loan

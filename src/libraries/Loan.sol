@@ -5,7 +5,7 @@ pragma solidity 0.8.20;
 import {Interest} from "./Interest.sol";
 
 /// @title Loan library
-/// @notice Defines loan-related types
+/// @notice Defines loan related types
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 library Loan {
     /// @notice An enum that defines the possible loan statuses

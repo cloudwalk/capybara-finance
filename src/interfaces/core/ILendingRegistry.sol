@@ -3,7 +3,7 @@
 pragma solidity 0.8.20;
 
 /// @title ILendingRegistry interface
-/// @notice Defines the lending registry functions and events
+/// @notice Defines the lending registry contract functions and events
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 interface ILendingRegistry {
     /************************************************

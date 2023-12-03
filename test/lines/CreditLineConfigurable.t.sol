@@ -746,7 +746,7 @@ contract CreditLineConfigurableTest is Test {
         ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = configureCreditLine();
 
         ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
-        config.maxBorrowAmount = creditLineConfig.maxBorrowAmount + 2;
+        config.maxBorrowAmount = creditLineConfig.maxBorrowAmount;
 
         vm.prank(ADMIN);
         creditLine.configureBorrower(BORROWER_1, config);
@@ -759,7 +759,7 @@ contract CreditLineConfigurableTest is Test {
         ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = configureCreditLine();
 
         ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
-        config.minBorrowAmount = creditLineConfig.minBorrowAmount - 2;
+        config.minBorrowAmount = creditLineConfig.minBorrowAmount;
 
         vm.prank(ADMIN);
         creditLine.configureBorrower(BORROWER_1, config);
