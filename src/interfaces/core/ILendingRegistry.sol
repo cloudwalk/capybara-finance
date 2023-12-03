@@ -25,11 +25,12 @@ interface ILendingRegistry {
      ***********************************************/
 
     /// @notice Creates a new credit line
-    /// @param kind The kind of the credit line to create
-    function createCreditLine(uint16 kind) external;
+    /// @param kind The kind of the credit line
+    /// @param token The address of the credit line token
+    function createCreditLine(uint16 kind, address token) external;
 
     /// @notice Creates a new liquidity pool
-    /// @param kind The kind of the liquidity pool to create
+    /// @param kind The kind of the liquidity pool
     function createLiquidityPool(uint16 kind) external;
 
     /// @notice Returns the address of the credit line factory

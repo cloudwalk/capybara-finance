@@ -12,7 +12,7 @@ contract CreditLineFactoryMock is ICreditLineFactory {
      *  Events
      ***********************************************/
 
-    event CreateCreditLineCalled(address indexed market, address indexed lender, uint16 indexed kind, bytes data);
+    event CreateCreditLineCalled(address indexed market, address indexed lender, address indexed token, uint16 kind, bytes data);
 
     /************************************************
      *  Errors
@@ -30,11 +30,11 @@ contract CreditLineFactoryMock is ICreditLineFactory {
      *  ICreditLineFactory functions
      ***********************************************/
 
-    function createCreditLine(address market, address lender, uint16 kind, bytes calldata data)
+    function createCreditLine(address market, address lender, address token, uint16 kind, bytes calldata data)
         external
         returns (address creditLine)
     {
-        emit CreateCreditLineCalled(market, lender, kind, data);
+        emit CreateCreditLineCalled(market, lender, token, kind, data);
         return _creditLineAddress;
     }
 

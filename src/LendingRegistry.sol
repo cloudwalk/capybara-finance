@@ -135,12 +135,12 @@ contract LendingRegistry is
      ***********************************************/
 
     /// @inheritdoc ILendingRegistry
-    function createCreditLine(uint16 kind) external whenNotPaused {
+    function createCreditLine(uint16 kind, address token) external whenNotPaused {
         if (_creditLineFactory == address(0)) {
             revert CreditLineFactoryNotSet();
         }
 
-        address creditLine = ICreditLineFactory(_creditLineFactory).createCreditLine(_market, msg.sender, kind, "0x");
+        address creditLine = ICreditLineFactory(_creditLineFactory).createCreditLine(_market, msg.sender, token, kind, "0x");
 
         emit CreditLineCreated(msg.sender, creditLine);
 

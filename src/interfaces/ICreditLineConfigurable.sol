@@ -17,10 +17,6 @@ interface ICreditLineConfigurable {
     /// @param adminStatus True if the account is an admin
     event AdminConfigured(address indexed admin, bool adminStatus);
 
-    /// @notice Emitted when credit line token is configured
-    /// @param token The address of the token associated with the credit line
-    event TokenConfigured(address creditLine, address indexed token);
-
     /// @notice Emitted when the credit line configuration is updated
     /// @param creditLine The address of the credit line
     /// @param config The credit line configuration
@@ -97,10 +93,6 @@ interface ICreditLineConfigurable {
     /************************************************
      *  Functions
      ***********************************************/
-
-    /// @notice Configures the token associated with the credit line
-    /// @param token The address of token to associate with the credit line
-    function configureToken(address token) external;
 
     /// @notice Configures an admin status
     /// @param admin The address of the admin to configure

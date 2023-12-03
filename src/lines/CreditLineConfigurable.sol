@@ -81,23 +81,26 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     /// @notice Initializer of the upgradable contract
     /// @param market_ The address of the associated lending market
     /// @param lender_ The address of the associated lender
-    function initialize(address market_, address lender_) external initializer {
-        __CreditLineConfigurable_init(market_, lender_);
+    /// @param token_ The address of the associated token
+    function initialize(address market_, address lender_, address token_) external initializer {
+        __CreditLineConfigurable_init(market_, lender_, token_);
     }
 
     /// @notice Internal initializer of the upgradable contract
     /// @param market_ The address of the associated lending market
     /// @param lender_ The address of the associated lender
-    function __CreditLineConfigurable_init(address market_, address lender_) internal onlyInitializing {
+    /// @param token_ The address of the associated token
+    function __CreditLineConfigurable_init(address market_, address lender_, address token_) internal onlyInitializing {
         __Ownable_init_unchained(lender_);
         __Pausable_init_unchained();
-        __CreditLineConfigurable_init_unchained(market_, lender_);
+        __CreditLineConfigurable_init_unchained(market_, lender_, token_);
     }
 
     /// @notice Unchained internal initializer of the upgradable contract
     /// @param market_ The address of the associated lending market
     /// @param lender_ The address of the associated lender
-    function __CreditLineConfigurable_init_unchained(address market_, address lender_) internal onlyInitializing {
+    /// @param token_ The address of the associated token
+    function __CreditLineConfigurable_init_unchained(address market_, address lender_, address token_) internal onlyInitializing {
         if (market_ == address(0)) {
             revert Error.ZeroAddress();
         }
@@ -106,8 +109,12 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
             // and the owner address is checked to be non-zero by the Ownable
             revert Error.ZeroAddress();
         }
+        if (token_ == address(0)) {
+            revert Error.ZeroAddress();
+        }
 
         _market = market_;
+        _token = token_;
     }
 
     /************************************************
@@ -122,20 +129,6 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     /// @notice Unpauses the contract
     function unpause() external onlyOwner {
         _unpause();
-    }
-
-    /// @inheritdoc ICreditLineConfigurable
-    function configureToken(address token_) external onlyOwner {
-        if (token_ == address(0)) {
-            revert Error.ZeroAddress();
-        }
-        if (_token != address(0)) {
-            revert Error.AlreadyConfigured();
-        }
-
-        _token = token_;
-
-        emit TokenConfigured(address(this), token_);
     }
 
     /// @inheritdoc ICreditLineConfigurable

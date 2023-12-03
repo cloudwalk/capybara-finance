@@ -86,7 +86,7 @@ contract CreditLineConfigurableTest is Test {
 
     function setUp() public {
         creditLine = new CreditLineConfigurable();
-        creditLine.initialize(MARKET, LENDER);
+        creditLine.initialize(MARKET, LENDER, TOKEN_1);
     }
 
     function configureCreditLine() public returns (ICreditLineConfigurable.CreditLineConfig memory) {
@@ -98,7 +98,7 @@ contract CreditLineConfigurableTest is Test {
         return config;
     }
 
-    function initCreditLineConfig() internal view returns (ICreditLineConfigurable.CreditLineConfig memory) {
+    function initCreditLineConfig() internal pure returns (ICreditLineConfigurable.CreditLineConfig memory) {
         return ICreditLineConfigurable.CreditLineConfig({
             minBorrowAmount: INIT_CREDIT_LINE_MIN_BORROW_AMOUNT,
             maxBorrowAmount: INIT_CREDIT_LINE_MAX_BORROW_AMOUNT,
@@ -116,7 +116,7 @@ contract CreditLineConfigurableTest is Test {
 
     function initBorrowerConfig(uint256 blockTimestamp)
         internal
-        view
+        pure
         returns (ICreditLineConfigurable.BorrowerConfig memory)
     {
         return ICreditLineConfigurable.BorrowerConfig({
@@ -133,7 +133,7 @@ contract CreditLineConfigurableTest is Test {
 
     function initBorrowerConfigs(uint256 blockTimestamp)
         internal
-        view
+        pure
         returns (address[] memory, ICreditLineConfigurable.BorrowerConfig[] memory)
     {
         address[] memory borrowers = new address[](3);
@@ -181,22 +181,29 @@ contract CreditLineConfigurableTest is Test {
 
     function test_constructor() public {
         creditLine = new CreditLineConfigurable();
-        creditLine.initialize(MARKET, LENDER);
+        creditLine.initialize(MARKET, LENDER, TOKEN_1);
         assertEq(creditLine.market(), MARKET);
         assertEq(creditLine.lender(), LENDER);
+        assertEq(creditLine.token(), TOKEN_1);
         assertEq(creditLine.owner(), LENDER);
     }
 
     function test_constructor_Revert_IfMarketIsZeroAddress() public {
         creditLine = new CreditLineConfigurable();
         vm.expectRevert(Error.ZeroAddress.selector);
-        creditLine.initialize(address(0), LENDER);
+        creditLine.initialize(address(0), LENDER, TOKEN_1);
     }
 
     function test_constructor_Revert_IfLenderIsZeroAddress() public {
         creditLine = new CreditLineConfigurable();
         vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableInvalidOwner.selector, address(0)));
-        creditLine.initialize(MARKET, address(0));
+        creditLine.initialize(MARKET, address(0), TOKEN_1);
+    }
+
+function test_constructor_Revert_IfTokenIsZeroAddress() public {
+        creditLine = new CreditLineConfigurable();
+        vm.expectRevert(Error.ZeroAddress.selector);
+        creditLine.initialize(MARKET, LENDER, address(0));
     }
 
     /************************************************
@@ -249,47 +256,6 @@ contract CreditLineConfigurableTest is Test {
         vm.prank(ATTACKER);
         vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
         creditLine.unpause();
-    }
-
-    /************************************************
-     *  Test `configureToken` function
-     ***********************************************/
-
-    function test_configureToken() public {
-        assertEq(creditLine.token(), address(0));
-
-        vm.prank(LENDER);
-        vm.expectEmit(true, true, true, true, address(creditLine));
-        emit TokenConfigured(address(creditLine), TOKEN_1);
-        creditLine.configureToken(TOKEN_1);
-
-        assertEq(creditLine.token(), TOKEN_1);
-    }
-
-    function test_configureToken_Revert_IfTokenIsZeroAddress() public {
-        vm.prank(LENDER);
-        vm.expectRevert(Error.ZeroAddress.selector);
-        creditLine.configureToken(address(0));
-    }
-
-    function test_configureToken_Revert_IfTokenAlreadyConfigured_SameToken() public {
-        vm.startPrank(LENDER);
-        creditLine.configureToken(TOKEN_1);
-        vm.expectRevert(Error.AlreadyConfigured.selector);
-        creditLine.configureToken(TOKEN_1);
-    }
-
-    function test_configureToken_Revert_IfTokenAlreadyConfigured_NewToken() public {
-        vm.startPrank(LENDER);
-        creditLine.configureToken(TOKEN_1);
-        vm.expectRevert(Error.AlreadyConfigured.selector);
-        creditLine.configureToken(TOKEN_2);
-    }
-
-    function test_configureToken_Revert_IfCallerIsNotOwner() public {
-        vm.prank(ATTACKER);
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
-        creditLine.configureToken(TOKEN_1);
     }
 
     /************************************************

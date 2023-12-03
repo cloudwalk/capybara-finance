@@ -33,9 +33,9 @@ contract LiquidityPoolFactoryTest is Test {
     address public constant ATTACKER = address(bytes20(keccak256("attacker")));
     address public constant EXPECTED_CONTRACT_ADDRESS = 0x104fBc016F4bb334D775a19E8A6510109AC63E00;
 
-    uint16 public constant EXPECTED_KIND = 1;
-    uint16 public constant UNEXPECTED_KIND = 2;
-    bytes public constant CREATE_DATA = "0x123ff";
+    uint16 public constant KIND_1 = 1;
+    uint16 public constant KIND_2 = 2;
+    bytes public constant DATA = "0x123ff";
 
     /********************************************************
      *  Setup and configuration
@@ -70,24 +70,24 @@ contract LiquidityPoolFactoryTest is Test {
     function test_createLiquidityPool() public {
         vm.prank(REGISTRY);
         vm.expectEmit(true, true, true, true, address(factory));
-        emit LiquidityPoolCreated(MARKET, LENDER, EXPECTED_KIND, EXPECTED_CONTRACT_ADDRESS);
-        address liquidityPool = factory.createLiquidityPool(MARKET, LENDER, EXPECTED_KIND, CREATE_DATA);
+        emit LiquidityPoolCreated(MARKET, LENDER, KIND_1, EXPECTED_CONTRACT_ADDRESS);
+        address liquidityPool = factory.createLiquidityPool(MARKET, LENDER, KIND_1, DATA);
 
         assertEq(LiquidityPoolAccountable(liquidityPool).lender(), LENDER);
         assertEq(LiquidityPoolAccountable(liquidityPool).market(), MARKET);
-        assertEq(LiquidityPoolAccountable(liquidityPool).kind(), EXPECTED_KIND);
+        assertEq(LiquidityPoolAccountable(liquidityPool).kind(), KIND_1);
     }
 
     function test_createLiquidityPool_Revert_IfUnsupportedKind() public {
         vm.prank(REGISTRY);
-        vm.expectRevert(abi.encodeWithSelector(LiquidityPoolFactory.UnsupportedKind.selector, UNEXPECTED_KIND));
-        factory.createLiquidityPool(MARKET, LENDER, UNEXPECTED_KIND, CREATE_DATA);
+        vm.expectRevert(abi.encodeWithSelector(LiquidityPoolFactory.UnsupportedKind.selector, KIND_2));
+        factory.createLiquidityPool(MARKET, LENDER, KIND_2, DATA);
     }
 
     function test_createLiquidityPool_Revert_IfCallerNotRegistry() public {
         vm.prank(ATTACKER);
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, ATTACKER));
-        factory.createLiquidityPool(MARKET, LENDER, EXPECTED_KIND, CREATE_DATA);
+        factory.createLiquidityPool(MARKET, LENDER, KIND_1, DATA);
     }
 
     /********************************************************
@@ -97,6 +97,6 @@ contract LiquidityPoolFactoryTest is Test {
     function test_supportedKinds() public {
         uint16[] memory kinds = factory.supportedKinds();
         assertEq(kinds.length, 1);
-        assertEq(kinds[0], EXPECTED_KIND);
+        assertEq(kinds[0], KIND_1);
     }
 }

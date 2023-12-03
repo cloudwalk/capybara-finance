@@ -12,8 +12,8 @@ interface ILiquidityPoolFactory {
 
     /// @notice Emitted when a new liquidity pool is created
     /// @param market The address of the associated lending market
-    /// @param lender The address of the lender
-    /// @param kind The kind of liquidity pool
+    /// @param lender The address of the liquidity pool lender
+    /// @param kind The kind of the created liquidity pool
     /// @param liquidityPool The address of the created liquidity pool
     event LiquidityPoolCreated(
         address indexed market, address indexed lender, uint16 indexed kind, address liquidityPool
@@ -25,7 +25,7 @@ interface ILiquidityPoolFactory {
 
     /// @notice Creates a new liquidity pool
     /// @param market The address of the lending market
-    /// @param lender The address of the lender
+    /// @param lender The address of the liquidity pool lender
     /// @param kind The kind of liquidity pool to create
     /// @param data The data to configure the liquidity pool
     /// @return The address of the created liquidity pool contract

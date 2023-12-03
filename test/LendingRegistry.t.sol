@@ -32,7 +32,7 @@ contract LendingRegistryTest is Test {
     event RegisterCreditLineCalled(address indexed lender, address indexed creditLine);
     event RegisterLiquidityPoolCalled(address indexed lender, address indexed liquidityPool);
 
-    event CreateCreditLineCalled(address indexed market, address indexed lender, uint16 indexed kind, bytes data);
+    event CreateCreditLineCalled(address indexed market, address indexed lender, address indexed token, uint16 kind, bytes data);
     event CreateLiquidityPoolCalled(address indexed market, address indexed lender, uint16 indexed kind, bytes data);
 
     /************************************************
@@ -44,6 +44,7 @@ contract LendingRegistryTest is Test {
     CreditLineFactoryMock public creditLineFactory;
     LiquidityPoolFactoryMock public liquidityPoolFactory;
 
+    address public constant TOKEN = address(bytes20(keccak256("token")));
     address public constant OWNER = address(bytes20(keccak256("owner")));
     address public constant LENDER = address(bytes20(keccak256("lender")));
     address public constant ATTACKER = address(bytes20(keccak256("attacker")));
@@ -263,7 +264,7 @@ contract LendingRegistryTest is Test {
         registry.setCreditLineFactory(address(creditLineFactory));
 
         vm.expectEmit(true, true, true, true, address(creditLineFactory));
-        emit CreateCreditLineCalled(address(lendingMarket), OWNER, KIND, "0x");
+        emit CreateCreditLineCalled(address(lendingMarket), OWNER, TOKEN, KIND, "0x");
 
         vm.expectEmit(true, true, true, true, address(registry));
         emit CreditLineCreated(OWNER, EXPECTED_CONTRACT_ADDRESS);
@@ -271,13 +272,13 @@ contract LendingRegistryTest is Test {
         vm.expectEmit(true, true, true, true, address(lendingMarket));
         emit RegisterCreditLineCalled(OWNER, EXPECTED_CONTRACT_ADDRESS);
 
-        registry.createCreditLine(KIND);
+        registry.createCreditLine(KIND, TOKEN);
     }
 
     function test_createCreditLine_Revert_IfFactoryNotConfigured() public {
         vm.prank(OWNER);
         vm.expectRevert(LendingRegistry.CreditLineFactoryNotSet.selector);
-        registry.createCreditLine(KIND);
+        registry.createCreditLine(KIND, TOKEN);
     }
 
     /************************************************

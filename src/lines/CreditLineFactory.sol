@@ -57,7 +57,7 @@ contract CreditLineFactory is OwnableUpgradeable, PausableUpgradeable, ICreditLi
     }
 
     /// @inheritdoc ICreditLineFactory
-    function createCreditLine(address market, address lender, uint16 kind, bytes calldata data)
+    function createCreditLine(address market, address lender, address token, uint16 kind, bytes calldata data)
         external
         onlyOwner
         returns (address)
@@ -67,9 +67,9 @@ contract CreditLineFactory is OwnableUpgradeable, PausableUpgradeable, ICreditLi
         }
 
         CreditLineConfigurable creditLine = new CreditLineConfigurable();
-        creditLine.initialize(market, lender);
+        creditLine.initialize(market, lender, token);
 
-        emit CreditLineCreated(market, lender, kind, address(creditLine));
+        emit CreditLineCreated(market, lender, token, kind, address(creditLine));
 
         return address(creditLine);
     }
