@@ -142,8 +142,6 @@ contract LendingRegistry is
 
         address creditLine = ICreditLineFactory(_creditLineFactory).createCreditLine(_market, msg.sender, token, kind, "0x");
 
-        emit CreditLineCreated(msg.sender, creditLine);
-
         ILendingMarket(_market).registerCreditLine(msg.sender, creditLine);
     }
 
@@ -155,8 +153,6 @@ contract LendingRegistry is
 
         address liquidityPool =
             ILiquidityPoolFactory(_liquidityPoolFactory).createLiquidityPool(_market, msg.sender, kind, "0x");
-
-        emit LiquidityPoolCreated(msg.sender, liquidityPool);
 
         ILendingMarket(_market).registerLiquidityPool(msg.sender, liquidityPool);
     }

@@ -266,9 +266,6 @@ contract LendingRegistryTest is Test {
         vm.expectEmit(true, true, true, true, address(creditLineFactory));
         emit CreateCreditLineCalled(address(lendingMarket), OWNER, TOKEN, KIND, "0x");
 
-        vm.expectEmit(true, true, true, true, address(registry));
-        emit CreditLineCreated(OWNER, EXPECTED_CONTRACT_ADDRESS);
-
         vm.expectEmit(true, true, true, true, address(lendingMarket));
         emit RegisterCreditLineCalled(OWNER, EXPECTED_CONTRACT_ADDRESS);
 
@@ -293,9 +290,6 @@ contract LendingRegistryTest is Test {
 
         vm.expectEmit(true, true, true, true, address(liquidityPoolFactory));
         emit CreateLiquidityPoolCalled(address(lendingMarket), OWNER, KIND, "0x");
-
-        vm.expectEmit(true, true, true, true, address(registry));
-        emit LiquidityPoolCreated(OWNER, EXPECTED_CONTRACT_ADDRESS);
 
         vm.expectEmit(true, true, true, true, address(lendingMarket));
         emit RegisterLiquidityPoolCalled(OWNER, EXPECTED_CONTRACT_ADDRESS);

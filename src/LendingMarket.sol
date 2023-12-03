@@ -78,8 +78,8 @@ contract LendingMarket is
      ***********************************************/
 
     /// @notice Throws if called by any account other than the registry
-    modifier onlyRegistry() {
-        if (msg.sender != _registry) {
+    modifier onlyRegistryOrOwner() {
+        if (msg.sender != _registry && msg.sender != owner()) {
             revert Error.Unauthorized();
         }
         _;
@@ -162,7 +162,7 @@ contract LendingMarket is
      ***********************************************/
 
     /// @inheritdoc ILendingMarket
-    function registerCreditLine(address lender, address creditLine) external whenNotPaused onlyRegistry {
+    function registerCreditLine(address lender, address creditLine) external whenNotPaused onlyRegistryOrOwner {
         if (lender == address(0)) {
             revert Error.ZeroAddress();
         }
@@ -179,7 +179,7 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ILendingMarket
-    function registerLiquidityPool(address lender, address liquidityPool) external whenNotPaused onlyRegistry {
+    function registerLiquidityPool(address lender, address liquidityPool) external whenNotPaused onlyRegistryOrOwner {
         if (lender == address(0)) {
             revert Error.ZeroAddress();
         }
