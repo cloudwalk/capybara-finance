@@ -17,6 +17,10 @@ interface ICreditLineConfigurable {
     /// @param adminStatus True if the account is an admin
     event AdminConfigured(address indexed admin, bool adminStatus);
 
+    /// @notice Emitted when credit line token is configured
+    /// @param token The address of the token associated with the credit line
+    event TokenConfigured(address creditLine, address indexed token);
+
     /// @notice Emitted when the credit line configuration is updated
     /// @param creditLine The address of the credit line
     /// @param config The credit line configuration
@@ -46,14 +50,14 @@ interface ICreditLineConfigurable {
 
     /// @notice A struct that defines credit line configuration
     struct CreditLineConfig {
+        /// @notice The duration of the loan period determined in seconds
+        uint256 periodInSeconds;
+        /// @notice The total duration of the loan determined in periods
+        uint256 durationInPeriods;
         /// @notice The minimum amount the borrower can take as a loan
         uint256 minBorrowAmount;
         /// @notice The maximum amount the borrower can take as a loan
         uint256 maxBorrowAmount;
-        /// @notice The duration of the loan period specified in seconds
-        uint256 periodInSeconds;
-        /// @notice The total duration of the loan determined in periods
-        uint256 durationInPeriods;
         /// @notice The interest rate factor used for interest calculation
         uint256 interestRateFactor;
         /// @notice The minimum primary interest rate to be applied to the loan
