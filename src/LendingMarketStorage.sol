@@ -12,7 +12,7 @@ abstract contract LendingMarketStorage {
      *  Storage variables
      ***********************************************/
 
-    /// @notice The counter of the NFT token unique identifiers
+    /// @notice The counter of the NFT token identifiers
     uint256 internal _tokenIdCounter;
 
     /// @notice The address of the lending registry
