@@ -28,16 +28,6 @@ interface ILendingMarket {
     /// @param borrowAmount The initial principal amount of the loan
     event TakeLoan(uint256 indexed loanId, address indexed borrower, uint256 borrowAmount);
 
-    /// @notice Emitted when a loan is frozen
-    /// @param loanId The unique identifier of the loan
-    /// @param freezeDate The date when the loan was frozen
-    event FreezeLoan(uint256 indexed loanId, uint256 freezeDate);
-
-    /// @notice Emitted when a loan is unfrozen
-    /// @param loanId The unique identifier of the loan
-    /// @param unfreezeDate The date when the loan was unfrozen
-    event UnfreezeLoan(uint256 indexed loanId, uint256 unfreezeDate);
-
     /// @notice Emitted when a loan is repaid (fully or partially)
     /// @param loanId The unique identifier of the loan
     /// @param repayer The address of the repayer
@@ -51,6 +41,16 @@ interface ILendingMarket {
         uint256 repayAmount,
         uint256 remainingBalance
     );
+
+    /// @notice Emitted when a loan is frozen
+    /// @param loanId The unique identifier of the loan
+    /// @param freezeDate The date when the loan was frozen
+    event FreezeLoan(uint256 indexed loanId, uint256 freezeDate);
+
+    /// @notice Emitted when a loan is unfrozen
+    /// @param loanId The unique identifier of the loan
+    /// @param unfreezeDate The date when the loan was unfrozen
+    event UnfreezeLoan(uint256 indexed loanId, uint256 unfreezeDate);
 
     /// @notice Emitted when the duration of the loan is updated
     /// @param loanId The unique identifier of the loan
@@ -89,7 +89,7 @@ interface ILendingMarket {
     /// @notice Emitted when the registry contract is updated
     /// @param newRegistry The address of the new registry
     /// @param oldRegistry The address of the old registry
-    event UpdateRegistry(address indexed newRegistry, address indexed oldRegistry);
+    event SetRegistry(address indexed newRegistry, address indexed oldRegistry);
 
     /************************************************
      *  Borrower functions

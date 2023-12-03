@@ -51,7 +51,7 @@ contract LendingMarketTest is Test {
     event UpdateLoanInterestRateSecondary(
         uint256 indexed loanId, uint256 indexed newInterestRate, uint256 indexed oldInterestRate
     );
-    event UpdateRegistry(address indexed newRegistry, address indexed oldRegistry);
+    event SetRegistry(address indexed newRegistry, address indexed oldRegistry);
     event LoanStatusChanged(uint256 indexed loanId, Loan.Status indexed newStatus, Loan.Status indexed oldStatus);
 
     /************************************************
@@ -287,12 +287,12 @@ contract LendingMarketTest is Test {
         vm.startPrank(OWNER);
 
         vm.expectEmit(true, true, true, true, address(market));
-        emit UpdateRegistry(address(0), REGISTRY);
+        emit SetRegistry(address(0), REGISTRY);
         market.setRegistry(address(0));
         assertEq(market.registry(), address(0));
 
         vm.expectEmit(true, true, true, true, address(market));
-        emit UpdateRegistry(REGISTRY, address(0));
+        emit SetRegistry(REGISTRY, address(0));
         market.setRegistry(REGISTRY);
         assertEq(market.registry(), REGISTRY);
     }

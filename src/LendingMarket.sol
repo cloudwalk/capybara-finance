@@ -152,7 +152,7 @@ contract LendingMarket is
             revert Error.AlreadyConfigured();
         }
 
-        emit UpdateRegistry(newRegistry, _registry);
+        emit SetRegistry(newRegistry, _registry);
 
         _registry = newRegistry;
     }
@@ -437,6 +437,9 @@ contract LendingMarket is
         view
         returns (Loan.State memory)
     {
+        /**
+         * TBD
+         */
         revert Error.NotImplemented();
     }
 
