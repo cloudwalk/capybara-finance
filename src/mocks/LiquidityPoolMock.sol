@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.20;
 
-import {ILiquidityPool} from "src/interfaces/core/ILiquidityPool.sol";
+import {ILiquidityPool} from "../interfaces/core/ILiquidityPool.sol";
 
 /// @title LiquidityPoolMock contract
 /// @notice Liquidity pool mock contract used for testing

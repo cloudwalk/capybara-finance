@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.20;
 
-import {Loan} from "src/libraries/Loan.sol";
-import {ILendingMarket} from "src/interfaces/core/ILendingMarket.sol";
+import {Loan} from "../libraries/Loan.sol";
+import {ILendingMarket} from "../interfaces/core/ILendingMarket.sol";
 
 /// @title LendingMarket contract
 /// @notice Lending market mock contract used for testing

@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.20;
 
-import {Loan} from "src/libraries/Loan.sol";
-import {ICreditLine} from "src/interfaces/core/ICreditLine.sol";
+import {Loan} from "../libraries/Loan.sol";
+import {ICreditLine} from "../interfaces/core/ICreditLine.sol";
 
 /// @title CreditLineMock contract
 /// @notice Credit line mock contract used for testing
