@@ -323,10 +323,14 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
             revert InvalidCreditLineConfiguration("Min borrow amount cannot be greater than max borrow amount");
         }
         if (config.minInterestRatePrimary > config.maxInterestRatePrimary) {
-            revert InvalidCreditLineConfiguration("Min interest rate primary cannot be greater than max interest rate primary");
+            revert InvalidCreditLineConfiguration(
+                "Min interest rate primary cannot be greater than max interest rate primary"
+            );
         }
         if (config.minInterestRateSecondary > config.maxInterestRateSecondary) {
-            revert InvalidCreditLineConfiguration("Min interest rate secondary cannot be greater than max interest rate secondary");
+            revert InvalidCreditLineConfiguration(
+                "Min interest rate secondary cannot be greater than max interest rate secondary"
+            );
         }
 
         _config = config;
@@ -349,16 +353,22 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         }
 
         if (config.interestRatePrimary > _config.maxInterestRatePrimary) {
-            revert InvalidBorrowerConfiguration("Interest rate primary cannot be greater than max interest rate primary");
+            revert InvalidBorrowerConfiguration(
+                "Interest rate primary cannot be greater than max interest rate primary"
+            );
         }
         if (config.interestRatePrimary < _config.minInterestRatePrimary) {
             revert InvalidBorrowerConfiguration("Interest rate primary cannot be less than min interest rate primary");
         }
         if (config.interestRateSecondary > _config.maxInterestRateSecondary) {
-            revert InvalidBorrowerConfiguration("Interest rate secondary cannot be greater than max interest rate secondary");
+            revert InvalidBorrowerConfiguration(
+                "Interest rate secondary cannot be greater than max interest rate secondary"
+            );
         }
         if (config.interestRateSecondary < _config.minInterestRateSecondary) {
-            revert InvalidBorrowerConfiguration("Interest rate secondary cannot be less than min interest rate secondary");
+            revert InvalidBorrowerConfiguration(
+                "Interest rate secondary cannot be less than min interest rate secondary"
+            );
         }
 
         if (_config.addonPeriodCostRate != 0 || _config.addonFixedCostRate != 0) {

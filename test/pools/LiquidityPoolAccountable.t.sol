@@ -19,7 +19,6 @@ import {ERC20Test} from "src/mocks/ERC20Test.sol";
 /// @notice Contains tests for the LiquidityPoolAccountable contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 contract LiquidityPoolAccountableTest is Test {
-
     /************************************************
      *  Events
      ***********************************************/
@@ -110,9 +109,7 @@ contract LiquidityPoolAccountableTest is Test {
 
     function test_pause_Revert_IfCallerNotOwner() public {
         vm.prank(ATTACKER);
-        vm.expectRevert(
-            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER)
-        );
+        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
         liquidityPool.pause();
     }
 
@@ -179,9 +176,7 @@ contract LiquidityPoolAccountableTest is Test {
 
     function test_deposit_Revert_IfCallerNotOwner() public {
         vm.prank(ATTACKER);
-        vm.expectRevert(
-            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER)
-        );
+        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
         liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT);
     }
 
@@ -269,9 +264,7 @@ contract LiquidityPoolAccountableTest is Test {
 
     function test_withdraw_Revert_IfCallerNotOwner() public {
         vm.prank(ATTACKER);
-        vm.expectRevert(
-            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER)
-        );
+        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
         liquidityPool.withdraw(address(creditLine), DEPOSIT_AMOUNT);
     }
 
@@ -305,21 +298,24 @@ contract LiquidityPoolAccountableTest is Test {
 
     function test_onAfterLoanTaken() public {
         configureLender();
-        lendingMarket.mockLoanState(LOAN_ID, Loan.State({
-            token: address(token),
-            borrower: address(0),
-            periodInSeconds: 0,
-            durationInPeriods: 0,
-            interestRateFactor: 0,
-            interestRatePrimary: 0,
-            interestRateSecondary: 0,
-            interestFormula: Interest.Formula.Simple,
-            startDate: 0,
-            freezeDate: 0,
-            trackDate: 0,
-            initialBorrowAmount: DEPOSIT_AMOUNT - 1,
-            trackedBorrowAmount: 0
-        }));
+        lendingMarket.mockLoanState(
+            LOAN_ID,
+            Loan.State({
+                token: address(token),
+                borrower: address(0),
+                periodInSeconds: 0,
+                durationInPeriods: 0,
+                interestRateFactor: 0,
+                interestRatePrimary: 0,
+                interestRateSecondary: 0,
+                interestFormula: Interest.Formula.Simple,
+                startDate: 0,
+                freezeDate: 0,
+                trackDate: 0,
+                initialBorrowAmount: DEPOSIT_AMOUNT - 1,
+                trackedBorrowAmount: 0
+            })
+        );
 
         vm.prank(LENDER);
         liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT);
@@ -377,24 +373,26 @@ contract LiquidityPoolAccountableTest is Test {
     //  *  Test `onAfterLoanPayment` function
     //  ***********************************************/
 
-
     function test_onAfterLoanPayment_CreditLineBalance() public {
         configureLender();
-        lendingMarket.mockLoanState(LOAN_ID, Loan.State({
-            token: address(token),
-            borrower: address(0),
-            periodInSeconds: 0,
-            durationInPeriods: 0,
-            interestRateFactor: 0,
-            interestRatePrimary: 0,
-            interestRateSecondary: 0,
-            interestFormula: Interest.Formula.Simple,
-            startDate: 0,
-            freezeDate: 0,
-            trackDate: 0,
-            initialBorrowAmount: DEPOSIT_AMOUNT,
-            trackedBorrowAmount: 0
-        }));
+        lendingMarket.mockLoanState(
+            LOAN_ID,
+            Loan.State({
+                token: address(token),
+                borrower: address(0),
+                periodInSeconds: 0,
+                durationInPeriods: 0,
+                interestRateFactor: 0,
+                interestRatePrimary: 0,
+                interestRateSecondary: 0,
+                interestFormula: Interest.Formula.Simple,
+                startDate: 0,
+                freezeDate: 0,
+                trackDate: 0,
+                initialBorrowAmount: DEPOSIT_AMOUNT,
+                trackedBorrowAmount: 0
+            })
+        );
 
         vm.prank(LENDER);
         liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT);
@@ -411,21 +409,24 @@ contract LiquidityPoolAccountableTest is Test {
 
     function test_onAfterLoanPayment_NonCreditLineBalance() public {
         configureLender();
-        lendingMarket.mockLoanState(LOAN_ID, Loan.State({
-            token: address(token),
-            borrower: address(0),
-            periodInSeconds: 0,
-            durationInPeriods: 0,
-            interestRateFactor: 0,
-            interestRatePrimary: 0,
-            interestRateSecondary: 0,
-            interestFormula: Interest.Formula.Simple,
-            startDate: 0,
-            freezeDate: 0,
-            trackDate: 0,
-            initialBorrowAmount: DEPOSIT_AMOUNT,
-            trackedBorrowAmount: 0
-        }));
+        lendingMarket.mockLoanState(
+            LOAN_ID,
+            Loan.State({
+                token: address(token),
+                borrower: address(0),
+                periodInSeconds: 0,
+                durationInPeriods: 0,
+                interestRateFactor: 0,
+                interestRatePrimary: 0,
+                interestRateSecondary: 0,
+                interestFormula: Interest.Formula.Simple,
+                startDate: 0,
+                freezeDate: 0,
+                trackDate: 0,
+                initialBorrowAmount: DEPOSIT_AMOUNT,
+                trackedBorrowAmount: 0
+            })
+        );
 
         vm.prank(LENDER);
         liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT);
@@ -479,21 +480,24 @@ contract LiquidityPoolAccountableTest is Test {
 
     function test_getCreditLine() public {
         configureLender();
-        lendingMarket.mockLoanState(LOAN_ID, Loan.State({
-            token: address(token),
-            borrower: address(0),
-            periodInSeconds: 0,
-            durationInPeriods: 0,
-            interestRateFactor: 0,
-            interestRatePrimary: 0,
-            interestRateSecondary: 0,
-            interestFormula: Interest.Formula.Simple,
-            startDate: 0,
-            freezeDate: 0,
-            trackDate: 0,
-            initialBorrowAmount: DEPOSIT_AMOUNT,
-            trackedBorrowAmount: 0
-        }));
+        lendingMarket.mockLoanState(
+            LOAN_ID,
+            Loan.State({
+                token: address(token),
+                borrower: address(0),
+                periodInSeconds: 0,
+                durationInPeriods: 0,
+                interestRateFactor: 0,
+                interestRatePrimary: 0,
+                interestRateSecondary: 0,
+                interestFormula: Interest.Formula.Simple,
+                startDate: 0,
+                freezeDate: 0,
+                trackDate: 0,
+                initialBorrowAmount: DEPOSIT_AMOUNT,
+                trackedBorrowAmount: 0
+            })
+        );
 
         vm.prank(LENDER);
         liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT);

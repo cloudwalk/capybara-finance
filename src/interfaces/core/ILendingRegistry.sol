@@ -7,7 +7,7 @@ pragma solidity 0.8.20;
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 interface ILendingRegistry {
     /************************************************
-     *  EVENTS
+     *  Events
      ***********************************************/
 
     /// @notice Emitted when a new credit line is created
@@ -21,7 +21,7 @@ interface ILendingRegistry {
     event LiquidityPoolCreated(address indexed lender, address liquidityPool);
 
     /************************************************
-     *  FUNCTIONS
+     *  Functions
      ***********************************************/
 
     /// @notice Creates a new credit line

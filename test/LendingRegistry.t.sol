@@ -19,7 +19,6 @@ import {LiquidityPoolFactoryMock} from "src/mocks/LiquidityPoolFactoryMock.sol";
 /// @notice Contains tests for the LendingRegistry contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 contract LendingRegistryTest is Test {
-
     /************************************************
      *  Events
      ***********************************************/
@@ -62,7 +61,7 @@ contract LendingRegistryTest is Test {
      ***********************************************/
 
     function setUp() public {
-        LendingRegistry registryLogic =  new LendingRegistry();
+        LendingRegistry registryLogic = new LendingRegistry();
         ERC1967Proxy registryProxy = new ERC1967Proxy(address(registryLogic), "");
 
         lendingMarket = new LendingMarketMock();
@@ -103,9 +102,7 @@ contract LendingRegistryTest is Test {
 
     function test_pause_Revert_IfCallerNotOwner() public {
         vm.prank(ATTACKER);
-        vm.expectRevert(
-            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER)
-        );
+        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
         registry.pause();
     }
 
@@ -134,9 +131,7 @@ contract LendingRegistryTest is Test {
         vm.prank(OWNER);
         registry.pause();
         vm.prank(ATTACKER);
-        vm.expectRevert(
-            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER)
-        );
+        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
         registry.unpause();
     }
 
@@ -160,9 +155,7 @@ contract LendingRegistryTest is Test {
 
     function test_registerCreditLine_Revert_IfCallerNotOwner() public {
         vm.prank(ATTACKER);
-        vm.expectRevert(
-            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER)
-        );
+        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
         registry.registerCreditLine(LENDER, CREDIT_LINE);
     }
 
@@ -179,9 +172,7 @@ contract LendingRegistryTest is Test {
 
     function test_registerLiquidityPool_Revert_IfCallerNotOwner() public {
         vm.prank(ATTACKER);
-        vm.expectRevert(
-            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER)
-        );
+        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
         registry.registerLiquidityPool(LENDER, LIQUIDITY_POOL);
     }
 
@@ -212,9 +203,7 @@ contract LendingRegistryTest is Test {
 
     function test_setCreditLineFactory_Revert_IfCallerNotOwner() public {
         vm.prank(ATTACKER);
-        vm.expectRevert(
-            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER)
-        );
+        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
         registry.setCreditLineFactory(CREDIT_LINE_FACTORY_1);
     }
 
@@ -252,9 +241,7 @@ contract LendingRegistryTest is Test {
 
     function test_setLiquidityPoolFactory_Revert_IfCallerNotOwner() public {
         vm.prank(ATTACKER);
-        vm.expectRevert(
-            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER)
-        );
+        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
         registry.setLiquidityPoolFactory(LIQUIDITY_POOL_FACTORY_1);
     }
 

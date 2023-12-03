@@ -9,7 +9,6 @@ import {ILendingMarket} from "src/interfaces/core/ILendingMarket.sol";
 /// @notice Lending market mock contract used for testing
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 contract LendingMarketMock is ILendingMarket {
-
     /************************************************
      *  Events
      ***********************************************/
@@ -24,7 +23,7 @@ contract LendingMarketMock is ILendingMarket {
      *  Storage variables
      ***********************************************/
 
-    mapping (uint256 => Loan.State) _loanState;
+    mapping(uint256 => Loan.State) _loanState;
 
     /************************************************
      *  ILendingMarket functions
@@ -86,7 +85,11 @@ contract LendingMarketMock is ILendingMarket {
         return _loanState[loanId];
     }
 
-    function getLoanPreview(uint256 loanId, uint256 repayAmount, uint256 repayDate) external view returns (Loan.State memory) {
+    function getLoanPreview(uint256 loanId, uint256 repayAmount, uint256 repayDate)
+        external
+        view
+        returns (Loan.State memory)
+    {
         revert NotImplemented();
     }
 
@@ -94,7 +97,7 @@ contract LendingMarketMock is ILendingMarket {
         revert NotImplemented();
     }
 
-    function getCurrentPeriodDate(uint loanId) external view returns (uint256) {
+    function getCurrentPeriodDate(uint256 loanId) external view returns (uint256) {
         revert NotImplemented();
     }
 

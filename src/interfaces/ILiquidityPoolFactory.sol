@@ -15,7 +15,9 @@ interface ILiquidityPoolFactory {
     /// @param lender The address of the lender
     /// @param kind The kind of liquidity pool
     /// @param liquidityPool The address of the created liquidity pool
-    event LiquidityPoolCreated(address indexed market, address indexed lender, uint16 indexed kind, address liquidityPool);
+    event LiquidityPoolCreated(
+        address indexed market, address indexed lender, uint16 indexed kind, address liquidityPool
+    );
 
     /************************************************
      *  Functions

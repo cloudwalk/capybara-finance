@@ -9,7 +9,6 @@ import {ICreditLine} from "src/interfaces/core/ICreditLine.sol";
 /// @notice Credit line mock contract used for testing
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 contract CreditLineMock is ICreditLine {
-
     /************************************************
      *  Errors
      ***********************************************/
@@ -22,7 +21,7 @@ contract CreditLineMock is ICreditLine {
 
     address private _tokenAddress;
 
-    mapping (address => mapping (uint => Loan.Terms)) _loanTerms;
+    mapping(address => mapping(uint256 => Loan.Terms)) _loanTerms;
 
     /************************************************
      *  ICreditLine functions

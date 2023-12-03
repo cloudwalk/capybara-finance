@@ -8,17 +8,11 @@ import {ILiquidityPoolFactory} from "src/interfaces/ILiquidityPoolFactory.sol";
 /// @notice Liquidity pool factory mock contract used for testing
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 contract LiquidityPoolFactoryMock is ILiquidityPoolFactory {
-
     /************************************************
      *  Events
      ***********************************************/
 
-    event CreateLiquidityPoolCalled(
-        address indexed market,
-        address indexed lender,
-        uint16 indexed kind,
-        bytes data
-    );
+    event CreateLiquidityPoolCalled(address indexed market, address indexed lender, uint16 indexed kind, bytes data);
 
     /************************************************
      *  Errors
@@ -36,12 +30,10 @@ contract LiquidityPoolFactoryMock is ILiquidityPoolFactory {
      *  ILiquidityPoolFactory functions
      ***********************************************/
 
-    function createLiquidityPool(
-        address market,
-        address lender,
-        uint16 kind,
-        bytes calldata data
-    ) external returns (address) {
+    function createLiquidityPool(address market, address lender, uint16 kind, bytes calldata data)
+        external
+        returns (address)
+    {
         emit CreateLiquidityPoolCalled(market, lender, kind, data);
         return _liquidityPoolAddress;
     }

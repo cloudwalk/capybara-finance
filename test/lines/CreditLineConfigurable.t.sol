@@ -655,7 +655,8 @@ contract CreditLineConfigurableTest is Test {
         creditLine.onLoanTaken(BORROWER_1, config.minBorrowAmount);
 
         assertEq(
-            creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, config.maxBorrowAmount - config.minBorrowAmount
+            creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount,
+            config.maxBorrowAmount - config.minBorrowAmount
         );
     }
 

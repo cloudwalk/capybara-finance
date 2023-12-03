@@ -52,9 +52,7 @@ contract CreditLineFactoryUUPSTest is Test {
     function test_upgradeToAndCall_Revert_IfNotOwner() public {
         address newImplemetation = address(new CreditLineFactoryUUPS());
         vm.prank(ATTACKER);
-        vm.expectRevert(
-            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER)
-        );
+        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
         proxy.upgradeToAndCall(newImplemetation, "");
     }
 }

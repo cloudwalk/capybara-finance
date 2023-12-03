@@ -8,7 +8,8 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
-import {ERC721EnumerableUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
+import {ERC721EnumerableUpgradeable} from
+    "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 
 import {Loan} from "./libraries/Loan.sol";
 import {Error} from "./libraries/Error.sol";
@@ -128,8 +129,7 @@ contract LendingMarket is
     }
 
     /// @notice Unchained internal initializer of the upgradable contract
-    function __LendingMarket_init_unchained() internal onlyInitializing {
-    }
+    function __LendingMarket_init_unchained() internal onlyInitializing {}
 
     /************************************************
      *  Owner functions
@@ -304,7 +304,7 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ILendingMarket
-    function unfreeze(uint256 loanId) external whenNotPaused onlyOngoingLoan(loanId) onlyLoanHolder(loanId)  {
+    function unfreeze(uint256 loanId) external whenNotPaused onlyOngoingLoan(loanId) onlyLoanHolder(loanId) {
         Loan.State storage loan = _loans[loanId];
 
         if (loan.freezeDate == 0) {
@@ -433,18 +433,22 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ILendingMarket
-    function getLoanPreview(uint256 loanId, uint256 repayAmount, uint256 repayDate) external view returns (Loan.State memory) {
+    function getLoanPreview(uint256 loanId, uint256 repayAmount, uint256 repayDate)
+        external
+        view
+        returns (Loan.State memory)
+    {
         revert Error.NotImplemented();
     }
 
     /// @inheritdoc ILendingMarket
     function getOutstandingBalance(uint256 loanId) external view returns (uint256) {
-        (uint256 outstandingBalance, ) = _outstandingBalance(_loans[loanId]);
+        (uint256 outstandingBalance,) = _outstandingBalance(_loans[loanId]);
         return outstandingBalance;
     }
 
     /// @inheritdoc ILendingMarket
-    function getCurrentPeriodDate(uint loanId) external view returns (uint256) {
+    function getCurrentPeriodDate(uint256 loanId) external view returns (uint256) {
         return calculatePeriodDate(_loans[loanId].periodInSeconds, 0, 0);
     }
 

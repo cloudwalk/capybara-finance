@@ -7,7 +7,7 @@ pragma solidity 0.8.20;
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 interface ILiquidityPoolAccountable {
     /************************************************
-     *  EVENTS
+     *  Events
      ***********************************************/
 
     /// @notice Emitted when tokens are deposited to the liquidity pool
@@ -21,7 +21,7 @@ interface ILiquidityPoolAccountable {
     event Withdraw(address indexed tokenSource, uint256 amount);
 
     /************************************************
-     *  FUNCTIONS
+     *  Functions
      ***********************************************/
 
     /// @notice Depisits tokens to the liquidity pool

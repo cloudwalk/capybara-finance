@@ -17,7 +17,12 @@ import {ILendingMarket} from "../interfaces/core/ILendingMarket.sol";
 /// @title LiquidityPoolAccountable contract
 /// @notice Implementation of the accountable liquidity pool contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, ILiquidityPool, ILiquidityPoolAccountable {
+contract LiquidityPoolAccountable is
+    OwnableUpgradeable,
+    PausableUpgradeable,
+    ILiquidityPool,
+    ILiquidityPoolAccountable
+{
     using SafeERC20 for IERC20;
 
     /************************************************
@@ -154,7 +159,7 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
             IERC20(tokenSource).safeTransfer(msg.sender, amount);
             emit Withdraw(tokenSource, amount);
             return;
-        } else { }
+        } else {}
 
         // Revert with zero balance error
         revert ZeroBalance();

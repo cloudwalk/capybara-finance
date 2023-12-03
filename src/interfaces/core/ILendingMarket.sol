@@ -175,7 +175,10 @@ interface ILendingMarket {
     /// @param repayAmount The amount to be repaid in the preview
     /// @param repayDate The date of the repayment in the preview
     /// @return The struct containing the preview state of the loan
-    function getLoanPreview(uint256 loanId, uint256 repayAmount, uint256 repayDate) external view returns (Loan.State memory);
+    function getLoanPreview(uint256 loanId, uint256 repayAmount, uint256 repayDate)
+        external
+        view
+        returns (Loan.State memory);
 
     /// @notice Retrieves the outstanding balance of a loan
     /// @param loanId The unique identifier of the loan to check
@@ -183,7 +186,7 @@ interface ILendingMarket {
 
     /// @notice Retrieves the current period of the loan
     /// @param loanId The unique identifier of the loan to check
-    function getCurrentPeriodDate(uint loanId) external view returns (uint256);
+    function getCurrentPeriodDate(uint256 loanId) external view returns (uint256);
 
     /// @notice Retrieves the registry address
     function registry() external view returns (address);

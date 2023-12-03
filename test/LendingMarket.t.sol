@@ -20,7 +20,6 @@ import {ERC20Test} from "src/mocks/ERC20Test.sol";
 /// @notice Contains tests for the LendingMarket contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 contract LendingMarketTest is Test {
-
     /************************************************
      *  Events
      ***********************************************/
@@ -154,11 +153,7 @@ contract LendingMarketTest is Test {
         Interest.Formula interestFormula = LOAN_INTEREST_FORMULA;
 
         uint256 outstandingBalance = market.calculateOutstandingBalance(
-            originalBalance,
-            numberOfPeriods,
-            interestRate,
-            interestRateFactor,
-            interestFormula
+            originalBalance, numberOfPeriods, interestRate, interestRateFactor, interestFormula
         );
 
         vm.prank(LENDER);
@@ -184,7 +179,6 @@ contract LendingMarketTest is Test {
         // TODO add loan duration
 
         assertEq(market.ownerOf(loanId), LENDER);
-
 
         // TODO why can't freeze after 10 seconds???
 
@@ -252,9 +246,7 @@ contract LendingMarketTest is Test {
     function test_pause_Revert_IfCallerNotOwner() public {
         assertEq(market.paused(), false);
         vm.prank(ATTACKER);
-        vm.expectRevert(
-            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER)
-        );
+        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
         market.pause();
     }
 
@@ -282,9 +274,7 @@ contract LendingMarketTest is Test {
         vm.prank(OWNER);
         market.pause();
         vm.prank(ATTACKER);
-        vm.expectRevert(
-            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER)
-        );
+        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
         market.unpause();
     }
 
@@ -316,9 +306,7 @@ contract LendingMarketTest is Test {
 
     function test_setRegistry_Revert_IfCallerNotOwner() public {
         vm.prank(ATTACKER);
-        vm.expectRevert(
-            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER)
-        );
+        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
         market.setRegistry(REGISTRY);
     }
 
@@ -1044,7 +1032,7 @@ contract LendingMarketTest is Test {
     function test_updateLoanInterestRatePrimary_Revert_IfLoanNotExist() public {
         vm.startPrank(LENDER);
         vm.expectRevert(LendingMarket.LoanNotExist.selector);
-        market.updateLoanInterestRatePrimary(NONEXISTENT_LOAN_ID , 1);
+        market.updateLoanInterestRatePrimary(NONEXISTENT_LOAN_ID, 1);
     }
 
     function test_updateLoanInterestRatePrimary_Revert_IfLoadIsRepaid() public {
@@ -1110,7 +1098,7 @@ contract LendingMarketTest is Test {
     function test_updateLoanInterestRateSecondary_Revert_IfLoanNotExist() public {
         vm.startPrank(LENDER);
         vm.expectRevert(LendingMarket.LoanNotExist.selector);
-        market.updateLoanInterestRateSecondary(NONEXISTENT_LOAN_ID , 1);
+        market.updateLoanInterestRateSecondary(NONEXISTENT_LOAN_ID, 1);
     }
 
     function test_updateLoanInterestRateSecondary_Revert_IfLoadIsRepaid() public {

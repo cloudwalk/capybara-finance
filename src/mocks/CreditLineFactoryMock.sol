@@ -8,17 +8,11 @@ import {ICreditLineFactory} from "src/interfaces/ICreditLineFactory.sol";
 /// @notice Credit line factory mock contract used for testing
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 contract CreditLineFactoryMock is ICreditLineFactory {
-
     /************************************************
      *  Events
      ***********************************************/
 
-    event CreateCreditLineCalled(
-        address indexed market,
-        address indexed lender,
-        uint16 indexed kind,
-        bytes data
-    );
+    event CreateCreditLineCalled(address indexed market, address indexed lender, uint16 indexed kind, bytes data);
 
     /************************************************
      *  Errors

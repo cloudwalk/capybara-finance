@@ -8,7 +8,6 @@ import {ILiquidityPool} from "src/interfaces/core/ILiquidityPool.sol";
 /// @notice Liquidity pool mock contract used for testing
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 contract LiquidityPoolMock is ILiquidityPool {
-
     /************************************************
      *  Events
      ***********************************************/

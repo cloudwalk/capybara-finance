@@ -13,12 +13,13 @@ import {LiquidityPoolAccountable} from "src/pools/LiquidityPoolAccountable.sol";
 /// @notice Contains tests for the LiquidityPoolFactory contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 contract LiquidityPoolFactoryTest is Test {
-
     /************************************************
      *  Events
      ***********************************************/
 
-    event LiquidityPoolCreated(address indexed market, address indexed lender, uint16 indexed kind, address liquidityPool);
+    event LiquidityPoolCreated(
+        address indexed market, address indexed lender, uint16 indexed kind, address liquidityPool
+    );
 
     /************************************************
      *  Storage variables and constants
@@ -85,9 +86,7 @@ contract LiquidityPoolFactoryTest is Test {
 
     function test_createLiquidityPool_Revert_IfCallerNotRegistry() public {
         vm.prank(ATTACKER);
-        vm.expectRevert(
-            abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, ATTACKER)
-        );
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, ATTACKER));
         factory.createLiquidityPool(MARKET, LENDER, EXPECTED_KIND, CREATE_DATA);
     }
 

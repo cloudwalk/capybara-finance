@@ -54,9 +54,7 @@ contract LendingRegistryUUPSTest is Test {
     function test_upgradeToAndCall_Revert_IfNotOwner() public {
         address newImplemetation = address(new LendingRegistryUUPS());
         vm.prank(ATTACKER);
-        vm.expectRevert(
-            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER)
-        );
+        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
         proxy.upgradeToAndCall(newImplemetation, "");
     }
 }
