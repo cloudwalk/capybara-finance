@@ -140,7 +140,8 @@ contract LendingRegistry is
             revert CreditLineFactoryNotSet();
         }
 
-        address creditLine = ICreditLineFactory(_creditLineFactory).createCreditLine(_market, msg.sender, token, kind, "0x");
+        address creditLine =
+            ICreditLineFactory(_creditLineFactory).createCreditLine(_market, msg.sender, token, kind, "0x");
 
         ILendingMarket(_market).registerCreditLine(msg.sender, creditLine);
     }

@@ -90,7 +90,10 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     /// @param market_ The address of the associated lending market
     /// @param lender_ The address of the associated lender
     /// @param token_ The address of the associated token
-    function __CreditLineConfigurable_init(address market_, address lender_, address token_) internal onlyInitializing {
+    function __CreditLineConfigurable_init(address market_, address lender_, address token_)
+        internal
+        onlyInitializing
+    {
         __Ownable_init_unchained(lender_);
         __Pausable_init_unchained();
         __CreditLineConfigurable_init_unchained(market_, lender_, token_);
@@ -100,7 +103,10 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     /// @param market_ The address of the associated lending market
     /// @param lender_ The address of the associated lender
     /// @param token_ The address of the associated token
-    function __CreditLineConfigurable_init_unchained(address market_, address lender_, address token_) internal onlyInitializing {
+    function __CreditLineConfigurable_init_unchained(address market_, address lender_, address token_)
+        internal
+        onlyInitializing
+    {
         if (market_ == address(0)) {
             revert Error.ZeroAddress();
         }

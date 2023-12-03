@@ -200,7 +200,7 @@ contract CreditLineConfigurableTest is Test {
         creditLine.initialize(MARKET, address(0), TOKEN_1);
     }
 
-function test_constructor_Revert_IfTokenIsZeroAddress() public {
+    function test_constructor_Revert_IfTokenIsZeroAddress() public {
         creditLine = new CreditLineConfigurable();
         vm.expectRevert(Error.ZeroAddress.selector);
         creditLine.initialize(MARKET, LENDER, address(0));
