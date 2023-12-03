@@ -9,17 +9,13 @@ import {Interest} from "../libraries/Interest.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 interface ICreditLineConfigurable {
     /************************************************
-     *  EVENTS
+     *  Events
      ***********************************************/
 
     /// @notice Emitted when admin status changed
     /// @param admin The address of the admin account
     /// @param adminStatus True if the account is an admin
     event AdminConfigured(address indexed admin, bool adminStatus);
-
-    /// @notice Emitted when credit line token is configured
-    /// @param token The address of the token associated with the credit line
-    event TokenConfigured(address creditLine, address indexed token);
 
     /// @notice Emitted when the credit line configuration is updated
     /// @param creditLine The address of the credit line
@@ -33,7 +29,7 @@ interface ICreditLineConfigurable {
     event BorrowerConfigurationUpdated(address indexed creditLine, address indexed borrower, BorrowerConfig config);
 
     /************************************************
-     *  STRUCS & ENUMS
+     *  Structs and Enums
      ***********************************************/
 
     /// @notice An enum that defines the borrow policy
@@ -95,7 +91,7 @@ interface ICreditLineConfigurable {
     }
 
     /************************************************
-     *  FUNCTIONS
+     *  Functions
      ***********************************************/
 
     /// @notice Configures the token associated with the credit line
