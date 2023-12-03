@@ -18,8 +18,7 @@ contract CreditLineFactory is OwnableUpgradeable, PausableUpgradeable, ICreditLi
      ***********************************************/
 
     /// @notice Thrown when the requested credit line kind is not supported
-    /// @param kind The kind of credit line that is not supported
-    error UnsupportedKind(uint16 kind);
+    error UnsupportedKind();
 
     /************************************************
      *  Initializers
@@ -63,13 +62,13 @@ contract CreditLineFactory is OwnableUpgradeable, PausableUpgradeable, ICreditLi
         returns (address)
     {
         if (kind != 1) {
-            revert UnsupportedKind(kind);
+            revert UnsupportedKind();
         }
 
         CreditLineConfigurable creditLine = new CreditLineConfigurable();
         creditLine.initialize(market, lender, token);
 
-        emit CreditLineCreated(market, lender, token, kind, address(creditLine));
+        emit CreateCreditLine(market, lender, token, kind, address(creditLine));
 
         return address(creditLine);
     }

@@ -38,12 +38,10 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
      ***********************************************/
 
     /// @notice Thrown when the credit line configuration is invalid
-    /// @param message The error message
-    error InvalidCreditLineConfiguration(string message);
+    error InvalidCreditLineConfiguration();
 
     /// @notice Thrown when the borrower configuration is invalid
-    /// @param message The error message
-    error InvalidBorrowerConfiguration(string message);
+    error InvalidBorrowerConfiguration();
 
     /// @notice Thrown when the borrower configuration has expired
     error BorrowerConfigurationExpired();
@@ -148,12 +146,42 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
 
         _admins[admin] = adminStatus;
 
-        emit AdminConfigured(admin, adminStatus);
+        emit ConfigureAdmin(admin, adminStatus);
     }
 
     /// @inheritdoc ICreditLineConfigurable
     function configureCreditLine(CreditLineConfig memory config) external onlyOwner {
-        _configureCreditLine(config);
+        if (config.minBorrowAmount == 0) {
+            revert InvalidCreditLineConfiguration();
+        }
+        if (config.maxBorrowAmount == 0) {
+            revert InvalidCreditLineConfiguration();
+        }
+        if (config.periodInSeconds == 0) {
+            revert InvalidCreditLineConfiguration();
+        }
+        if (config.durationInPeriods == 0) {
+            revert InvalidCreditLineConfiguration();
+        }
+        if (config.minInterestRatePrimary == 0) {
+            revert InvalidCreditLineConfiguration();
+        }
+        if (config.maxInterestRatePrimary == 0) {
+            revert InvalidCreditLineConfiguration();
+        }
+        if (config.minBorrowAmount > config.maxBorrowAmount) {
+            revert InvalidCreditLineConfiguration();
+        }
+        if (config.minInterestRatePrimary > config.maxInterestRatePrimary) {
+            revert InvalidCreditLineConfiguration();
+        }
+        if (config.minInterestRateSecondary > config.maxInterestRateSecondary) {
+            revert InvalidCreditLineConfiguration();
+        }
+
+        _config = config;
+
+        emit ConfigureCreditLine(address(this), config);
     }
 
     /************************************************
@@ -297,46 +325,6 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
      *  Internal functions
      ***********************************************/
 
-    /// @notice Updates the credit line configuration
-    /// @param config The new credit line configuration
-    function _configureCreditLine(CreditLineConfig memory config) internal {
-        if (config.minBorrowAmount == 0) {
-            revert InvalidCreditLineConfiguration("Min borrow amount cannot be zero");
-        }
-        if (config.maxBorrowAmount == 0) {
-            revert InvalidCreditLineConfiguration("Max borrow amount cannot be zero");
-        }
-        if (config.periodInSeconds == 0) {
-            revert InvalidCreditLineConfiguration("Period in seconds cannot be zero");
-        }
-        if (config.durationInPeriods == 0) {
-            revert InvalidCreditLineConfiguration("Duration in periods cannot be zero");
-        }
-        if (config.minInterestRatePrimary == 0) {
-            revert InvalidCreditLineConfiguration("Min interest rate primary cannot be zero");
-        }
-        if (config.maxInterestRatePrimary == 0) {
-            revert InvalidCreditLineConfiguration("Max interest rate primary cannot be zero");
-        }
-        if (config.minBorrowAmount > config.maxBorrowAmount) {
-            revert InvalidCreditLineConfiguration("Min borrow amount cannot be greater than max borrow amount");
-        }
-        if (config.minInterestRatePrimary > config.maxInterestRatePrimary) {
-            revert InvalidCreditLineConfiguration(
-                "Min interest rate primary cannot be greater than max interest rate primary"
-            );
-        }
-        if (config.minInterestRateSecondary > config.maxInterestRateSecondary) {
-            revert InvalidCreditLineConfiguration(
-                "Min interest rate secondary cannot be greater than max interest rate secondary"
-            );
-        }
-
-        _config = config;
-
-        emit CreditLineConfigurationUpdated(address(this), config);
-    }
-
     /// @notice Updates the borrower configuration
     /// @param borrower The address of the borrower
     /// @param config The new borrower configuration
@@ -348,36 +336,29 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         // TODO Add more rules
 
         if (config.minBorrowAmount > config.maxBorrowAmount) {
-            revert InvalidBorrowerConfiguration("Min borrow amount cannot be greater than max borrow amount");
+            revert InvalidBorrowerConfiguration();
         }
-
         if (config.interestRatePrimary > _config.maxInterestRatePrimary) {
-            revert InvalidBorrowerConfiguration(
-                "Interest rate primary cannot be greater than max interest rate primary"
-            );
+            revert InvalidBorrowerConfiguration();
         }
         if (config.interestRatePrimary < _config.minInterestRatePrimary) {
-            revert InvalidBorrowerConfiguration("Interest rate primary cannot be less than min interest rate primary");
+            revert InvalidBorrowerConfiguration();
         }
         if (config.interestRateSecondary > _config.maxInterestRateSecondary) {
-            revert InvalidBorrowerConfiguration(
-                "Interest rate secondary cannot be greater than max interest rate secondary"
-            );
+            revert InvalidBorrowerConfiguration();
         }
         if (config.interestRateSecondary < _config.minInterestRateSecondary) {
-            revert InvalidBorrowerConfiguration(
-                "Interest rate secondary cannot be less than min interest rate secondary"
-            );
+            revert InvalidBorrowerConfiguration();
         }
 
         if (_config.addonPeriodCostRate != 0 || _config.addonFixedCostRate != 0) {
             if (config.addonRecipient == address(0)) {
-                revert InvalidCreditLineConfiguration("Addon recipient address cannot be zero");
+                revert InvalidCreditLineConfiguration();
             }
         }
 
         _borrowers[borrower] = config;
 
-        emit BorrowerConfigurationUpdated(address(this), borrower, config);
+        emit ConfigureBorrower(address(this), borrower, config);
     }
 }

@@ -21,27 +21,15 @@ contract CreditLineConfigurableTest is Test {
      *  Events
      ***********************************************/
 
-    event AdminConfigured(address indexed admin, bool adminStatus);
+    event ConfigureAdmin(address indexed admin, bool adminStatus);
     event TokenConfigured(address creditLine, address indexed token);
-    event CreditLineConfigurationUpdated(address indexed creditLine, ICreditLineConfigurable.CreditLineConfig config);
-    event BorrowerConfigurationUpdated(
+    event ConfigureCreditLine(address indexed creditLine, ICreditLineConfigurable.CreditLineConfig config);
+    event ConfigureBorrower(
         address indexed creditLine, address indexed borrower, ICreditLineConfigurable.BorrowerConfig config
     );
 
     /************************************************
-     *  Errors
-     ***********************************************/
-
-    string public constant ERROR_MIN_BORROW_AMOUNT_ZERO = "Min borrow amount cannot be zero";
-    string public constant ERROR_MAX_BORROW_AMOUNT_ZERO = "Max borrow amount cannot be zero";
-    string public constant ERROR_PERIOD_IN_SECONDS_ZERO = "Period in seconds cannot be zero";
-    string public constant ERROR_DURATION_IN_PERIODS_ZERO = "Duration in periods cannot be zero";
-    string public constant ERROR_ADDON_RECIPIENT_ADDRESS_ZERO = "Addon recipient address cannot be zero";
-    string public constant ERROR_MIN_BORROW_AMOUNT_GREATER_THAN_MAX =
-        "Min borrow amount cannot be greater than max borrow amount";
-
-    /************************************************
-     *  Storage variables and constants
+     *  Storage variables
      ***********************************************/
 
     CreditLineConfigurable public creditLine;
@@ -268,13 +256,13 @@ contract CreditLineConfigurableTest is Test {
         vm.startPrank(LENDER);
 
         vm.expectEmit(true, true, true, true, address(creditLine));
-        emit AdminConfigured(ADMIN, true);
+        emit ConfigureAdmin(ADMIN, true);
         creditLine.configureAdmin(ADMIN, true);
 
         assertEq(creditLine.isAdmin(ADMIN), true);
 
         vm.expectEmit(true, true, true, true, address(creditLine));
-        emit AdminConfigured(ADMIN, false);
+        emit ConfigureAdmin(ADMIN, false);
         creditLine.configureAdmin(ADMIN, false);
 
         assertEq(creditLine.isAdmin(ADMIN), false);
@@ -308,7 +296,7 @@ contract CreditLineConfigurableTest is Test {
 
         vm.prank(LENDER);
         vm.expectEmit(true, true, true, true, address(creditLine));
-        emit CreditLineConfigurationUpdated(address(creditLine), config);
+        emit ConfigureCreditLine(address(creditLine), config);
         creditLine.configureCreditLine(config);
 
         assertEqCreditLineConfig(config, creditLine.creditLineConfiguration());
@@ -320,9 +308,7 @@ contract CreditLineConfigurableTest is Test {
 
         vm.prank(LENDER);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                CreditLineConfigurable.InvalidCreditLineConfiguration.selector, ERROR_MIN_BORROW_AMOUNT_ZERO
-            )
+            CreditLineConfigurable.InvalidCreditLineConfiguration.selector
         );
         creditLine.configureCreditLine(config);
     }
@@ -333,9 +319,7 @@ contract CreditLineConfigurableTest is Test {
 
         vm.prank(LENDER);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                CreditLineConfigurable.InvalidCreditLineConfiguration.selector, ERROR_MAX_BORROW_AMOUNT_ZERO
-            )
+            CreditLineConfigurable.InvalidCreditLineConfiguration.selector
         );
         creditLine.configureCreditLine(config);
     }
@@ -346,9 +330,7 @@ contract CreditLineConfigurableTest is Test {
 
         vm.prank(LENDER);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                CreditLineConfigurable.InvalidCreditLineConfiguration.selector, ERROR_PERIOD_IN_SECONDS_ZERO
-            )
+            CreditLineConfigurable.InvalidCreditLineConfiguration.selector
         );
         creditLine.configureCreditLine(config);
     }
@@ -359,9 +341,7 @@ contract CreditLineConfigurableTest is Test {
 
         vm.prank(LENDER);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                CreditLineConfigurable.InvalidCreditLineConfiguration.selector, ERROR_DURATION_IN_PERIODS_ZERO
-            )
+            CreditLineConfigurable.InvalidCreditLineConfiguration.selector
         );
         creditLine.configureCreditLine(config);
     }
@@ -372,9 +352,7 @@ contract CreditLineConfigurableTest is Test {
 
         vm.prank(LENDER);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                CreditLineConfigurable.InvalidCreditLineConfiguration.selector, ERROR_MIN_BORROW_AMOUNT_GREATER_THAN_MAX
-            )
+            CreditLineConfigurable.InvalidCreditLineConfiguration.selector
         );
         creditLine.configureCreditLine(config);
     }
@@ -398,7 +376,7 @@ contract CreditLineConfigurableTest is Test {
 
         vm.prank(ADMIN);
         vm.expectEmit(true, true, true, true, address(creditLine));
-        emit BorrowerConfigurationUpdated(address(creditLine), BORROWER_1, config);
+        emit ConfigureBorrower(address(creditLine), BORROWER_1, config);
         creditLine.configureBorrower(BORROWER_1, config);
 
         assertEqBorrowerConfig(config, creditLine.getBorrowerConfiguration(BORROWER_1));
@@ -462,9 +440,7 @@ contract CreditLineConfigurableTest is Test {
 
         vm.prank(ADMIN);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                CreditLineConfigurable.InvalidCreditLineConfiguration.selector, ERROR_ADDON_RECIPIENT_ADDRESS_ZERO
-            )
+            CreditLineConfigurable.InvalidCreditLineConfiguration.selector
         );
         creditLine.configureBorrower(ADMIN, borrowerConfig);
     }
@@ -494,9 +470,7 @@ contract CreditLineConfigurableTest is Test {
 
         vm.prank(ADMIN);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                CreditLineConfigurable.InvalidCreditLineConfiguration.selector, ERROR_ADDON_RECIPIENT_ADDRESS_ZERO
-            )
+            CreditLineConfigurable.InvalidCreditLineConfiguration.selector
         );
         creditLine.configureBorrower(ADMIN, borrowerConfig);
     }
@@ -513,7 +487,7 @@ contract CreditLineConfigurableTest is Test {
 
         for (uint256 i = 0; i < borrowers.length; i++) {
             vm.expectEmit(true, true, true, true, address(creditLine));
-            emit BorrowerConfigurationUpdated(address(creditLine), borrowers[i], configs[i]);
+            emit ConfigureBorrower(address(creditLine), borrowers[i], configs[i]);
         }
 
         vm.prank(ADMIN);

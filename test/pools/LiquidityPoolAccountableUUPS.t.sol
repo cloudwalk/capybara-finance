@@ -20,7 +20,7 @@ contract LiquidityPoolAccountableUUPSTest is Test {
     event Upgraded(address indexed implementation);
 
     /************************************************
-     *  Storage variables and constants
+     *  Storage variables
      ***********************************************/
 
     LiquidityPoolAccountableUUPS public proxy;

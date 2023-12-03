@@ -3,7 +3,7 @@
 pragma solidity 0.8.20;
 
 /// @title ICreditLineFactory interface
-/// @notice Defines the credit line factory functions and events
+/// @notice Defines the credit line factory contract functions and events
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 interface ICreditLineFactory {
     /************************************************
@@ -16,7 +16,7 @@ interface ICreditLineFactory {
     /// @param token The address of the credit line token
     /// @param kind The kind of the created credit line
     /// @param creditLine The address of the created credit line
-    event CreditLineCreated(
+    event CreateCreditLine(
         address indexed market, address indexed lender, address indexed token, uint16 kind, address creditLine
     );
 

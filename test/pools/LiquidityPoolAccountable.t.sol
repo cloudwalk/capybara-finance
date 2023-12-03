@@ -27,7 +27,7 @@ contract LiquidityPoolAccountableTest is Test {
     event Withdraw(address indexed tokenSource, uint256 amount);
 
     /************************************************
-     *  Storage variables and constants
+     *  Storage variables
      ***********************************************/
 
     LiquidityPoolAccountable public liquidityPool;

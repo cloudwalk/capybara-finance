@@ -20,7 +20,7 @@ contract LendingRegistryUUPSTest is Test {
     event Upgraded(address indexed implementation);
 
     /************************************************
-     *  Storage variables and constants
+     *  Storage variables
      ***********************************************/
 
     LendingRegistryUUPS public proxy;

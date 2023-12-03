@@ -55,7 +55,7 @@ contract LendingMarketTest is Test {
     event LoanStatusChanged(uint256 indexed loanId, Loan.Status indexed newStatus, Loan.Status indexed oldStatus);
 
     /************************************************
-     *  Storage variables and constants
+     *  Storage variables
      ***********************************************/
 
     uint256 public constant DEPOSIT_AMOUNT = 100;

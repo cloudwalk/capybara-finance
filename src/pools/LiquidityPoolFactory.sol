@@ -18,8 +18,7 @@ contract LiquidityPoolFactory is OwnableUpgradeable, PausableUpgradeable, ILiqui
      ***********************************************/
 
     /// @notice Thrown when the requested liquidity pool kind is not supported
-    /// @param kind The kind of liquidity pool that is not supported
-    error UnsupportedKind(uint16 kind);
+    error UnsupportedKind();
 
     /************************************************
      *  Initializers
@@ -63,13 +62,13 @@ contract LiquidityPoolFactory is OwnableUpgradeable, PausableUpgradeable, ILiqui
         returns (address)
     {
         if (kind != 1) {
-            revert UnsupportedKind(kind);
+            revert UnsupportedKind();
         }
 
         LiquidityPoolAccountable liquidityPool = new LiquidityPoolAccountable();
         liquidityPool.initialize(market, lender);
 
-        emit LiquidityPoolCreated(market, lender, kind, address(liquidityPool));
+        emit CreateLiquidityPool(market, lender, kind, address(liquidityPool));
 
         return address(liquidityPool);
     }

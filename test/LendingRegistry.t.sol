@@ -26,8 +26,8 @@ contract LendingRegistryTest is Test {
     event CreditLineFactorySet(address newFactory, address oldFactory);
     event LiquidityPoolFactorySet(address newFactory, address oldFactory);
 
-    event CreditLineCreated(address indexed lender, address creditLine);
-    event LiquidityPoolCreated(address indexed lender, address liquidityPool);
+    event CreateCreditLine(address indexed lender, address creditLine);
+    event CreateLiquidityPool(address indexed lender, address liquidityPool);
 
     event RegisterCreditLineCalled(address indexed lender, address indexed creditLine);
     event RegisterLiquidityPoolCalled(address indexed lender, address indexed liquidityPool);

@@ -20,7 +20,7 @@ contract LendingMarketUUPSTest is Test {
     event Upgraded(address indexed implementation);
 
     /************************************************
-     *  Storage variables and constants
+     *  Storage variables
      ***********************************************/
 
     LendingMarketUUPS public proxy;

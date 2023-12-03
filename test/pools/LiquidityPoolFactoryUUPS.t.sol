@@ -20,7 +20,7 @@ contract LiquidityPoolFactoryUUPSTest is Test {
     event Upgraded(address indexed implementation);
 
     /************************************************
-     *  Storage variables and constants
+     *  Storage variables
      ***********************************************/
 
     LiquidityPoolFactoryUUPS public proxy;

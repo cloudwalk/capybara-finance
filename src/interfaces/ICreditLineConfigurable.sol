@@ -5,28 +5,28 @@ pragma solidity 0.8.20;
 import {Interest} from "../libraries/Interest.sol";
 
 /// @title ICreditLineConfigurable interface
-/// @notice Defines the configurable credit line functions and events
+/// @notice Defines the configurable credit line contract functions and events
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 interface ICreditLineConfigurable {
     /************************************************
      *  Events
      ***********************************************/
 
-    /// @notice Emitted when admin status changed
+    /// @notice Emitted when admin is configured
     /// @param admin The address of the admin account
     /// @param adminStatus True if the account is an admin
-    event AdminConfigured(address indexed admin, bool adminStatus);
+    event ConfigureAdmin(address indexed admin, bool adminStatus);
 
-    /// @notice Emitted when the credit line configuration is updated
+    /// @notice Emitted when the credit line is configured
     /// @param creditLine The address of the credit line
     /// @param config The credit line configuration
-    event CreditLineConfigurationUpdated(address indexed creditLine, CreditLineConfig config);
+    event ConfigureCreditLine(address indexed creditLine, CreditLineConfig config);
 
-    /// @notice Emitted when the borrower configuration is updated
+    /// @notice Emitted when the borrower is configured
     /// @param creditLine The address of the credit line
     /// @param borrower The address of the borrower
     /// @param config The borrower configuration
-    event BorrowerConfigurationUpdated(address indexed creditLine, address indexed borrower, BorrowerConfig config);
+    event ConfigureBorrower(address indexed creditLine, address indexed borrower, BorrowerConfig config);
 
     /************************************************
      *  Structs and Enums

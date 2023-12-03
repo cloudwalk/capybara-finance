@@ -20,7 +20,7 @@ contract CreditLineFactoryUUPSTest is Test {
     event Upgraded(address indexed implementation);
 
     /************************************************
-     *  Storage variables and constants
+     *  Storage variables
      ***********************************************/
 
     CreditLineFactoryUUPS public proxy;

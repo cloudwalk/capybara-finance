@@ -17,12 +17,12 @@ contract LiquidityPoolFactoryTest is Test {
      *  Events
      ***********************************************/
 
-    event LiquidityPoolCreated(
+    event CreateLiquidityPool(
         address indexed market, address indexed lender, uint16 indexed kind, address liquidityPool
     );
 
     /************************************************
-     *  Storage variables and constants
+     *  Storage variables
      ***********************************************/
 
     LiquidityPoolFactory public factory;
@@ -70,7 +70,7 @@ contract LiquidityPoolFactoryTest is Test {
     function test_createLiquidityPool() public {
         vm.prank(REGISTRY);
         vm.expectEmit(true, true, true, true, address(factory));
-        emit LiquidityPoolCreated(MARKET, LENDER, KIND_1, EXPECTED_CONTRACT_ADDRESS);
+        emit CreateLiquidityPool(MARKET, LENDER, KIND_1, EXPECTED_CONTRACT_ADDRESS);
         address liquidityPool = factory.createLiquidityPool(MARKET, LENDER, KIND_1, DATA);
 
         assertEq(LiquidityPoolAccountable(liquidityPool).lender(), LENDER);
@@ -80,7 +80,7 @@ contract LiquidityPoolFactoryTest is Test {
 
     function test_createLiquidityPool_Revert_IfUnsupportedKind() public {
         vm.prank(REGISTRY);
-        vm.expectRevert(abi.encodeWithSelector(LiquidityPoolFactory.UnsupportedKind.selector, KIND_2));
+        vm.expectRevert(LiquidityPoolFactory.UnsupportedKind.selector);
         factory.createLiquidityPool(MARKET, LENDER, KIND_2, DATA);
     }
 

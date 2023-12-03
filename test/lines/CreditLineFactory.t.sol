@@ -17,12 +17,12 @@ contract CreditLineFactoryTest is Test {
      *  Events
      ***********************************************/
 
-    event CreditLineCreated(
+    event CreateCreditLine(
         address indexed market, address indexed lender, address indexed token, uint16 kind, address creditLine
     );
 
     /************************************************
-     *  Storage variables and constants
+     *  Storage variables
      ***********************************************/
 
     CreditLineFactory public factory;
@@ -71,7 +71,7 @@ contract CreditLineFactoryTest is Test {
     function test_createCreditLine() public {
         vm.prank(REGISTRY);
         vm.expectEmit(true, true, true, true, address(factory));
-        emit CreditLineCreated(MARKET, LENDER, TOKEN, KIND_1, EXPECTED_CONTRACT_ADDRESS);
+        emit CreateCreditLine(MARKET, LENDER, TOKEN, KIND_1, EXPECTED_CONTRACT_ADDRESS);
         address creditLine = factory.createCreditLine(MARKET, LENDER, TOKEN, KIND_1, DATA);
 
         assertEq(CreditLineConfigurable(creditLine).lender(), LENDER);
@@ -82,7 +82,7 @@ contract CreditLineFactoryTest is Test {
 
     function test_createCreditLine_Revert_IfUnsupportedKind() public {
         vm.prank(REGISTRY);
-        vm.expectRevert(abi.encodeWithSelector(CreditLineFactory.UnsupportedKind.selector, KIND_2));
+        vm.expectRevert(CreditLineFactory.UnsupportedKind.selector);
         factory.createCreditLine(MARKET, LENDER, TOKEN, KIND_2, DATA);
     }
 
