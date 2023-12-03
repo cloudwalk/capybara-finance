@@ -222,7 +222,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
      ***********************************************/
 
     /// @inheritdoc ICreditLine
-    function onLoanTaken(address borrower, uint256 amount)
+    function onTakeLoan(address borrower, uint256 amount)
         external
         whenNotPaused
         onlyMarket

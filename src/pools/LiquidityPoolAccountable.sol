@@ -170,12 +170,12 @@ contract LiquidityPoolAccountable is
      ***********************************************/
 
     /// @inheritdoc ILiquidityPool
-    function onBeforeLoanTaken(uint256 loanId, address creditLine) external whenNotPaused onlyMarket returns (bool) {
+    function onBeforeTakeLoan(uint256 loanId, address creditLine) external whenNotPaused onlyMarket returns (bool) {
         return true;
     }
 
     /// @inheritdoc ILiquidityPool
-    function onAfterLoanTaken(uint256 loanId, address creditLine) external whenNotPaused onlyMarket returns (bool) {
+    function onAfterTakeLoan(uint256 loanId, address creditLine) external whenNotPaused onlyMarket returns (bool) {
         _creditLineBalances[creditLine] -= ILendingMarket(_market).getLoan(loanId).initialBorrowAmount;
         _creditLines[loanId] = creditLine;
 

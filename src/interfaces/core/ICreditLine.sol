@@ -16,7 +16,7 @@ interface ICreditLine {
     /// @param borrower The address of the borrower
     /// @param amount The amount of the loan
     /// @return terms The struct containing the terms of the loan
-    function onLoanTaken(address borrower, uint256 amount) external returns (Loan.Terms memory terms);
+    function onTakeLoan(address borrower, uint256 amount) external returns (Loan.Terms memory terms);
 
     /// @notice Retrieves the loan terms for the provided borrower and amount
     /// @param borrower The address of the borrower

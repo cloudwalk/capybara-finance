@@ -27,7 +27,7 @@ contract CreditLineMock is ICreditLine {
      *  ICreditLine functions
      ***********************************************/
 
-    function onLoanTaken(address borrower, uint256 amount) external returns (Loan.Terms memory terms) {
+    function onTakeLoan(address borrower, uint256 amount) external returns (Loan.Terms memory terms) {
         return _loanTerms[borrower][amount];
     }
 

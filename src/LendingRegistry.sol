@@ -6,15 +6,13 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
-import {ICreditLine} from "./interfaces/core/ICreditLine.sol";
-import {ILiquidityPool} from "./interfaces/core/ILiquidityPool.sol";
+import {Error} from "./libraries/Error.sol";
+import {LendingRegistryStorage} from "./LendingRegistryStorage.sol";
+
 import {ICreditLineFactory} from "./interfaces/ICreditLineFactory.sol";
 import {ILiquidityPoolFactory} from "./interfaces/ILiquidityPoolFactory.sol";
 import {ILendingRegistry} from "./interfaces/core/ILendingRegistry.sol";
 import {ILendingMarket} from "./interfaces/core/ILendingMarket.sol";
-
-import {Error} from "./libraries/Error.sol";
-import {LendingRegistryStorage} from "./LendingRegistryStorage.sol";
 
 /// @title LendingRegistry contract
 /// @notice Implementation of the lending registry contract
@@ -33,22 +31,22 @@ contract LendingRegistry is
     /// @notice Emitted when the credit line factory is set
     /// @param newFactory The address of the new credit line factory
     /// @param oldFactory The address of the old credit line factory
-    event CreditLineFactorySet(address newFactory, address oldFactory);
+    event SetCreditLineFactory(address newFactory, address oldFactory);
 
     /// @notice Emitted when the liquidity pool factory is set
     /// @param newFactory The address of the new liquidity pool factory
     /// @param oldFactory The address of the old liquidity pool factory
-    event LiquidityPoolFactorySet(address newFactory, address oldFactory);
+    event SetLiquidityPoolFactory(address newFactory, address oldFactory);
 
     /************************************************
      *  Errors
      ***********************************************/
 
-    /// @notice Thrown when the credit line factory is not set
-    error CreditLineFactoryNotSet();
+    /// @notice Thrown when the credit line factory is not configured
+    error CreditLineFactoryNotConfigured();
 
-    /// @notice Thrown when the liquidity pool factory is not set
-    error LiquidityPoolFactoryNotSet();
+    /// @notice Thrown when the liquidity pool factory is not configured
+    error LiquidityPoolFactoryNotConfigured();
 
     /************************************************
      *  Initializers
@@ -92,20 +90,6 @@ contract LendingRegistry is
         _unpause();
     }
 
-    /// @notice Registers a credit line in the lending market
-    /// @param lender The address of the credit line lender to register
-    /// @param creditLine The address of the credit line contract to register
-    function registerCreditLine(address lender, address creditLine) external onlyOwner {
-        ILendingMarket(_market).registerCreditLine(lender, creditLine);
-    }
-
-    /// @notice Registers a liquidity pool in the lending market
-    /// @param lender The address of the liquidity pool lender to register
-    /// @param liquidityPool The address of the liquidity pool contract to register
-    function registerLiquidityPool(address lender, address liquidityPool) external onlyOwner {
-        ILendingMarket(_market).registerLiquidityPool(lender, liquidityPool);
-    }
-
     /// @notice Sets the credit line factory contract
     /// @param newFactory The address of the new credit line factory
     function setCreditLineFactory(address newFactory) external onlyOwner {
@@ -113,7 +97,7 @@ contract LendingRegistry is
             revert Error.AlreadyConfigured();
         }
 
-        emit CreditLineFactorySet(newFactory, _creditLineFactory);
+        emit SetCreditLineFactory(newFactory, _creditLineFactory);
 
         _creditLineFactory = newFactory;
     }
@@ -125,7 +109,7 @@ contract LendingRegistry is
             revert Error.AlreadyConfigured();
         }
 
-        emit LiquidityPoolFactorySet(newFactory, _liquidityPoolFactory);
+        emit SetLiquidityPoolFactory(newFactory, _liquidityPoolFactory);
 
         _liquidityPoolFactory = newFactory;
     }
@@ -137,7 +121,7 @@ contract LendingRegistry is
     /// @inheritdoc ILendingRegistry
     function createCreditLine(uint16 kind, address token) external whenNotPaused {
         if (_creditLineFactory == address(0)) {
-            revert CreditLineFactoryNotSet();
+            revert CreditLineFactoryNotConfigured();
         }
 
         address creditLine =
@@ -149,7 +133,7 @@ contract LendingRegistry is
     /// @inheritdoc ILendingRegistry
     function createLiquidityPool(uint16 kind) external whenNotPaused {
         if (_liquidityPoolFactory == address(0)) {
-            revert LiquidityPoolFactoryNotSet();
+            revert LiquidityPoolFactoryNotConfigured();
         }
 
         address liquidityPool =
@@ -159,7 +143,7 @@ contract LendingRegistry is
     }
 
     /************************************************
-     *  view functions
+     *  View functions
      ***********************************************/
 
     /// @inheritdoc ILendingRegistry

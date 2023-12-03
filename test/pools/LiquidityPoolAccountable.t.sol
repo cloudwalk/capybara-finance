@@ -269,34 +269,34 @@ contract LiquidityPoolAccountableTest is Test {
     }
 
     /************************************************
-     *  Test `onBeforeLoanTaken` function
+     *  Test `onBeforeTakeLoan` function
      ***********************************************/
 
-    function test_onBeforeLoanTaken() public {
+    function test_onBeforeTakeLoan() public {
         vm.prank(address(lendingMarket));
-        assertEq(liquidityPool.onBeforeLoanTaken(LOAN_ID, address(creditLine)), true);
+        assertEq(liquidityPool.onBeforeTakeLoan(LOAN_ID, address(creditLine)), true);
     }
 
-    function test_onBeforeLoanTaken_Revert_IfCallerNotMarket() public {
+    function test_onBeforeTakeLoan_Revert_IfCallerNotMarket() public {
         vm.prank(ATTACKER);
         vm.expectRevert(Error.Unauthorized.selector);
-        liquidityPool.onBeforeLoanTaken(LOAN_ID, address(creditLine));
+        liquidityPool.onBeforeTakeLoan(LOAN_ID, address(creditLine));
     }
 
-    function test_onBeforeLoanTaken_Revert_IfContractIsPaused() public {
+    function test_onBeforeTakeLoan_Revert_IfContractIsPaused() public {
         vm.prank(LENDER);
         liquidityPool.pause();
 
         vm.prank(address(lendingMarket));
         vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
-        liquidityPool.onBeforeLoanTaken(LOAN_ID, address(creditLine));
+        liquidityPool.onBeforeTakeLoan(LOAN_ID, address(creditLine));
     }
 
     /************************************************
-     *  Test `onAfterLoanTaken` function
+     *  Test `onAfterTakeLoan` function
      ***********************************************/
 
-    function test_onAfterLoanTaken() public {
+    function test_onAfterTakeLoan() public {
         configureLender();
         lendingMarket.mockLoanState(
             LOAN_ID,
@@ -324,25 +324,25 @@ contract LiquidityPoolAccountableTest is Test {
         assertEq(liquidityPool.getTokenBalance(address(creditLine)), DEPOSIT_AMOUNT);
 
         vm.prank(address(lendingMarket));
-        assertEq(liquidityPool.onAfterLoanTaken(LOAN_ID, address(creditLine)), true);
+        assertEq(liquidityPool.onAfterTakeLoan(LOAN_ID, address(creditLine)), true);
 
         assertEq(liquidityPool.getCreditLine(LOAN_ID), address(creditLine));
         assertEq(liquidityPool.getTokenBalance(address(creditLine)), 1);
     }
 
-    function test_onAfterLoanTaken_Revert_IfCallerNotMarket() public {
+    function test_onAfterTakeLoan_Revert_IfCallerNotMarket() public {
         vm.prank(ATTACKER);
         vm.expectRevert(Error.Unauthorized.selector);
-        liquidityPool.onAfterLoanTaken(LOAN_ID, address(creditLine));
+        liquidityPool.onAfterTakeLoan(LOAN_ID, address(creditLine));
     }
 
-    function test_onAfterLoanTaken_Revert_IfContractIsPaused() public {
+    function test_onAfterTakeLoan_Revert_IfContractIsPaused() public {
         vm.prank(LENDER);
         liquidityPool.pause();
 
         vm.prank(address(lendingMarket));
         vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
-        liquidityPool.onAfterLoanTaken(LOAN_ID, address(creditLine));
+        liquidityPool.onAfterTakeLoan(LOAN_ID, address(creditLine));
     }
 
     /************************************************
@@ -400,7 +400,7 @@ contract LiquidityPoolAccountableTest is Test {
         assertEq(liquidityPool.getTokenBalance(address(creditLine)), DEPOSIT_AMOUNT);
 
         vm.startPrank(address(lendingMarket));
-        assertEq(liquidityPool.onAfterLoanTaken(LOAN_ID, address(creditLine)), true);
+        assertEq(liquidityPool.onAfterTakeLoan(LOAN_ID, address(creditLine)), true);
         assertEq(liquidityPool.getTokenBalance(address(creditLine)), 0);
         assertEq(liquidityPool.onAfterLoanPayment(LOAN_ID, DEPOSIT_AMOUNT), true);
 
@@ -505,7 +505,7 @@ contract LiquidityPoolAccountableTest is Test {
         assertEq(liquidityPool.getCreditLine(LOAN_ID), address(0));
 
         vm.prank(address(lendingMarket));
-        liquidityPool.onAfterLoanTaken(LOAN_ID, address(creditLine));
+        liquidityPool.onAfterTakeLoan(LOAN_ID, address(creditLine));
 
         assertEq(liquidityPool.getCreditLine(LOAN_ID), address(creditLine));
     }

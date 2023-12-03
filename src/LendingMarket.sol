@@ -16,11 +16,11 @@ import {Error} from "./libraries/Error.sol";
 import {Interest} from "./libraries/Interest.sol";
 import {InterestMath} from "./libraries/InterestMath.sol";
 
+import {LendingMarketStorage} from "./LendingMarketStorage.sol";
 import {ILendingMarket} from "./interfaces/core/ILendingMarket.sol";
 import {ILiquidityPool} from "./interfaces/core/ILiquidityPool.sol";
 import {ICreditLine} from "./interfaces/core/ICreditLine.sol";
 
-import {LendingMarketStorage} from "./LendingMarketStorage.sol";
 
 /// @title LendingMarket contract
 /// @notice Implementation of the lending market contract
@@ -152,7 +152,7 @@ contract LendingMarket is
             revert Error.AlreadyConfigured();
         }
 
-        emit RegistryUpdated(newRegistry, _registry);
+        emit UpdateRegistry(newRegistry, _registry);
 
         _registry = newRegistry;
     }
@@ -173,7 +173,7 @@ contract LendingMarket is
             revert CreditLineAlreadyRegistered();
         }
 
-        emit CreditLineRegistered(lender, creditLine);
+        emit RegisterCreditLine(lender, creditLine);
 
         _creditLines[creditLine] = lender;
     }
@@ -190,7 +190,7 @@ contract LendingMarket is
             revert LiquidityPoolAlreadyRegistered();
         }
 
-        emit LiquidityPoolRegistered(lender, liquidityPool);
+        emit RegisterLiquidityPool(lender, liquidityPool);
 
         _liquidityPools[lender] = liquidityPool;
     }
@@ -218,11 +218,10 @@ contract LendingMarket is
             revert LiquidityPoolNotRegistered();
         }
 
-        Loan.Terms memory terms = ICreditLine(creditLine).onLoanTaken(msg.sender, amount);
+        Loan.Terms memory terms = ICreditLine(creditLine).onTakeLoan(msg.sender, amount);
 
         uint256 startDate = calculatePeriodDate(terms.periodInSeconds, 0, 0);
         uint256 totalAmount = amount + terms.addonAmount;
-
         uint256 id = _safeMint(lender);
 
         Loan.State memory loan = Loan.State({
@@ -243,14 +242,14 @@ contract LendingMarket is
 
         _loans[id] = loan;
 
-        ILiquidityPool(pool).onBeforeLoanTaken(id, creditLine);
+        ILiquidityPool(pool).onBeforeTakeLoan(id, creditLine);
         IERC20(terms.token).safeTransferFrom(pool, msg.sender, amount);
         if (terms.addonAmount != 0) {
             IERC20(terms.token).safeTransferFrom(pool, terms.addonRecipient, terms.addonAmount);
         }
-        ILiquidityPool(pool).onAfterLoanTaken(id, creditLine);
+        ILiquidityPool(pool).onAfterTakeLoan(id, creditLine);
 
-        emit LoanTaken(id, msg.sender, totalAmount);
+        emit TakeLoan(id, msg.sender, totalAmount);
 
         return id;
     }
@@ -279,7 +278,7 @@ contract LendingMarket is
         IERC20(loan.token).transferFrom(msg.sender, pool, amount);
         ILiquidityPool(pool).onAfterLoanPayment(loanId, amount);
 
-        emit LoanRepaid(loanId, msg.sender, loan.borrower, amount, outstandingBalance);
+        emit RepayLoan(loanId, msg.sender, loan.borrower, amount, outstandingBalance);
 
         if (outstandingBalance == 0) {
             _safeTransfer(ownerOf(loanId), loan.borrower, loanId, "");
@@ -300,7 +299,7 @@ contract LendingMarket is
 
         loan.freezeDate = calculatePeriodDate(loan.periodInSeconds, 0, 0);
 
-        emit LoanFrozen(loanId, loan.freezeDate);
+        emit FreezeLoan(loanId, loan.freezeDate);
     }
 
     /// @inheritdoc ILendingMarket
@@ -321,7 +320,7 @@ contract LendingMarket is
 
         loan.freezeDate = 0;
 
-        emit LoanUnfrozen(loanId, currentDate);
+        emit UnfreezeLoan(loanId, currentDate);
     }
 
     /// @inheritdoc ILendingMarket
@@ -337,7 +336,7 @@ contract LendingMarket is
             revert InappropriateLoanDuration();
         }
 
-        emit LoanDurationUpdated(loanId, newDurationInPeriods, loan.durationInPeriods);
+        emit UpdateLoanDuration(loanId, newDurationInPeriods, loan.durationInPeriods);
 
         loan.durationInPeriods = newDurationInPeriods;
     }
@@ -361,7 +360,7 @@ contract LendingMarket is
             revert InappropriateLoanMoratorium();
         }
 
-        emit LoanMoratoriumUpdated(loanId, loan.trackDate, newMoratoriumInPeriods);
+        emit UpdateLoanMoratorium(loanId, loan.trackDate, newMoratoriumInPeriods);
 
         loan.trackDate += newMoratoriumInPeriods * loan.periodInSeconds;
     }
@@ -379,7 +378,7 @@ contract LendingMarket is
             revert InappropriateInterestRate();
         }
 
-        emit LoanInterestRatePrimaryUpdated(loanId, newInterestRate, loan.interestRatePrimary);
+        emit UpdateLoanInterestRatePrimary(loanId, newInterestRate, loan.interestRatePrimary);
 
         loan.interestRatePrimary = newInterestRate;
     }
@@ -397,7 +396,7 @@ contract LendingMarket is
             revert InappropriateInterestRate();
         }
 
-        emit LoanInterestRateSecondaryUpdated(loanId, newInterestRate, loan.interestRateSecondary);
+        emit UpdateLoanInterestRateSecondary(loanId, newInterestRate, loan.interestRateSecondary);
 
         loan.interestRateSecondary = newInterestRate;
     }
@@ -498,22 +497,6 @@ contract LendingMarket is
         if (loan.freezeDate != 0) {
             currentDate = loan.freezeDate;
         }
-
-        // We have three dates to consider:
-        // 1. currentDate: the current date
-        // 2. trackDate: the date when the loan was last tracked
-        // 3. dueDate: the date when the loan is due
-
-        // The total number of possible scenarios is 9:
-        // 1. currentDate < trackDate < dueDate
-        // 2. currentDate < trackDate > dueDate
-        // 3. currentDate > trackDate < dueDate
-        // 4. currentDate > trackDate > dueDate
-        // 5. currentDate < dueDate < trackDate
-        // 6. currentDate < dueDate > trackDate
-        // 7. currentDate > dueDate < trackDate
-        // 8. currentDate > dueDate > trackDate
-        // 9. currentDate = dueDate = trackDate
 
         if (currentDate > loan.trackDate) {
             uint256 dueDate = loan.startDate + loan.durationInPeriods * loan.periodInSeconds;

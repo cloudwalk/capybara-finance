@@ -23,8 +23,8 @@ contract LendingRegistryTest is Test {
      *  Events
      ***********************************************/
 
-    event CreditLineFactorySet(address newFactory, address oldFactory);
-    event LiquidityPoolFactorySet(address newFactory, address oldFactory);
+    event SetCreditLineFactory(address newFactory, address oldFactory);
+    event SetLiquidityPoolFactory(address newFactory, address oldFactory);
 
     event CreateCreditLine(address indexed lender, address creditLine);
     event CreateLiquidityPool(address indexed lender, address liquidityPool);
@@ -146,40 +146,6 @@ contract LendingRegistryTest is Test {
     }
 
     /************************************************
-     *  Test `registerCreditLine` function
-     ***********************************************/
-
-    function test_registerCreditLine() public {
-        vm.prank(OWNER);
-        vm.expectEmit(true, true, true, true, address(lendingMarket));
-        emit RegisterCreditLineCalled(LENDER, CREDIT_LINE);
-        registry.registerCreditLine(LENDER, CREDIT_LINE);
-    }
-
-    function test_registerCreditLine_Revert_IfCallerNotOwner() public {
-        vm.prank(ATTACKER);
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
-        registry.registerCreditLine(LENDER, CREDIT_LINE);
-    }
-
-    /************************************************
-     *  Test `registerLiquidityPool` function
-     ***********************************************/
-
-    function test_registerLiquidityPool() public {
-        vm.prank(OWNER);
-        vm.expectEmit(true, true, true, true, address(lendingMarket));
-        emit RegisterLiquidityPoolCalled(LENDER, LIQUIDITY_POOL);
-        registry.registerLiquidityPool(LENDER, LIQUIDITY_POOL);
-    }
-
-    function test_registerLiquidityPool_Revert_IfCallerNotOwner() public {
-        vm.prank(ATTACKER);
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
-        registry.registerLiquidityPool(LENDER, LIQUIDITY_POOL);
-    }
-
-    /************************************************
      *  Test `setCreditLineFactory` function
      ***********************************************/
 
@@ -189,17 +155,17 @@ contract LendingRegistryTest is Test {
         vm.startPrank(OWNER);
 
         vm.expectEmit(true, true, true, true, address(registry));
-        emit CreditLineFactorySet(CREDIT_LINE_FACTORY_1, address(0));
+        emit SetCreditLineFactory(CREDIT_LINE_FACTORY_1, address(0));
         registry.setCreditLineFactory(CREDIT_LINE_FACTORY_1);
         assertEq(registry.creditLineFactory(), CREDIT_LINE_FACTORY_1);
 
         vm.expectEmit(true, true, true, true, address(registry));
-        emit CreditLineFactorySet(CREDIT_LINE_FACTORY_2, CREDIT_LINE_FACTORY_1);
+        emit SetCreditLineFactory(CREDIT_LINE_FACTORY_2, CREDIT_LINE_FACTORY_1);
         registry.setCreditLineFactory(CREDIT_LINE_FACTORY_2);
         assertEq(registry.creditLineFactory(), CREDIT_LINE_FACTORY_2);
 
         vm.expectEmit(true, true, true, true, address(registry));
-        emit CreditLineFactorySet(address(0), CREDIT_LINE_FACTORY_2);
+        emit SetCreditLineFactory(address(0), CREDIT_LINE_FACTORY_2);
         registry.setCreditLineFactory(address(0));
         assertEq(registry.creditLineFactory(), address(0));
     }
@@ -227,17 +193,17 @@ contract LendingRegistryTest is Test {
         vm.startPrank(OWNER);
 
         vm.expectEmit(true, true, true, true, address(registry));
-        emit LiquidityPoolFactorySet(LIQUIDITY_POOL_FACTORY_1, address(0));
+        emit SetLiquidityPoolFactory(LIQUIDITY_POOL_FACTORY_1, address(0));
         registry.setLiquidityPoolFactory(LIQUIDITY_POOL_FACTORY_1);
         assertEq(registry.liquidityPoolFactory(), LIQUIDITY_POOL_FACTORY_1);
 
         vm.expectEmit(true, true, true, true, address(registry));
-        emit LiquidityPoolFactorySet(LIQUIDITY_POOL_FACTORY_2, LIQUIDITY_POOL_FACTORY_1);
+        emit SetLiquidityPoolFactory(LIQUIDITY_POOL_FACTORY_2, LIQUIDITY_POOL_FACTORY_1);
         registry.setLiquidityPoolFactory(LIQUIDITY_POOL_FACTORY_2);
         assertEq(registry.liquidityPoolFactory(), LIQUIDITY_POOL_FACTORY_2);
 
         vm.expectEmit(true, true, true, true, address(registry));
-        emit LiquidityPoolFactorySet(address(0), LIQUIDITY_POOL_FACTORY_2);
+        emit SetLiquidityPoolFactory(address(0), LIQUIDITY_POOL_FACTORY_2);
         registry.setLiquidityPoolFactory(address(0));
         assertEq(registry.liquidityPoolFactory(), address(0));
     }
@@ -276,7 +242,7 @@ contract LendingRegistryTest is Test {
 
     function test_createCreditLine_Revert_IfFactoryNotConfigured() public {
         vm.prank(OWNER);
-        vm.expectRevert(LendingRegistry.CreditLineFactoryNotSet.selector);
+        vm.expectRevert(LendingRegistry.CreditLineFactoryNotConfigured.selector);
         registry.createCreditLine(KIND, TOKEN);
     }
 
@@ -301,7 +267,7 @@ contract LendingRegistryTest is Test {
 
     function test_createLiquidityPool_Revert_IfFactoryNotConfigured() public {
         vm.prank(OWNER);
-        vm.expectRevert(LendingRegistry.LiquidityPoolFactoryNotSet.selector);
+        vm.expectRevert(LendingRegistry.LiquidityPoolFactoryNotConfigured.selector);
         registry.createLiquidityPool(KIND);
     }
 }

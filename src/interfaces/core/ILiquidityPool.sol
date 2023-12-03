@@ -13,12 +13,12 @@ interface ILiquidityPool {
     /// @notice A hook that is triggered by the market before a loan is taken
     /// @param loanId The unique identifier of the loan being taken
     /// @param creditLine The address of the associated credit line
-    function onBeforeLoanTaken(uint256 loanId, address creditLine) external returns (bool);
+    function onBeforeTakeLoan(uint256 loanId, address creditLine) external returns (bool);
 
     /// @notice A hook that is triggered by the market after a loan is taken
     /// @param loanId The unique identifier of the loan being taken
     /// @param creditLine The address of the associated credit line
-    function onAfterLoanTaken(uint256 loanId, address creditLine) external returns (bool);
+    function onAfterTakeLoan(uint256 loanId, address creditLine) external returns (bool);
 
     /// @notice A hook that is triggered by the market before the loan payment
     /// @param loanId The unique identifier of the loan being paid
