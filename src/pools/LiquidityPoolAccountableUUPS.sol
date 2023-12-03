@@ -6,7 +6,7 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 import {LiquidityPoolAccountable} from "./LiquidityPoolAccountable.sol";
 
 /// @title LiquidityPoolAccountableUUPS contract
-/// @notice Implementation of the upgradeable accountable liquidity pool contract
+/// @notice Upgradeable version of the accountable liquidity pool contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 contract LiquidityPoolAccountableUUPS is LiquidityPoolAccountable, UUPSUpgradeable {
     /// @dev Constructor that prohibits the initialization of the implementation of the upgradable contract

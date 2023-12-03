@@ -6,7 +6,7 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 import {CreditLineFactory} from "./CreditLineFactory.sol";
 
 /// @title CreditLineFactoryUUPS contract
-/// @notice Implementation of the upgradeable credit line factory contract
+/// @notice Upgradeable version of the credit line factory contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 contract CreditLineFactoryUUPS is CreditLineFactory, UUPSUpgradeable {
     /// @dev Constructor that prohibits the initialization of the implementation of the upgradable contract

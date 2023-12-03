@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 
-import {Loan} from "../../libraries/Loan.sol";
-
 pragma solidity 0.8.20;
+
+import {Loan} from "../../libraries/Loan.sol";
 
 /// @title ILendingMarket interface
 /// @notice Defines the lending market functions and events

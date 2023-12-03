@@ -550,12 +550,8 @@ contract LendingMarket is
 
     /// @notice Creates a new NFT token and mints it to the lender
     function _safeMint(address to) internal returns (uint256) {
-        uint256 tokenId = _tokenIdCounter;
-        _tokenIdCounter++;
-
+        uint256 tokenId = _tokenIdCounter++;
         _safeMint(to, tokenId);
-        _approve(_market, tokenId, address(0));
-
         return tokenId;
     }
 

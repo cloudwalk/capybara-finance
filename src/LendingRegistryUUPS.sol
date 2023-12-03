@@ -6,7 +6,7 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 import {LendingRegistry} from "./LendingRegistry.sol";
 
 /// @title LendingRegistryUUPS contract
-/// @notice Implementation of the upgradeable lending market contract
+/// @notice Upgradeable version of the lending market contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 contract LendingRegistryUUPS is LendingRegistry, UUPSUpgradeable {
     /// @dev Constructor that prohibits the initialization of the implementation of the upgradable contract
