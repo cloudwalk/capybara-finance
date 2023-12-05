@@ -109,8 +109,8 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
             revert Error.ZeroAddress();
         }
         if (lender_ == address(0)) {
-            // This should never happen since the lender is the contract owner,
-            // and the owner address is checked to be non-zero by the Ownable
+            // NOTE: This should never happen since the lender is the contract owner,
+            // and its address is checked to be non-zero by the Ownable contract
             revert Error.ZeroAddress();
         }
         if (token_ == address(0)) {
@@ -157,31 +157,13 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         if (config.durationInPeriods == 0) {
             revert InvalidCreditLineConfiguration();
         }
-        if (config.minBorrowAmount == 0) {
-            revert InvalidCreditLineConfiguration();
-        }
-        if (config.maxBorrowAmount == 0) {
+        if (config.interestRateFactor == 0) {
             revert InvalidCreditLineConfiguration();
         }
         if (config.minBorrowAmount > config.maxBorrowAmount) {
             revert InvalidCreditLineConfiguration();
         }
-        if (config.interestRateFactor == 0) {
-            revert InvalidCreditLineConfiguration();
-        }
-        if (config.minInterestRatePrimary == 0) {
-            revert InvalidCreditLineConfiguration();
-        }
-        if (config.maxInterestRatePrimary == 0) {
-            revert InvalidCreditLineConfiguration();
-        }
         if (config.minInterestRatePrimary > config.maxInterestRatePrimary) {
-            revert InvalidCreditLineConfiguration();
-        }
-        if (config.minInterestRateSecondary == 0) {
-            revert InvalidCreditLineConfiguration();
-        }
-        if (config.maxInterestRateSecondary == 0) {
             revert InvalidCreditLineConfiguration();
         }
         if (config.minInterestRateSecondary > config.maxInterestRateSecondary) {
@@ -236,9 +218,8 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
             borrowerConfig.maxBorrowAmount = 0;
         } else if (borrowerConfig.policy == BorrowPolicy.Decrease) {
             borrowerConfig.maxBorrowAmount -= amount;
-        } else if (borrowerConfig.policy == BorrowPolicy.Keep) {
-            // Do nothing here
-        } else {
+        } else if (borrowerConfig.policy == BorrowPolicy.Keep) {} else {
+            // NOTE: This should never happen since all possible policies are checked above
             revert UnsupportedBorrowPolicy();
         }
     }
@@ -265,12 +246,6 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
             revert Error.InvalidAmount();
         }
         if (amount < borrowerConfig.minBorrowAmount) {
-            revert Error.InvalidAmount();
-        }
-        if (amount > _config.maxBorrowAmount) {
-            revert Error.InvalidAmount();
-        }
-        if (amount < _config.minBorrowAmount) {
             revert Error.InvalidAmount();
         }
 
@@ -341,6 +316,9 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         if (borrower == address(0)) {
             revert Error.ZeroAddress();
         }
+
+        // NOTE: we don't check for expiration here
+        // because expiration can be used to disable a borrower
 
         if (config.minBorrowAmount > config.maxBorrowAmount) {
             revert InvalidBorrowerConfiguration();
