@@ -8,6 +8,7 @@
 - [Lending Registry](#lending-registry)
 - [Credit Line Factory](#credit-line-factory)
 - [Liquidity Pool Factory](#liquidity-pool-factory)
+- [Deployment instruction](#system-deployment)
 
 ---
 
@@ -17,15 +18,22 @@
 CapybaraFinance protocol establishes a framework for users to lend or borrow funds within a decentralized and transparent system.
 The protocol is composed primarily of several interlinking smart contracts – addressing components such as loans, credit lines, liquidity pools, registry and the lending market. These individual components work hand in hand to create a robust lending process, starting from creating a credit line, to borrowing, and finally, repayments and management of loans.
 
+## System overview:
+1. **LendingMarket** The main contract of the system responsible for loan creation, management and repayments. Registers new liquidity pools and credit lines to connect them to the system. It is also responsible for tracking and enforcing the states and statuses of all loans and minting and managing nft.
+2. **LendingRegistry** The contract responsible for creating and registering new credit lines and liquidity pools.
+3. **CreditLineFactory** A smart contract to create and manage different kinds of credit lines within the protocol. Currently, it supports creating only a specific kind of configurable credit line but is designed to potentially support more kinds in the future.
+4. **LiquidityPoolFactory** A smart contract to create and manage different kinds of liquidity pools within the protocol. Currently, it supports creating only a specific kind of accountable liquidity pool but is designed to potentially support more kinds in the future.
+5. **CreditLine** The lender is using credit lines to determine loan terms for each borrower. While borrower is taking loan, they can choose which credit line would be used to determine loan terms.
+6. **LiquidityPool** The lender is using liquidity pool to supply loans. Loaned funds are transferred from the pool to the borrower, and, after the repayment and collecting interest, from the borrower to the pool.
 
-## Key Components:
-1. **Loan:** A loan is defined with all its associated elements like status, token address, duration, interest rates, among other details. This struct encapsulates all the data and operations around a single loan in the system.
-2. **Credit Line:** A borrower interacts with a credit line to initiate the borrowing process. The credit line defines the terms of the loan – these terms can vary based on the borrower's history and the specific amount being borrowed.
-3. **Liquidity Pool:** The liquidity pool consists of all the funds that lenders have deposited to be lent out. Before and after a loan is taken, specific contract hooks are triggered for necessary checks and updates.
-4. **Lending Market:** The Lending Market is the primary interface for borrowing and repaying loans. It is also responsible for tracking and enforcing the states and statuses of all loans and minting and managing nft.
-5. **Lending Registry:** The Lending Registry allows for the creation of new credit lines and liquidity pools.
-6. **Liquidity Pool Factory:** A smart contract to create and manage different kinds of liquidity pools within the protocol. Currently, it supports creating only a specific kind of accountable liquidity pool but is designed to potentially support more kinds in the future.
-7. **Credit Line Factory:** A smart contract to create and manage different kinds of credit lines within the protocol. Currently, it supports creating only a specific kind of configurable credit line but is designed to potentially support more kinds in the future.
+![](./documentation/media/system-overview.png)
+
+## Loan lifecycle:
+A loan is defined with all its associated elements like status, token address, duration, interest rates, among other details. This struct encapsulates all the data and operations around a single loan in the system.
+Loan can be managed and changed by the lender <i>only</i> to improve loan conditions for the borrower.
+
+![](./documentation/media/loan-lifecycle.png)
+
 
 ## Problem It Solves:
 This protocol provides a robust infrastructure that solves several pain points associated with traditional lending:
@@ -245,4 +253,8 @@ Incorporates a custom error `UnsupportedKind` to handle attempts at creating uns
 
 For a comprehensive explanation of how the `LiquidityPoolFactory` operates and integrates with the other components of the CapybaraFinance protocol, please see the [Liquidity Pool Factory documentation](documentation/LiquidityPoolFactory.md).
 
+
+## System deployment:
+
+![](./documentation/media/deployment.png)
 ---
