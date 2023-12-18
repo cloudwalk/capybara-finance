@@ -157,37 +157,25 @@ interface ILendingMarket {
      *  View functions
      ***********************************************/
 
-    /// @notice Retrieves the credit line lender
+    /// @notice Gets the credit line's lender
     /// @param creditLine The address of the credit line to check
     function getLender(address creditLine) external view returns (address);
 
-    /// @notice Retrieves the lender's liquidity pool
+    /// @notice Gets the lender's liquidity pool
     /// @param lender The address of the lender to check
     function getLiquidityPool(address lender) external view returns (address);
 
-    /// @notice Retrieves the current state of a loan
+    /// @notice Gets the current state of a given loan
     /// @param loanId The unique identifier of the loan to check
-    /// @return The struct containing the stored state of the loan
+    /// @return The current state of the loan (see Loan.State struct)
     function getLoan(uint256 loanId) external view returns (Loan.State memory);
 
-    /// @notice Retrieves the preview state of a loan given a repayment amount and date
+    /// @notice Gets the outstanding balance of a given loan
     /// @param loanId The unique identifier of the loan to check
-    /// @param repayAmount The amount to be repaid in the preview
-    /// @param repayDate The date of the repayment in the preview
-    /// @return The struct containing the preview state of the loan
-    function getLoanPreview(uint256 loanId, uint256 repayAmount, uint256 repayDate)
-        external
-        view
-        returns (Loan.State memory);
+    /// @param timestamp The timestamp to get the outstanding balance for
+    /// @return The outstanding balance and the applied period date of the loan
+    function getLoanBalance(uint256 loanId, uint256 timestamp) external view returns (uint256, uint256);
 
-    /// @notice Retrieves the outstanding balance of a loan
-    /// @param loanId The unique identifier of the loan to check
-    function getOutstandingBalance(uint256 loanId) external view returns (uint256);
-
-    /// @notice Retrieves the current period of the loan
-    /// @param loanId The unique identifier of the loan to check
-    function getCurrentPeriodDate(uint256 loanId) external view returns (uint256);
-
-    /// @notice Retrieves the registry address
+    /// @notice Gets the address of the registry contract
     function registry() external view returns (address);
 }

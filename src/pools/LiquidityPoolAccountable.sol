@@ -88,6 +88,8 @@ contract LiquidityPoolAccountable is
             revert Error.ZeroAddress();
         }
         if (lender_ == address(0)) {
+            // NOTE: This should never happen since the lender is the contract owner,
+            // and its address is checked to be non-zero by the Ownable contract
             revert Error.ZeroAddress();
         }
 

@@ -3,7 +3,6 @@
 pragma solidity 0.8.23;
 
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
 import {ICreditLine} from "../interfaces/core/ICreditLine.sol";
 import {ICreditLineFactory} from "../interfaces/ICreditLineFactory.sol";
@@ -12,7 +11,7 @@ import {CreditLineConfigurable} from "./CreditLineConfigurable.sol";
 /// @title CreditLineFactory contract
 /// @notice Implementation of the credit line factory contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-contract CreditLineFactory is OwnableUpgradeable, PausableUpgradeable, ICreditLineFactory {
+contract CreditLineFactory is OwnableUpgradeable, ICreditLineFactory {
     /************************************************
      *  Errors
      ***********************************************/
@@ -34,7 +33,6 @@ contract CreditLineFactory is OwnableUpgradeable, PausableUpgradeable, ICreditLi
     /// @param registry_ The address of the associated lending market
     function __CreditLineFactory_init(address registry_) internal onlyInitializing {
         __Ownable_init_unchained(registry_);
-        __Pausable_init_unchained();
         __CreditLineFactory_init_unchained();
     }
 
@@ -44,16 +42,6 @@ contract CreditLineFactory is OwnableUpgradeable, PausableUpgradeable, ICreditLi
     /************************************************
      *  Functions
      ***********************************************/
-
-    /// @notice Pauses the contract
-    function pause() external onlyOwner {
-        _pause();
-    }
-
-    /// @notice Unpauses the contract
-    function unpause() external onlyOwner {
-        _unpause();
-    }
 
     /// @inheritdoc ICreditLineFactory
     function createCreditLine(address market, address lender, address token, uint16 kind, bytes calldata data)

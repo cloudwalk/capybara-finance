@@ -82,10 +82,10 @@ interface ICreditLineConfigurable {
         uint256 interestRatePrimary;
         /// @notice The secondary interest rate to be applied to the loan
         uint256 interestRateSecondary;
-        /// @notice The address of the recipient of additional payments and fees
-        address addonRecipient;
         /// @notice The formula to be used for interest calculation on the loan
         Interest.Formula interestFormula;
+        /// @notice The address of the recipient of additional payments and fees
+        address addonRecipient;
         /// @notice The borrow policy
         BorrowPolicy policy;
     }

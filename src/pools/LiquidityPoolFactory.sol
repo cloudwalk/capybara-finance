@@ -3,7 +3,6 @@
 pragma solidity 0.8.23;
 
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
 import {ILiquidityPool} from "../interfaces/core/ILiquidityPool.sol";
 import {ILiquidityPoolFactory} from "../interfaces/ILiquidityPoolFactory.sol";
@@ -12,7 +11,7 @@ import {LiquidityPoolAccountable} from "./LiquidityPoolAccountable.sol";
 /// @title LiquidityPoolFactory contract
 /// @notice Implementation of the liquidity pool factory contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-contract LiquidityPoolFactory is OwnableUpgradeable, PausableUpgradeable, ILiquidityPoolFactory {
+contract LiquidityPoolFactory is OwnableUpgradeable, ILiquidityPoolFactory {
     /************************************************
      *  Errors
      ***********************************************/
@@ -34,7 +33,6 @@ contract LiquidityPoolFactory is OwnableUpgradeable, PausableUpgradeable, ILiqui
     /// @param registry_ The address of the associated lending market
     function __LiquidityPoolFactory_init(address registry_) internal onlyInitializing {
         __Ownable_init_unchained(registry_);
-        __Pausable_init_unchained();
         __LiquidityPoolFactory_init_unchained();
     }
 
@@ -44,16 +42,6 @@ contract LiquidityPoolFactory is OwnableUpgradeable, PausableUpgradeable, ILiqui
     /************************************************
      *  Functions
      ***********************************************/
-
-    /// @notice Pauses the contract
-    function pause() external onlyOwner {
-        _pause();
-    }
-
-    /// @notice Unpauses the contract
-    function unpause() external onlyOwner {
-        _unpause();
-    }
 
     /// @inheritdoc ILiquidityPoolFactory
     function createLiquidityPool(address market, address lender, uint16 kind, bytes calldata data)
