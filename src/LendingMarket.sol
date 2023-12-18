@@ -219,7 +219,7 @@ contract LendingMarket is
 
         Loan.Terms memory terms = ICreditLine(creditLine).onTakeLoan(msg.sender, amount);
 
-        uint256 startDate = calculatePeriodDate(terms.periodInSeconds, 0, 0);
+        uint256 startDate = calculatePeriodDate(block.timestamp, terms.periodInSeconds, 0, 0);
         uint256 totalAmount = amount + terms.addonAmount;
         uint256 id = _safeMint(lender);
 
@@ -260,7 +260,7 @@ contract LendingMarket is
         }
 
         Loan.State storage loan = _loans[loanId];
-        (uint256 outstandingBalance, uint256 currentDate) = _outstandingBalance(loan);
+        (uint256 outstandingBalance, uint256 currentDate) = _outstandingBalance(loan, block.timestamp);
 
         if (amount == type(uint256).max) {
             amount = outstandingBalance;
@@ -296,7 +296,7 @@ contract LendingMarket is
             revert LoanAlreadyFrozen();
         }
 
-        loan.freezeDate = calculatePeriodDate(loan.periodInSeconds, 0, 0);
+        loan.freezeDate = calculatePeriodDate(block.timestamp, loan.periodInSeconds, 0, 0);
 
         emit FreezeLoan(loanId, loan.freezeDate);
     }
@@ -309,7 +309,7 @@ contract LendingMarket is
             revert LoanNotFrozen();
         }
 
-        uint256 currentDate = calculatePeriodDate(loan.periodInSeconds, 0, 0);
+        uint256 currentDate = calculatePeriodDate(block.timestamp, loan.periodInSeconds, 0, 0);
         uint256 frozenPeriods = (currentDate - loan.freezeDate) / loan.periodInSeconds;
 
         if (frozenPeriods > 0) {
@@ -349,7 +349,7 @@ contract LendingMarket is
     {
         Loan.State storage loan = _loans[loanId];
 
-        uint256 currentDate = calculatePeriodDate(loan.periodInSeconds, 0, 0);
+        uint256 currentDate = calculatePeriodDate(block.timestamp, loan.periodInSeconds, 0, 0);
         uint256 currentMoratoriumInPeriods = 0;
         if (loan.trackDate > currentDate) {
             currentMoratoriumInPeriods = (loan.trackDate - currentDate) / loan.periodInSeconds;
@@ -431,26 +431,11 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ILendingMarket
-    function getLoanPreview(uint256 loanId, uint256 repayAmount, uint256 repayDate)
-        external
-        view
-        returns (Loan.State memory)
-    {
-        /**
-         * TBD
-         */
-        revert Error.NotImplemented();
-    }
-
-    /// @inheritdoc ILendingMarket
-    function getOutstandingBalance(uint256 loanId) external view returns (uint256) {
-        (uint256 outstandingBalance,) = _outstandingBalance(_loans[loanId]);
-        return outstandingBalance;
-    }
-
-    /// @inheritdoc ILendingMarket
-    function getCurrentPeriodDate(uint256 loanId) external view returns (uint256) {
-        return calculatePeriodDate(_loans[loanId].periodInSeconds, 0, 0);
+    function getLoanBalance(uint256 loanId, uint256 timestamp) external view returns (uint256, uint256) {
+        if (timestamp == 0) {
+            timestamp = block.timestamp;
+        }
+        return _outstandingBalance(_loans[loanId], timestamp);
     }
 
     /// @inheritdoc ILendingMarket
@@ -459,15 +444,16 @@ contract LendingMarket is
     }
 
     /// @notice Calculates the period date based on the current timestamp
+    /// @param timestamp The timestamp to calculate the period date from
     /// @param periodInSeconds The duration of the period in seconds
     /// @param extraPeriods The number of extra periods to add
     /// @param extraSeconds The number of extra seconds to add
-    function calculatePeriodDate(uint256 periodInSeconds, uint256 extraPeriods, uint256 extraSeconds)
+    function calculatePeriodDate(uint256 timestamp, uint256 periodInSeconds, uint256 extraPeriods, uint256 extraSeconds)
         public
-        view
+        pure
         returns (uint256)
     {
-        return (block.timestamp / periodInSeconds) * periodInSeconds + periodInSeconds * extraPeriods + extraSeconds;
+        return (timestamp / periodInSeconds) * periodInSeconds + periodInSeconds * extraPeriods + extraSeconds;
     }
 
     /// @notice Calculates the outstanding balance of a loan
@@ -492,10 +478,10 @@ contract LendingMarket is
      ***********************************************/
 
     /// @notice Calculates the outstanding balance of a loan and the current date
-    function _outstandingBalance(Loan.State storage loan) internal view returns (uint256, uint256) {
+    function _outstandingBalance(Loan.State storage loan, uint256 timestamp) internal view returns (uint256, uint256) {
         uint256 outstandingBalance = loan.trackedBorrowAmount;
 
-        uint256 currentDate = calculatePeriodDate(loan.periodInSeconds, 0, 0);
+        uint256 currentDate = calculatePeriodDate(timestamp, loan.periodInSeconds, 0, 0);
         if (loan.freezeDate != 0) {
             currentDate = loan.freezeDate;
         }
