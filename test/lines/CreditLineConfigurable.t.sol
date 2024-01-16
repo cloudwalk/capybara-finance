@@ -48,8 +48,6 @@ contract CreditLineConfigurableTest is Test {
 
     uint256 public constant INIT_CREDIT_LINE_MIN_BORROW_AMOUNT = 400;
     uint256 public constant INIT_CREDIT_LINE_MAX_BORROW_AMOUNT = 900;
-    uint256 public constant INIT_CREDIT_LINE_PERIOD_IN_SECONDS = 600;
-    uint256 public constant INIT_CREDIT_LINE_DURATION_IN_PERIODS = 100;
     uint256 public constant INIT_CREDIT_LINE_ADDON_FIXED_COST_RATE = 15;
     uint256 public constant INIT_CREDIT_LINE_ADDON_PERIOD_COST_RATE = 20;
     uint256 public constant INIT_CREDIT_LINE_MIN_INTEREST_RATE_PRIMARY = 499;
@@ -58,6 +56,8 @@ contract CreditLineConfigurableTest is Test {
     uint256 public constant INIT_CREDIT_LINE_MAX_INTEREST_RATE_SECONDARY = 601;
     uint256 public constant INIT_CREDIT_LINE_INTEREST_RATE_FACTOR = 1000;
 
+    uint256 public constant INIT_BORROWER_PERIOD_IN_SECONDS = 600;
+    uint256 public constant INIT_BORROWER_DURATION_IN_PERIODS = 100;
     uint256 public constant INIT_BORROWER_DURATION = 1000;
     uint256 public constant INIT_BORROWER_MIN_BORROW_AMOUNT = 500;
     uint256 public constant INIT_BORROWER_MAX_BORROW_AMOUNT = 800;
@@ -89,8 +89,6 @@ contract CreditLineConfigurableTest is Test {
 
     function initCreditLineConfig() internal pure returns (ICreditLineConfigurable.CreditLineConfig memory) {
         return ICreditLineConfigurable.CreditLineConfig({
-            periodInSeconds: INIT_CREDIT_LINE_PERIOD_IN_SECONDS,
-            durationInPeriods: INIT_CREDIT_LINE_DURATION_IN_PERIODS,
             minBorrowAmount: INIT_CREDIT_LINE_MIN_BORROW_AMOUNT,
             maxBorrowAmount: INIT_CREDIT_LINE_MAX_BORROW_AMOUNT,
             interestRateFactor: INIT_CREDIT_LINE_INTEREST_RATE_FACTOR,
@@ -109,6 +107,8 @@ contract CreditLineConfigurableTest is Test {
         returns (ICreditLineConfigurable.BorrowerConfig memory)
     {
         return ICreditLineConfigurable.BorrowerConfig({
+            periodInSeconds: INIT_BORROWER_PERIOD_IN_SECONDS,
+            durationInPeriods: INIT_BORROWER_DURATION_IN_PERIODS,
             expiration: blockTimestamp + INIT_BORROWER_DURATION,
             minBorrowAmount: INIT_BORROWER_MIN_BORROW_AMOUNT,
             maxBorrowAmount: INIT_BORROWER_MAX_BORROW_AMOUNT,
@@ -171,8 +171,6 @@ contract CreditLineConfigurableTest is Test {
         ICreditLineConfigurable.CreditLineConfig memory config1,
         ICreditLineConfigurable.CreditLineConfig memory config2
     ) internal {
-        assertEq(config1.periodInSeconds, config2.periodInSeconds);
-        assertEq(config1.durationInPeriods, config2.durationInPeriods);
         assertEq(config1.minBorrowAmount, config2.minBorrowAmount);
         assertEq(config1.maxBorrowAmount, config2.maxBorrowAmount);
         assertEq(config1.interestRateFactor, config2.interestRateFactor);
@@ -189,8 +187,7 @@ contract CreditLineConfigurableTest is Test {
         ICreditLineConfigurable.CreditLineConfig memory config2
     ) internal {
         assertFalse(
-            config1.periodInSeconds == config2.periodInSeconds && config1.durationInPeriods == config2.durationInPeriods
-                && config1.minBorrowAmount == config2.minBorrowAmount && config1.maxBorrowAmount == config2.maxBorrowAmount
+            config1.minBorrowAmount == config2.minBorrowAmount && config1.maxBorrowAmount == config2.maxBorrowAmount
                 && config1.interestRateFactor == config2.interestRateFactor
                 && config1.minInterestRatePrimary == config2.minInterestRatePrimary
                 && config1.maxInterestRatePrimary == config2.maxInterestRatePrimary
@@ -357,24 +354,6 @@ contract CreditLineConfigurableTest is Test {
         creditLine.configureCreditLine(config);
     }
 
-    function test_configureCreditLine_Revert_IfPeriodInSecondsIsZero() public {
-        ICreditLineConfigurable.CreditLineConfig memory config = initCreditLineConfig();
-        config.periodInSeconds = 0;
-
-        vm.prank(LENDER);
-        vm.expectRevert(CreditLineConfigurable.InvalidCreditLineConfiguration.selector);
-        creditLine.configureCreditLine(config);
-    }
-
-    function test_configureCreditLine_Revert_IfDurationInPeriodsIsZero() public {
-        ICreditLineConfigurable.CreditLineConfig memory config = initCreditLineConfig();
-        config.durationInPeriods = 0;
-
-        vm.prank(LENDER);
-        vm.expectRevert(CreditLineConfigurable.InvalidCreditLineConfiguration.selector);
-        creditLine.configureCreditLine(config);
-    }
-
     function test_configureCreditLine_Revert_IfInterestRateFactorIsZero() public {
         ICreditLineConfigurable.CreditLineConfig memory config = initCreditLineConfig();
         config.interestRateFactor = 0;
@@ -451,6 +430,26 @@ contract CreditLineConfigurableTest is Test {
         vm.prank(ATTACKER);
         vm.expectRevert(Error.Unauthorized.selector);
         creditLine.configureBorrower(ATTACKER, config);
+    }
+
+    function test_configureBorrower_Revert_IfPeriodInSecondsIsZero() public {
+        configureCreditLine();
+        ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
+        config.periodInSeconds = 0;
+
+        vm.prank(ADMIN);
+        vm.expectRevert(CreditLineConfigurable.InvalidBorrowerConfiguration.selector);
+        creditLine.configureBorrower(BORROWER_1, config);
+    }
+
+    function test_configureBorrower_Revert_IfDurationInPeriodsIsZero() public {
+        configureCreditLine();
+        ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
+        config.durationInPeriods = 0;
+
+        vm.prank(ADMIN);
+        vm.expectRevert(CreditLineConfigurable.InvalidBorrowerConfiguration.selector);
+        creditLine.configureBorrower(BORROWER_1, config);
     }
 
     function test_configureBorrower_Revert_IfBorrowerIsZeroAddress() public {
@@ -758,14 +757,14 @@ contract CreditLineConfigurableTest is Test {
         Loan.Terms memory terms = creditLine.determineLoanTerms(BORROWER_1, borrowerConfig.minBorrowAmount);
 
         assertEq(terms.token, creditLine.token());
-        assertEq(terms.periodInSeconds, creditLineConfig.periodInSeconds);
-        assertEq(terms.durationInPeriods, creditLineConfig.durationInPeriods);
         assertEq(terms.interestRateFactor, creditLineConfig.interestRateFactor);
+        assertEq(terms.periodInSeconds, borrowerConfig.periodInSeconds);
+        assertEq(terms.durationInPeriods, borrowerConfig.durationInPeriods);
         assertEq(terms.interestRatePrimary, borrowerConfig.interestRatePrimary);
         assertEq(terms.interestRateSecondary, borrowerConfig.interestRateSecondary);
         assertEq(uint256(terms.interestFormula), uint256(borrowerConfig.interestFormula));
         assertEq(terms.addonRecipient, borrowerConfig.addonRecipient);
-        assertEq(terms.addonAmount, creditLine.calculateAddonAmount(borrowerConfig.minBorrowAmount));
+        assertEq(terms.addonAmount, creditLine.calculateAddonAmount(borrowerConfig.minBorrowAmount, borrowerConfig));
     }
 
     function test_determineLoanTerms_WithoutAddon() public {
@@ -785,9 +784,9 @@ contract CreditLineConfigurableTest is Test {
         Loan.Terms memory terms = creditLine.determineLoanTerms(BORROWER_1, borrowerConfig.minBorrowAmount);
 
         assertEq(terms.token, creditLine.token());
-        assertEq(terms.periodInSeconds, creditLineConfig.periodInSeconds);
-        assertEq(terms.durationInPeriods, creditLineConfig.durationInPeriods);
         assertEq(terms.interestRateFactor, creditLineConfig.interestRateFactor);
+        assertEq(terms.periodInSeconds, borrowerConfig.periodInSeconds);
+        assertEq(terms.durationInPeriods, borrowerConfig.durationInPeriods);
         assertEq(terms.interestRatePrimary, borrowerConfig.interestRatePrimary);
         assertEq(terms.interestRateSecondary, borrowerConfig.interestRateSecondary);
         assertEq(uint256(terms.interestFormula), uint256(borrowerConfig.interestFormula));
@@ -862,13 +861,14 @@ contract CreditLineConfigurableTest is Test {
 
     function test_calculateAddonAmount() public {
         ICreditLineConfigurable.CreditLineConfig memory config = configureCreditLine();
+        ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(block.timestamp);
 
         uint256 amount = 300;
 
-        uint256 addonRate = config.addonFixedCostRate + config.addonPeriodCostRate * config.durationInPeriods;
+        uint256 addonRate = config.addonFixedCostRate + config.addonPeriodCostRate * borrowerConfig.durationInPeriods;
         uint256 addonAmount = (amount * addonRate) / config.interestRateFactor;
 
-        assertEq(creditLine.calculateAddonAmount(amount), addonAmount);
+        assertEq(creditLine.calculateAddonAmount(amount, borrowerConfig), addonAmount);
     }
 
     /************************************************
@@ -893,8 +893,7 @@ contract CreditLineConfigurableTest is Test {
 
         assertEqCreditLineConfig(config, creditLine.creditLineConfiguration());
 
-        config.periodInSeconds += 1;
-        config.durationInPeriods += 1;
+        config.minBorrowAmount += 1;
         assertFalseCreditLineConfig(config, creditLine.creditLineConfiguration());
 
         vm.prank(LENDER);
