@@ -42,7 +42,7 @@ contract LendingMarket is
     /// @notice Thrown when the loan does not exist
     error LoanNotExist();
 
-    /// @notice Thrown when the loan does not exist
+    /// @notice Thrown when the loan does not frozen
     error LoanNotFrozen();
 
     /// @notice Thrown when the loan is already repaid
