@@ -104,6 +104,10 @@ contract LendingMarketMock is ILendingMarket {
         revert Error.NotImplemented();
     }
 
+    function getLoanBalance(uint256 loanId, uint256 timestamp) external view returns (uint256, uint256) {
+        revert Error.NotImplemented();
+    }
+
     /************************************************
      *  Mock functions
      ***********************************************/
