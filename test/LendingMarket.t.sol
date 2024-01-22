@@ -550,10 +550,6 @@ contract LendingMarketTest is Test, Config {
 
         vm.prank(BORROWER_2);
         token.approve(address(lendingMarket), TOKEN_AMOUNT);
-        vm.prank(BORROWER_2);
-        token.approve(ADMIN, TOKEN_AMOUNT);
-        vm.prank(BORROWER_2);
-        token.approve(address(liquidityPool), TOKEN_AMOUNT);
 
         uint256[] memory loanIds = new uint256[](1);
         loanIds[0] = loanId;
