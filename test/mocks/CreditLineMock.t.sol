@@ -42,6 +42,7 @@ contract CreditLineMockTest is Test {
         assertEq(terms.interestRateSecondary, 0);
         assertEq(uint256(terms.interestFormula), uint256(Interest.Formula.Simple));
         assertEq(terms.addonRecipient, address(0x0));
+        assertEq(terms.autoRepayment, false);
         assertEq(terms.addonAmount, 0);
 
         mock.mockLoanTerms(
@@ -56,6 +57,7 @@ contract CreditLineMockTest is Test {
                 interestRateSecondary: 500,
                 interestFormula: Interest.Formula.Compound,
                 addonRecipient: address(0x2),
+                autoRepayment: true,
                 addonAmount: 600
             })
         );
@@ -70,6 +72,7 @@ contract CreditLineMockTest is Test {
         assertEq(terms.interestRateSecondary, 500);
         assertEq(uint256(terms.interestFormula), uint256(Interest.Formula.Compound));
         assertEq(terms.addonRecipient, address(0x2));
+        assertEq(terms.autoRepayment, true);
         assertEq(terms.addonAmount, 600);
     }
 
@@ -84,6 +87,7 @@ contract CreditLineMockTest is Test {
         assertEq(terms.interestRateSecondary, 0);
         assertEq(uint256(terms.interestFormula), uint256(Interest.Formula.Simple));
         assertEq(terms.addonRecipient, address(0x0));
+        assertEq(terms.autoRepayment, false);
         assertEq(terms.addonAmount, 0);
 
         mock.mockLoanTerms(
@@ -98,6 +102,7 @@ contract CreditLineMockTest is Test {
                 interestRateSecondary: 500,
                 interestFormula: Interest.Formula.Compound,
                 addonRecipient: address(0x2),
+                autoRepayment: true,
                 addonAmount: 600
             })
         );
@@ -110,6 +115,7 @@ contract CreditLineMockTest is Test {
         assertEq(terms.interestRateFactor, 300);
         assertEq(terms.interestRatePrimary, 400);
         assertEq(terms.interestRateSecondary, 500);
+        assertEq(terms.autoRepayment, true);
         assertEq(uint256(terms.interestFormula), uint256(Interest.Formula.Compound));
         assertEq(terms.addonRecipient, address(0x2));
         assertEq(terms.addonAmount, 600);

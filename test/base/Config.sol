@@ -45,7 +45,6 @@ contract Config {
 
     uint256 public constant INIT_CREDIT_LINE_MIN_BORROW_AMOUNT = 400;
     uint256 public constant INIT_CREDIT_LINE_MAX_BORROW_AMOUNT = 900;
-    uint256 public constant INIT_CREDIT_LINE_PERIOD_IN_SECONDS = 600;
     uint256 public constant INIT_CREDIT_LINE_DURATION_IN_PERIODS = 100;
     uint256 public constant INIT_CREDIT_LINE_ADDON_FIXED_COST_RATE = 15;
     uint256 public constant INIT_CREDIT_LINE_ADDON_PERIOD_COST_RATE = 20;
@@ -54,13 +53,20 @@ contract Config {
     uint256 public constant INIT_CREDIT_LINE_MIN_INTEREST_RATE_SECONDARY = 599;
     uint256 public constant INIT_CREDIT_LINE_MAX_INTEREST_RATE_SECONDARY = 601;
     uint256 public constant INIT_CREDIT_LINE_INTEREST_RATE_FACTOR = 1000;
+    uint256 public constant INIT_CREDIT_LINE_PERIOD_IN_SECONDS = 600;
+    uint256 public constant INIT_CREDIT_LINE_MIN_DURATION_IN_PERIODS = 50;
+    uint256 public constant INIT_CREDIT_LINE_MAX_DURATION_IN_PERIODS = 200;
 
+    uint256 public constant INIT_BORROWER_DURATION_IN_PERIODS = 100;
     uint256 public constant INIT_BORROWER_DURATION = 1000;
     uint256 public constant INIT_BORROWER_MIN_BORROW_AMOUNT = 500;
     uint256 public constant INIT_BORROWER_MAX_BORROW_AMOUNT = 800;
     uint256 public constant INIT_BORROWER_INTEREST_RATE_PRIMARY = 500;
     uint256 public constant INIT_BORROWER_INTEREST_RATE_SECONDARY = 600;
-    Interest.Formula public constant INIT_BORROWER_INTEREST_FORMULA = Interest.Formula.Compound;
+    bool public constant INIT_BORROWER_AUTOREPAYMENT = false;
+
+    Interest.Formula public constant INIT_BORROWER_INTEREST_FORMULA = Interest.Formula.Simple;
+    Interest.Formula public constant INIT_BORROWER_INTEREST_FORMULA_COMPOUND = Interest.Formula.Compound;
     ICreditLineConfigurable.BorrowPolicy public constant INIT_BORROWER_POLICY =
         ICreditLineConfigurable.BorrowPolicy.Decrease;
 
@@ -99,10 +105,22 @@ contract Config {
             maxBorrowAmount: INIT_BORROWER_MAX_BORROW_AMOUNT,
             interestRatePrimary: INIT_BORROWER_INTEREST_RATE_PRIMARY,
             interestRateSecondary: INIT_BORROWER_INTEREST_RATE_SECONDARY,
-            interestFormula: INIT_BORROWER_INTEREST_FORMULA,
+            interestFormula: INIT_BORROWER_INTEREST_FORMULA_COMPOUND,
             addonRecipient: ADDON_RECIPIENT,
-            policy: INIT_BORROWER_POLICY
+            policy: INIT_BORROWER_POLICY,
+            autoRepayment: INIT_BORROWER_AUTOREPAYMENT
         });
+    }
+
+    function initBorrowerConfigAutoRepayment(uint256 blockTimestamp)
+        public
+        pure
+        returns (ICreditLineConfigurable.BorrowerConfig memory)
+    {
+        ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(blockTimestamp);
+        borrowerConfig.autoRepayment = true;
+
+        return borrowerConfig;
     }
 
     function initBorrowerConfigs(uint256 blockTimestamp)
@@ -135,6 +153,7 @@ contract Config {
             interestRateSecondary: borrowerConfig.interestRateSecondary,
             interestFormula: borrowerConfig.interestFormula,
             addonRecipient: borrowerConfig.addonRecipient,
+            autoRepayment: borrowerConfig.autoRepayment,
             addonAmount: ADDON_AMOUNT
         });
     }
