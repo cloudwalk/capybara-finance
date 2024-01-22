@@ -108,15 +108,6 @@ contract LendingMarket is
         _;
     }
 
-    /// @notice Throws if the sender is not borrower and is not liquidity pool
-    /// @param loanId The unique identifier of the loan to check
-    modifier onlyBorrowerOrLiquidityPool(uint256 loanId) {
-        if (_loans[loanId].borrower != msg.sender && _liquidityPools[ownerOf(loanId)] != msg.sender) {
-            revert Error.Unauthorized();
-        }
-        _;
-    }
-
     /************************************************
      *  Initializers
      ***********************************************/
@@ -267,7 +258,7 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ILendingMarket
-    function repayLoan(uint256 loanId, uint256 amount) external whenNotPaused onlyOngoingLoan(loanId) onlyBorrowerOrLiquidityPool(loanId) {
+    function repayLoan(uint256 loanId, uint256 amount) external whenNotPaused onlyOngoingLoan(loanId) {
         if (amount == 0) {
             revert Error.InvalidAmount();
         }
@@ -306,7 +297,11 @@ contract LendingMarket is
     /// @param loanId The unique identifier of the loan to check
     /// @param loan The loan state to check
     function repaymentAllowed(uint256 loanId, Loan.State memory loan) internal returns (bool) {
-        if (msg.sender != loan.borrower && msg.sender == _liquidityPools[ownerOf(loanId)] && !loan.autoRepayment) {
+        if (msg.sender != _loans[loanId].borrower && msg.sender != _liquidityPools[ownerOf(loanId)]) {
+            return false;
+        }
+
+        if (msg.sender == _liquidityPools[ownerOf(loanId)] && !loan.autoRepayment) {
             return false;
         }
 
