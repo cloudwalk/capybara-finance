@@ -53,6 +53,10 @@ contract LiquidityPoolMock is ILiquidityPool {
         return _onAfterLoanPaymentResult;
     }
 
+    function admin() external view returns (address) {
+        revert Error.NotImplemented();
+    }
+
     function market() external pure returns (address) {
         revert Error.NotImplemented();
     }

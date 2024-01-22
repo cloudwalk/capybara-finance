@@ -321,7 +321,8 @@ contract LiquidityPoolAccountableTest is Test {
                 freezeDate: 0,
                 trackDate: 0,
                 initialBorrowAmount: DEPOSIT_AMOUNT - 1,
-                trackedBorrowAmount: 0
+                trackedBorrowAmount: 0,
+                autoRepayment: false
             })
         );
 
@@ -398,7 +399,8 @@ contract LiquidityPoolAccountableTest is Test {
                 freezeDate: 0,
                 trackDate: 0,
                 initialBorrowAmount: DEPOSIT_AMOUNT,
-                trackedBorrowAmount: 0
+                trackedBorrowAmount: 0,
+                autoRepayment: false
             })
         );
 
@@ -432,7 +434,8 @@ contract LiquidityPoolAccountableTest is Test {
                 freezeDate: 0,
                 trackDate: 0,
                 initialBorrowAmount: DEPOSIT_AMOUNT,
-                trackedBorrowAmount: 0
+                trackedBorrowAmount: 0,
+                autoRepayment: false
             })
         );
 
@@ -503,7 +506,8 @@ contract LiquidityPoolAccountableTest is Test {
                 freezeDate: 0,
                 trackDate: 0,
                 initialBorrowAmount: DEPOSIT_AMOUNT,
-                trackedBorrowAmount: 0
+                trackedBorrowAmount: 0,
+                autoRepayment: false
             })
         );
 
