@@ -32,8 +32,8 @@ contract LiquidityPoolAccountable is
     /// @notice The address of the associated lending market
     address internal _market;
 
-    /// @notice The admin address
-    address internal _admin;
+    /// @notice The mapping of account to admin status
+    mapping(address => bool) internal _admins;
 
     /// @notice The mapping of loan identifier to associated credit line
     mapping(uint256 => address) internal _creditLines;
@@ -51,6 +51,9 @@ contract LiquidityPoolAccountable is
     /// @notice Thrown when the token source balance is insufficient
     error InsufficientBalance();
 
+    /// @notice Thrown when the length of arrays are different
+    error InvalidLength();
+
     /************************************************
      *  Modifiers
      ***********************************************/
@@ -65,7 +68,7 @@ contract LiquidityPoolAccountable is
 
     /// @notice Throws if called by any account other than the admin
     modifier onlyAdmin() {
-        if (msg.sender != _admin) {
+        if (!_admins[msg.sender]) {
             revert Error.Unauthorized();
         }
         _;
@@ -121,16 +124,18 @@ contract LiquidityPoolAccountable is
         _unpause();
     }
 
-    /// @notice Sets the admin address
-    /// @param newAdmin The address of the new admin address
-    function setAdmin(address newAdmin) external onlyOwner {
-        if (newAdmin == _admin) {
+    /// @inheritdoc ILiquidityPoolAccountable
+    function configureAdmin(address admin, bool adminStatus) external onlyOwner {
+        if (admin == address(0)) {
+            revert Error.ZeroAddress();
+        }
+        if (_admins[admin] == adminStatus) {
             revert Error.AlreadyConfigured();
         }
 
-        emit SetAdmin(newAdmin, _admin);
+        _admins[admin] = adminStatus;
 
-        _admin = newAdmin;
+        emit ConfigureAdmin(admin, adminStatus);
     }
 
     /// @inheritdoc ILiquidityPoolAccountable
@@ -193,7 +198,7 @@ contract LiquidityPoolAccountable is
     /// @inheritdoc ILiquidityPoolAccountable
     function repayLoans(uint256[] memory loanIds, uint256[] memory amounts) external onlyAdmin {
         if (loanIds.length != amounts.length) {
-            revert Error.InvalidLength();
+            revert InvalidLength();
         }
 
         for (uint256 i = 0; i < loanIds.length; i++) {
@@ -260,9 +265,9 @@ contract LiquidityPoolAccountable is
         return _creditLines[loanId];
     }
 
-    /// @inheritdoc ILiquidityPool
-    function admin() external view returns (address) {
-        return _admin;
+    /// @inheritdoc ILiquidityPoolAccountable
+    function isAdmin(address account) external view returns (bool) {
+        return _admins[account];
     }
 
     /// @inheritdoc ILiquidityPool
