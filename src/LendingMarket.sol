@@ -297,15 +297,15 @@ contract LendingMarket is
     /// @param loanId The unique identifier of the loan to check
     /// @param loan The loan state to check
     function repaymentAllowed(uint256 loanId, Loan.State memory loan) internal returns (bool) {
-        if (msg.sender != _loans[loanId].borrower && msg.sender != _liquidityPools[ownerOf(loanId)]) {
-            return false;
+        if (msg.sender == _loans[loanId].borrower) {
+            return true;
         }
 
-        if (msg.sender == _liquidityPools[ownerOf(loanId)] && !loan.autoRepayment) {
-            return false;
+        if (msg.sender == _liquidityPools[ownerOf(loanId)] && loan.autoRepayment) {
+            return true;
         }
 
-        return true;
+        return false;
     }
 
     /************************************************
