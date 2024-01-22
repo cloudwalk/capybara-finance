@@ -72,6 +72,9 @@ contract LendingMarket is
     /// @notice Thrown when provided with an inappropriate loan moratorium
     error InappropriateLoanMoratorium();
 
+    /// @notice Thrown when liquidity pool tries to repay a loan without autorepayment
+    error RepaymentNotAllowed();
+
     /************************************************
      *  Modifiers
      ***********************************************/
@@ -101,6 +104,15 @@ contract LendingMarket is
         }
         if (_loans[loanId].trackedBorrowAmount == 0) {
             revert LoanAlreadyRepaid();
+        }
+        _;
+    }
+
+    /// @notice Throws if the sender is not borrower and is not liquidity pool
+    /// @param loanId The unique identifier of the loan to check
+    modifier onlyBorrowerOrLiquidityPool(uint256 loanId) {
+        if (_loans[loanId].borrower != msg.sender && _liquidityPools[ownerOf(loanId)] != msg.sender) {
+            revert Error.Unauthorized();
         }
         _;
     }
@@ -236,7 +248,8 @@ contract LendingMarket is
             freezeDate: 0,
             trackDate: startDate,
             initialBorrowAmount: totalAmount,
-            trackedBorrowAmount: totalAmount
+            trackedBorrowAmount: totalAmount,
+            autoRepayment: terms.autoRepayment
         });
 
         _loans[id] = loan;
@@ -254,12 +267,17 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ILendingMarket
-    function repayLoan(uint256 loanId, uint256 amount) external whenNotPaused onlyOngoingLoan(loanId) {
+    function repayLoan(uint256 loanId, uint256 amount) external whenNotPaused onlyOngoingLoan(loanId) onlyBorrowerOrLiquidityPool(loanId) {
         if (amount == 0) {
             revert Error.InvalidAmount();
         }
 
         Loan.State storage loan = _loans[loanId];
+
+        if (!repaymentAllowed(loanId, loan)) {
+            revert RepaymentNotAllowed();
+        }
+
         (uint256 outstandingBalance, uint256 currentDate) = _outstandingBalance(loan);
 
         if (amount == type(uint256).max) {
@@ -282,6 +300,17 @@ contract LendingMarket is
         if (outstandingBalance == 0) {
             _safeTransfer(ownerOf(loanId), loan.borrower, loanId, "");
         }
+    }
+
+    /// @notice Check if the loan is allowed to be repaid by the liquidity pool
+    /// @param loanId The unique identifier of the loan to check
+    /// @param loan The loan state to check
+    function repaymentAllowed(uint256 loanId, Loan.State memory loan) internal returns (bool) {
+        if (msg.sender != loan.borrower && msg.sender == _liquidityPools[ownerOf(loanId)] && !loan.autoRepayment) {
+            return false;
+        }
+
+        return true;
     }
 
     /************************************************

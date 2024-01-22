@@ -10,6 +10,11 @@ interface ILiquidityPoolAccountable {
      *  Events
      ***********************************************/
 
+    /// @notice Emitted when the admin address is updated
+    /// @param newAdmin The address of the new admin
+    /// @param oldAdmin The address of the old admin
+    event SetAdmin(address indexed newAdmin, address indexed oldAdmin);
+
     /// @notice Emitted when tokens are deposited to the liquidity pool
     /// @param creditLine The address of the associated credit line
     /// @param amount The amount of tokens deposited
@@ -43,4 +48,9 @@ interface ILiquidityPoolAccountable {
     /// @param tokenSource The address of the token source
     /// @return The token balance
     function getTokenBalance(address tokenSource) external view returns (uint256);
+
+    /// @notice Repay batch loans
+    /// @param loanIds The unique identifiers of the loans for repayment
+    /// @param amounts The amounts that corellate with given loan ids
+    function repayLoans(uint256[] memory loanIds, uint256[] memory amounts) external;
 }

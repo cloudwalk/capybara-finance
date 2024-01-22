@@ -32,6 +32,9 @@ contract LiquidityPoolAccountable is
     /// @notice The address of the associated lending market
     address internal _market;
 
+    /// @notice The admin address
+    address internal _admin;
+
     /// @notice The mapping of loan identifier to associated credit line
     mapping(uint256 => address) internal _creditLines;
 
@@ -55,6 +58,14 @@ contract LiquidityPoolAccountable is
     /// @notice Throws if called by any account other than the market
     modifier onlyMarket() {
         if (msg.sender != _market) {
+            revert Error.Unauthorized();
+        }
+        _;
+    }
+
+    /// @notice Throws if called by any account other than the admin
+    modifier onlyAdmin() {
+        if (msg.sender != _admin) {
             revert Error.Unauthorized();
         }
         _;
@@ -108,6 +119,18 @@ contract LiquidityPoolAccountable is
     /// @notice Unpauses the contract
     function unpause() external onlyOwner {
         _unpause();
+    }
+
+    /// @notice Sets the admin address
+    /// @param newAdmin The address of the new admin address
+    function setAdmin(address newAdmin) external onlyOwner {
+        if (newAdmin == _admin) {
+            revert Error.AlreadyConfigured();
+        }
+
+        emit SetAdmin(newAdmin, _admin);
+
+        _admin = newAdmin;
     }
 
     /// @inheritdoc ILiquidityPoolAccountable
@@ -167,6 +190,17 @@ contract LiquidityPoolAccountable is
         revert ZeroBalance();
     }
 
+    /// @inheritdoc ILiquidityPoolAccountable
+    function repayLoans(uint256[] memory loanIds, uint256[] memory amounts) external onlyAdmin {
+        if (loanIds.length != amounts.length) {
+            revert Error.InvalidLength();
+        }
+
+        for (uint256 i = 0; i < loanIds.length; i++) {
+            ILendingMarket(_market).repayLoan(loanIds[i], amounts[i]);
+        }
+    }
+
     /************************************************
      *  Market functions
      ***********************************************/
@@ -224,6 +258,11 @@ contract LiquidityPoolAccountable is
     /// @inheritdoc ILiquidityPoolAccountable
     function getCreditLine(uint256 loanId) external view returns (address) {
         return _creditLines[loanId];
+    }
+
+    /// @inheritdoc ILiquidityPool
+    function admin() external view returns (address) {
+        return _admin;
     }
 
     /// @inheritdoc ILiquidityPool

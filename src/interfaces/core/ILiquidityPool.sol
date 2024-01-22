@@ -30,6 +30,9 @@ interface ILiquidityPool {
     /// @param repayAmount The amount that was repaid
     function onAfterLoanPayment(uint256 loanId, uint256 repayAmount) external returns (bool);
 
+    /// @notice Returns the admin address of the liquidity pool
+    function admin() external view returns (address);
+
     /// @notice Returns the address of the associated lending market
     function market() external view returns (address);
 
