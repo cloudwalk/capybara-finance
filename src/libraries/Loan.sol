@@ -46,6 +46,8 @@ library Loan {
         address addonRecipient;
         /// @notice The amount of additional payments and fees
         uint256 addonAmount;
+        /// @notice Whether the loan can be repaid automatically
+        bool autoRepayment;
     }
 
     /// @notice A struct that defines the stored state of the loan
@@ -76,5 +78,7 @@ library Loan {
         uint256 trackDate;
         /// @notice The date when the loan was frozen
         uint256 freezeDate;
+        /// @notice Whether the loan can be repaid automatically
+        bool autoRepayment;
     }
 }

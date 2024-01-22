@@ -72,6 +72,9 @@ contract LendingMarket is
     /// @notice Thrown when provided with an inappropriate loan moratorium
     error InappropriateLoanMoratorium();
 
+    /// @notice Thrown when liquidity pool tries to repay a loan without autorepayment
+    error AutoRepaymentNotAllowed();
+
     /************************************************
      *  Modifiers
      ***********************************************/
@@ -236,7 +239,8 @@ contract LendingMarket is
             freezeDate: 0,
             trackDate: startDate,
             initialBorrowAmount: totalAmount,
-            trackedBorrowAmount: totalAmount
+            trackedBorrowAmount: totalAmount,
+            autoRepayment: terms.autoRepayment
         });
 
         _loans[id] = loan;
@@ -260,6 +264,11 @@ contract LendingMarket is
         }
 
         Loan.State storage loan = _loans[loanId];
+
+        if (ifLiqudityPool(loanId) && !loan.autoRepayment) {
+            revert AutoRepaymentNotAllowed();
+        }
+
         (uint256 outstandingBalance, uint256 currentDate) = _outstandingBalance(loan, block.timestamp);
 
         if (amount == type(uint256).max) {
@@ -271,10 +280,9 @@ contract LendingMarket is
         outstandingBalance -= amount;
         loan.trackedBorrowAmount = outstandingBalance;
         loan.trackDate = currentDate;
-
         address pool = _liquidityPools[ownerOf(loanId)];
         ILiquidityPool(pool).onBeforeLoanPayment(loanId, amount);
-        IERC20(loan.token).transferFrom(msg.sender, pool, amount);
+        transferRepayment(loanId, loan, pool, amount);
         ILiquidityPool(pool).onAfterLoanPayment(loanId, amount);
 
         emit RepayLoan(loanId, msg.sender, loan.borrower, amount, outstandingBalance);
@@ -282,6 +290,29 @@ contract LendingMarket is
         if (outstandingBalance == 0) {
             _safeTransfer(ownerOf(loanId), loan.borrower, loanId, "");
         }
+    }
+
+    /// @notice Transfer the repayment amount to the liquidity pool
+    /// @param loanId The unique identifier of the loan to check
+    /// @param loan The loan state
+    /// @param pool The address of the liquidity pool
+    /// @param amount The amount to be transferred
+    function transferRepayment(uint256 loanId, Loan.State storage loan, address pool, uint256 amount) internal {
+        if (ifLiqudityPool(loanId)) {
+            IERC20(loan.token).transferFrom(loan.borrower, pool, amount);
+        } else {
+            IERC20(loan.token).transferFrom(msg.sender, pool, amount);
+        }
+    }
+
+    /// @notice Check if the sender is the liquidity pool of the loan
+    /// @param loanId The unique identifier of the loan to check
+    function ifLiqudityPool(uint256 loanId) internal returns (bool) {
+        if (msg.sender == _liquidityPools[ownerOf(loanId)]) {
+            return true;
+        }
+
+        return false;
     }
 
     /************************************************

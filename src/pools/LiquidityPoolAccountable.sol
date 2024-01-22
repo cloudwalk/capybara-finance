@@ -32,6 +32,9 @@ contract LiquidityPoolAccountable is
     /// @notice The address of the associated lending market
     address internal _market;
 
+    /// @notice The mapping of account to admin status
+    mapping(address => bool) internal _admins;
+
     /// @notice The mapping of loan identifier to associated credit line
     mapping(uint256 => address) internal _creditLines;
 
@@ -48,6 +51,9 @@ contract LiquidityPoolAccountable is
     /// @notice Thrown when the token source balance is insufficient
     error InsufficientBalance();
 
+    /// @notice Thrown when the length of arrays are different
+    error ArrayLengthMismatch();
+
     /************************************************
      *  Modifiers
      ***********************************************/
@@ -55,6 +61,14 @@ contract LiquidityPoolAccountable is
     /// @notice Throws if called by any account other than the market
     modifier onlyMarket() {
         if (msg.sender != _market) {
+            revert Error.Unauthorized();
+        }
+        _;
+    }
+
+    /// @notice Throws if called by any account other than the admin
+    modifier onlyAdmin() {
+        if (!_admins[msg.sender]) {
             revert Error.Unauthorized();
         }
         _;
@@ -108,6 +122,20 @@ contract LiquidityPoolAccountable is
     /// @notice Unpauses the contract
     function unpause() external onlyOwner {
         _unpause();
+    }
+
+    /// @inheritdoc ILiquidityPoolAccountable
+    function configureAdmin(address admin, bool adminStatus) external onlyOwner {
+        if (admin == address(0)) {
+            revert Error.ZeroAddress();
+        }
+        if (_admins[admin] == adminStatus) {
+            revert Error.AlreadyConfigured();
+        }
+
+        _admins[admin] = adminStatus;
+
+        emit ConfigureAdmin(admin, adminStatus);
     }
 
     /// @inheritdoc ILiquidityPoolAccountable
@@ -167,6 +195,19 @@ contract LiquidityPoolAccountable is
         revert ZeroBalance();
     }
 
+    /// @inheritdoc ILiquidityPoolAccountable
+    function repayLoans(uint256[] memory loanIds, uint256[] memory amounts) external onlyAdmin {
+        if (loanIds.length != amounts.length) {
+            revert ArrayLengthMismatch();
+        }
+
+        for (uint256 i = 0; i < loanIds.length; i++) {
+            ILendingMarket(_market).repayLoan(loanIds[i], amounts[i]);
+        }
+
+        emit RepayLoans(loanIds, amounts);
+    }
+
     /************************************************
      *  Market functions
      ***********************************************/
@@ -224,6 +265,11 @@ contract LiquidityPoolAccountable is
     /// @inheritdoc ILiquidityPoolAccountable
     function getCreditLine(uint256 loanId) external view returns (address) {
         return _creditLines[loanId];
+    }
+
+    /// @inheritdoc ILiquidityPoolAccountable
+    function isAdmin(address account) external view returns (bool) {
+        return _admins[account];
     }
 
     /// @inheritdoc ILiquidityPool
