@@ -46,6 +46,7 @@ contract LendingMarketTest is Test, Config {
         uint256 repayAmount,
         uint256 remainingBalance
     );
+    event RepayLoans(uint256[] loanIds, uint256[] amounts); //from LiquidityPool
     event FreezeLoan(uint256 indexed loanId, uint256 freezeDate);
     event UnfreezeLoan(uint256 indexed loanId, uint256 unfreezeDate);
     event UpdateLoanDuration(uint256 indexed loanId, uint256 indexed newDuration, uint256 indexed oldDuration);
@@ -164,6 +165,16 @@ contract LendingMarketTest is Test, Config {
         vm.stopPrank();
     }
 
+    function configureBorrowerAutoRepayment() public {
+        vm.startPrank(ADMIN);
+        borrowerBlockTimestamp = block.timestamp;
+        borrowerConfig = initBorrowerConfig(borrowerBlockTimestamp);
+        borrowerConfig.interestFormula = INIT_BORROWER_INTEREST_FORMULA_COMPOUND;
+        borrowerConfig.autoRepayment = true;
+        creditLine.configureBorrower(BORROWER_2, borrowerConfig);
+        vm.stopPrank();
+    }
+
     function configureLiquidityPool() public {
         vm.startPrank(OWNER);
         liquidityPool = new LiquidityPoolAccountable();
@@ -172,11 +183,17 @@ contract LendingMarketTest is Test, Config {
         vm.startPrank(LENDER_1);
         token.approve(address(liquidityPool), TOKEN_AMOUNT);
         liquidityPool.deposit(address(creditLine), CREDITLINE_DEPOSIT_AMOUNT);
+        liquidityPool.configureAdmin(ADMIN, true);
         vm.stopPrank();
     }
 
     function takeLoan() public returns(uint256) {
         vm.prank(BORROWER_1);
+        return lendingMarket.takeLoan(address(creditLine), BORROWER_LEND_AMOUNT);
+    }
+
+    function takeLoanAutoRepayment() public returns(uint256) {
+        vm.prank(BORROWER_2);
         return lendingMarket.takeLoan(address(creditLine), BORROWER_LEND_AMOUNT);
     }
 
@@ -478,7 +495,7 @@ contract LendingMarketTest is Test, Config {
      *  Test `repayLoan` function
      ***********************************************/
 
-    function test_repayLoan() public {
+    function test_repayLoan_IfBorrower() public {
         configureLendingMarket();
         uint256 loanId = takeLoan();
         uint256 outstandingBalance = lendingMarket.getOutstandingBalance(loanId);
@@ -489,7 +506,8 @@ contract LendingMarketTest is Test, Config {
         token.approve(address(lendingMarket), TOKEN_AMOUNT);
         vm.expectEmit(true, true, true, true, address(lendingMarket));
         emit RepayLoan(
-            loanId, BORROWER_1,
+            loanId,
+            BORROWER_1,
             loan.borrower,
             BORROWER_REPAY_AMOUNT,
             outstandingBalance - BORROWER_REPAY_AMOUNT
@@ -507,6 +525,65 @@ contract LendingMarketTest is Test, Config {
             CREDITLINE_DEPOSIT_AMOUNT - BORROWER_LEND_AMOUNT - addonRecipientAmount + BORROWER_REPAY_AMOUNT);
 
         assertEq(loanRepaid.borrower, BORROWER_1);
+        assertEq(loanRepaid.token, address(token));
+        assertEq(loanRepaid.periodInSeconds, INIT_CREDIT_LINE_PERIOD_IN_SECONDS);
+        assertEq(loanRepaid.durationInPeriods, INIT_BORROWER_DURATION_IN_PERIODS);
+        assertEq(loanRepaid.interestRateFactor, INIT_CREDIT_LINE_INTEREST_RATE_FACTOR);
+        assertEq(loanRepaid.interestRatePrimary, INIT_BORROWER_INTEREST_RATE_PRIMARY);
+        assertEq(loanRepaid.interestRateSecondary, INIT_BORROWER_INTEREST_RATE_SECONDARY);
+        assertTrue(loanRepaid.interestFormula == INIT_BORROWER_INTEREST_FORMULA_COMPOUND);
+        assertEq(loanRepaid.initialBorrowAmount, BORROWER_LEND_AMOUNT + addonRecipientAmount);
+        assertEq(loanRepaid.trackedBorrowAmount, outstandingBalance - BORROWER_REPAY_AMOUNT);
+        assertEq(loanRepaid.startDate,
+            lendingMarket.calculatePeriodDate(creditLineConfig.periodInSeconds, ZERO_VALUE, ZERO_VALUE));
+        assertEq(loanRepaid.trackDate, currentDate);
+        assertEq(loanRepaid.freezeDate, ZERO_VALUE);
+    }
+
+    function test_repayLoan_IfLiquidityPool() public {
+        configureLendingMarket();
+        configureBorrowerAutoRepayment();
+        uint256 loanId = takeLoanAutoRepayment();
+        uint256 outstandingBalance = lendingMarket.getOutstandingBalance(loanId);
+        Loan.State memory loan = lendingMarket.getLoan(loanId);
+        uint256 addonRecipientAmount = creditLine.calculateAddonAmount(BORROWER_LEND_AMOUNT, borrowerConfig);
+
+        vm.prank(BORROWER_2);
+        token.approve(address(lendingMarket), TOKEN_AMOUNT);
+        vm.prank(BORROWER_2);
+        token.approve(ADMIN, TOKEN_AMOUNT);
+        vm.prank(BORROWER_2);
+        token.approve(address(liquidityPool), TOKEN_AMOUNT);
+
+        uint256[] memory loanIds = new uint256[](1);
+        loanIds[0] = loanId;
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = BORROWER_REPAY_AMOUNT;
+
+        vm.startPrank(ADMIN);
+        vm.expectEmit(true, true, true, true, address(lendingMarket));
+        emit RepayLoan(
+            loanId,
+            address(liquidityPool),
+            loan.borrower,
+            BORROWER_REPAY_AMOUNT,
+            outstandingBalance - BORROWER_REPAY_AMOUNT
+        );
+        vm.expectEmit(true, true, true, true, address(liquidityPool));
+        emit RepayLoans(loanIds, amounts);
+        liquidityPool.repayLoans(loanIds, amounts);
+        vm.stopPrank();
+
+        Loan.State memory loanRepaid = lendingMarket.getLoan(loanId);
+        uint256 currentDate = lendingMarket.calculatePeriodDate(creditLineConfig.periodInSeconds, ZERO_VALUE, ZERO_VALUE);
+
+        assertEq(token.balanceOf(BORROWER_2), BORROWER_LEND_AMOUNT - BORROWER_REPAY_AMOUNT);
+        assertEq(token.balanceOf(ADDON_RECIPIENT), addonRecipientAmount);
+        assertEq(
+            token.balanceOf(address(liquidityPool)),
+            CREDITLINE_DEPOSIT_AMOUNT - BORROWER_LEND_AMOUNT - addonRecipientAmount + BORROWER_REPAY_AMOUNT);
+
+        assertEq(loanRepaid.borrower, BORROWER_2);
         assertEq(loanRepaid.token, address(token));
         assertEq(loanRepaid.periodInSeconds, INIT_CREDIT_LINE_PERIOD_IN_SECONDS);
         assertEq(loanRepaid.durationInPeriods, INIT_BORROWER_DURATION_IN_PERIODS);

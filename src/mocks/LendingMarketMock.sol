@@ -32,9 +32,7 @@ contract LendingMarketMock is ILendingMarket {
         revert Error.NotImplemented();
     }
 
-    function repayLoan(uint256 loanId, uint256 amount) external {
-        revert Error.NotImplemented();
-    }
+    function repayLoan(uint256 loanId, uint256 amount) external {}
 
     function freeze(uint256 loanId) external {
         revert Error.NotImplemented();
