@@ -204,6 +204,8 @@ contract LiquidityPoolAccountable is
         for (uint256 i = 0; i < loanIds.length; i++) {
             ILendingMarket(_market).repayLoan(loanIds[i], amounts[i]);
         }
+
+        emit RepayLoans(loanIds, amounts);
     }
 
     /************************************************

@@ -10,11 +10,6 @@ interface ILiquidityPoolAccountable {
      *  Events
      ***********************************************/
 
-    /// @notice Emitted when the admin address is updated
-    /// @param newAdmin The address of the new admin
-    /// @param oldAdmin The address of the old admin
-    event SetAdmin(address indexed newAdmin, address indexed oldAdmin);
-
     /// @notice Emitted when tokens are deposited to the liquidity pool
     /// @param creditLine The address of the associated credit line
     /// @param amount The amount of tokens deposited
@@ -29,6 +24,11 @@ interface ILiquidityPoolAccountable {
     /// @param admin The address of the admin account
     /// @param adminStatus True if the account is an admin
     event ConfigureAdmin(address indexed admin, bool adminStatus);
+
+    /// @notice Emitted when liqudiity pool is repay loans
+    /// @param loanIds The unique identifiers of the loans for repayment
+    /// @param amounts The amounts that corellate with given loan ids
+    event RepayLoans(uint256[] memory loanIds, uint256[] memory amounts);
 
     /************************************************
      *  Functions
