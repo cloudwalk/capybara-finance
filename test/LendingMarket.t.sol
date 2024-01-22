@@ -422,7 +422,7 @@ contract LendingMarketTest is Test, Config {
 
         assertEq(loan.borrower, BORROWER_1);
         assertEq(loan.token, address(token));
-        assertEq(loan.periodInSeconds, INIT_BORROWER_PERIOD_IN_SECONDS);
+        assertEq(loan.periodInSeconds, INIT_CREDIT_LINE_PERIOD_IN_SECONDS);
         assertEq(loan.durationInPeriods, INIT_BORROWER_DURATION_IN_PERIODS);
         assertEq(loan.interestRateFactor, INIT_CREDIT_LINE_INTEREST_RATE_FACTOR);
         assertEq(loan.interestRatePrimary, INIT_BORROWER_INTEREST_RATE_PRIMARY);
@@ -433,9 +433,9 @@ contract LendingMarketTest is Test, Config {
         assertEq(loan.trackedBorrowAmount,
             BORROWER_LEND_AMOUNT + creditLine.calculateAddonAmount(BORROWER_LEND_AMOUNT, borrowerConfig));
         assertEq(loan.startDate,
-            lendingMarket.calculatePeriodDate(borrowerConfig.periodInSeconds, ZERO_VALUE, ZERO_VALUE));
+            lendingMarket.calculatePeriodDate(creditLineConfig.periodInSeconds, ZERO_VALUE, ZERO_VALUE));
         assertEq(loan.trackDate,
-            lendingMarket.calculatePeriodDate(borrowerConfig.periodInSeconds, ZERO_VALUE, ZERO_VALUE));
+            lendingMarket.calculatePeriodDate(creditLineConfig.periodInSeconds, ZERO_VALUE, ZERO_VALUE));
         assertEq(loan.freezeDate, ZERO_VALUE);
     }
 
@@ -498,7 +498,7 @@ contract LendingMarketTest is Test, Config {
         vm.stopPrank();
 
         Loan.State memory loanRepaid = lendingMarket.getLoan(loanId);
-        uint256 currentDate = lendingMarket.calculatePeriodDate(borrowerConfig.periodInSeconds, ZERO_VALUE, ZERO_VALUE);
+        uint256 currentDate = lendingMarket.calculatePeriodDate(creditLineConfig.periodInSeconds, ZERO_VALUE, ZERO_VALUE);
 
         assertEq(token.balanceOf(BORROWER_1), BORROWER_LEND_AMOUNT - BORROWER_REPAY_AMOUNT);
         assertEq(token.balanceOf(ADDON_RECIPIENT), addonRecipientAmount);
@@ -508,7 +508,7 @@ contract LendingMarketTest is Test, Config {
 
         assertEq(loanRepaid.borrower, BORROWER_1);
         assertEq(loanRepaid.token, address(token));
-        assertEq(loanRepaid.periodInSeconds, INIT_BORROWER_PERIOD_IN_SECONDS);
+        assertEq(loanRepaid.periodInSeconds, INIT_CREDIT_LINE_PERIOD_IN_SECONDS);
         assertEq(loanRepaid.durationInPeriods, INIT_BORROWER_DURATION_IN_PERIODS);
         assertEq(loanRepaid.interestRateFactor, INIT_CREDIT_LINE_INTEREST_RATE_FACTOR);
         assertEq(loanRepaid.interestRatePrimary, INIT_BORROWER_INTEREST_RATE_PRIMARY);
@@ -517,7 +517,7 @@ contract LendingMarketTest is Test, Config {
         assertEq(loanRepaid.initialBorrowAmount, BORROWER_LEND_AMOUNT + addonRecipientAmount);
         assertEq(loanRepaid.trackedBorrowAmount, outstandingBalance - BORROWER_REPAY_AMOUNT);
         assertEq(loanRepaid.startDate,
-            lendingMarket.calculatePeriodDate(borrowerConfig.periodInSeconds, ZERO_VALUE, ZERO_VALUE));
+            lendingMarket.calculatePeriodDate(creditLineConfig.periodInSeconds, ZERO_VALUE, ZERO_VALUE));
         assertEq(loanRepaid.trackDate, currentDate);
         assertEq(loanRepaid.freezeDate, ZERO_VALUE);
     }
@@ -646,7 +646,7 @@ contract LendingMarketTest is Test, Config {
         uint256 freezeDate = lendingMarket.calculatePeriodDate(loan.periodInSeconds, ZERO_VALUE, ZERO_VALUE);
         lendingMarket.freeze(loanId);
 
-        assertEq(loan.periodInSeconds, INIT_BORROWER_PERIOD_IN_SECONDS);
+        assertEq(loan.periodInSeconds, INIT_CREDIT_LINE_PERIOD_IN_SECONDS);
 
         uint256 currentDate = lendingMarket.calculatePeriodDate(loan.periodInSeconds, ZERO_VALUE, ZERO_VALUE);
         vm.expectEmit(true, true, true, true, address(lendingMarket));
@@ -1061,7 +1061,7 @@ contract LendingMarketTest is Test, Config {
         uint256 repayBlockTimestamp =
             BASE_BLOCKTIMESTAMP +
             INCREASE_BLOCKTIMESTAMP +
-            INIT_BORROWER_PERIOD_IN_SECONDS * INIT_BORROWER_DURATION_IN_PERIODS;
+            INIT_CREDIT_LINE_PERIOD_IN_SECONDS * INIT_BORROWER_DURATION_IN_PERIODS;
         vm.warp(repayBlockTimestamp);
         vm.startPrank(BORROWER_1);
         token.approve(address(lendingMarket), TOKEN_AMOUNT);
@@ -1102,7 +1102,7 @@ contract LendingMarketTest is Test, Config {
         //current date > track date and current date > duedate and track date < duedate
         uint256 outstandingBlockTimestamp =
             repayBlockTimestamp +
-            INIT_BORROWER_PERIOD_IN_SECONDS * INIT_BORROWER_DURATION_IN_PERIODS;
+            INIT_CREDIT_LINE_PERIOD_IN_SECONDS * INIT_BORROWER_DURATION_IN_PERIODS;
         vm.warp(outstandingBlockTimestamp);
         Loan.State memory loan = lendingMarket.getLoan(loanId);
         uint256 currentDateGreaterDueDate = calculatePeriodDate(loan.periodInSeconds, ZERO_VALUE, ZERO_VALUE);

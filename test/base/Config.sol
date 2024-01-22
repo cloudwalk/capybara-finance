@@ -33,8 +33,10 @@ contract Config is Test{
     uint256 public constant INIT_CREDIT_LINE_MIN_INTEREST_RATE_SECONDARY = 599;
     uint256 public constant INIT_CREDIT_LINE_MAX_INTEREST_RATE_SECONDARY = 601;
     uint256 public constant INIT_CREDIT_LINE_INTEREST_RATE_FACTOR = 1000;
+    uint256 public constant INIT_CREDIT_LINE_PERIOD_IN_SECONDS = 600;
+    uint256 public constant INIT_CREDIT_LINE_MIN_DURATION_IN_PERIODS = 50;
+    uint256 public constant INIT_CREDIT_LINE_MAX_DURATION_IN_PERIODS = 200;
 
-    uint256 public constant INIT_BORROWER_PERIOD_IN_SECONDS = 600;
     uint256 public constant INIT_BORROWER_DURATION_IN_PERIODS = 100;
     uint256 public constant INIT_BORROWER_DURATION = 1000;
     uint256 public constant INIT_BORROWER_MIN_BORROW_AMOUNT = 500;
@@ -50,6 +52,9 @@ contract Config is Test{
 
     function initCreditLineConfig() public pure returns (ICreditLineConfigurable.CreditLineConfig memory) {
         return ICreditLineConfigurable.CreditLineConfig({
+            periodInSeconds: INIT_CREDIT_LINE_PERIOD_IN_SECONDS,
+            minDurationInPeriods: INIT_CREDIT_LINE_MIN_DURATION_IN_PERIODS,
+            maxDurationInPeriods: INIT_CREDIT_LINE_MAX_DURATION_IN_PERIODS,
             minBorrowAmount: INIT_CREDIT_LINE_MIN_BORROW_AMOUNT,
             maxBorrowAmount: INIT_CREDIT_LINE_MAX_BORROW_AMOUNT,
             interestRateFactor: INIT_CREDIT_LINE_INTEREST_RATE_FACTOR,
@@ -68,7 +73,6 @@ contract Config is Test{
         returns (ICreditLineConfigurable.BorrowerConfig memory)
     {
         return ICreditLineConfigurable.BorrowerConfig({
-            periodInSeconds: INIT_BORROWER_PERIOD_IN_SECONDS,
             durationInPeriods: INIT_BORROWER_DURATION_IN_PERIODS,
             expiration: blockTimestamp + INIT_BORROWER_DURATION,
             minBorrowAmount: INIT_BORROWER_MIN_BORROW_AMOUNT,

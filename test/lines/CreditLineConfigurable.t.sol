@@ -356,16 +356,6 @@ contract CreditLineConfigurableTest is Test, Config {
         creditLine.configureBorrower(ATTACKER, config);
     }
 
-    function test_configureBorrower_Revert_IfPeriodInSecondsIsZero() public {
-        configureCreditLine();
-        ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
-        config.periodInSeconds = 0;
-
-        vm.prank(ADMIN);
-        vm.expectRevert(CreditLineConfigurable.InvalidBorrowerConfiguration.selector);
-        creditLine.configureBorrower(BORROWER_1, config);
-    }
-
     function test_configureBorrower_Revert_IfDurationInPeriodsIsZero() public {
         configureCreditLine();
         ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
@@ -682,7 +672,7 @@ contract CreditLineConfigurableTest is Test, Config {
 
         assertEq(terms.token, creditLine.token());
         assertEq(terms.interestRateFactor, creditLineConfig.interestRateFactor);
-        assertEq(terms.periodInSeconds, borrowerConfig.periodInSeconds);
+        assertEq(terms.periodInSeconds, creditLineConfig.periodInSeconds);
         assertEq(terms.durationInPeriods, borrowerConfig.durationInPeriods);
         assertEq(terms.interestRatePrimary, borrowerConfig.interestRatePrimary);
         assertEq(terms.interestRateSecondary, borrowerConfig.interestRateSecondary);
@@ -709,7 +699,7 @@ contract CreditLineConfigurableTest is Test, Config {
 
         assertEq(terms.token, creditLine.token());
         assertEq(terms.interestRateFactor, creditLineConfig.interestRateFactor);
-        assertEq(terms.periodInSeconds, borrowerConfig.periodInSeconds);
+        assertEq(terms.periodInSeconds, creditLineConfig.periodInSeconds);
         assertEq(terms.durationInPeriods, borrowerConfig.durationInPeriods);
         assertEq(terms.interestRatePrimary, borrowerConfig.interestRatePrimary);
         assertEq(terms.interestRateSecondary, borrowerConfig.interestRateSecondary);
