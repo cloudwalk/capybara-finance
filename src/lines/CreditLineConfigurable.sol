@@ -245,7 +245,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
 
         terms.token = _token;
         terms.interestRateFactor = _config.interestRateFactor;
-        terms.periodInSeconds = borrowerConfig.periodInSeconds;
+        terms.periodInSeconds = _config.periodInSeconds;
         terms.durationInPeriods = borrowerConfig.durationInPeriods;
         terms.interestRatePrimary = borrowerConfig.interestRatePrimary;
         terms.interestRateSecondary = borrowerConfig.interestRateSecondary;
