@@ -28,7 +28,7 @@ interface ILiquidityPoolAccountable {
     /// @notice Emitted when liqudiity pool is repay loans
     /// @param loanIds The unique identifiers of the loans for repayment
     /// @param amounts The amounts that corellate with given loan ids
-    event RepayLoans(uint256[] memory loanIds, uint256[] memory amounts);
+    event RepayLoans(uint256[] loanIds, uint256[] amounts);
 
     /************************************************
      *  Functions

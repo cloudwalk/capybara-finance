@@ -283,7 +283,13 @@ contract LendingMarket is
 
         address pool = _liquidityPools[ownerOf(loanId)];
         ILiquidityPool(pool).onBeforeLoanPayment(loanId, amount);
-        IERC20(loan.token).transferFrom(msg.sender, pool, amount);
+
+        if (IfLiqudityPool(loanId)) {
+            IERC20(loan.token).transferFrom(loan.borrower, pool, amount);
+        } else {
+            IERC20(loan.token).transferFrom(msg.sender, pool, amount);
+        }
+
         ILiquidityPool(pool).onAfterLoanPayment(loanId, amount);
 
         emit RepayLoan(loanId, msg.sender, loan.borrower, amount, outstandingBalance);
@@ -301,7 +307,17 @@ contract LendingMarket is
             return true;
         }
 
-        if (msg.sender == _liquidityPools[ownerOf(loanId)] && loan.autoRepayment) {
+        if (IfLiqudityPool(loanId) && loan.autoRepayment) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /// @notice Check if the sender is the liquidity pool of the loan
+    /// @param loanId The unique identifier of the loan to check
+    function IfLiqudityPool(uint256 loanId) internal returns (bool) {
+        if (msg.sender == _liquidityPools[ownerOf(loanId)]) {
             return true;
         }
 
