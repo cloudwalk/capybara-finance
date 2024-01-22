@@ -48,6 +48,10 @@ interface ICreditLineConfigurable {
     struct CreditLineConfig {
         /// @notice The duration of the loan period determined in seconds
         uint256 periodInSeconds;
+        /// @notice The minimum duration of the loan determined in periods
+        uint256 minDurationInPeriods;
+        /// @notice The maximum duration of the loan determined in periods
+        uint256 maxDurationInPeriods;
         /// @notice The minimum amount the borrower can take as a loan
         uint256 minBorrowAmount;
         /// @notice The maximum amount the borrower can take as a loan

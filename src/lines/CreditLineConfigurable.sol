@@ -154,6 +154,9 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         if (config.interestRateFactor == 0) {
             revert InvalidCreditLineConfiguration();
         }
+        if (config.minDurationInPeriods > config.maxDurationInPeriods) {
+            revert InvalidCreditLineConfiguration();
+        }
         if (config.minBorrowAmount > config.maxBorrowAmount) {
             revert InvalidCreditLineConfiguration();
         }
@@ -242,6 +245,13 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         if (amount < borrowerConfig.minBorrowAmount) {
             revert Error.InvalidAmount();
         }
+        if (borrowerConfig.durationInPeriods < _config.minDurationInPeriods) {
+            revert InvalidBorrowerConfiguration();
+        }
+
+        if (borrowerConfig.durationInPeriods > _config.maxDurationInPeriods) {
+            revert InvalidBorrowerConfiguration();
+        }
 
         terms.token = _token;
         terms.interestRateFactor = _config.interestRateFactor;
@@ -315,10 +325,13 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         // NOTE: we don't check for expiration here
         // because expiration can be used to disable a borrower
 
-        if (config.periodInSeconds == 0) {
+        if (config.durationInPeriods == 0) {
             revert InvalidBorrowerConfiguration();
         }
-        if (config.durationInPeriods == 0) {
+        if (config.durationInPeriods < _config.minDurationInPeriods) {
+            revert InvalidBorrowerConfiguration();
+        }
+        if (config.durationInPeriods > _config.maxDurationInPeriods) {
             revert InvalidBorrowerConfiguration();
         }
         if (config.minBorrowAmount > config.maxBorrowAmount) {
