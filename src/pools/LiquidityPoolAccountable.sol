@@ -52,7 +52,7 @@ contract LiquidityPoolAccountable is
     error InsufficientBalance();
 
     /// @notice Thrown when the length of arrays are different
-    error InvalidLength();
+    error ArrayLengthMismatch();
 
     /************************************************
      *  Modifiers
@@ -198,7 +198,7 @@ contract LiquidityPoolAccountable is
     /// @inheritdoc ILiquidityPoolAccountable
     function repayLoans(uint256[] memory loanIds, uint256[] memory amounts) external onlyAdmin {
         if (loanIds.length != amounts.length) {
-            revert InvalidLength();
+            revert ArrayLengthMismatch();
         }
 
         for (uint256 i = 0; i < loanIds.length; i++) {

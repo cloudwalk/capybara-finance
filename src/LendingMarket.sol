@@ -73,7 +73,7 @@ contract LendingMarket is
     error InappropriateLoanMoratorium();
 
     /// @notice Thrown when liquidity pool tries to repay a loan without autorepayment
-    error RepaymentNotAllowed();
+    error AutoRepaymentNotAllowed();
 
     /************************************************
      *  Modifiers
@@ -264,32 +264,14 @@ contract LendingMarket is
         }
 
         Loan.State storage loan = _loans[loanId];
-
-        if (!repaymentAllowed(loanId, loan)) {
-            revert RepaymentNotAllowed();
-        }
-
+        checkRepaymentAllowance(loanId, loan);
         (uint256 outstandingBalance, uint256 currentDate) = _outstandingBalance(loan);
-
-        if (amount == type(uint256).max) {
-            amount = outstandingBalance;
-        } else if (amount > outstandingBalance) {
-            revert Error.InvalidAmount();
-        }
-
-        outstandingBalance -= amount;
+        outstandingBalance -= repaymentAmount(outstandingBalance, amount);
         loan.trackedBorrowAmount = outstandingBalance;
         loan.trackDate = currentDate;
-
         address pool = _liquidityPools[ownerOf(loanId)];
         ILiquidityPool(pool).onBeforeLoanPayment(loanId, amount);
-
-        if (IfLiqudityPool(loanId)) {
-            IERC20(loan.token).transferFrom(loan.borrower, pool, amount);
-        } else {
-            IERC20(loan.token).transferFrom(msg.sender, pool, amount);
-        }
-
+        transferRepayment(loanId, loan, pool, amount);
         ILiquidityPool(pool).onAfterLoanPayment(loanId, amount);
 
         emit RepayLoan(loanId, msg.sender, loan.borrower, amount, outstandingBalance);
@@ -302,21 +284,33 @@ contract LendingMarket is
     /// @notice Check if the loan is allowed to be repaid by the liquidity pool
     /// @param loanId The unique identifier of the loan to check
     /// @param loan The loan state to check
-    function repaymentAllowed(uint256 loanId, Loan.State memory loan) internal returns (bool) {
-        if (msg.sender == _loans[loanId].borrower) {
-            return true;
+    function checkRepaymentAllowance(uint256 loanId, Loan.State memory loan) internal {
+        if (ifLiqudityPool(loanId) && !loan.autoRepayment) {
+            revert AutoRepaymentNotAllowed();
+        }
+    }
+
+    function repaymentAmount(uint256 outstandingBalance, uint256 amount) internal returns (uint256) {
+        if (amount == type(uint256).max) {
+            amount = outstandingBalance;
+        } else if (amount > outstandingBalance) {
+            revert Error.InvalidAmount();
         }
 
-        if (IfLiqudityPool(loanId) && loan.autoRepayment) {
-            return true;
-        }
+        return amount;
+    }
 
-        return false;
+    function transferRepayment(uint256 loanId, Loan.State memory loan, address pool, uint256 amount) internal {
+        if (ifLiqudityPool(loanId)) {
+            IERC20(loan.token).transferFrom(loan.borrower, pool, amount);
+        } else {
+            IERC20(loan.token).transferFrom(msg.sender, pool, amount);
+        }
     }
 
     /// @notice Check if the sender is the liquidity pool of the loan
     /// @param loanId The unique identifier of the loan to check
-    function IfLiqudityPool(uint256 loanId) internal returns (bool) {
+    function ifLiqudityPool(uint256 loanId) internal returns (bool) {
         if (msg.sender == _liquidityPools[ownerOf(loanId)]) {
             return true;
         }
