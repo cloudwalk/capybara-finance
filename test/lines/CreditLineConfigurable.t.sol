@@ -72,6 +72,7 @@ contract CreditLineConfigurableTest is Test, Config {
         assertEq(config1.interestRatePrimary, config2.interestRatePrimary);
         assertEq(config1.interestRateSecondary, config2.interestRateSecondary);
         assertEq(config1.addonRecipient, config2.addonRecipient);
+        assertEq(config1.autoRepayment, config2.autoRepayment);
         assertEq(uint256(config1.interestFormula), uint256(config2.interestFormula));
         assertEq(uint256(config1.policy), uint256(config2.policy));
     }
@@ -86,6 +87,7 @@ contract CreditLineConfigurableTest is Test, Config {
                 && config1.interestRatePrimary == config2.interestRatePrimary
                 && config1.interestRateSecondary == config2.interestRateSecondary
                 && config1.addonRecipient == config2.addonRecipient
+                && config1.autoRepayment == config2.autoRepayment
                 && uint256(config1.interestFormula) == uint256(config2.interestFormula)
                 && uint256(config1.policy) == uint256(config2.policy)
         );
@@ -331,6 +333,17 @@ contract CreditLineConfigurableTest is Test, Config {
         creditLine.configureBorrower(BORROWER_1, config);
 
         assertEqBorrowerConfig(config, creditLine.getBorrowerConfiguration(BORROWER_1));
+
+        config.autoRepayment = INIT_BORROWER_AUTOREPAYMENT_TRUE;
+
+        assertFalseBorrowerConfig(config, creditLine.getBorrowerConfiguration(BORROWER_2));
+
+        vm.prank(ADMIN);
+        vm.expectEmit(true, true, true, true, address(creditLine));
+        emit ConfigureBorrower(address(creditLine), BORROWER_2, config);
+        creditLine.configureBorrower(BORROWER_2, config);
+
+        assertEqBorrowerConfig(config, creditLine.getBorrowerConfiguration(BORROWER_2));
     }
 
     function test_configureBorrower_Revert_IfContractIsPaused() public {

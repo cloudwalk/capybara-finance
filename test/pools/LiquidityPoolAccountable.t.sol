@@ -28,6 +28,13 @@ contract LiquidityPoolAccountableTest is Test {
     event Deposit(address indexed creditLine, uint256 amount);
     event Withdraw(address indexed tokenSource, uint256 amount);
     event RepayLoans(uint256[] loanIds, uint256[] amounts);
+    event RepayLoanCalled(
+        uint256 indexed loanId,
+        address indexed repayer,
+        address indexed borrower,
+        uint256 repayAmount,
+        uint256 remainingBalance
+    );
 
     /************************************************
      *  Storage variables
@@ -355,20 +362,28 @@ contract LiquidityPoolAccountableTest is Test {
     function test_repayLoans() public {
         vm.prank(LENDER);
         liquidityPool.configureAdmin(ADMIN, true);
+
         vm.prank(ADMIN);
+        vm.expectEmit(true, true, true, true, address(lendingMarket));
+        emit RepayLoanCalled(LOAN_ID_1, address(liquidityPool), address(0), DEPOSIT_AMOUNT_1, 0);
+        vm.expectEmit(true, true, true, true, address(lendingMarket));
+        emit RepayLoanCalled(LOAN_ID_2, address(liquidityPool), address(0), DEPOSIT_AMOUNT_2, 0);
+        vm.expectEmit(true, true, true, true, address(lendingMarket));
+        emit RepayLoanCalled(LOAN_ID_3, address(liquidityPool), address(0), DEPOSIT_AMOUNT_3, 0);
         vm.expectEmit(true, true, true, true, address(liquidityPool));
         emit RepayLoans(getLoanIds(), getAmounts());
+
         liquidityPool.repayLoans(getLoanIds(), getAmounts());
     }
 
-    function test_repayLoans_Revert_IfInvalidLength() public {
+    function test_repayLoans_Revert_IfArrayLengthMismatch() public {
         vm.prank(LENDER);
         liquidityPool.configureAdmin(ADMIN, true);
         uint256[] memory loans = getLoanIds();
         uint256[] memory amounts = getIncorrectLengthAmounts();
 
         vm.prank(ADMIN);
-        vm.expectRevert(LiquidityPoolAccountable.InvalidLength.selector);
+        vm.expectRevert(LiquidityPoolAccountable.ArrayLengthMismatch.selector);
         liquidityPool.repayLoans(loans, amounts);
     }
 

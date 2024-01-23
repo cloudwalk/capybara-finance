@@ -43,7 +43,8 @@ contract Config is Test{
     uint256 public constant INIT_BORROWER_MAX_BORROW_AMOUNT = 800;
     uint256 public constant INIT_BORROWER_INTEREST_RATE_PRIMARY = 500;
     uint256 public constant INIT_BORROWER_INTEREST_RATE_SECONDARY = 600;
-    bool public constant INIT_BORROWER_AUTOREPAYMENT = false;
+    bool public constant INIT_BORROWER_AUTOREPAYMENT_FALSE = false;
+    bool public constant INIT_BORROWER_AUTOREPAYMENT_TRUE = true;
     Interest.Formula public constant INIT_BORROWER_INTEREST_FORMULA = Interest.Formula.Simple;
     Interest.Formula public constant INIT_BORROWER_INTEREST_FORMULA_COMPOUND = Interest.Formula.Compound;
     ICreditLineConfigurable.BorrowPolicy public constant INIT_BORROWER_POLICY =
@@ -83,7 +84,7 @@ contract Config is Test{
             interestFormula: INIT_BORROWER_INTEREST_FORMULA,
             addonRecipient: ADDON_RECIPIENT,
             policy: INIT_BORROWER_POLICY,
-            autoRepayment: false
+            autoRepayment: INIT_BORROWER_AUTOREPAYMENT_FALSE
         });
     }
 

@@ -644,6 +644,22 @@ contract LendingMarketTest is Test, Config {
         lendingMarket.repayLoan(loanId, outstandingBalance + BORROWER_REPAY_AMOUNT);
     }
 
+    function test_repayLoan_IfAutoRepaymentNotAllowed() public {
+        configureLendingMarket();
+        uint256 loanId = takeLoan();
+        uint256 outstandingBalance = lendingMarket.getOutstandingBalance(loanId);
+        Loan.State memory loan = lendingMarket.getLoan(loanId);
+        uint256 addonRecipientAmount = creditLine.calculateAddonAmount(BORROWER_LEND_AMOUNT, borrowerConfig);
+        uint256[] memory loanIds = new uint256[](1);
+        loanIds[0] = loanId;
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = BORROWER_REPAY_AMOUNT;
+
+        vm.prank(ADMIN);
+        vm.expectRevert(LendingMarket.AutoRepaymentNotAllowed.selector);
+        liquidityPool.repayLoans(loanIds, amounts);
+    }
+
     /************************************************
      *  Test `freeze` function
      ***********************************************/
