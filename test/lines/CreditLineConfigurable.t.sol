@@ -10,6 +10,7 @@ import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Pau
 
 import {Config} from "test/base/Config.sol";
 
+import {SafeCast} from "src/libraries/SafeCast.sol";
 import {Loan} from "src/libraries/Loan.sol";
 import {Error} from "src/libraries/Error.sol";
 import {Interest} from "src/libraries/Interest.sol";
@@ -473,7 +474,7 @@ contract CreditLineConfigurableTest is Test, Config {
 
     function test_configureBorrower_Revert_IfAddonAddressNotZero_AddonPeriodCostRate() public {
         ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = configureCreditLine();
-        uint256 addonPeriodCostRate = creditLineConfig.addonPeriodCostRate;
+        uint32 addonPeriodCostRate = creditLineConfig.addonPeriodCostRate;
 
         ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(block.timestamp);
         borrowerConfig.addonRecipient = address(0);
@@ -501,7 +502,7 @@ contract CreditLineConfigurableTest is Test, Config {
 
     function test_configureBorrower_Revert_IfAddonAddressNotZero_AddonFixedCostRate() public {
         ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = configureCreditLine();
-        uint256 addonFixedCostRate = creditLineConfig.addonFixedCostRate;
+        uint32 addonFixedCostRate = creditLineConfig.addonFixedCostRate;
 
         ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(block.timestamp);
         borrowerConfig.addonRecipient = address(0);
@@ -749,7 +750,7 @@ contract CreditLineConfigurableTest is Test, Config {
         configureCreditLine();
 
         ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
-        config.expiration = block.timestamp - 1;
+        config.expiration = SafeCast.toUint32(block.timestamp - 1);
 
         vm.prank(ADMIN);
         creditLine.configureBorrower(BORROWER_1, config);

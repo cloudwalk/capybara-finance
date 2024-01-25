@@ -10,6 +10,7 @@ import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Pau
 
 import {Loan} from "src/libraries/Loan.sol";
 import {Error} from "src/libraries/Error.sol";
+import {SafeCast} from "src/libraries/SafeCast.sol";
 import {Interest} from "src/libraries/Interest.sol";
 import {ICreditLineConfigurable} from "src/interfaces/ICreditLineConfigurable.sol";
 import {CreditLineConfigurable} from "src/lines/CreditLineConfigurable.sol";
@@ -24,25 +25,25 @@ contract Config is Test{
     address public constant BORROWER_3 = address(bytes20(keccak256("borrower_3")));
     address public constant ADDON_RECIPIENT = address(bytes20(keccak256("addon_recipient")));
 
-    uint256 public constant INIT_CREDIT_LINE_MIN_BORROW_AMOUNT = 400;
-    uint256 public constant INIT_CREDIT_LINE_MAX_BORROW_AMOUNT = 900;
-    uint256 public constant INIT_CREDIT_LINE_ADDON_FIXED_COST_RATE = 15;
-    uint256 public constant INIT_CREDIT_LINE_ADDON_PERIOD_COST_RATE = 20;
-    uint256 public constant INIT_CREDIT_LINE_MIN_INTEREST_RATE_PRIMARY = 499;
-    uint256 public constant INIT_CREDIT_LINE_MAX_INTEREST_RATE_PRIMARY = 501;
-    uint256 public constant INIT_CREDIT_LINE_MIN_INTEREST_RATE_SECONDARY = 599;
-    uint256 public constant INIT_CREDIT_LINE_MAX_INTEREST_RATE_SECONDARY = 601;
-    uint256 public constant INIT_CREDIT_LINE_INTEREST_RATE_FACTOR = 1000;
-    uint256 public constant INIT_CREDIT_LINE_PERIOD_IN_SECONDS = 600;
-    uint256 public constant INIT_CREDIT_LINE_MIN_DURATION_IN_PERIODS = 50;
-    uint256 public constant INIT_CREDIT_LINE_MAX_DURATION_IN_PERIODS = 200;
+    uint64 public constant INIT_CREDIT_LINE_MIN_BORROW_AMOUNT = 400;
+    uint64 public constant INIT_CREDIT_LINE_MAX_BORROW_AMOUNT = 900;
+    uint32 public constant INIT_CREDIT_LINE_ADDON_FIXED_COST_RATE = 15;
+    uint32 public constant INIT_CREDIT_LINE_ADDON_PERIOD_COST_RATE = 20;
+    uint32 public constant INIT_CREDIT_LINE_MIN_INTEREST_RATE_PRIMARY = 499;
+    uint32 public constant INIT_CREDIT_LINE_MAX_INTEREST_RATE_PRIMARY = 501;
+    uint32 public constant INIT_CREDIT_LINE_MIN_INTEREST_RATE_SECONDARY = 599;
+    uint32 public constant INIT_CREDIT_LINE_MAX_INTEREST_RATE_SECONDARY = 601;
+    uint32 public constant INIT_CREDIT_LINE_INTEREST_RATE_FACTOR = 1000;
+    uint32 public constant INIT_CREDIT_LINE_PERIOD_IN_SECONDS = 600;
+    uint32 public constant INIT_CREDIT_LINE_MIN_DURATION_IN_PERIODS = 50;
+    uint32 public constant INIT_CREDIT_LINE_MAX_DURATION_IN_PERIODS = 200;
 
-    uint256 public constant INIT_BORROWER_DURATION_IN_PERIODS = 100;
-    uint256 public constant INIT_BORROWER_DURATION = 1000;
-    uint256 public constant INIT_BORROWER_MIN_BORROW_AMOUNT = 500;
-    uint256 public constant INIT_BORROWER_MAX_BORROW_AMOUNT = 800;
-    uint256 public constant INIT_BORROWER_INTEREST_RATE_PRIMARY = 500;
-    uint256 public constant INIT_BORROWER_INTEREST_RATE_SECONDARY = 600;
+    uint32 public constant INIT_BORROWER_DURATION_IN_PERIODS = 100;
+    uint32 public constant INIT_BORROWER_DURATION = 1000;
+    uint64 public constant INIT_BORROWER_MIN_BORROW_AMOUNT = 500;
+    uint64 public constant INIT_BORROWER_MAX_BORROW_AMOUNT = 800;
+    uint32 public constant INIT_BORROWER_INTEREST_RATE_PRIMARY = 500;
+    uint32 public constant INIT_BORROWER_INTEREST_RATE_SECONDARY = 600;
     bool public constant INIT_BORROWER_AUTOREPAYMENT_FALSE = false;
     bool public constant INIT_BORROWER_AUTOREPAYMENT_TRUE = true;
     Interest.Formula public constant INIT_BORROWER_INTEREST_FORMULA = Interest.Formula.Simple;
@@ -76,7 +77,7 @@ contract Config is Test{
     {
         return ICreditLineConfigurable.BorrowerConfig({
             durationInPeriods: INIT_BORROWER_DURATION_IN_PERIODS,
-            expiration: blockTimestamp + INIT_BORROWER_DURATION,
+            expiration: SafeCast.toUint32(blockTimestamp + INIT_BORROWER_DURATION),
             minBorrowAmount: INIT_BORROWER_MIN_BORROW_AMOUNT,
             maxBorrowAmount: INIT_BORROWER_MAX_BORROW_AMOUNT,
             interestRatePrimary: INIT_BORROWER_INTEREST_RATE_PRIMARY,
