@@ -20,6 +20,7 @@ import {LendingMarketStorage} from "./LendingMarketStorage.sol";
 import {ILendingMarket} from "./interfaces/core/ILendingMarket.sol";
 import {ILiquidityPool} from "./interfaces/core/ILiquidityPool.sol";
 import {ICreditLine} from "./interfaces/core/ICreditLine.sol";
+import {SafeCast} from "./libraries/SafeCast.sol";
 
 /// @title LendingMarket contract
 /// @notice Implementation of the lending market contract
@@ -222,8 +223,8 @@ contract LendingMarket is
 
         Loan.Terms memory terms = ICreditLine(creditLine).onTakeLoan(msg.sender, amount);
 
-        uint256 startDate = calculatePeriodDate(terms.periodInSeconds, 0, 0);
-        uint256 totalAmount = amount + terms.addonAmount;
+        uint32 startDate = SafeCast.toUint32(calculatePeriodDate(terms.periodInSeconds, 0, 0));
+        uint64 totalAmount = SafeCast.toUint64(amount) + terms.addonAmount;
         uint256 id = _safeMint(lender);
 
         Loan.State memory loan = Loan.State({
@@ -264,11 +265,11 @@ contract LendingMarket is
         }
 
         Loan.State storage loan = _loans[loanId];
-        checkRepaymentAllowance(loanId, loan);
+        checkRepaymentAllowance(loanId);
         (uint256 outstandingBalance, uint256 currentDate) = _outstandingBalance(loan);
         outstandingBalance -= repaymentAmount(outstandingBalance, amount);
-        loan.trackedBorrowAmount = outstandingBalance;
-        loan.trackDate = currentDate;
+        loan.trackedBorrowAmount = SafeCast.toUint64(outstandingBalance);
+        loan.trackDate = SafeCast.toUint32(currentDate);
         address pool = _liquidityPools[ownerOf(loanId)];
         ILiquidityPool(pool).onBeforeLoanPayment(loanId, amount);
         transferRepayment(loanId, loan, pool, amount);
@@ -283,9 +284,8 @@ contract LendingMarket is
 
     /// @notice Check if the loan is allowed to be repaid by the liquidity pool
     /// @param loanId The unique identifier of the loan to check
-    /// @param loan The loan state to check
-    function checkRepaymentAllowance(uint256 loanId, Loan.State memory loan) internal {
-        if (ifLiqudityPool(loanId) && !loan.autoRepayment) {
+    function checkRepaymentAllowance(uint256 loanId) internal {
+        if (ifLiqudityPool(loanId) && !_loans[loanId].autoRepayment) {
             revert AutoRepaymentNotAllowed();
         }
     }
@@ -330,7 +330,7 @@ contract LendingMarket is
             revert LoanAlreadyFrozen();
         }
 
-        loan.freezeDate = calculatePeriodDate(loan.periodInSeconds, 0, 0);
+        loan.freezeDate = SafeCast.toUint32(calculatePeriodDate(loan.periodInSeconds, 0, 0));
 
         emit FreezeLoan(loanId, loan.freezeDate);
     }
@@ -343,8 +343,8 @@ contract LendingMarket is
             revert LoanNotFrozen();
         }
 
-        uint256 currentDate = calculatePeriodDate(loan.periodInSeconds, 0, 0);
-        uint256 frozenPeriods = (currentDate - loan.freezeDate) / loan.periodInSeconds;
+        uint32 currentDate = SafeCast.toUint32(calculatePeriodDate(loan.periodInSeconds, 0, 0));
+        uint32 frozenPeriods = (currentDate - loan.freezeDate) / loan.periodInSeconds;
 
         if (frozenPeriods > 0) {
             loan.trackDate += frozenPeriods * loan.periodInSeconds;
@@ -371,7 +371,7 @@ contract LendingMarket is
 
         emit UpdateLoanDuration(loanId, newDurationInPeriods, loan.durationInPeriods);
 
-        loan.durationInPeriods = newDurationInPeriods;
+        loan.durationInPeriods = SafeCast.toUint32(newDurationInPeriods);
     }
 
     /// @inheritdoc ILendingMarket
@@ -395,7 +395,7 @@ contract LendingMarket is
 
         emit UpdateLoanMoratorium(loanId, loan.trackDate, newMoratoriumInPeriods);
 
-        loan.trackDate += newMoratoriumInPeriods * loan.periodInSeconds;
+        loan.trackDate += SafeCast.toUint32(newMoratoriumInPeriods * loan.periodInSeconds);
     }
 
     /// @inheritdoc ILendingMarket
@@ -413,7 +413,7 @@ contract LendingMarket is
 
         emit UpdateLoanInterestRatePrimary(loanId, newInterestRate, loan.interestRatePrimary);
 
-        loan.interestRatePrimary = newInterestRate;
+        loan.interestRatePrimary = SafeCast.toUint32(newInterestRate);
     }
 
     /// @inheritdoc ILendingMarket
@@ -431,7 +431,7 @@ contract LendingMarket is
 
         emit UpdateLoanInterestRateSecondary(loanId, newInterestRate, loan.interestRateSecondary);
 
-        loan.interestRateSecondary = newInterestRate;
+        loan.interestRateSecondary = SafeCast.toUint32(newInterestRate);
     }
 
     /// @inheritdoc ILendingMarket

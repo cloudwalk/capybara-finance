@@ -9,6 +9,7 @@ import {Loan} from "../libraries/Loan.sol";
 import {Error} from "../libraries/Error.sol";
 import {ICreditLine} from "../interfaces/core/ICreditLine.sol";
 import {ICreditLineConfigurable} from "../interfaces/ICreditLineConfigurable.sol";
+import {SafeCast} from "../libraries/SafeCast.sol";
 
 /// @title CreditLineConfigurable contract
 /// @notice Implementation of the configurable credit line contract
@@ -214,7 +215,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         if (borrowerConfig.policy == BorrowPolicy.Reset) {
             borrowerConfig.maxBorrowAmount = 0;
         } else if (borrowerConfig.policy == BorrowPolicy.Decrease) {
-            borrowerConfig.maxBorrowAmount -= amount;
+            borrowerConfig.maxBorrowAmount -= SafeCast.toUint64(amount);
         } else if (borrowerConfig.policy == BorrowPolicy.Keep) {} else {
             // NOTE: This should never happen since all possible policies are checked above
             revert UnsupportedBorrowPolicy();
@@ -264,7 +265,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         terms.autoRepayment = borrowerConfig.autoRepayment;
 
         if (terms.addonRecipient != address(0)) {
-            terms.addonAmount = calculateAddonAmount(amount, borrowerConfig);
+            terms.addonAmount = SafeCast.toUint64(calculateAddonAmount(amount, borrowerConfig));
         }
     }
 

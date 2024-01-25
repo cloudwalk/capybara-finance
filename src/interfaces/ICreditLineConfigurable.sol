@@ -46,50 +46,56 @@ interface ICreditLineConfigurable {
 
     /// @notice A struct that defines credit line configuration
     struct CreditLineConfig {
+        //slot 1
         /// @notice The duration of the loan period determined in seconds
-        uint256 periodInSeconds;
-        /// @notice The minimum duration of the loan determined in periods
-        uint256 minDurationInPeriods;
-        /// @notice The maximum duration of the loan determined in periods
-        uint256 maxDurationInPeriods;
-        /// @notice The minimum amount the borrower can take as a loan
-        uint256 minBorrowAmount;
-        /// @notice The maximum amount the borrower can take as a loan
-        uint256 maxBorrowAmount;
+        uint32 periodInSeconds;
         /// @notice The interest rate factor used for interest calculation
-        uint256 interestRateFactor;
+        uint32 interestRateFactor;
         /// @notice The minimum primary interest rate to be applied to the loan
-        uint256 minInterestRatePrimary;
+        uint32 minInterestRatePrimary;
         /// @notice The maximum primary interest rate to be applied to the loan
-        uint256 maxInterestRatePrimary;
+        uint32 maxInterestRatePrimary;
         /// @notice The minimum secondary interest rate to be applied to the loan
-        uint256 minInterestRateSecondary;
+        uint32 minInterestRateSecondary;
         /// @notice The maximum secondary interest rate to be applied to the loan
-        uint256 maxInterestRateSecondary;
+        uint32 maxInterestRateSecondary;
         /// @notice The period cost rate to be used for additional payment calculation
-        uint256 addonPeriodCostRate;
+        uint32 addonPeriodCostRate;
         /// @notice The fixed cost rate to be used for additional payment calculation
-        uint256 addonFixedCostRate;
+        uint32 addonFixedCostRate;
+
+        //slot 2
+        /// @notice The minimum duration of the loan determined in periods
+        uint32 minDurationInPeriods;
+        /// @notice The maximum duration of the loan determined in periods
+        uint32 maxDurationInPeriods;
+        /// @notice The minimum amount the borrower can take as a loan
+        uint64 minBorrowAmount;
+        /// @notice The maximum amount the borrower can take as a loan
+        uint64 maxBorrowAmount;
     }
 
     /// @notice A struct that defines borrower configuration
     struct BorrowerConfig {
+        //slot 1
         /// @notice The total duration of the loan determined in periods
-        uint256 durationInPeriods;
-        /// @notice The expiration date of the borrower configuration
-        uint256 expiration;
-        /// @notice The minimum amount the borrower can take as a loan
-        uint256 minBorrowAmount;
-        /// @notice The maximum amount the borrower can take as a loan
-        uint256 maxBorrowAmount;
+        uint32 durationInPeriods;
         /// @notice The primary interest rate to be applied to the loan
-        uint256 interestRatePrimary;
+        uint32 interestRatePrimary;
         /// @notice The secondary interest rate to be applied to the loan
-        uint256 interestRateSecondary;
-        /// @notice The formula to be used for interest calculation on the loan
-        Interest.Formula interestFormula;
+        uint32 interestRateSecondary;
         /// @notice The address of the recipient of additional payments and fees
         address addonRecipient;
+
+        //slot 2
+        /// @notice The expiration date of the borrower configuration
+        uint32 expiration;
+        /// @notice The minimum amount the borrower can take as a loan
+        uint64 minBorrowAmount;
+        /// @notice The maximum amount the borrower can take as a loan
+        uint64 maxBorrowAmount;
+        /// @notice The formula to be used for interest calculation on the loan
+        Interest.Formula interestFormula;
         /// @notice Whether the loan can be repaid automatically
         bool autoRepayment;
         /// @notice The borrow policy
