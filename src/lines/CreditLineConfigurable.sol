@@ -9,11 +9,13 @@ import {Loan} from "../libraries/Loan.sol";
 import {Error} from "../libraries/Error.sol";
 import {ICreditLine} from "../interfaces/core/ICreditLine.sol";
 import {ICreditLineConfigurable} from "../interfaces/ICreditLineConfigurable.sol";
+import {SafeCast} from "../libraries/SafeCast.sol";
 
 /// @title CreditLineConfigurable contract
 /// @notice Implementation of the configurable credit line contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICreditLine, ICreditLineConfigurable {
+    using SafeCast for uint256;
     /************************************************
      *  Storage
      ***********************************************/
@@ -217,7 +219,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         if (borrowerConfig.policy == BorrowPolicy.Reset) {
             borrowerConfig.maxBorrowAmount = 0;
         } else if (borrowerConfig.policy == BorrowPolicy.Decrease) {
-            borrowerConfig.maxBorrowAmount -= amount;
+            borrowerConfig.maxBorrowAmount = (uint256(borrowerConfig.maxBorrowAmount) - amount).toUint64();
         } else if (borrowerConfig.policy == BorrowPolicy.Keep) {} else {
             // NOTE: This should never happen since all possible policies are checked above
             revert UnsupportedBorrowPolicy();
@@ -260,7 +262,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         terms.autoRepayment = borrowerConfig.autoRepayment;
 
         if (terms.addonRecipient != address(0)) {
-            terms.addonAmount = calculateAddonAmount(amount, borrowerConfig);
+            terms.addonAmount = calculateAddonAmount(amount, borrowerConfig).toUint64();
         }
     }
 
@@ -303,8 +305,9 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     /// @param amount The initial principal amount of the loan
     /// @param borrowerConfig The borrower configuration
     function calculateAddonAmount(uint256 amount, BorrowerConfig memory borrowerConfig) public view returns (uint256) {
-        uint256 addonRate = _config.addonFixedCostRate + _config.addonPeriodCostRate * borrowerConfig.durationInPeriods;
-        return (amount * addonRate) / _config.interestRateFactor;
+        uint256 addonRate = uint256(_config.addonFixedCostRate) +
+            uint256(_config.addonPeriodCostRate) * uint256(borrowerConfig.durationInPeriods);
+        return (amount * addonRate) / uint256(_config.interestRateFactor);
     }
 
     /************************************************
