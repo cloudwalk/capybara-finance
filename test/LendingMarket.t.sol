@@ -35,6 +35,7 @@ contract LendingMarketTest is Test, Config {
     /************************************************
      *  Events
      ***********************************************/
+
     event SetRegistry(address indexed newRegistry, address indexed oldRegistry);
     event RegisterCreditLine(address indexed lender, address indexed creditLine);
     event RegisterLiquidityPool(address indexed lender, address indexed liquidityPool);
@@ -1199,6 +1200,29 @@ contract LendingMarketTest is Test, Config {
         assertEq(lendingMarket.getOutstandingBalance(loanId), totalAmount);
     }
 
+    function test_getOutstandingBalance_WhenLoanIsFrozen() public {
+        vm.warp(BASE_BLOCKTIMESTAMP);
+        configureLendingMarket();
+        uint256 loanId = takeLoan();
+
+        uint256 freezeTimestamp = BASE_BLOCKTIMESTAMP + INCREASE_BLOCKTIMESTAMP;
+        vm.warp(freezeTimestamp);
+        vm.prank(LENDER_1);
+        lendingMarket.freeze(loanId);
+        vm.warp(freezeTimestamp + INCREASE_BLOCKTIMESTAMP);
+        Loan.State memory loan = lendingMarket.getLoan(loanId);
+
+        uint256 outstandingBalance = lendingMarket.calculateOutstandingBalance(
+            loan.trackedBorrowAmount,
+            (loan.freezeDate - loan.trackDate) / loan.periodInSeconds,
+            loan.interestRatePrimary,
+            loan.interestRateFactor,
+            loan.interestFormula
+        );
+
+        assertEq(lendingMarket.getOutstandingBalance(loanId), outstandingBalance);
+    }
+
     function test_getOutstandingBalance_WhenCurrentDateLessDueDate() public {
         //set base block timestamp and take loan
         vm.warp(BASE_BLOCKTIMESTAMP);
@@ -1285,6 +1309,26 @@ contract LendingMarketTest is Test, Config {
         );
 
         assertEq(lendingMarket.getOutstandingBalance(loanId), outstandingBalanceGreaterDueDate);
+    }
+
+    function test_getCurrentPeriodDate() public {
+        //set base block timestamp and take loan
+        vm.warp(BASE_BLOCKTIMESTAMP);
+        configureLendingMarket();
+        uint256 loanId = takeLoan();
+        Loan.State memory loan = lendingMarket.getLoan(loanId);
+
+        assertEq(lendingMarket.getCurrentPeriodDate(loanId), calculatePeriodDate(loan.periodInSeconds, ZERO_VALUE, ZERO_VALUE));
+    }
+
+    function test_getLoanPreview() public {
+        //set base block timestamp and take loan
+        vm.warp(BASE_BLOCKTIMESTAMP);
+        configureLendingMarket();
+        uint256 loanId = takeLoan();
+        Loan.State memory loan = lendingMarket.getLoan(loanId);
+        vm.expectRevert(Error.NotImplemented.selector);
+        lendingMarket.getLoanPreview(loanId, BORROWER_REPAY_AMOUNT, block.timestamp);
     }
 
     function calculatePeriodDate(uint256 periodInSeconds, uint256 extraPeriods, uint256 extraSeconds)
