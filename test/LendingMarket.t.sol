@@ -90,8 +90,8 @@ contract LendingMarketTest is Test, Config {
 
     uint256 public constant NEW_BORROWER_DURATION_IN_PERIODS = 200;
     uint256 public constant NEW_MORATORIUM_PERIODS = 20;
-    uint256 public constant NEW_INTEREST_RATE_PRIMARY = 450;
-    uint256 public constant NEW_INTEREST_RATE_SECONDARY = 550;
+    uint256 public constant NEW_INTEREST_RATE_PRIMARY = 4;
+    uint256 public constant NEW_INTEREST_RATE_SECONDARY = 5;
 
     uint256 public constant TOKEN_AMOUNT = 1000000000;
     uint256 public constant CREDITLINE_DEPOSIT_AMOUNT = 1000000;
@@ -1142,50 +1142,37 @@ contract LendingMarketTest is Test, Config {
     }
 
     function test_getOutstandingBalance_WhenCurrentDateGreaterAndTrackGreaterDueDate() public {
-        //test NOT WORKING - repayLoan throws error SafeCastOverflowedUintDowncast
-//        //set base block timestamp and take loan
-//        vm.warp(BASE_BLOCKTIMESTAMP);
-//        configureLendingMarket();
-//        uint256 loanId = takeLoan();
-//        Loan.State memory loan = lendingMarket.getLoan(loanId);
-//        //increase block timestamp and partially repay loan
-//        //track date will be set to repayBlockTimestamp
-//        uint256 repayBlockTimestamp =
-//            BASE_BLOCKTIMESTAMP +
-//            INCREASE_BLOCKTIMESTAMP +
-//            INIT_CREDIT_LINE_PERIOD_IN_SECONDS * INIT_BORROWER_DURATION_IN_PERIODS;
-//        vm.warp(repayBlockTimestamp);
-//        vm.startPrank(BORROWER_1);
-//        token.approve(address(lendingMarket), TOKEN_AMOUNT);
-//        lendingMarket.repayLoan(loanId, BORROWER_REPAY_AMOUNT);
-//        vm.stopPrank();
-//        //increase block timestamp and calculate outstandingBalance
-//        //current date > track date and current date > duedate and track date > duedate
-//        uint256 outstandingBlockTimestamp = repayBlockTimestamp + INCREASE_BLOCKTIMESTAMP;
-//        vm.warp(outstandingBlockTimestamp);
-//
-//        uint256 currentDateGreaterDueDate = calculatePeriodDate(loan.periodInSeconds, ZERO_VALUE, ZERO_VALUE);
-//        uint256 dueDate = loan.startDate + loan.durationInPeriods * loan.periodInSeconds;
-//        uint256 outstandingBalanceGreaterDueDate = lendingMarket.calculateOutstandingBalance(
-//            loan.trackedBorrowAmount, //1809
-//            (currentDateGreaterDueDate - loan.trackDate) / loan.periodInSeconds, //1641132600, 1641070800, 600 = 103
-//            loan.interestRateSecondary,//600
-//            loan.interestRateFactor,//1000
-//            loan.interestFormula
-//        );
+        //set base block timestamp and take loan
+        vm.warp(BASE_BLOCKTIMESTAMP);
+        //take loan
+        configureLendingMarket();
+        uint256 loanId = takeLoan();
+        Loan.State memory loan = lendingMarket.getLoan(loanId);
+        uint256 dueDate = loan.startDate + loan.durationInPeriods * loan.periodInSeconds;
+        uint256 repayBlockTimestamp = dueDate + INCREASE_BLOCKTIMESTAMP;
+        vm.warp(repayBlockTimestamp);
+        //repay after dueDate to set trackDate later dueDate
+        vm.startPrank(BORROWER_1);
+        token.approve(address(lendingMarket), TOKEN_AMOUNT);
+        lendingMarket.repayLoan(loanId, BORROWER_REPAY_AMOUNT);
+        vm.stopPrank();
 
-//        console.log('test_getOutstandingBalance_WhenCurrentDateGreaterAndTrackGreaterDueDate');
-//        console.log(loan.trackedBorrowAmount);
-//        console.log(currentDateGreaterDueDate);
-//        console.log(loan.trackDate);
-//        console.log(dueDate);
-//        console.log(loan.periodInSeconds);
-//        console.log(loan.interestRatePrimary);
-//        console.log(loan.interestRateFactor);
-//        console.log(block.timestamp);
-//        console.log(outstandingBalanceGreaterDueDate);
+        //increase block timestamp and calculate outstandingBalance
+        //current date > loan.trackDate and current date > dueDate and track date > dueDate
+        uint256 outstandingBlockTimestamp = repayBlockTimestamp + INCREASE_BLOCKTIMESTAMP;
+        vm.warp(outstandingBlockTimestamp);
 
-//        assertEq(lendingMarket.getOutstandingBalance(loanId), outstandingBalanceGreaterDueDate + 6);
+        uint256 currentDateGreaterDueDate = calculatePeriodDate(loan.periodInSeconds, ZERO_VALUE, ZERO_VALUE);
+        Loan.State memory loanRepayed = lendingMarket.getLoan(loanId);
+        uint256 outstandingBalanceGreaterDueDate = lendingMarket.calculateOutstandingBalance(
+            loanRepayed.trackedBorrowAmount,
+            (currentDateGreaterDueDate - loanRepayed.trackDate) / loanRepayed.periodInSeconds,
+            loanRepayed.interestRateSecondary,
+            loanRepayed.interestRateFactor,
+            loanRepayed.interestFormula
+        );
+
+        assertEq(lendingMarket.getOutstandingBalance(loanId), outstandingBalanceGreaterDueDate);
     }
 
     function test_getOutstandingBalance_WhenCurrentGreaterAndTrackLessDueDate() public {

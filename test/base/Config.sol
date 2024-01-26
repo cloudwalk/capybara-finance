@@ -29,10 +29,10 @@ contract Config is Test{
     uint64 public constant INIT_CREDIT_LINE_MAX_BORROW_AMOUNT = 900;
     uint32 public constant INIT_CREDIT_LINE_ADDON_FIXED_COST_RATE = 15;
     uint32 public constant INIT_CREDIT_LINE_ADDON_PERIOD_COST_RATE = 20;
-    uint32 public constant INIT_CREDIT_LINE_MIN_INTEREST_RATE_PRIMARY = 499;
-    uint32 public constant INIT_CREDIT_LINE_MAX_INTEREST_RATE_PRIMARY = 501;
-    uint32 public constant INIT_CREDIT_LINE_MIN_INTEREST_RATE_SECONDARY = 599;
-    uint32 public constant INIT_CREDIT_LINE_MAX_INTEREST_RATE_SECONDARY = 601;
+    uint32 public constant INIT_CREDIT_LINE_MIN_INTEREST_RATE_PRIMARY = 3;
+    uint32 public constant INIT_CREDIT_LINE_MAX_INTEREST_RATE_PRIMARY = 7;
+    uint32 public constant INIT_CREDIT_LINE_MIN_INTEREST_RATE_SECONDARY = 4;
+    uint32 public constant INIT_CREDIT_LINE_MAX_INTEREST_RATE_SECONDARY = 8;
     uint32 public constant INIT_CREDIT_LINE_INTEREST_RATE_FACTOR = 1000;
     uint32 public constant INIT_CREDIT_LINE_PERIOD_IN_SECONDS = 600;
     uint32 public constant INIT_CREDIT_LINE_MIN_DURATION_IN_PERIODS = 50;
@@ -42,8 +42,8 @@ contract Config is Test{
     uint32 public constant INIT_BORROWER_DURATION = 1000;
     uint64 public constant INIT_BORROWER_MIN_BORROW_AMOUNT = 500;
     uint64 public constant INIT_BORROWER_MAX_BORROW_AMOUNT = 800;
-    uint32 public constant INIT_BORROWER_INTEREST_RATE_PRIMARY = 500;
-    uint32 public constant INIT_BORROWER_INTEREST_RATE_SECONDARY = 600;
+    uint32 public constant INIT_BORROWER_INTEREST_RATE_PRIMARY = 5;
+    uint32 public constant INIT_BORROWER_INTEREST_RATE_SECONDARY = 6;
     bool public constant INIT_BORROWER_AUTOREPAYMENT_FALSE = false;
     bool public constant INIT_BORROWER_AUTOREPAYMENT_TRUE = true;
     Interest.Formula public constant INIT_BORROWER_INTEREST_FORMULA = Interest.Formula.Simple;
