@@ -266,9 +266,20 @@ contract LendingMarket is
         }
 
         Loan.State storage loan = _loans[loanId];
-        checkRepaymentAllowance(loanId, loan);
+
+        if (ifLiqudityPool(loanId) && !loan.autoRepayment) {
+            revert AutoRepaymentNotAllowed();
+        }
+
         (uint256 outstandingBalance, uint256 currentDate) = _outstandingBalance(loan);
-        outstandingBalance -= repaymentAmount(outstandingBalance, amount);
+
+        if (amount == type(uint256).max) {
+            amount = outstandingBalance;
+        } else if (amount > outstandingBalance) {
+            revert Error.InvalidAmount();
+        }
+
+        outstandingBalance -= amount;
         loan.trackedBorrowAmount = outstandingBalance.toUint64();
         loan.trackDate = currentDate.toUint32();
         address pool = _liquidityPools[ownerOf(loanId)];
@@ -283,26 +294,7 @@ contract LendingMarket is
         }
     }
 
-    /// @notice Check if the loan is allowed to be repaid by the liquidity pool
-    /// @param loanId The unique identifier of the loan to check
-    /// @param loan The loan state
-    function checkRepaymentAllowance(uint256 loanId, Loan.State storage loan) internal {
-        if (ifLiqudityPool(loanId) && !loan.autoRepayment) {
-            revert AutoRepaymentNotAllowed();
-        }
-    }
-
-    function repaymentAmount(uint256 outstandingBalance, uint256 amount) internal returns (uint256) {
-        if (amount == type(uint256).max) {
-            amount = outstandingBalance;
-        } else if (amount > outstandingBalance) {
-            revert Error.InvalidAmount();
-        }
-
-        return amount;
-    }
-
-    function transferRepayment(uint256 loanId, Loan.State memory loan, address pool, uint256 amount) internal {
+    function transferRepayment(uint256 loanId, Loan.State storage loan, address pool, uint256 amount) internal {
         if (ifLiqudityPool(loanId)) {
             IERC20(loan.token).transferFrom(loan.borrower, pool, amount);
         } else {
