@@ -247,13 +247,6 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         if (amount < borrowerConfig.minBorrowAmount) {
             revert Error.InvalidAmount();
         }
-        if (borrowerConfig.durationInPeriods < _config.minDurationInPeriods) {
-            revert InvalidBorrowerConfiguration();
-        }
-
-        if (borrowerConfig.durationInPeriods > _config.maxDurationInPeriods) {
-            revert InvalidBorrowerConfiguration();
-        }
 
         terms.token = _token;
         terms.interestRateFactor = _config.interestRateFactor;
