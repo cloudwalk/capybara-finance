@@ -399,6 +399,28 @@ contract CreditLineConfigurableTest is Test, Config {
         creditLine.configureBorrower(address(0), config);
     }
 
+    function test_configureBorrower_Revert_IfDurationInPeriodsIsLessThanCrediLineMinDurationInPeriods() public {
+        configureCreditLine();
+
+        ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
+        config.durationInPeriods = INIT_CREDIT_LINE_MIN_DURATION_IN_PERIODS - 1;
+
+        vm.prank(ADMIN);
+        vm.expectRevert(CreditLineConfigurable.InvalidBorrowerConfiguration.selector);
+        creditLine.configureBorrower(BORROWER_1, config);
+    }
+
+    function test_configureBorrower_Revert_IfDurationInPeriodsIsGreaterThanCrediLineMaxDurationInPeriods() public {
+        configureCreditLine();
+
+        ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
+        config.durationInPeriods = INIT_CREDIT_LINE_MAX_DURATION_IN_PERIODS + 1;
+
+        vm.prank(ADMIN);
+        vm.expectRevert(CreditLineConfigurable.InvalidBorrowerConfiguration.selector);
+        creditLine.configureBorrower(BORROWER_1, config);
+    }
+
     function test_configureBorrower_Revert_IfMinBorrowAmountIsGreaterThanMaxBorrowAmount() public {
         configureCreditLine();
 
