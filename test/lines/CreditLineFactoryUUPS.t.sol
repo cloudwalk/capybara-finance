@@ -9,10 +9,12 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 
 import {CreditLineFactoryUUPS} from "src/lines/CreditLineFactoryUUPS.sol";
 
+import {Config} from "test/base/Config.sol";
+
 /// @title CreditLineFactoryUUPSTest contract
 /// @notice Contains tests for the CreditLineFactoryUUPS contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-contract CreditLineFactoryUUPSTest is Test {
+contract CreditLineFactoryUUPSTest is Test, Config {
     /************************************************
      *  Events
      ***********************************************/
@@ -24,9 +26,6 @@ contract CreditLineFactoryUUPSTest is Test {
      ***********************************************/
 
     CreditLineFactoryUUPS public proxy;
-
-    address public constant REGISTRY = address(bytes20(keccak256("registry")));
-    address public constant ATTACKER = address(bytes20(keccak256("attacker")));
 
     /************************************************
      *  Setup and configuration

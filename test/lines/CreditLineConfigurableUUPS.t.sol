@@ -9,10 +9,12 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 
 import {CreditLineConfigurableUUPS} from "src/lines/CreditLineConfigurableUUPS.sol";
 
+import {Config} from "test/base/Config.sol";
+
 /// @title CreditLineConfigurableUUPSTest contract
 /// @notice Contains tests for the CreditLineConfigurableUUPS contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-contract CreditLineConfigurableUUPSTest is Test {
+contract CreditLineConfigurableUUPSTest is Test, Config {
     /************************************************
      *  Events
      ***********************************************/
@@ -25,18 +27,13 @@ contract CreditLineConfigurableUUPSTest is Test {
 
     CreditLineConfigurableUUPS public proxy;
 
-    address public constant TOKEN = address(bytes20(keccak256("token")));
-    address public constant MARKET = address(bytes20(keccak256("market")));
-    address public constant LENDER = address(bytes20(keccak256("lender")));
-    address public constant ATTACKER = address(bytes20(keccak256("attacker")));
-
     /************************************************
      *  Setup and configuration
      ***********************************************/
 
     function setUp() public {
         proxy = CreditLineConfigurableUUPS(address(new ERC1967Proxy(address(new CreditLineConfigurableUUPS()), "")));
-        proxy.initialize(MARKET, LENDER, TOKEN);
+        proxy.initialize(MARKET, LENDER_1, TOKEN_1);
     }
 
     /************************************************
@@ -45,7 +42,7 @@ contract CreditLineConfigurableUUPSTest is Test {
 
     function test_upgradeToAndCall() public {
         address newImplemetation = address(new CreditLineConfigurableUUPS());
-        vm.prank(LENDER);
+        vm.prank(LENDER_1);
         vm.expectEmit(true, true, true, true, address(proxy));
         emit Upgraded(newImplemetation);
         proxy.upgradeToAndCall(newImplemetation, "");

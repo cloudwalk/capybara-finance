@@ -16,10 +16,12 @@ import {LendingMarketMock} from "src/mocks/LendingMarketMock.sol";
 import {CreditLineMock} from "src/mocks/CreditLineMock.sol";
 import {ERC20Mock} from "src/mocks/ERC20Mock.sol";
 
+import {Config} from "test/base/Config.sol";
+
 /// @title LiquidityPoolAccountableTest contract
 /// @notice Contains tests for the LiquidityPoolAccountable contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-contract LiquidityPoolAccountableTest is Test {
+contract LiquidityPoolAccountableTest is Test, Config {
     /************************************************
      *  Events
      ***********************************************/
@@ -36,15 +38,10 @@ contract LiquidityPoolAccountableTest is Test {
     CreditLineMock public creditLine;
     ERC20Mock public token;
 
-    address public constant ADMIN = address(bytes20(keccak256("admin")));
-    address public constant LENDER = address(bytes20(keccak256("lender")));
-    address public constant ATTACKER = address(bytes20(keccak256("attacker")));
-    address public constant NONEXISTENT_TOKEN_SOUTRCE = address(bytes20(keccak256("unexisting_token_source")));
-
     uint256 public constant LOAN_ID = 1;
     uint256 public constant DEPOSIT_AMOUNT = 100;
     uint256 public constant NONEXISTENT_LOAN_ID = 999999999;
-    uint16 public constant KIND = 1;
+    address public constant NONEXISTENT_TOKEN_SOUTRCE = address(bytes20(keccak256("nonexistent_token_source")));
 
     /************************************************
      *  Setup and configuration
@@ -56,12 +53,12 @@ contract LiquidityPoolAccountableTest is Test {
         creditLine.mockTokenAddress(address(token));
         lendingMarket = new LendingMarketMock();
         liquidityPool = new LiquidityPoolAccountable();
-        liquidityPool.initialize(address(lendingMarket), LENDER);
+        liquidityPool.initialize(address(lendingMarket), LENDER_1);
     }
 
     function configureLender() public {
-        vm.startPrank(LENDER);
-        token.mint(LENDER, DEPOSIT_AMOUNT);
+        vm.startPrank(LENDER_1);
+        token.mint(LENDER_1, DEPOSIT_AMOUNT);
         token.approve(address(liquidityPool), DEPOSIT_AMOUNT);
         vm.stopPrank();
     }
@@ -72,16 +69,16 @@ contract LiquidityPoolAccountableTest is Test {
 
     function test_initializer() public {
         liquidityPool = new LiquidityPoolAccountable();
-        liquidityPool.initialize(address(lendingMarket), LENDER);
+        liquidityPool.initialize(address(lendingMarket), LENDER_1);
         assertEq(liquidityPool.market(), address(lendingMarket));
-        assertEq(liquidityPool.lender(), LENDER);
-        assertEq(liquidityPool.owner(), LENDER);
+        assertEq(liquidityPool.lender(), LENDER_1);
+        assertEq(liquidityPool.owner(), LENDER_1);
     }
 
     function test_initializer_Revert_IfMarketIsZeroAddress() public {
         liquidityPool = new LiquidityPoolAccountable();
         vm.expectRevert(Error.ZeroAddress.selector);
-        liquidityPool.initialize(address(0), LENDER);
+        liquidityPool.initialize(address(0), LENDER_1);
     }
 
     function test_initializer_Revert_IfLenderIsZeroAddress() public {
@@ -92,9 +89,9 @@ contract LiquidityPoolAccountableTest is Test {
 
     function test_initialize_Revert_IfCalledSecondTime() public {
         liquidityPool = new LiquidityPoolAccountable();
-        liquidityPool.initialize(address(lendingMarket), LENDER);
+        liquidityPool.initialize(address(lendingMarket), LENDER_1);
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        liquidityPool.initialize(address(lendingMarket), LENDER);
+        liquidityPool.initialize(address(lendingMarket), LENDER_1);
     }
 
     /************************************************
@@ -103,13 +100,13 @@ contract LiquidityPoolAccountableTest is Test {
 
     function test_pause() public {
         assertEq(liquidityPool.paused(), false);
-        vm.prank(LENDER);
+        vm.prank(LENDER_1);
         liquidityPool.pause();
         assertEq(liquidityPool.paused(), true);
     }
 
     function test_pause_Revert_IfContractIsPaused() public {
-        vm.startPrank(LENDER);
+        vm.startPrank(LENDER_1);
         liquidityPool.pause();
         vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
         liquidityPool.pause();
@@ -126,7 +123,7 @@ contract LiquidityPoolAccountableTest is Test {
      ***********************************************/
 
     function test_unpause() public {
-        vm.startPrank(LENDER);
+        vm.startPrank(LENDER_1);
         assertEq(liquidityPool.paused(), false);
         liquidityPool.pause();
         assertEq(liquidityPool.paused(), true);
@@ -136,13 +133,13 @@ contract LiquidityPoolAccountableTest is Test {
 
     function test_unpause_RevertIfContractNotPaused() public {
         assertEq(liquidityPool.paused(), false);
-        vm.prank(LENDER);
+        vm.prank(LENDER_1);
         vm.expectRevert(PausableUpgradeable.ExpectedPause.selector);
         liquidityPool.unpause();
     }
 
     function test_unpause_Revert_IfCallerNotOwner() public {
-        vm.prank(LENDER);
+        vm.prank(LENDER_1);
         liquidityPool.pause();
         vm.prank(ATTACKER);
         vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
@@ -160,7 +157,7 @@ contract LiquidityPoolAccountableTest is Test {
         assertEq(token.allowance(address(liquidityPool), address(lendingMarket)), 0);
         assertEq(liquidityPool.getTokenBalance(address(creditLine)), 0);
 
-        vm.prank(LENDER);
+        vm.prank(LENDER_1);
         vm.expectEmit(true, true, true, true, address(liquidityPool));
         emit Deposit(address(creditLine), DEPOSIT_AMOUNT);
         liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT);
@@ -171,13 +168,13 @@ contract LiquidityPoolAccountableTest is Test {
     }
 
     function test_deposit_Revert_IfCreditLineIsZeroAddress() public {
-        vm.prank(LENDER);
+        vm.prank(LENDER_1);
         vm.expectRevert(Error.ZeroAddress.selector);
         liquidityPool.deposit(address(0), DEPOSIT_AMOUNT);
     }
 
     function test_deposit_Revert_IfDepositAmountIsZero() public {
-        vm.prank(LENDER);
+        vm.prank(LENDER_1);
         vm.expectRevert(Error.InvalidAmount.selector);
         liquidityPool.deposit(address(creditLine), 0);
     }
@@ -195,11 +192,11 @@ contract LiquidityPoolAccountableTest is Test {
     function test_withdraw_CreditLineBalance() public {
         configureLender();
 
-        vm.startPrank(LENDER);
+        vm.startPrank(LENDER_1);
 
         liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT);
 
-        assertEq(token.balanceOf(LENDER), 0);
+        assertEq(token.balanceOf(LENDER_1), 0);
         assertEq(token.balanceOf(address(liquidityPool)), DEPOSIT_AMOUNT);
         assertEq(liquidityPool.getTokenBalance(address(token)), DEPOSIT_AMOUNT);
         assertEq(liquidityPool.getTokenBalance(address(creditLine)), DEPOSIT_AMOUNT);
@@ -208,7 +205,7 @@ contract LiquidityPoolAccountableTest is Test {
         emit Withdraw(address(creditLine), DEPOSIT_AMOUNT - 1);
         liquidityPool.withdraw(address(creditLine), DEPOSIT_AMOUNT - 1);
 
-        assertEq(token.balanceOf(LENDER), DEPOSIT_AMOUNT - 1);
+        assertEq(token.balanceOf(LENDER_1), DEPOSIT_AMOUNT - 1);
         assertEq(token.balanceOf(address(liquidityPool)), 1);
         assertEq(liquidityPool.getTokenBalance(address(token)), 1);
         assertEq(liquidityPool.getTokenBalance(address(creditLine)), 1);
@@ -217,11 +214,11 @@ contract LiquidityPoolAccountableTest is Test {
     function test_withdraw_TokenBalance() public {
         configureLender();
 
-        vm.startPrank(LENDER);
+        vm.startPrank(LENDER_1);
 
         liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT);
 
-        assertEq(token.balanceOf(LENDER), 0);
+        assertEq(token.balanceOf(LENDER_1), 0);
         assertEq(token.balanceOf(address(liquidityPool)), DEPOSIT_AMOUNT);
         assertEq(liquidityPool.getTokenBalance(address(token)), DEPOSIT_AMOUNT);
         assertEq(liquidityPool.getTokenBalance(address(creditLine)), DEPOSIT_AMOUNT);
@@ -230,21 +227,21 @@ contract LiquidityPoolAccountableTest is Test {
         emit Withdraw(address(token), DEPOSIT_AMOUNT - 1);
         liquidityPool.withdraw(address(token), DEPOSIT_AMOUNT - 1);
 
-        assertEq(token.balanceOf(LENDER), DEPOSIT_AMOUNT - 1);
+        assertEq(token.balanceOf(LENDER_1), DEPOSIT_AMOUNT - 1);
         assertEq(token.balanceOf(address(liquidityPool)), 1);
         assertEq(liquidityPool.getTokenBalance(address(token)), 1);
         assertEq(liquidityPool.getTokenBalance(address(creditLine)), DEPOSIT_AMOUNT);
     }
 
     function test_withdraw_Revert_ZeroBalance() public {
-        vm.prank(LENDER);
+        vm.prank(LENDER_1);
         vm.expectRevert(LiquidityPoolAccountable.ZeroBalance.selector);
         liquidityPool.withdraw(address(creditLine), DEPOSIT_AMOUNT);
     }
 
     function test_withdraw_Revert_CreditLineBalance_InsufficientBalance() public {
         configureLender();
-        vm.startPrank(LENDER);
+        vm.startPrank(LENDER_1);
         liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT);
         vm.expectRevert(LiquidityPoolAccountable.InsufficientBalance.selector);
         liquidityPool.withdraw(address(creditLine), DEPOSIT_AMOUNT + 1);
@@ -252,20 +249,20 @@ contract LiquidityPoolAccountableTest is Test {
 
     function test_withdraw_Revert_TokenBalance_InsufficientBalance() public {
         configureLender();
-        vm.startPrank(LENDER);
+        vm.startPrank(LENDER_1);
         liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT);
         vm.expectRevert(LiquidityPoolAccountable.InsufficientBalance.selector);
         liquidityPool.withdraw(address(token), DEPOSIT_AMOUNT + 1);
     }
 
     function test_withdraw_Revert_IfTokenSourceIsZeroAddress() public {
-        vm.prank(LENDER);
+        vm.prank(LENDER_1);
         vm.expectRevert(Error.ZeroAddress.selector);
         liquidityPool.withdraw(address(0), DEPOSIT_AMOUNT);
     }
 
     function test_withdraw_Revert_IfWithdrawAmountIsZero() public {
-        vm.prank(LENDER);
+        vm.prank(LENDER_1);
         vm.expectRevert(Error.InvalidAmount.selector);
         liquidityPool.withdraw(address(creditLine), 0);
     }
@@ -292,7 +289,7 @@ contract LiquidityPoolAccountableTest is Test {
     }
 
     function test_onBeforeTakeLoan_Revert_IfContractIsPaused() public {
-        vm.prank(LENDER);
+        vm.prank(LENDER_1);
         liquidityPool.pause();
 
         vm.prank(address(lendingMarket));
@@ -325,7 +322,7 @@ contract LiquidityPoolAccountableTest is Test {
             })
         );
 
-        vm.prank(LENDER);
+        vm.prank(LENDER_1);
         liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT);
 
         assertEq(liquidityPool.getCreditLine(LOAN_ID), address(0));
@@ -345,7 +342,7 @@ contract LiquidityPoolAccountableTest is Test {
     }
 
     function test_onAfterTakeLoan_Revert_IfContractIsPaused() public {
-        vm.prank(LENDER);
+        vm.prank(LENDER_1);
         liquidityPool.pause();
 
         vm.prank(address(lendingMarket));
@@ -369,7 +366,7 @@ contract LiquidityPoolAccountableTest is Test {
     }
 
     function test_onBeforeLoanPayment_Revert_IfContractIsPaused() public {
-        vm.prank(LENDER);
+        vm.prank(LENDER_1);
         liquidityPool.pause();
 
         vm.prank(address(lendingMarket));
@@ -402,7 +399,7 @@ contract LiquidityPoolAccountableTest is Test {
             })
         );
 
-        vm.prank(LENDER);
+        vm.prank(LENDER_1);
         liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT);
 
         assertEq(liquidityPool.getTokenBalance(address(creditLine)), DEPOSIT_AMOUNT);
@@ -436,7 +433,7 @@ contract LiquidityPoolAccountableTest is Test {
             })
         );
 
-        vm.prank(LENDER);
+        vm.prank(LENDER_1);
         liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT);
 
         assertEq(liquidityPool.getTokenBalance(address(creditLine)), DEPOSIT_AMOUNT);
@@ -454,7 +451,7 @@ contract LiquidityPoolAccountableTest is Test {
     }
 
     function test_onAfterLoanPayment_Revert_IfContractIsPaused() public {
-        vm.prank(LENDER);
+        vm.prank(LENDER_1);
         liquidityPool.pause();
 
         vm.prank(address(lendingMarket));
@@ -471,8 +468,8 @@ contract LiquidityPoolAccountableTest is Test {
         assertEq(liquidityPool.getTokenBalance(address(token)), 0);
         assertEq(liquidityPool.getTokenBalance(NONEXISTENT_TOKEN_SOUTRCE), 0);
 
-        vm.startPrank(LENDER);
-        token.mint(LENDER, DEPOSIT_AMOUNT + 1);
+        vm.startPrank(LENDER_1);
+        token.mint(LENDER_1, DEPOSIT_AMOUNT + 1);
         token.approve(address(liquidityPool), DEPOSIT_AMOUNT + 1);
         liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT + 1);
         token.mint(address(liquidityPool), DEPOSIT_AMOUNT + 2);
@@ -507,7 +504,7 @@ contract LiquidityPoolAccountableTest is Test {
             })
         );
 
-        vm.prank(LENDER);
+        vm.prank(LENDER_1);
         liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT);
 
         assertEq(liquidityPool.getCreditLine(LOAN_ID), address(0));
@@ -527,10 +524,10 @@ contract LiquidityPoolAccountableTest is Test {
     }
 
     function test_lender() public {
-        assertEq(liquidityPool.lender(), LENDER);
+        assertEq(liquidityPool.lender(), LENDER_1);
     }
 
     function test_kind() public {
-        assertEq(liquidityPool.kind(), KIND);
+        assertEq(liquidityPool.kind(), KIND_1);
     }
 }

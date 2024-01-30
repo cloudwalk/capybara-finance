@@ -9,10 +9,12 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 
 import {LiquidityPoolFactoryUUPS} from "src/pools/LiquidityPoolFactoryUUPS.sol";
 
+import {Config} from "test/base/Config.sol";
+
 /// @title LiquidityPoolFactoryUUPSTest contract
 /// @notice Contains tests for the LiquidityPoolFactoryUUPS contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-contract LiquidityPoolFactoryUUPSTest is Test {
+contract LiquidityPoolFactoryUUPSTest is Test, Config {
     /************************************************
      *  Events
      ***********************************************/
@@ -24,9 +26,6 @@ contract LiquidityPoolFactoryUUPSTest is Test {
      ***********************************************/
 
     LiquidityPoolFactoryUUPS public proxy;
-
-    address public constant REGISTRY = address(bytes20(keccak256("registry")));
-    address public constant ATTACKER = address(bytes20(keccak256("attacker")));
 
     /************************************************
      *  Setup and configuration
