@@ -2,6 +2,7 @@
 
 pragma solidity 0.8.23;
 
+import {Loan} from "src/libraries/Loan.sol";
 import {Interest} from "src/libraries/Interest.sol";
 import {ICreditLineConfigurable} from "src/interfaces/ICreditLineConfigurable.sol";
 
@@ -26,7 +27,7 @@ contract Config {
     address public constant BORROWER_1 = address(bytes20(keccak256("borrower_1")));
     address public constant BORROWER_2 = address(bytes20(keccak256("borrower_2")));
     address public constant BORROWER_3 = address(bytes20(keccak256("borrower_3")));
-    address public constant ADDON_RECIPIENT = address(bytes20(keccak256("addon_recipient")));
+    address public constant ADDON_RECIPIENT = address(bytes20(keccak256("recipient")));
 
     address public constant CREDIT_LINE_1 = address(bytes20(keccak256("credit_line_1")));
     address public constant CREDIT_LINE_2 = address(bytes20(keccak256("credit_line_2")));
@@ -59,16 +60,17 @@ contract Config {
     uint256 public constant INIT_BORROWER_MAX_BORROW_AMOUNT = 800;
     uint256 public constant INIT_BORROWER_INTEREST_RATE_PRIMARY = 500;
     uint256 public constant INIT_BORROWER_INTEREST_RATE_SECONDARY = 600;
-    Interest.Formula public constant INIT_BORROWER_INTEREST_FORMULA = Interest.Formula.Simple;
-    Interest.Formula public constant INIT_BORROWER_INTEREST_FORMULA_COMPOUND = Interest.Formula.Compound;
+    Interest.Formula public constant INIT_BORROWER_INTEREST_FORMULA = Interest.Formula.Compound;
     ICreditLineConfigurable.BorrowPolicy public constant INIT_BORROWER_POLICY =
         ICreditLineConfigurable.BorrowPolicy.Decrease;
-
-    uint256 public constant ZERO_VALUE = 0;
 
     uint16 public constant KIND_1 = 1;
     uint16 public constant KIND_2 = 2;
     bytes public constant DATA = "0x123ff";
+
+    uint256 public constant BORROW_AMOUNT = 100;
+    uint256 public constant ADDON_AMOUNT = 100;
+    uint256 public constant ZERO_VALUE = 0;
 
     function initCreditLineConfig() public pure returns (ICreditLineConfigurable.CreditLineConfig memory) {
         return ICreditLineConfigurable.CreditLineConfig({
@@ -119,5 +121,21 @@ contract Config {
         configs[2] = initBorrowerConfig(blockTimestamp);
 
         return (borrowers, configs);
+    }
+
+    function initLoanTerms(address token) internal returns (Loan.Terms memory) {
+        ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = initCreditLineConfig();
+        ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(0);
+        return Loan.Terms({
+            token: token,
+            periodInSeconds: creditLineConfig.periodInSeconds,
+            durationInPeriods: creditLineConfig.durationInPeriods,
+            interestRateFactor: creditLineConfig.interestRateFactor,
+            interestRatePrimary: borrowerConfig.interestRatePrimary,
+            interestRateSecondary: borrowerConfig.interestRateSecondary,
+            interestFormula: borrowerConfig.interestFormula,
+            addonRecipient: borrowerConfig.addonRecipient,
+            addonAmount: ADDON_AMOUNT
+        });
     }
 }

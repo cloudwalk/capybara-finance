@@ -84,19 +84,7 @@ contract LendingMarketMock is ILendingMarket {
         return _loanState[loanId];
     }
 
-    function getLoanPreview(uint256 loanId, uint256 repayAmount, uint256 repayDate)
-        external
-        pure
-        returns (Loan.State memory)
-    {
-        revert Error.NotImplemented();
-    }
-
-    function getOutstandingBalance(uint256 loanId) external pure returns (uint256) {
-        revert Error.NotImplemented();
-    }
-
-    function getCurrentPeriodDate(uint256 loanId) external pure returns (uint256) {
+    function getLoanBalance(uint256 loanId, uint256 timestamp) external pure returns (uint256, uint256) {
         revert Error.NotImplemented();
     }
 
