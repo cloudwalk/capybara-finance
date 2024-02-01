@@ -257,6 +257,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         terms.interestRateSecondary = borrowerConfig.interestRateSecondary;
         terms.interestFormula = borrowerConfig.interestFormula;
         terms.addonRecipient = borrowerConfig.addonRecipient;
+        terms.autoRepayment = borrowerConfig.autoRepayment;
 
         if (terms.addonRecipient != address(0)) {
             terms.addonAmount = calculateAddonAmount(amount);

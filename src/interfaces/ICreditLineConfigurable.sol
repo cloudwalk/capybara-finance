@@ -86,6 +86,8 @@ interface ICreditLineConfigurable {
         Interest.Formula interestFormula;
         /// @notice The address of the recipient of additional payments and fees
         address addonRecipient;
+        /// @notice Whether the loan can be repaid automatically
+        bool autoRepayment;
         /// @notice The borrow policy
         BorrowPolicy policy;
     }

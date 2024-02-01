@@ -20,9 +20,24 @@ interface ILiquidityPoolAccountable {
     /// @param amount The amount of tokens withdrawn
     event Withdraw(address indexed tokenSource, uint256 amount);
 
+    /// @notice Emitted when admin is configured
+    /// @param admin The address of the admin account
+    /// @param adminStatus True if the account is an admin
+    event ConfigureAdmin(address indexed admin, bool adminStatus);
+
+    /// @notice Emitted when liqudiity pool is repay loans
+    /// @param loanIds The unique identifiers of the loans for repayment
+    /// @param amounts The amounts that corellate with given loan ids
+    event RepayLoans(uint256[] loanIds, uint256[] amounts);
+
     /************************************************
      *  Functions
      ***********************************************/
+
+    /// @notice Configures an admin status
+    /// @param admin The address of the admin to configure
+    /// @param adminStatus True whether the account is an admin
+    function configureAdmin(address admin, bool adminStatus) external;
 
     /// @notice Depisits tokens to the liquidity pool
     /// @param creditLine The address of the associated credit line
@@ -43,4 +58,14 @@ interface ILiquidityPoolAccountable {
     /// @param tokenSource The address of the token source
     /// @return The token balance
     function getTokenBalance(address tokenSource) external view returns (uint256);
+
+    /// @notice Repay batch loans
+    /// @param loanIds The unique identifiers of the loans for repayment
+    /// @param amounts The amounts that corellate with given loan ids
+    function repayLoans(uint256[] memory loanIds, uint256[] memory amounts) external;
+
+    /// @notice Checks whether an account is an admin
+    /// @param account The address of the account to check
+    /// @return True if the account is configured as an admin
+    function isAdmin(address account) external view returns (bool);
 }

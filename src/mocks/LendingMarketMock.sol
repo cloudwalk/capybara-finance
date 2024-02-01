@@ -17,6 +17,10 @@ contract LendingMarketMock is ILendingMarket {
     event RegisterCreditLineCalled(address indexed lender, address indexed creditLine);
 
     event RegisterLiquidityPoolCalled(address indexed lender, address indexed liquidityPool);
+    event RepayLoanCalled(
+        uint256 indexed loanId,
+        uint256 repayAmount
+    );
 
     /************************************************
      *  Storage variables
@@ -33,7 +37,7 @@ contract LendingMarketMock is ILendingMarket {
     }
 
     function repayLoan(uint256 loanId, uint256 amount) external {
-        revert Error.NotImplemented();
+        emit RepayLoanCalled(loanId, amount);
     }
 
     function freeze(uint256 loanId) external {

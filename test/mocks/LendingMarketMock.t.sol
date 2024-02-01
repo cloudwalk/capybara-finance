@@ -21,6 +21,11 @@ contract LendingMarketMockTest is Test {
 
     event RegisterLiquidityPoolCalled(address indexed lender, address indexed liquidityPool);
 
+    event RepayLoanCalled(
+        uint256 indexed loanId,
+        uint256 repayAmount
+    );
+
     /************************************************
      *  Storage variables
      ***********************************************/
@@ -45,7 +50,9 @@ contract LendingMarketMockTest is Test {
     }
 
     function test_repayLoan() public {
-        vm.expectRevert(Error.NotImplemented.selector);
+        vm.prank(address(mock));
+        vm.expectEmit(true, true, true, true, address(mock));
+        emit RepayLoanCalled(100, 100);
         mock.repayLoan(100, 100);
     }
 
@@ -138,7 +145,8 @@ contract LendingMarketMockTest is Test {
                 trackedBorrowAmount: 700,
                 startDate: 800,
                 trackDate: 900,
-                freezeDate: 1000
+                freezeDate: 1000,
+                autoRepayment: false
             })
         );
 
