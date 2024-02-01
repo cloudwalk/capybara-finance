@@ -854,10 +854,12 @@ contract LendingMarketTest is Test, Config {
     function test_updateLoanDuration() public {
         configureMarket();
         uint256 loanId = createActiveLoan(false);
-
         Loan.State memory loan = market.getLoan(loanId);
+
         uint256 oldDurationInPeriods = loan.durationInPeriods;
         uint256 newDurationInPeriods = oldDurationInPeriods + 5;
+
+        assertEq(oldDurationInPeriods, INIT_BORROWER_DURATION_IN_PERIODS);
 
         vm.prank(LENDER_1);
         vm.expectEmit(true, true, true, true, address(market));

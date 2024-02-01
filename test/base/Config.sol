@@ -81,7 +81,8 @@ contract Config {
     function initCreditLineConfig() public pure returns (ICreditLineConfigurable.CreditLineConfig memory) {
         return ICreditLineConfigurable.CreditLineConfig({
             periodInSeconds: INIT_CREDIT_LINE_PERIOD_IN_SECONDS,
-            durationInPeriods: INIT_CREDIT_LINE_DURATION_IN_PERIODS,
+            minDurationInPeriods: INIT_CREDIT_LINE_MIN_DURATION_IN_PERIODS,
+            maxDurationInPeriods: INIT_CREDIT_LINE_MAX_DURATION_IN_PERIODS,
             minBorrowAmount: INIT_CREDIT_LINE_MIN_BORROW_AMOUNT,
             maxBorrowAmount: INIT_CREDIT_LINE_MAX_BORROW_AMOUNT,
             interestRateFactor: INIT_CREDIT_LINE_INTEREST_RATE_FACTOR,
@@ -100,6 +101,7 @@ contract Config {
         returns (ICreditLineConfigurable.BorrowerConfig memory)
     {
         return ICreditLineConfigurable.BorrowerConfig({
+            durationInPeriods: INIT_BORROWER_DURATION_IN_PERIODS,
             expiration: blockTimestamp + INIT_BORROWER_DURATION,
             minBorrowAmount: INIT_BORROWER_MIN_BORROW_AMOUNT,
             maxBorrowAmount: INIT_BORROWER_MAX_BORROW_AMOUNT,
@@ -147,7 +149,7 @@ contract Config {
         return Loan.Terms({
             token: token,
             periodInSeconds: creditLineConfig.periodInSeconds,
-            durationInPeriods: creditLineConfig.durationInPeriods,
+            durationInPeriods: borrowerConfig.durationInPeriods,
             interestRateFactor: creditLineConfig.interestRateFactor,
             interestRatePrimary: borrowerConfig.interestRatePrimary,
             interestRateSecondary: borrowerConfig.interestRateSecondary,
