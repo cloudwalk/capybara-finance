@@ -154,10 +154,10 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         if (config.periodInSeconds == 0) {
             revert InvalidCreditLineConfiguration();
         }
-        if (config.durationInPeriods == 0) {
+        if (config.interestRateFactor == 0) {
             revert InvalidCreditLineConfiguration();
         }
-        if (config.interestRateFactor == 0) {
+        if (config.minDurationInPeriods > config.maxDurationInPeriods) {
             revert InvalidCreditLineConfiguration();
         }
         if (config.minBorrowAmount > config.maxBorrowAmount) {
@@ -250,9 +250,9 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         }
 
         terms.token = _token;
-        terms.periodInSeconds = _config.periodInSeconds;
-        terms.durationInPeriods = _config.durationInPeriods;
         terms.interestRateFactor = _config.interestRateFactor;
+        terms.periodInSeconds = _config.periodInSeconds;
+        terms.durationInPeriods = borrowerConfig.durationInPeriods;
         terms.interestRatePrimary = borrowerConfig.interestRatePrimary;
         terms.interestRateSecondary = borrowerConfig.interestRateSecondary;
         terms.interestFormula = borrowerConfig.interestFormula;
@@ -260,7 +260,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         terms.autoRepayment = borrowerConfig.autoRepayment;
 
         if (terms.addonRecipient != address(0)) {
-            terms.addonAmount = calculateAddonAmount(amount);
+            terms.addonAmount = calculateAddonAmount(amount, borrowerConfig);
         }
     }
 
@@ -301,8 +301,9 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
 
     /// @notice Calculates the additional payment amount
     /// @param amount The initial principal amount of the loan
-    function calculateAddonAmount(uint256 amount) public view returns (uint256) {
-        uint256 addonRate = _config.addonFixedCostRate + _config.addonPeriodCostRate * _config.durationInPeriods;
+    /// @param borrowerConfig The borrower configuration
+    function calculateAddonAmount(uint256 amount, BorrowerConfig memory borrowerConfig) public view returns (uint256) {
+        uint256 addonRate = _config.addonFixedCostRate + _config.addonPeriodCostRate * borrowerConfig.durationInPeriods;
         return (amount * addonRate) / _config.interestRateFactor;
     }
 
@@ -321,6 +322,15 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         // NOTE: we don't check for expiration here
         // because expiration can be used to disable a borrower
 
+        if (config.durationInPeriods == 0) {
+            revert InvalidBorrowerConfiguration();
+        }
+        if (config.durationInPeriods < _config.minDurationInPeriods) {
+            revert InvalidBorrowerConfiguration();
+        }
+        if (config.durationInPeriods > _config.maxDurationInPeriods) {
+            revert InvalidBorrowerConfiguration();
+        }
         if (config.minBorrowAmount > config.maxBorrowAmount) {
             revert InvalidBorrowerConfiguration();
         }
