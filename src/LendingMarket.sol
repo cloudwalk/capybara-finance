@@ -459,7 +459,7 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ILendingMarket
-    function getLoan(uint256 loanId) external view returns (Loan.State memory) {
+    function getLoanState(uint256 loanId) external view returns (Loan.State memory) {
         return _loans[loanId];
     }
 
