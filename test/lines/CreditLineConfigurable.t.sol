@@ -736,7 +736,7 @@ contract CreditLineConfigurableTest is Test, Config {
         assertEq(terms.interestRateSecondary, borrowerConfig.interestRateSecondary);
         assertEq(uint256(terms.interestFormula), uint256(borrowerConfig.interestFormula));
         assertEq(terms.addonRecipient, borrowerConfig.addonRecipient);
-        assertEq(terms.addonAmount, creditLine.calculateAddonAmount(borrowerConfig.minBorrowAmount, borrowerConfig));
+        assertEq(terms.addonAmount, creditLine.calculateAddonAmount(borrowerConfig.minBorrowAmount, borrowerConfig.durationInPeriods));
     }
 
     function test_determineLoanTerms_WithoutAddon() public {
@@ -840,7 +840,7 @@ contract CreditLineConfigurableTest is Test, Config {
         uint256 addonRate = config.addonFixedCostRate + config.addonPeriodCostRate * borrowerConfig.durationInPeriods;
         uint256 addonAmount = (amount * addonRate) / config.interestRateFactor;
 
-        assertEq(creditLine.calculateAddonAmount(amount, borrowerConfig), addonAmount);
+        assertEq(creditLine.calculateAddonAmount(amount, borrowerConfig.durationInPeriods), addonAmount);
     }
 
     /************************************************
