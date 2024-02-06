@@ -195,7 +195,7 @@ contract LiquidityPoolAccountable is
     /// @inheritdoc ILiquidityPoolAccountable
     function repayLoans(uint256[] memory loanIds, uint256[] memory amounts) external onlyAdmin {
         if (loanIds.length != amounts.length) {
-            revert ArrayLengthMismatch();
+            revert Error.ArrayLengthMismatch();
         }
 
         for (uint256 i = 0; i < loanIds.length; i++) {
