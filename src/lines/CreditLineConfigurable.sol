@@ -51,9 +51,6 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     /// @notice Thrown when the borrow policy is unsupported
     error UnsupportedBorrowPolicy();
 
-    /// @notice Thrown when array lengths do not match
-    error ArrayLengthMismatch();
-
     /************************************************
      *  Modifiers
      ***********************************************/

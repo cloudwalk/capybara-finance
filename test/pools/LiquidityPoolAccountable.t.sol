@@ -372,8 +372,8 @@ contract LiquidityPoolAccountableTest is Test, Config {
         amountsIncorrectLength[1] = amounts[1];
 
         vm.prank(ADMIN);
-        vm.expectRevert(LiquidityPoolAccountable.ArrayLengthMismatch.selector);
         liquidityPool.repayLoans(loanIds, amountsIncorrectLength);
+        vm.expectRevert(Error.ArrayLengthMismatch.selector);
     }
 
     function test_deposit_Revert_IfCallerNotAdmin() public {

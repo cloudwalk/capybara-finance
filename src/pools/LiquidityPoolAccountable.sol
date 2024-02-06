@@ -51,9 +51,6 @@ contract LiquidityPoolAccountable is
     /// @notice Thrown when the token source balance is insufficient
     error InsufficientBalance();
 
-    /// @notice Thrown when the length of arrays are different
-    error ArrayLengthMismatch();
-
     /************************************************
      *  Modifiers
      ***********************************************/

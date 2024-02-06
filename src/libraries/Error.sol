@@ -18,6 +18,9 @@ library Error {
     /// @notice Thrown when the configuration is already applied
     error AlreadyConfigured();
 
+    /// @notice Thrown when array lengths do not match each other
+    error ArrayLengthMismatch();
+
     /// @notice Thrown when the called function is not implemented
     error NotImplemented();
 }

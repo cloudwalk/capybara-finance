@@ -629,7 +629,7 @@ contract CreditLineConfigurableTest is Test, Config {
         assertNotEq(borrowers.length, configs.length);
 
         vm.prank(ADMIN);
-        vm.expectRevert(CreditLineConfigurable.ArrayLengthMismatch.selector);
+        vm.expectRevert(Error.ArrayLengthMismatch.selector);
         creditLine.configureBorrowers(borrowers, configs);
     }
 
