@@ -12,7 +12,7 @@ interface ICreditLine {
      *  Functions
      ***********************************************/
 
-    /// @notice A hook that is triggered by the market right before a loan is taken
+    /// @notice A hook that is triggered by the market before a loan is taken
     /// @param borrower The address of the borrower
     /// @param amount The amount of the loan
     /// @param loanId The unique identifier of the loan taken
