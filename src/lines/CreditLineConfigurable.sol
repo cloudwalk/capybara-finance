@@ -218,11 +218,11 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
 
         BorrowerConfig storage borrowerConfig = _borrowers[borrower];
 
-        if (borrowerConfig.policy == BorrowPolicy.Reset) {
+        if (borrowerConfig.borrowPolicy == BorrowPolicy.Reset) {
             borrowerConfig.maxBorrowAmount = 0;
-        } else if (borrowerConfig.policy == BorrowPolicy.Decrease) {
+        } else if (borrowerConfig.borrowPolicy == BorrowPolicy.Decrease) {
             borrowerConfig.maxBorrowAmount = (uint256(borrowerConfig.maxBorrowAmount) - amount).toUint64();
-        } else if (borrowerConfig.policy == BorrowPolicy.Keep) {} else {
+        } else if (borrowerConfig.borrowPolicy == BorrowPolicy.Keep) {} else {
             // NOTE: This should never happen since all possible policies are checked above
             revert UnsupportedBorrowPolicy();
         }

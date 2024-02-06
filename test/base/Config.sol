@@ -112,7 +112,7 @@ contract Config {
             interestRateSecondary: INIT_BORROWER_INTEREST_RATE_SECONDARY,
             interestFormula: INIT_BORROWER_INTEREST_FORMULA_COMPOUND,
             addonRecipient: ADDON_RECIPIENT,
-            policy: INIT_BORROWER_POLICY,
+            borrowPolicy: INIT_BORROWER_POLICY,
             autoRepayment: INIT_BORROWER_AUTOREPAYMENT
         });
     }

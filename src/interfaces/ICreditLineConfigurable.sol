@@ -96,10 +96,10 @@ interface ICreditLineConfigurable {
         uint64 maxBorrowAmount;
         /// @notice The formula to be used for interest calculation on the loan
         Interest.Formula interestFormula;
+        /// @notice The borrow policy to be applied to the borrower
+        BorrowPolicy borrowPolicy;
         /// @notice Whether the loan can be repaid automatically
         bool autoRepayment;
-        /// @notice The borrow policy
-        BorrowPolicy policy;
     }
 
     /************************************************

@@ -71,7 +71,7 @@ contract CreditLineConfigurableTest is Test, Config {
         assertEq(config1.addonRecipient, config2.addonRecipient);
         assertEq(config1.autoRepayment, config2.autoRepayment);
         assertEq(uint256(config1.interestFormula), uint256(config2.interestFormula));
-        assertEq(uint256(config1.policy), uint256(config2.policy));
+        assertEq(uint256(config1.borrowPolicy), uint256(config2.borrowPolicy));
     }
 
     function assertFalseBorrowerConfig(
@@ -88,7 +88,7 @@ contract CreditLineConfigurableTest is Test, Config {
                 && config1.addonRecipient == config2.addonRecipient
                 && config1.autoRepayment == config2.autoRepayment
                 && uint256(config1.interestFormula) == uint256(config2.interestFormula)
-                && uint256(config1.policy) == uint256(config2.policy)
+                && uint256(config1.borrowPolicy) == uint256(config2.borrowPolicy)
         );
     }
 
@@ -641,7 +641,7 @@ contract CreditLineConfigurableTest is Test, Config {
         configureCreditLine();
 
         ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
-        config.policy = ICreditLineConfigurable.BorrowPolicy.Keep;
+        config.borrowPolicy = ICreditLineConfigurable.BorrowPolicy.Keep;
 
         vm.prank(ADMIN);
         creditLine.configureBorrower(BORROWER_1, config);
@@ -656,7 +656,7 @@ contract CreditLineConfigurableTest is Test, Config {
         configureCreditLine();
 
         ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
-        config.policy = ICreditLineConfigurable.BorrowPolicy.Reset;
+        config.borrowPolicy = ICreditLineConfigurable.BorrowPolicy.Reset;
 
         vm.prank(ADMIN);
         creditLine.configureBorrower(BORROWER_1, config);
@@ -671,7 +671,7 @@ contract CreditLineConfigurableTest is Test, Config {
         configureCreditLine();
 
         ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
-        config.policy = ICreditLineConfigurable.BorrowPolicy.Decrease;
+        config.borrowPolicy = ICreditLineConfigurable.BorrowPolicy.Decrease;
 
         vm.prank(ADMIN);
         creditLine.configureBorrower(BORROWER_1, config);
