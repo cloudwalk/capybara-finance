@@ -17,7 +17,7 @@ contract LiquidityPoolMockTest is Test {
      *  Events
      ***********************************************/
 
-    event OnBeforeTakeLoanCalled(uint256 indexed loanId, address indexed LiquidityPool);
+    event OnBeforeLoanTakenCalled(uint256 indexed loanId, address indexed LiquidityPool);
     event OnAfterTakeLoanCalled(uint256 indexed loanId, address indexed LiquidityPool);
 
     event OnBeforeLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
@@ -41,16 +41,16 @@ contract LiquidityPoolMockTest is Test {
      *  ILiquidityPoolFactory functions
      ***********************************************/
 
-    function test_onBeforeTakeLoan() public {
+    function test_onBeforeLoanTaken() public {
         vm.expectEmit(true, true, true, true, address(mock));
-        emit OnBeforeTakeLoanCalled(100, address(0x1));
-        bool result = mock.onBeforeTakeLoan(100, address(0x1));
+        emit OnBeforeLoanTakenCalled(100, address(0x1));
+        bool result = mock.onBeforeLoanTaken(100, address(0x1));
         assertEq(result, false);
 
-        mock.mockOnBeforeTakeLoanResult(true);
+        mock.mockOnBeforeLoanTakenResult(true);
         vm.expectEmit(true, true, true, true, address(mock));
-        emit OnBeforeTakeLoanCalled(100, address(0x1));
-        result = mock.onBeforeTakeLoan(100, address(0x1));
+        emit OnBeforeLoanTakenCalled(100, address(0x1));
+        result = mock.onBeforeLoanTaken(100, address(0x1));
         assertEq(result, true);
     }
 

@@ -246,7 +246,7 @@ contract LendingMarket is
 
         _loans[id] = loan;
 
-        ILiquidityPool(pool).onBeforeTakeLoan(id, creditLine);
+        ILiquidityPool(pool).onBeforeLoanTaken(id, creditLine);
         IERC20(terms.token).safeTransferFrom(pool, msg.sender, amount);
         if (terms.addonAmount != 0) {
             IERC20(terms.token).safeTransferFrom(pool, terms.addonRecipient, terms.addonAmount);

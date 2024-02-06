@@ -387,27 +387,27 @@ contract LiquidityPoolAccountableTest is Test, Config {
     }
 
     /************************************************
-     *  Test `onBeforeTakeLoan` function
+     *  Test `onBeforeLoanTaken` function
      ***********************************************/
 
-    function test_onBeforeTakeLoan() public {
+    function test_onBeforeLoanTaken() public {
         vm.prank(address(lendingMarket));
-        assertEq(liquidityPool.onBeforeTakeLoan(LOAN_ID_1, address(creditLine)), true);
+        assertEq(liquidityPool.onBeforeLoanTaken(LOAN_ID_1, address(creditLine)), true);
     }
 
-    function test_onBeforeTakeLoan_Revert_IfCallerNotMarket() public {
+    function test_onBeforeLoanTaken_Revert_IfCallerNotMarket() public {
         vm.prank(ATTACKER);
         vm.expectRevert(Error.Unauthorized.selector);
-        liquidityPool.onBeforeTakeLoan(LOAN_ID_1, address(creditLine));
+        liquidityPool.onBeforeLoanTaken(LOAN_ID_1, address(creditLine));
     }
 
-    function test_onBeforeTakeLoan_Revert_IfContractIsPaused() public {
+    function test_onBeforeLoanTaken_Revert_IfContractIsPaused() public {
         vm.prank(LENDER_1);
         liquidityPool.pause();
 
         vm.prank(address(lendingMarket));
         vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
-        liquidityPool.onBeforeTakeLoan(LOAN_ID_1, address(creditLine));
+        liquidityPool.onBeforeLoanTaken(LOAN_ID_1, address(creditLine));
     }
 
     /************************************************

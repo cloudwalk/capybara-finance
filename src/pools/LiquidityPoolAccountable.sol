@@ -213,7 +213,7 @@ contract LiquidityPoolAccountable is
      ***********************************************/
 
     /// @inheritdoc ILiquidityPool
-    function onBeforeTakeLoan(uint256 loanId, address creditLine) external whenNotPaused onlyMarket returns (bool) {
+    function onBeforeLoanTaken(uint256 loanId, address creditLine) external whenNotPaused onlyMarket returns (bool) {
         return true;
     }
 
