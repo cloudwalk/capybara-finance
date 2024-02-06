@@ -18,12 +18,12 @@ library Loan {
     /// - Defaulted --- Indicates that the borrower has defaulted on the loan
     /// - Recovered --- Indicates that the loan has been recovered after default
     enum Status {
-        Nonexistent, // 0
-        Active,      // 1
-        Repaid,      // 2
-        Frozen,      // 3
-        Defaulted,   // 4
-        Recovered    // 5
+        Nonexistent, //- 0
+        Active, //------ 1
+        Repaid, //------ 2
+        Frozen, //------ 3
+        Defaulted, //--- 4
+        Recovered //---- 5
     }
 
     /// @notice A struct that defines the terms of the loan

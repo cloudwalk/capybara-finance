@@ -3,8 +3,8 @@
 pragma solidity ^0.8.23;
 
 /// @title SafeCast library
-/// @notice Defines safe casting methods from uint256 to needed type
-/// @author CloudWalk Inc. (See https://cloudwalk.io)
+/// @notice Defines safe casting functions from uint256 to neded sizes
+/// @author OpenZeppelin (version 5.0.0)
 library SafeCast {
     /**
      * @dev Value doesn't fit in an uint of `bits` size.
