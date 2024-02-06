@@ -21,6 +21,7 @@ import {CreditLineConfigurable} from "src/lines/CreditLineConfigurable.sol";
 import {CreditLineFactory} from "src/lines/CreditLineFactory.sol";
 import {LiquidityPoolAccountable} from "src/pools/LiquidityPoolAccountable.sol";
 import {LiquidityPoolFactory} from "src/pools/LiquidityPoolFactory.sol";
+import {ComplexScenarios} from "./base/ComplexScenarios.sol";
 
 /// @title LendingMarketTest contract
 /// @notice Contains complex tests for the LendingMarket contract
@@ -31,6 +32,7 @@ contract LendingMarketComplexTest is Test {
     LendingMarket public lendingMarket;
     CreditLineConfigurable public creditLine;
     LiquidityPoolAccountable public liquidityPool;
+    ComplexScenarios public scenarios;
 
     address public borrower;
     CreditLineConfigurable.CreditLineConfig public creditLineConfig;
@@ -47,10 +49,9 @@ contract LendingMarketComplexTest is Test {
     address public constant CREDIT_LINE = address(bytes20(keccak256("credit_line")));
     address public constant LIQUIDITY_POOL = address(bytes20(keccak256("liquidity_pool")));
 
-    uint256 public constant TOKEN_AMOUNT = 1000000;
-    uint256 public constant CREDITLINE_DEPOSIT_AMOUNT = 10000;
-    uint256 public constant BORROWER_LEND_AMOUNT = 100;
-    uint256 public constant BORROWER_SUPPLY_AMOUNT = 100000;
+    uint256 public constant TOKEN_AMOUNT = 100000000000000000;
+    uint256 public constant CREDITLINE_DEPOSIT_AMOUNT = 10000000000;
+    uint256 public constant BORROWER_SUPPLY_AMOUNT = 1000000;
 
     uint256 public constant BASE_BLOCKTIMESTAMP = 1641070800;
     uint256 public constant ZERO_VALUE = 0;
@@ -58,27 +59,21 @@ contract LendingMarketComplexTest is Test {
     address public constant BORROWER = address(bytes20(keccak256("borrower")));
     address public constant ADDON_RECIPIENT = address(bytes20(keccak256("addon_recipient")));
 
-    uint256 public constant INIT_CREDIT_LINE_MIN_BORROW_AMOUNT = 50;
-    uint256 public constant INIT_CREDIT_LINE_MAX_BORROW_AMOUNT = 1000;
-    uint256 public constant INIT_CREDIT_LINE_PERIOD_IN_SECONDS = 86400; // 24 hours
-    uint256 public constant INIT_CREDIT_LINE_DURATION_IN_PERIODS = 5; // 5 days
-    uint256 public constant INIT_CREDIT_LINE_ADDON_FIXED_COST_RATE = 1;
-    uint256 public constant INIT_CREDIT_LINE_ADDON_PERIOD_COST_RATE = 1;
-    uint256 public constant INIT_CREDIT_LINE_MIN_INTEREST_RATE_PRIMARY = 10;
-    uint256 public constant INIT_CREDIT_LINE_MAX_INTEREST_RATE_PRIMARY = 20;
-    uint256 public constant INIT_CREDIT_LINE_MIN_INTEREST_RATE_SECONDARY = 10;
-    uint256 public constant INIT_CREDIT_LINE_MAX_INTEREST_RATE_SECONDARY = 20;
-    uint256 public constant INIT_CREDIT_LINE_INTEREST_RATE_FACTOR = 5;
+    uint256 public constant INIT_CREDIT_LINE_MIN_BORROW_AMOUNT = 0;
+    uint256 public constant INIT_CREDIT_LINE_MAX_BORROW_AMOUNT = type(uint256).max;
+    uint256 public constant INIT_CREDIT_LINE_MIN_INTEREST_RATE_PRIMARY = 0;
+    uint256 public constant INIT_CREDIT_LINE_MAX_INTEREST_RATE_PRIMARY = type(uint256).max;
+    uint256 public constant INIT_CREDIT_LINE_MIN_INTEREST_RATE_SECONDARY = 0;
+    uint256 public constant INIT_CREDIT_LINE_MAX_INTEREST_RATE_SECONDARY = type(uint256).max;
 
     uint256 public constant INIT_BORROWER_DURATION = 1000;
-    uint256 public constant INIT_BORROWER_MIN_BORROW_AMOUNT = 50;
-    uint256 public constant INIT_BORROWER_MAX_BORROW_AMOUNT = 1000;
+    uint256 public constant INIT_BORROWER_MIN_BORROW_AMOUNT = 0;
+    uint256 public constant INIT_BORROWER_MAX_BORROW_AMOUNT = type(uint256).max;
     uint256 public constant INIT_BORROWER_INTEREST_RATE_PRIMARY = 15;
-    uint256 public constant INIT_BORROWER_INTEREST_RATE_SECONDARY = 20;
-    Interest.Formula public constant INIT_BORROWER_INTEREST_FORMULA = Interest.Formula.Simple;
-    Interest.Formula public constant INIT_BORROWER_INTEREST_FORMULA_COMPOUND = Interest.Formula.Compound;
     ICreditLineConfigurable.BorrowPolicy public constant INIT_BORROWER_POLICY =
     ICreditLineConfigurable.BorrowPolicy.Keep;
+    Interest.Formula public constant INIT_BORROWER_INTEREST_FORMULA_COMPOUND =
+    Interest.Formula.Compound;
 
     /************************************************
      *  Setup and configuration
@@ -92,6 +87,8 @@ contract LendingMarketComplexTest is Test {
         lendingMarket.transferOwnership(OWNER);
         //Create Registry and set it to LendingMarket
         configureRegistry();
+        //Deploy complex scenarios contract to use its values
+        scenarios = new ComplexScenarios();
         vm.stopPrank();
     }
 
@@ -102,16 +99,16 @@ contract LendingMarketComplexTest is Test {
         lendingMarket.setRegistry(address(registry));
     }
 
-    function configureLendingMarket() public {
+    function configureLendingMarketForComplexTests(ComplexScenarios.LoanParameters memory loan) public {
         vm.warp(BASE_BLOCKTIMESTAMP);
         //create token
         vm.prank(OWNER);
-        configureToken();
+        configureToken(loan.tokenDecimals);
         //Configure CreditLine
         creditLine = new CreditLineConfigurable();
         creditLine.initialize(address(lendingMarket), LENDER, address(token));
         vm.startPrank(LENDER);
-        creditLineConfig = createInitCreditLineConfig();
+        creditLineConfig = createCreditLineConfig(loan);
         creditLine.configureAdmin(ADMIN, true);
         creditLine.configureCreditLine(creditLineConfig);
         vm.stopPrank();
@@ -125,7 +122,7 @@ contract LendingMarketComplexTest is Test {
         vm.stopPrank();
         //Configure Borrower
         vm.startPrank(ADMIN);
-        borrowerConfig = createInitBorrowerConfig();
+        borrowerConfig = createBorrowerConfig(loan);
         borrowerConfig.interestFormula = INIT_BORROWER_INTEREST_FORMULA_COMPOUND;
         creditLine.configureBorrower(BORROWER, borrowerConfig);
         vm.stopPrank();
@@ -138,44 +135,8 @@ contract LendingMarketComplexTest is Test {
         token.approve(address(lendingMarket), type(uint256).max);
     }
 
-    function configureLendingMarketWithAddonRecipient() public {
-        vm.warp(BASE_BLOCKTIMESTAMP);
-        //create token
-        vm.prank(OWNER);
-        configureToken();
-        //Configure CreditLine
-        creditLine = new CreditLineConfigurable();
-        creditLine.initialize(address(lendingMarket), LENDER, address(token));
-        vm.startPrank(LENDER);
-        creditLineConfig = createCreditLineConfig();
-        creditLine.configureAdmin(ADMIN, true);
-        creditLine.configureCreditLine(creditLineConfig);
-        vm.stopPrank();
-        //Register credit line
-        vm.prank(OWNER);
-        lendingMarket.registerCreditLine(LENDER, address(creditLine));
-        // Supply lender and borrower
-        vm.startPrank(OWNER);
-        token.transfer(LENDER, TOKEN_AMOUNT);
-        token.transfer(BORROWER, TOKEN_AMOUNT);
-        vm.stopPrank();
-        //Configure Borrower
-        vm.startPrank(ADMIN);
-        borrowerConfig = createBorrowerConfig();
-        borrowerConfig.interestFormula = INIT_BORROWER_INTEREST_FORMULA_COMPOUND;
-        creditLine.configureBorrower(BORROWER, borrowerConfig);
-        vm.stopPrank();
-        //configure liquidityPool
-        configureLiquidityPool();
-        vm.prank(OWNER);
-        lendingMarket.registerLiquidityPool(LENDER, address(liquidityPool));
-        // Increase allowances
-        vm.prank(BORROWER);
-        token.approve(address(lendingMarket), type(uint256).max);
-    }
-
-    function configureToken() public {
-        token = new ERC20Mock(TOKEN_AMOUNT);
+    function configureToken(uint8 decimals) public {
+        token = new ERC20Mock(TOKEN_AMOUNT, decimals);
     }
 
     function configureLiquidityPool() public {
@@ -184,441 +145,123 @@ contract LendingMarketComplexTest is Test {
         liquidityPool.initialize(address(lendingMarket), LENDER);
         vm.stopPrank();
         vm.startPrank(LENDER);
-        token.approve(address(liquidityPool), TOKEN_AMOUNT);
+        token.approve(address(liquidityPool), type(uint256).max);
         liquidityPool.deposit(address(creditLine), CREDITLINE_DEPOSIT_AMOUNT);
         vm.stopPrank();
     }
 
-    function takeLoan(address borrower) public returns(uint256) {
+    function takeLoan(address borrower, uint256 amount) public returns(uint256) {
         vm.prank(borrower);
-        return lendingMarket.takeLoan(address(creditLine), BORROWER_LEND_AMOUNT);
+        return lendingMarket.takeLoan(address(creditLine), amount);
     }
 
-    function createInitBorrowerConfig() public view returns (ICreditLineConfigurable.BorrowerConfig memory) {
+    function createBorrowerConfig(ComplexScenarios.LoanParameters memory loan) public view returns (ICreditLineConfigurable.BorrowerConfig memory) {
         return ICreditLineConfigurable.BorrowerConfig({
             expiration: block.timestamp + INIT_BORROWER_DURATION,
             minBorrowAmount: INIT_BORROWER_MIN_BORROW_AMOUNT,
             maxBorrowAmount: INIT_BORROWER_MAX_BORROW_AMOUNT,
-            interestRatePrimary: INIT_BORROWER_INTEREST_RATE_PRIMARY,
-            interestRateSecondary: INIT_BORROWER_INTEREST_RATE_SECONDARY,
-            interestFormula: INIT_BORROWER_INTEREST_FORMULA,
-            addonRecipient: address(0),
+            interestRatePrimary: loan.interestRatePrimary,
+            interestRateSecondary: loan.interestRateSecondary,
+            interestFormula: loan.interestFormula,
+            addonRecipient: loan.addonRecipient,
             policy: INIT_BORROWER_POLICY
         });
     }
 
-    function createBorrowerConfig() public view returns (ICreditLineConfigurable.BorrowerConfig memory) {
-        return ICreditLineConfigurable.BorrowerConfig({
-            expiration: block.timestamp + INIT_BORROWER_DURATION,
-            minBorrowAmount: INIT_BORROWER_MIN_BORROW_AMOUNT,
-            maxBorrowAmount: INIT_BORROWER_MAX_BORROW_AMOUNT,
-            interestRatePrimary: INIT_BORROWER_INTEREST_RATE_PRIMARY,
-            interestRateSecondary: INIT_BORROWER_INTEREST_RATE_SECONDARY,
-            interestFormula: INIT_BORROWER_INTEREST_FORMULA,
-            addonRecipient: ADDON_RECIPIENT,
-            policy: INIT_BORROWER_POLICY
-        });
-    }
-
-    function createInitCreditLineConfig() public pure returns (ICreditLineConfigurable.CreditLineConfig memory) {
+    function createCreditLineConfig(ComplexScenarios.LoanParameters memory loan) public pure returns (ICreditLineConfigurable.CreditLineConfig memory) {
         return ICreditLineConfigurable.CreditLineConfig({
-            periodInSeconds: INIT_CREDIT_LINE_PERIOD_IN_SECONDS,
-            durationInPeriods: INIT_CREDIT_LINE_DURATION_IN_PERIODS,
+            periodInSeconds: loan.periodInSeconds,
+            durationInPeriods: loan.durationInPeriods,
             minBorrowAmount: INIT_CREDIT_LINE_MIN_BORROW_AMOUNT,
             maxBorrowAmount: INIT_CREDIT_LINE_MAX_BORROW_AMOUNT,
-            interestRateFactor: INIT_CREDIT_LINE_INTEREST_RATE_FACTOR,
+            interestRateFactor: loan.interestRateFactor,
             minInterestRatePrimary: INIT_CREDIT_LINE_MIN_INTEREST_RATE_PRIMARY,
             maxInterestRatePrimary: INIT_CREDIT_LINE_MAX_INTEREST_RATE_PRIMARY,
             minInterestRateSecondary: INIT_CREDIT_LINE_MIN_INTEREST_RATE_SECONDARY,
             maxInterestRateSecondary: INIT_CREDIT_LINE_MAX_INTEREST_RATE_SECONDARY,
-            addonPeriodCostRate: 0,
-            addonFixedCostRate: 0
+            addonPeriodCostRate: loan.addonPeriodCostRate,
+            addonFixedCostRate: loan.addonFixedCostRate
         });
     }
 
-    function createCreditLineConfig() public pure returns (ICreditLineConfigurable.CreditLineConfig memory) {
-        return ICreditLineConfigurable.CreditLineConfig({
-            periodInSeconds: INIT_CREDIT_LINE_PERIOD_IN_SECONDS,
-            durationInPeriods: INIT_CREDIT_LINE_DURATION_IN_PERIODS,
-            minBorrowAmount: INIT_CREDIT_LINE_MIN_BORROW_AMOUNT,
-            maxBorrowAmount: INIT_CREDIT_LINE_MAX_BORROW_AMOUNT,
-            interestRateFactor: INIT_CREDIT_LINE_INTEREST_RATE_FACTOR,
-            minInterestRatePrimary: INIT_CREDIT_LINE_MIN_INTEREST_RATE_PRIMARY,
-            maxInterestRatePrimary: INIT_CREDIT_LINE_MAX_INTEREST_RATE_PRIMARY,
-            minInterestRateSecondary: INIT_CREDIT_LINE_MIN_INTEREST_RATE_SECONDARY,
-            maxInterestRateSecondary: INIT_CREDIT_LINE_MAX_INTEREST_RATE_SECONDARY,
-            addonPeriodCostRate: INIT_CREDIT_LINE_ADDON_PERIOD_COST_RATE,
-            addonFixedCostRate: INIT_CREDIT_LINE_ADDON_FIXED_COST_RATE
-        });
+    function test_repayLoan_Case1() public {
+        ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_1();
+        takeLoanAndVerifyCalculations(loan);
     }
 
-    function test_repayBorrow_InstantRepayment() public {
-        // In this case interest would be equal to zero because zero periods passed
-        configureLendingMarket();
-        uint256 loanId = takeLoan(BORROWER);
-        uint256 outstandingBalance;
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 100
-        vm.startPrank(BORROWER);
-        lendingMarket.repayLoan(loanId, outstandingBalance);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 0
-        assertEq(outstandingBalance, ZERO_VALUE);
+    function test_repayLoan_Case2() public {
+        ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_2();
+        takeLoanAndVerifyCalculations(loan);
     }
 
-    function test_repayBorrow_RepaymentAfterOnePeriod() public {
-        // In this case interest would be equal to 300 after one period passed (total repay amount = 400)
-        // Borrow amount = 100
-        // Interest rate factor = 5
-        // Interest rate primary = 15
-        // Interest rate secondary = 20
-        configureLendingMarket();
-        uint256 loanId = takeLoan(BORROWER);
-        uint256 outstandingBalance;
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 100
-        skip(INIT_CREDIT_LINE_PERIOD_IN_SECONDS);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 400
-        vm.startPrank(BORROWER);
-        lendingMarket.repayLoan(loanId, BORROWER_LEND_AMOUNT);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 300
-        assertEq(outstandingBalance, 300);
+    function test_repayLoan_Case3() public {
+        ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_3();
+        takeLoanAndVerifyCalculations(loan);
     }
 
-    function test_repayBorrow_RepaymentAfterTwoPeriods() public {
-        // In this case interest would be equal to 1500 after two periods passed (total repay amount = 1600)
-        // Borrow amount = 100
-        // Interest rate factor = 5
-        // Interest rate primary = 15
-        // Interest rate secondary = 20
-        configureLendingMarket();
-        uint256 loanId = takeLoan(BORROWER);
-        uint256 outstandingBalance;
-        skip(INIT_CREDIT_LINE_PERIOD_IN_SECONDS * 2);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 400
-        vm.startPrank(BORROWER);
-        lendingMarket.repayLoan(loanId, BORROWER_LEND_AMOUNT);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 300
-        assertEq(outstandingBalance, 1500);
+    function test_repayLoan_Case4() public {
+        ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_4();
+        takeLoanAndVerifyCalculations(loan);
     }
 
-    function test_repayBorrow_RepaymentAfterThreePeriods() public {
-        // In this case interest would be equal to 6300 after three periods passed (total repay amount = 6400)
-        // Borrow amount = 100
-        // Interest rate factor = 5
-        // Interest rate primary = 15
-        // Interest rate secondary = 20
-        configureLendingMarket();
-        uint256 loanId = takeLoan(BORROWER);
-        uint256 outstandingBalance;
-        skip(INIT_CREDIT_LINE_PERIOD_IN_SECONDS * 3);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 6400
-        vm.startPrank(BORROWER);
-        lendingMarket.repayLoan(loanId, BORROWER_LEND_AMOUNT);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 6300
-        assertEq(outstandingBalance, 6300);
+    function test_repayLoan_Case5() public {
+        ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_5();
+        takeLoanAndVerifyCalculations(loan);
     }
 
-    function test_repayBorrow_RepaymentAfterFourPeriods() public {
-        // In this case interest would be equal to 25500 after four periods passed (total repay amount = 25600)
-        // Borrow amount = 100
-        // Interest rate factor = 5
-        // Interest rate primary = 15
-        // Interest rate secondary = 20
-        configureLendingMarket();
-        uint256 loanId = takeLoan(BORROWER);
-        uint256 outstandingBalance;
-        skip(INIT_CREDIT_LINE_PERIOD_IN_SECONDS * 4);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 25600
-        vm.startPrank(BORROWER);
-        lendingMarket.repayLoan(loanId, BORROWER_LEND_AMOUNT);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 25500
-        assertEq(outstandingBalance, 25500);
+    function test_repayLoan_Case6() public {
+        ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_6();
+        takeLoanAndVerifyCalculations(loan);
     }
 
-    function test_repayBorrow_RepaymentAfterFivePeriods() public {
-        // In this case interest would be equal to 102300 after five periods passed (total repay amount = 102400)
-        // Borrow amount = 100
-        // Interest rate factor = 5
-        // Interest rate primary = 15
-        // Interest rate secondary = 20
-        configureLendingMarket();
-        uint256 loanId = takeLoan(BORROWER);
-        uint256 outstandingBalance;
-        skip(INIT_CREDIT_LINE_PERIOD_IN_SECONDS * 5);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 102400
-        vm.startPrank(BORROWER);
-        lendingMarket.repayLoan(loanId, BORROWER_LEND_AMOUNT);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 102300
-        assertEq(outstandingBalance, 102300);
+    function test_repayLoan_Case7() public {
+        ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_7();
+        takeLoanAndVerifyCalculations(loan);
     }
 
-    function test_repayBorrow_DefaultedLoanForOnePeriod() public {
-        // In this case interest would stop to raise after the loan is defaulted
-        // Borrow amount = 100
-        // Interest rate factor = 5
-        // Interest rate primary = 15
-        // Interest rate secondary = 20
-        configureLendingMarket();
-        uint256 loanId = takeLoan(BORROWER);
-        uint256 outstandingBalance;
-        skip(INIT_CREDIT_LINE_PERIOD_IN_SECONDS * (INIT_CREDIT_LINE_DURATION_IN_PERIODS + 1));
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 102400
-        vm.startPrank(BORROWER);
-        lendingMarket.repayLoan(loanId, BORROWER_LEND_AMOUNT);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 102300
-        assertEq(outstandingBalance, 102300);
+    function test_repayLoan_Case8() public {
+        ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_8();
+        takeLoanAndVerifyCalculations(loan);
     }
 
-    function test_repayBorrow_DefaultedLoanForTenPeriods() public {
-        // In this case interest would stop to raise after the loan is defaulted
-        // Borrow amount = 100
-        // Interest rate factor = 5
-        // Interest rate primary = 15
-        // Interest rate secondary = 20
-        configureLendingMarket();
-        uint256 loanId = takeLoan(BORROWER);
-        uint256 outstandingBalance;
-        skip(INIT_CREDIT_LINE_PERIOD_IN_SECONDS * (INIT_CREDIT_LINE_DURATION_IN_PERIODS + 10));
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 102400
-        vm.startPrank(BORROWER);
-        lendingMarket.repayLoan(loanId, BORROWER_LEND_AMOUNT);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 102300
-        assertEq(outstandingBalance, 102300);
+    function test_repayLoan_Case9() public {
+        ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_9();
+        takeLoanAndVerifyCalculations(loan);
     }
 
-    function test_repayLoan_FrozenAfterOnePeriod() public {
-        // In this case interest would be equal to 300 after one period passed (total repay amount = 400)
-        // Borrow amount = 100
-        // Interest rate factor = 5
-        // Interest rate primary = 15
-        // Interest rate secondary = 20
-        configureLendingMarket();
-        uint256 loanId = takeLoan(BORROWER);
-        uint256 outstandingBalance;
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 100
-        skip(INIT_CREDIT_LINE_PERIOD_IN_SECONDS);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 400
-        vm.startPrank(BORROWER);
-        lendingMarket.repayLoan(loanId, BORROWER_LEND_AMOUNT);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 300
-        assertEq(outstandingBalance, 300);
-        vm.stopPrank();
-        vm.prank(LENDER);
-        lendingMarket.freeze(loanId);
-        skip(INIT_CREDIT_LINE_PERIOD_IN_SECONDS);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 300
-        assertEq(outstandingBalance, 300);
+    function test_repayLoan_Case10() public {
+        ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_10();
+        takeLoanAndVerifyCalculations(loan);
     }
 
-    function test_repayLoan_DefaultedLoan_RepaymentAfterLoanExpiredForOnePeriod() public {
-        // In this case interest would be 511500 after loan is expired for 1 period (total amount is 511600)
-        // Borrow amount = 100
-        // Interest rate factor = 5
-        // Interest rate primary = 15
-        // Interest rate secondary = 20
-        configureLendingMarket();
-        uint256 loanId = takeLoan(BORROWER);
-        uint256 outstandingBalance;
-        skip(INIT_CREDIT_LINE_PERIOD_IN_SECONDS * INIT_CREDIT_LINE_DURATION_IN_PERIODS + 1);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 102400
-        vm.startPrank(BORROWER);
-        lendingMarket.repayLoan(loanId, BORROWER_LEND_AMOUNT);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 102300
-        assertEq(outstandingBalance, 102300);
-        skip(INIT_CREDIT_LINE_PERIOD_IN_SECONDS);
-        // at this moment loan.trackDate should be >= dueDate
-        lendingMarket.repayLoan(loanId, BORROWER_LEND_AMOUNT);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 511400
-        assertEq(outstandingBalance, 511400);
+    function test_repayLoan_Case11() public {
+        ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_10();
+        takeLoanAndVerifyCalculations(loan);
     }
 
-    function test_repayLoan_DefaultedLoan_RepaymentAfterLoanExpiredForTwoPeriods() public {
-        // In this case interest would be 2557500 after loan is expired for 1 period (total amount is 2557600)
-        // Borrow amount = 100
-        // Interest rate factor = 5
-        // Interest rate primary = 15
-        // Interest rate secondary = 20
-        configureLendingMarket();
-        uint256 loanId = takeLoan(BORROWER);
-        uint256 outstandingBalance;
-        skip(INIT_CREDIT_LINE_PERIOD_IN_SECONDS * INIT_CREDIT_LINE_DURATION_IN_PERIODS + 1);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 102400
-        vm.startPrank(BORROWER);
-        lendingMarket.repayLoan(loanId, BORROWER_LEND_AMOUNT);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 102300
-        assertEq(outstandingBalance, 102300);
-        skip(INIT_CREDIT_LINE_PERIOD_IN_SECONDS * 2);
-        // at this moment loan.trackDate should be >= dueDate
-        lendingMarket.repayLoan(loanId, BORROWER_LEND_AMOUNT);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 2557400
-        assertEq(outstandingBalance, 2557400);
+    function test_repayLoan_Case12() public {
+        ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_10();
+        takeLoanAndVerifyCalculations(loan);
     }
 
-    function test_repayLoan_AddonRecipient_InstantRepay() public {
-        // In this case interest would be equal to zero because zero periods passed
-        // Addon amount is 120
-        // Addon fixed cost rate = 1
-        // Addon period cost rate = 1
-        configureLendingMarketWithAddonRecipient();
-        uint256 loanId = takeLoan(BORROWER);
-        uint256 outstandingBalance;
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 220
-        uint256 addonAmount = creditLine.calculateAddonAmount(BORROWER_LEND_AMOUNT); // 120
-        assertEq(outstandingBalance, BORROWER_LEND_AMOUNT + addonAmount);
-        vm.startPrank(BORROWER);
-        lendingMarket.repayLoan(loanId, BORROWER_LEND_AMOUNT);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 0
-        assertEq(outstandingBalance, addonAmount);
+    function takeLoanAndVerifyCalculations(ComplexScenarios.LoanParameters memory loan) public {
+        configureLendingMarketForComplexTests(loan);
+        uint256 loanId = takeLoan(BORROWER, loan.borrowAmount);
+        for(uint256 i = 0; i < loan.expectedOutstandingBalances.length; i++) {
+            (uint256 contractBalanceWithDecimals,) = lendingMarket.getLoanBalance(loanId, 0);
+            (uint256 contractBalance, uint256 expectedBalance) = removeDecimals(loan.tokenDecimals, contractBalanceWithDecimals, loan.expectedOutstandingBalances[i]);
+            assertEq(contractBalance, expectedBalance);
+            if(loan.repayments[i] != 0) {
+                vm.prank(BORROWER);
+                lendingMarket.repayLoan(loanId, loan.repayments[i]);
+            }
+            skip(loan.periodInSeconds);
+        }
     }
 
-    function test_repayLoan_AddonRecipient_RepaymentAfterOnePeriod() public {
-        // In this case interest after one period would be 660 (total balance = 880)
-        // Borrow amount = 100
-        // Interest rate factor = 5
-        // Interest rate primary = 15
-        // Interest rate secondary = 20
-        // Addon amount is 120
-        // Addon fixed cost rate = 1
-        // Addon period cost rate = 1
-        configureLendingMarketWithAddonRecipient();
-        uint256 loanId = takeLoan(BORROWER);
-        uint256 outstandingBalance;
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 220
-        skip(INIT_CREDIT_LINE_PERIOD_IN_SECONDS);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 880
-        vm.startPrank(BORROWER);
-        lendingMarket.repayLoan(loanId, BORROWER_LEND_AMOUNT);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 780
-        assertEq(outstandingBalance, 780);
-    }
-
-    function test_repayLoan_AddonRecipient_RepaymentAfterTwoPeriods() public {
-        // In this case interest after two periods would be 3300 (total balance = 3520)
-        // Borrow amount = 100
-        // Interest rate factor = 5
-        // Interest rate primary = 15
-        // Interest rate secondary = 20
-        // Addon amount is 120
-        // Addon fixed cost rate = 1
-        // Addon period cost rate = 1
-        configureLendingMarketWithAddonRecipient();
-        uint256 loanId = takeLoan(BORROWER);
-        uint256 outstandingBalance;
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 220
-        skip(INIT_CREDIT_LINE_PERIOD_IN_SECONDS * 2);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 3520
-        vm.startPrank(BORROWER);
-        lendingMarket.repayLoan(loanId, BORROWER_LEND_AMOUNT);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 3420
-        assertEq(outstandingBalance, 3420);
-    }
-
-    function test_repayLoan_AddonRecipient_RepaymentAfterThreePeriods() public {
-        // In this case interest after three periods would be 13860 (total balance = 14080)
-        // Borrow amount = 100
-        // Interest rate factor = 5
-        // Interest rate primary = 15
-        // Interest rate secondary = 20
-        // Addon amount is 120
-        // Addon fixed cost rate = 1
-        // Addon period cost rate = 1
-        configureLendingMarketWithAddonRecipient();
-        uint256 loanId = takeLoan(BORROWER);
-        uint256 outstandingBalance;
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 220
-        skip(INIT_CREDIT_LINE_PERIOD_IN_SECONDS * 3);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 14080
-        vm.startPrank(BORROWER);
-        lendingMarket.repayLoan(loanId, BORROWER_LEND_AMOUNT);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 13980
-        assertEq(outstandingBalance, 13980);
-    }
-
-    function test_repayLoan_AddonRecipient_RepaymentAfterFourPeriods() public {
-        // In this case interest after four periods would be 56100 (total balance = 56320)
-        // Borrow amount = 100
-        // Interest rate factor = 5
-        // Interest rate primary = 15
-        // Interest rate secondary = 20
-        // Addon amount is 120
-        // Addon fixed cost rate = 1
-        // Addon period cost rate = 1
-        configureLendingMarketWithAddonRecipient();
-        uint256 loanId = takeLoan(BORROWER);
-        uint256 outstandingBalance;
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 220
-        skip(INIT_CREDIT_LINE_PERIOD_IN_SECONDS * 4);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 56320
-        vm.startPrank(BORROWER);
-        lendingMarket.repayLoan(loanId, BORROWER_LEND_AMOUNT);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 56220
-        assertEq(outstandingBalance, 56220);
-    }
-
-    function test_repayLoan_AddonRecipient_RepaymentAfterFivePeriods() public {
-        // In this case interest after five periods would be 225060 (total balance = 225280)
-        // Borrow amount = 100
-        // Interest rate factor = 5
-        // Interest rate primary = 15
-        // Interest rate secondary = 20
-        // Addon amount is 120
-        // Addon fixed cost rate = 1
-        // Addon period cost rate = 1
-        configureLendingMarketWithAddonRecipient();
-        uint256 loanId = takeLoan(BORROWER);
-        uint256 outstandingBalance;
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 220
-        skip(INIT_CREDIT_LINE_PERIOD_IN_SECONDS * 5);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 225280
-        vm.startPrank(BORROWER);
-        lendingMarket.repayLoan(loanId, BORROWER_LEND_AMOUNT);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 225180
-        assertEq(outstandingBalance, 225180);
-    }
-
-    function test_repayLoan_AddonRecipient_DefaultedLoanForOnePeriod() public {
-        // In this case interest after one period defaulted loan would be 1125900 (total balance = 1126120)
-        // Borrow amount = 100
-        // Interest rate factor = 5
-        // Interest rate primary = 15
-        // Interest rate secondary = 20
-        // Addon amount is 120
-        // Addon fixed cost rate = 1
-        // Addon period cost rate = 1
-        configureLendingMarketWithAddonRecipient();
-        uint256 loanId = takeLoan(BORROWER);
-        uint256 outstandingBalance;
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 220
-        skip(INIT_CREDIT_LINE_PERIOD_IN_SECONDS * 5);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 225280
-        vm.startPrank(BORROWER);
-        lendingMarket.repayLoan(loanId, BORROWER_LEND_AMOUNT);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 225180
-        assertEq(outstandingBalance, 225180);
-        skip(INIT_CREDIT_LINE_PERIOD_IN_SECONDS);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 1125900
-        assertEq(outstandingBalance, 1125900);
-    }
-
-    function test_repayLoan_AddonRecipient_DefaultedLoanForTenPeriods() public {
-        // In this case interest after one period defaulted loan would be 2199023437380 (total balance = 2199023437720)
-        // Borrow amount = 100
-        // Interest rate factor = 5
-        // Interest rate primary = 15
-        // Interest rate secondary = 20
-        // Addon amount is 120
-        // Addon fixed cost rate = 1
-        // Addon period cost rate = 1
-        configureLendingMarketWithAddonRecipient();
-        uint256 loanId = takeLoan(BORROWER);
-        uint256 outstandingBalance;
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 220
-        skip(INIT_CREDIT_LINE_PERIOD_IN_SECONDS * 5);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 225280
-        vm.startPrank(BORROWER);
-        lendingMarket.repayLoan(loanId, BORROWER_LEND_AMOUNT);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 225180
-        assertEq(outstandingBalance, 225180);
-        skip(INIT_CREDIT_LINE_PERIOD_IN_SECONDS * 10);
-        (outstandingBalance,) = lendingMarket.getLoanBalance(loanId, ZERO_VALUE); // 2199023437500
-        assertEq(outstandingBalance, 2199023437500);
+    function removeDecimals(uint256 tokenDecimals, uint256 contractValue, uint256 expectedValue) public returns (uint256, uint256) {
+        uint256 roundedContractValue = contractValue / 10 ** tokenDecimals;
+        uint256 roundedExpectedValue = expectedValue / 10 ** 2; // $ decimal
+        return (roundedContractValue, roundedExpectedValue);
     }
 }
