@@ -26,7 +26,7 @@ contract LendingMarketTest is Test, Config {
      ***********************************************/
 
     event OnBeforeLoanTakenCalled(uint256 indexed loanId, address indexed creditLine);
-    event OnAfterTakeLoanCalled(uint256 indexed loanId, address indexed creditLine);
+    event OnAfterLoanTakenCalled(uint256 indexed loanId, address indexed creditLine);
 
     event OnBeforeLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
     event OnAfterLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
@@ -380,7 +380,7 @@ contract LendingMarketTest is Test, Config {
         vm.expectEmit(true, true, true, true, address(liquidityPool));
         emit OnBeforeLoanTakenCalled(loanId, address(creditLine));
         vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit OnAfterTakeLoanCalled(loanId, address(creditLine));
+        emit OnAfterLoanTakenCalled(loanId, address(creditLine));
         vm.expectEmit(true, true, true, true, address(market));
         emit TakeLoan(loanId, BORROWER_1, borrowAmount + terms.addonAmount);
 

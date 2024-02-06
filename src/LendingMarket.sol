@@ -251,7 +251,7 @@ contract LendingMarket is
         if (terms.addonAmount != 0) {
             IERC20(terms.token).safeTransferFrom(pool, terms.addonRecipient, terms.addonAmount);
         }
-        ILiquidityPool(pool).onAfterTakeLoan(id, creditLine);
+        ILiquidityPool(pool).onAfterLoanTaken(id, creditLine);
 
         emit TakeLoan(id, msg.sender, totalAmount);
 

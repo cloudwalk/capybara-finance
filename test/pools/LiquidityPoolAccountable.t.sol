@@ -411,10 +411,10 @@ contract LiquidityPoolAccountableTest is Test, Config {
     }
 
     /************************************************
-     *  Test `onAfterTakeLoan` function
+     *  Test `onAfterLoanTaken` function
      ***********************************************/
 
-    function test_onAfterTakeLoan() public {
+    function test_onAfterLoanTaken() public {
         configureLender();
         lendingMarket.mockLoanState(
             LOAN_ID_1,
@@ -443,25 +443,25 @@ contract LiquidityPoolAccountableTest is Test, Config {
         assertEq(liquidityPool.getTokenBalance(address(creditLine)), DEPOSIT_AMOUNT_1);
 
         vm.prank(address(lendingMarket));
-        assertEq(liquidityPool.onAfterTakeLoan(LOAN_ID_1, address(creditLine)), true);
+        assertEq(liquidityPool.onAfterLoanTaken(LOAN_ID_1, address(creditLine)), true);
 
         assertEq(liquidityPool.getCreditLine(LOAN_ID_1), address(creditLine));
         assertEq(liquidityPool.getTokenBalance(address(creditLine)), 1);
     }
 
-    function test_onAfterTakeLoan_Revert_IfCallerNotMarket() public {
+    function test_onAfterLoanTaken_Revert_IfCallerNotMarket() public {
         vm.prank(ATTACKER);
         vm.expectRevert(Error.Unauthorized.selector);
-        liquidityPool.onAfterTakeLoan(LOAN_ID_1, address(creditLine));
+        liquidityPool.onAfterLoanTaken(LOAN_ID_1, address(creditLine));
     }
 
-    function test_onAfterTakeLoan_Revert_IfContractIsPaused() public {
+    function test_onAfterLoanTaken_Revert_IfContractIsPaused() public {
         vm.prank(LENDER_1);
         liquidityPool.pause();
 
         vm.prank(address(lendingMarket));
         vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
-        liquidityPool.onAfterTakeLoan(LOAN_ID_1, address(creditLine));
+        liquidityPool.onAfterLoanTaken(LOAN_ID_1, address(creditLine));
     }
 
     /************************************************
@@ -520,7 +520,7 @@ contract LiquidityPoolAccountableTest is Test, Config {
         assertEq(liquidityPool.getTokenBalance(address(creditLine)), DEPOSIT_AMOUNT_1);
 
         vm.startPrank(address(lendingMarket));
-        assertEq(liquidityPool.onAfterTakeLoan(LOAN_ID_1, address(creditLine)), true);
+        assertEq(liquidityPool.onAfterLoanTaken(LOAN_ID_1, address(creditLine)), true);
         assertEq(liquidityPool.getTokenBalance(address(creditLine)), 0);
         assertEq(liquidityPool.onAfterLoanPayment(LOAN_ID_1, DEPOSIT_AMOUNT_1), true);
 
@@ -627,7 +627,7 @@ contract LiquidityPoolAccountableTest is Test, Config {
         assertEq(liquidityPool.getCreditLine(LOAN_ID_1), address(0));
 
         vm.prank(address(lendingMarket));
-        liquidityPool.onAfterTakeLoan(LOAN_ID_1, address(creditLine));
+        liquidityPool.onAfterLoanTaken(LOAN_ID_1, address(creditLine));
 
         assertEq(liquidityPool.getCreditLine(LOAN_ID_1), address(creditLine));
     }

@@ -218,7 +218,7 @@ contract LiquidityPoolAccountable is
     }
 
     /// @inheritdoc ILiquidityPool
-    function onAfterTakeLoan(uint256 loanId, address creditLine) external whenNotPaused onlyMarket returns (bool) {
+    function onAfterLoanTaken(uint256 loanId, address creditLine) external whenNotPaused onlyMarket returns (bool) {
         _creditLineBalances[creditLine] -= ILendingMarket(_market).getLoan(loanId).initialBorrowAmount;
         _creditLines[loanId] = creditLine;
 
