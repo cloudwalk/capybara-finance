@@ -15,12 +15,13 @@ import {Loan} from "./libraries/Loan.sol";
 import {Error} from "./libraries/Error.sol";
 import {Interest} from "./libraries/Interest.sol";
 import {InterestMath} from "./libraries/InterestMath.sol";
+import {SafeCast} from "./libraries/SafeCast.sol";
 
-import {LendingMarketStorage} from "./LendingMarketStorage.sol";
 import {ILendingMarket} from "./interfaces/core/ILendingMarket.sol";
 import {ILiquidityPool} from "./interfaces/core/ILiquidityPool.sol";
 import {ICreditLine} from "./interfaces/core/ICreditLine.sol";
-import {SafeCast} from "./libraries/SafeCast.sol";
+
+import {LendingMarketStorage} from "./LendingMarketStorage.sol";
 
 /// @title LendingMarket contract
 /// @notice Implementation of the lending market contract

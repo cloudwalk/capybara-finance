@@ -7,12 +7,13 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
 import {Error} from "./libraries/Error.sol";
-import {LendingRegistryStorage} from "./LendingRegistryStorage.sol";
 
-import {ICreditLineFactory} from "./interfaces/ICreditLineFactory.sol";
-import {ILiquidityPoolFactory} from "./interfaces/ILiquidityPoolFactory.sol";
-import {ILendingRegistry} from "./interfaces/core/ILendingRegistry.sol";
 import {ILendingMarket} from "./interfaces/core/ILendingMarket.sol";
+import {ILendingRegistry} from "./interfaces/core/ILendingRegistry.sol";
+import {ILiquidityPoolFactory} from "./interfaces/ILiquidityPoolFactory.sol";
+import {ICreditLineFactory} from "./interfaces/ICreditLineFactory.sol";
+
+import {LendingRegistryStorage} from "./LendingRegistryStorage.sol";
 
 /// @title LendingRegistry contract
 /// @notice Implementation of the lending registry contract

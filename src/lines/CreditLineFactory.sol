@@ -6,6 +6,7 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 
 import {ICreditLine} from "../interfaces/core/ICreditLine.sol";
 import {ICreditLineFactory} from "../interfaces/ICreditLineFactory.sol";
+
 import {CreditLineConfigurable} from "./CreditLineConfigurable.sol";
 
 /// @title CreditLineFactory contract

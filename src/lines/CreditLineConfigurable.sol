@@ -8,6 +8,7 @@ import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Pau
 import {Loan} from "../libraries/Loan.sol";
 import {Error} from "../libraries/Error.sol";
 import {SafeCast} from "../libraries/SafeCast.sol";
+
 import {ICreditLine} from "../interfaces/core/ICreditLine.sol";
 import {ICreditLineConfigurable} from "../interfaces/ICreditLineConfigurable.sol";
 

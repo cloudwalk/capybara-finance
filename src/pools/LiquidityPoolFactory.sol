@@ -6,6 +6,7 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 
 import {ILiquidityPool} from "../interfaces/core/ILiquidityPool.sol";
 import {ILiquidityPoolFactory} from "../interfaces/ILiquidityPoolFactory.sol";
+
 import {LiquidityPoolAccountable} from "./LiquidityPoolAccountable.sol";
 
 /// @title LiquidityPoolFactory contract

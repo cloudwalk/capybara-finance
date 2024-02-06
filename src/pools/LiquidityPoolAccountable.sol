@@ -9,6 +9,7 @@ import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Pau
 
 import {Loan} from "../libraries/Loan.sol";
 import {Error} from "../libraries/Error.sol";
+
 import {ICreditLine} from "../interfaces/core/ICreditLine.sol";
 import {ILiquidityPool} from "../interfaces/core/ILiquidityPool.sol";
 import {ILiquidityPoolAccountable} from "../interfaces/ILiquidityPoolAccountable.sol";
