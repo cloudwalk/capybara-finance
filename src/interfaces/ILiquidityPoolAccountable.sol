@@ -25,10 +25,9 @@ interface ILiquidityPoolAccountable {
     /// @param adminStatus True if the account is an admin
     event ConfigureAdmin(address indexed admin, bool adminStatus);
 
-    /// @notice Emitted when liqudiity pool is repay loans
-    /// @param loanIds The unique identifiers of the loans for repayment
-    /// @param amounts The amounts that corellate with given loan ids
-    event RepayLoans(uint256[] loanIds, uint256[] amounts);
+    /// @notice Emitted when loans auto repayment is forced
+    /// @param numberOfLoans The number of loans that were repaid
+    event AutoRepay(uint256 numberOfLoans);
 
     /************************************************
      *  Functions
@@ -49,20 +48,20 @@ interface ILiquidityPoolAccountable {
     /// @param amount The amount of tokens to withdraw
     function withdraw(address tokenSource, uint256 amount) external;
 
-    /// @notice Retrieves the credit line associated with the loan
-    /// @param loanId The unique identifier of the loan
-    /// @return The address of the credit line
-    function getCreditLine(uint256 loanId) external view returns (address);
+    /// @notice Forces auto repayment of loans in batch mode
+    /// @param loanIds The unique identifiers of the loans to repay
+    /// @param amounts The amounts that corellate with given loan ids
+    function autoRepay(uint256[] memory loanIds, uint256[] memory amounts) external;
 
     /// @notice Retrieves the token balance of the token source
     /// @param tokenSource The address of the token source
     /// @return The token balance
     function getTokenBalance(address tokenSource) external view returns (uint256);
 
-    /// @notice Repay batch loans
-    /// @param loanIds The unique identifiers of the loans for repayment
-    /// @param amounts The amounts that corellate with given loan ids
-    function repayLoans(uint256[] memory loanIds, uint256[] memory amounts) external;
+    /// @notice Retrieves the credit line associated with the loan
+    /// @param loanId The unique identifier of the loan
+    /// @return The address of the credit line
+    function getCreditLine(uint256 loanId) external view returns (address);
 
     /// @notice Checks whether an account is an admin
     /// @param account The address of the account to check

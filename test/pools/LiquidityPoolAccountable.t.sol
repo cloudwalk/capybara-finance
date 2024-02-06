@@ -29,7 +29,7 @@ contract LiquidityPoolAccountableTest is Test, Config {
     event ConfigureAdmin(address indexed admin, bool adminStatus);
     event Deposit(address indexed creditLine, uint256 amount);
     event Withdraw(address indexed tokenSource, uint256 amount);
-    event RepayLoans(uint256[] loanIds, uint256[] amounts);
+    event AutoRepay(uint256 numberOfLoans);
     event RepayLoanCalled(
         uint256 indexed loanId,
         uint256 repayAmount
@@ -342,28 +342,28 @@ contract LiquidityPoolAccountableTest is Test, Config {
     }
 
     /************************************************
-     *  Test `repayLoans` function
+     *  Test `autoRepay` function
      ***********************************************/
 
-    function test_repayLoans() public {
+    function test_autoRepay() public {
         vm.prank(LENDER_1);
         liquidityPool.configureAdmin(ADMIN, true);
         (uint256[] memory loanIds, uint256[] memory amounts) = getLoanDataBatch();
 
-        vm.prank(ADMIN);
+        vm.expectEmit(true, true, true, true, address(liquidityPool));
+        emit AutoRepay(loanIds.length);
         vm.expectEmit(true, true, true, true, address(lendingMarket));
         emit RepayLoanCalled(LOAN_ID_1, DEPOSIT_AMOUNT_1);
         vm.expectEmit(true, true, true, true, address(lendingMarket));
         emit RepayLoanCalled(LOAN_ID_2, DEPOSIT_AMOUNT_2);
         vm.expectEmit(true, true, true, true, address(lendingMarket));
         emit RepayLoanCalled(LOAN_ID_3, DEPOSIT_AMOUNT_3);
-        vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit RepayLoans(loanIds, amounts);
 
-        liquidityPool.repayLoans(loanIds, amounts);
+        vm.prank(ADMIN);
+        liquidityPool.autoRepay(loanIds, amounts);
     }
 
-    function test_repayLoans_Revert_IfArrayLengthMismatch() public {
+    function test_autoRepay_Revert_IfArrayLengthMismatch() public {
         vm.prank(LENDER_1);
         liquidityPool.configureAdmin(ADMIN, true);
         (uint256[] memory loanIds, uint256[] memory amounts) = getLoanDataBatch();
@@ -372,8 +372,8 @@ contract LiquidityPoolAccountableTest is Test, Config {
         amountsIncorrectLength[1] = amounts[1];
 
         vm.prank(ADMIN);
-        liquidityPool.repayLoans(loanIds, amountsIncorrectLength);
         vm.expectRevert(Error.ArrayLengthMismatch.selector);
+        liquidityPool.autoRepay(loanIds, amountsIncorrectLength);
     }
 
     function test_deposit_Revert_IfCallerNotAdmin() public {
@@ -383,7 +383,7 @@ contract LiquidityPoolAccountableTest is Test, Config {
 
         vm.prank(ATTACKER);
         vm.expectRevert(Error.Unauthorized.selector);
-        liquidityPool.repayLoans(loanIds, amounts);
+        liquidityPool.autoRepay(loanIds, amounts);
     }
 
     /************************************************

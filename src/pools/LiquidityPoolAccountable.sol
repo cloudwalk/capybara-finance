@@ -193,16 +193,17 @@ contract LiquidityPoolAccountable is
     }
 
     /// @inheritdoc ILiquidityPoolAccountable
-    function repayLoans(uint256[] memory loanIds, uint256[] memory amounts) external onlyAdmin {
+    function autoRepay(uint256[] memory loanIds, uint256[] memory amounts) external onlyAdmin {
         if (loanIds.length != amounts.length) {
             revert Error.ArrayLengthMismatch();
         }
 
-        for (uint256 i = 0; i < loanIds.length; i++) {
-            ILendingMarket(_market).repayLoan(loanIds[i], amounts[i]);
-        }
+        emit AutoRepay(loanIds.length);
 
-        emit RepayLoans(loanIds, amounts);
+        ILendingMarket market = ILendingMarket(_market);
+        for (uint256 i = 0; i < loanIds.length; i++) {
+            market.repayLoan(loanIds[i], amounts[i]);
+        }
     }
 
     /************************************************
