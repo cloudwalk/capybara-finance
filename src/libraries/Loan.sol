@@ -28,57 +28,68 @@ library Loan {
 
     /// @notice A struct that defines the terms of the loan
     struct Terms {
+        //slot 1
         /// @notice The address of the token to be used in the loan
         address token;
         /// @notice The duration of the loan period specified in seconds
-        uint256 periodInSeconds;
+        uint32 periodInSeconds;
         /// @notice The total duration of the loan determined by the number of periods
-        uint256 durationInPeriods;
+        uint32 durationInPeriods;
         /// @notice The rate factor used together with interest rate
-        uint256 interestRateFactor;
-        /// @notice The primary interest rate to be applied to the loan
-        uint256 interestRatePrimary;
-        /// @notice The secondary interest rate to be applied to the loan
-        uint256 interestRateSecondary;
-        /// @notice The formula to be used for interest calculation on the loan
-        Interest.Formula interestFormula;
+        uint32 interestRateFactor;
+
+        //slot 2
         /// @notice The address of the recipient of additional payments and fees
         address addonRecipient;
         /// @notice The amount of additional payments and fees
-        uint256 addonAmount;
+        uint64 addonAmount;
+        /// @notice The primary interest rate to be applied to the loan
+        uint32 interestRatePrimary;
+
+        //slot 3
+        /// @notice The secondary interest rate to be applied to the loan
+        uint32 interestRateSecondary;
         /// @notice Whether the loan can be repaid automatically
         bool autoRepayment;
+        /// @notice The formula to be used for interest calculation on the loan
+        Interest.Formula interestFormula;
     }
 
     /// @notice A struct that defines the stored state of the loan
     struct State {
+        //slot1
         /// @notice The address of the token used in the loan
         address token;
+        /// @notice The primary interest rate that is applied to the loan
+        uint32 interestRatePrimary;
+        /// @notice The secondary interest rate that is applied to the loan
+        uint32 interestRateSecondary;
+        /// @notice The rate factor used together with interest rate
+        uint32 interestRateFactor;
+
+        //slot2
         /// @notice The address of the borrower
         address borrower;
-        /// @notice The duration of the loan period specified in seconds
-        uint256 periodInSeconds;
-        /// @notice The total duration of the loan determined by the number of periods
-        uint256 durationInPeriods;
-        /// @notice The rate factor used together with interest rate
-        uint256 interestRateFactor;
-        /// @notice The primary interest rate that is applied to the loan
-        uint256 interestRatePrimary;
-        /// @notice The secondary interest rate that is applied to the loan
-        uint256 interestRateSecondary;
-        /// @notice The formula used for interest calculation on the loan
-        Interest.Formula interestFormula;
-        /// @notice The initial principal amount of the loan
-        uint256 initialBorrowAmount;
-        /// @notice The updated loan amount after the last repayment
-        uint256 trackedBorrowAmount;
         /// @notice The start date of the loan
-        uint256 startDate;
+        uint32 startDate;
+        /// @notice The initial principal amount of the loan
+        uint64 initialBorrowAmount;
+
+
+        //slot3
+        /// @notice The duration of the loan period specified in seconds
+        uint32 periodInSeconds;
+        /// @notice The total duration of the loan determined by the number of periods
+        uint32 durationInPeriods;
+        /// @notice The updated loan amount after the last repayment
+        uint64 trackedBorrowAmount;
         /// @notice The date of the last repayment
-        uint256 trackDate;
+        uint32 trackDate;
         /// @notice The date when the loan was frozen
-        uint256 freezeDate;
+        uint32 freezeDate;
         /// @notice Whether the loan can be repaid automatically
         bool autoRepayment;
+        /// @notice The formula used for interest calculation on the loan
+        Interest.Formula interestFormula;
     }
 }

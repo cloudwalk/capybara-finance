@@ -20,6 +20,7 @@ import {LendingMarketStorage} from "./LendingMarketStorage.sol";
 import {ILendingMarket} from "./interfaces/core/ILendingMarket.sol";
 import {ILiquidityPool} from "./interfaces/core/ILiquidityPool.sol";
 import {ICreditLine} from "./interfaces/core/ICreditLine.sol";
+import {SafeCast} from "./libraries/SafeCast.sol";
 
 /// @title LendingMarket contract
 /// @notice Implementation of the lending market contract
@@ -34,6 +35,7 @@ contract LendingMarket is
     ILendingMarket
 {
     using SafeERC20 for IERC20;
+    using SafeCast for uint256;
 
     /************************************************
      *  Errors
@@ -223,7 +225,7 @@ contract LendingMarket is
         Loan.Terms memory terms = ICreditLine(creditLine).onTakeLoan(msg.sender, amount);
 
         uint256 startDate = calculatePeriodDate(block.timestamp, terms.periodInSeconds, 0, 0);
-        uint256 totalAmount = amount + terms.addonAmount;
+        uint256 totalAmount = amount + uint256(terms.addonAmount);
         uint256 id = _safeMint(lender);
 
         Loan.State memory loan = Loan.State({
@@ -235,11 +237,11 @@ contract LendingMarket is
             interestRatePrimary: terms.interestRatePrimary,
             interestRateSecondary: terms.interestRateSecondary,
             interestFormula: terms.interestFormula,
-            startDate: startDate,
+            startDate: startDate.toUint32(),
             freezeDate: 0,
-            trackDate: startDate,
-            initialBorrowAmount: totalAmount,
-            trackedBorrowAmount: totalAmount,
+            trackDate: startDate.toUint32(),
+            initialBorrowAmount: totalAmount.toUint64(),
+            trackedBorrowAmount: totalAmount.toUint64(),
             autoRepayment: terms.autoRepayment
         });
 
@@ -278,8 +280,8 @@ contract LendingMarket is
         }
 
         outstandingBalance -= amount;
-        loan.trackedBorrowAmount = outstandingBalance;
-        loan.trackDate = currentDate;
+        loan.trackedBorrowAmount = outstandingBalance.toUint64();
+        loan.trackDate = currentDate.toUint32();
         address pool = _liquidityPools[ownerOf(loanId)];
         ILiquidityPool(pool).onBeforeLoanPayment(loanId, amount);
         transferRepayment(loanId, loan, pool, amount);
@@ -327,7 +329,7 @@ contract LendingMarket is
             revert LoanAlreadyFrozen();
         }
 
-        loan.freezeDate = calculatePeriodDate(block.timestamp, loan.periodInSeconds, 0, 0);
+        loan.freezeDate = calculatePeriodDate(block.timestamp, loan.periodInSeconds, 0, 0).toUint32();
 
         emit FreezeLoan(loanId, loan.freezeDate);
     }
@@ -344,8 +346,8 @@ contract LendingMarket is
         uint256 frozenPeriods = (currentDate - loan.freezeDate) / loan.periodInSeconds;
 
         if (frozenPeriods > 0) {
-            loan.trackDate += frozenPeriods * loan.periodInSeconds;
-            loan.durationInPeriods += frozenPeriods;
+            loan.trackDate = (uint256(loan.trackDate) + (frozenPeriods * uint256(loan.periodInSeconds))).toUint32();
+            loan.durationInPeriods = (uint256(loan.durationInPeriods) + frozenPeriods).toUint32();
         }
 
         loan.freezeDate = 0;
@@ -368,7 +370,7 @@ contract LendingMarket is
 
         emit UpdateLoanDuration(loanId, newDurationInPeriods, loan.durationInPeriods);
 
-        loan.durationInPeriods = newDurationInPeriods;
+        loan.durationInPeriods = newDurationInPeriods.toUint32();
     }
 
     /// @inheritdoc ILendingMarket
@@ -383,7 +385,7 @@ contract LendingMarket is
         uint256 currentDate = calculatePeriodDate(block.timestamp, loan.periodInSeconds, 0, 0);
         uint256 currentMoratoriumInPeriods = 0;
         if (loan.trackDate > currentDate) {
-            currentMoratoriumInPeriods = (loan.trackDate - currentDate) / loan.periodInSeconds;
+            currentMoratoriumInPeriods = (uint256(loan.trackDate) - currentDate) / uint256(loan.periodInSeconds);
         }
 
         if (newMoratoriumInPeriods <= currentMoratoriumInPeriods) {
@@ -392,7 +394,7 @@ contract LendingMarket is
 
         emit UpdateLoanMoratorium(loanId, loan.trackDate, newMoratoriumInPeriods);
 
-        loan.trackDate += newMoratoriumInPeriods * loan.periodInSeconds;
+        loan.trackDate += (newMoratoriumInPeriods * uint256(loan.periodInSeconds)).toUint32();
     }
 
     /// @inheritdoc ILendingMarket
@@ -410,7 +412,7 @@ contract LendingMarket is
 
         emit UpdateLoanInterestRatePrimary(loanId, newInterestRate, loan.interestRatePrimary);
 
-        loan.interestRatePrimary = newInterestRate;
+        loan.interestRatePrimary = newInterestRate.toUint32();
     }
 
     /// @inheritdoc ILendingMarket
@@ -428,7 +430,7 @@ contract LendingMarket is
 
         emit UpdateLoanInterestRateSecondary(loanId, newInterestRate, loan.interestRateSecondary);
 
-        loan.interestRateSecondary = newInterestRate;
+        loan.interestRateSecondary = newInterestRate.toUint32();
     }
 
     /// @inheritdoc ILendingMarket
@@ -479,11 +481,12 @@ contract LendingMarket is
     /// @param periodInSeconds The duration of the period in seconds
     /// @param extraPeriods The number of extra periods to add
     /// @param extraSeconds The number of extra seconds to add
-    function calculatePeriodDate(uint256 timestamp, uint256 periodInSeconds, uint256 extraPeriods, uint256 extraSeconds)
-        public
-        pure
-        returns (uint256)
-    {
+    function calculatePeriodDate(
+        uint256 timestamp,
+        uint256 periodInSeconds,
+        uint256 extraPeriods,
+        uint256 extraSeconds
+    ) public pure returns (uint256) {
         return (timestamp / periodInSeconds) * periodInSeconds + periodInSeconds * extraPeriods + extraSeconds;
     }
 
@@ -518,30 +521,30 @@ contract LendingMarket is
         }
 
         if (currentDate > loan.trackDate) {
-            uint256 dueDate = loan.startDate + loan.durationInPeriods * loan.periodInSeconds;
+            uint256 dueDate = uint256(loan.startDate) + uint256(loan.durationInPeriods) * uint256(loan.periodInSeconds);
 
             if (currentDate < dueDate) {
                 outstandingBalance = calculateOutstandingBalance(
                     outstandingBalance,
-                    (currentDate - loan.trackDate) / loan.periodInSeconds,
-                    loan.interestRatePrimary,
-                    loan.interestRateFactor,
+                    (currentDate - uint256(loan.trackDate)) / uint256(loan.periodInSeconds),
+                    uint256(loan.interestRatePrimary),
+                    uint256(loan.interestRateFactor),
                     loan.interestFormula
                 );
             } else if (loan.trackDate >= dueDate) {
                 outstandingBalance = calculateOutstandingBalance(
                     outstandingBalance,
-                    (currentDate - loan.trackDate) / loan.periodInSeconds,
-                    loan.interestRateSecondary,
-                    loan.interestRateFactor,
+                    (currentDate - uint256(loan.trackDate)) / uint256(loan.periodInSeconds),
+                    uint256(loan.interestRateSecondary),
+                    uint256(loan.interestRateFactor),
                     loan.interestFormula
                 );
             } else {
                 outstandingBalance = calculateOutstandingBalance(
                     outstandingBalance,
-                    (dueDate - loan.trackDate) / loan.periodInSeconds,
-                    loan.interestRatePrimary,
-                    loan.interestRateFactor,
+                    (dueDate - uint256(loan.trackDate)) / uint256(loan.periodInSeconds),
+                    uint256(loan.interestRatePrimary),
+                    uint256(loan.interestRateFactor),
                     loan.interestFormula
                 );
             }
