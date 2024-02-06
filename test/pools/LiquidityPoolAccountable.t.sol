@@ -45,13 +45,14 @@ contract LiquidityPoolAccountableTest is Test {
     uint256 public constant DEPOSIT_AMOUNT = 100;
     uint256 public constant NONEXISTENT_LOAN_ID = 999999999;
     uint16 public constant KIND = 1;
+    uint8 public constant DECIMALS = 6;
 
     /************************************************
      *  Setup and configuration
      ***********************************************/
 
     function setUp() public {
-        token = new ERC20Mock(0);
+        token = new ERC20Mock(0, DECIMALS);
         creditLine = new CreditLineMock();
         creditLine.mockTokenAddress(address(token));
         lendingMarket = new LendingMarketMock();

@@ -97,6 +97,7 @@ contract LendingMarketTest is Test, Config {
     uint256 public constant BORROWER_LEND_AMOUNT = 600;
     uint256 public constant BORROWER_REPAY_AMOUNT = 200;
     uint256 public constant BORROWER_REPAY_BIG_AMOUNT = 100000;
+    uint8 public constant DECIMALS = 6;
 
     uint256 public constant BASE_BLOCKTIMESTAMP = 1641070800;
     uint256 public constant INCREASE_BLOCKTIMESTAMP = 1000;
@@ -143,7 +144,7 @@ contract LendingMarketTest is Test, Config {
     }
 
     function configureToken() public {
-        token = new ERC20Mock(TOKEN_AMOUNT);
+        token = new ERC20Mock(TOKEN_AMOUNT, DECIMALS);
     }
 
     function configureCreditLine() public {
