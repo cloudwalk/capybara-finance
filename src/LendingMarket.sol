@@ -74,7 +74,7 @@ contract LendingMarket is
     /// @notice Thrown when provided with an inappropriate loan moratorium
     error InappropriateLoanMoratorium();
 
-    /// @notice Thrown when liquidity pool tries to repay a loan without autorepayment
+    /// @notice Thrown when loan auto repayment is not allowed
     error AutoRepaymentNotAllowed();
 
     /************************************************

@@ -57,7 +57,7 @@ library Loan {
 
     /// @notice A struct that defines the stored state of the loan
     struct State {
-        //slot1
+        //slot 1
         /// @notice The address of the token used in the loan
         address token;
         /// @notice The primary interest rate that is applied to the loan
@@ -67,7 +67,7 @@ library Loan {
         /// @notice The rate factor used together with interest rate
         uint32 interestRateFactor;
 
-        //slot2
+        //slot 2
         /// @notice The address of the borrower
         address borrower;
         /// @notice The start date of the loan
@@ -76,7 +76,7 @@ library Loan {
         uint64 initialBorrowAmount;
 
 
-        //slot3
+        //slot 3
         /// @notice The duration of the loan period specified in seconds
         uint32 periodInSeconds;
         /// @notice The total duration of the loan determined by the number of periods
