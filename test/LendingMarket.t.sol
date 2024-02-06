@@ -527,7 +527,7 @@ contract LendingMarketTest is Test, Config {
         token.mint(BORROWER_1, outstandingBalance - token.balanceOf(BORROWER_1));
 
         vm.expectEmit(true, true, true, true, address(market));
-        emit RepayLoan(loanId, address(liquidityPool), BORROWER_1, repayAmount, outstandingBalance);
+        emit RepayLoan(loanId, BORROWER_1, BORROWER_1, repayAmount, outstandingBalance);
         market.repayLoan(loanId, repayAmount);
 
         (uint256 newOutstandingBalance, ) = market.getLoanBalance(loanId, 0);
@@ -542,7 +542,7 @@ contract LendingMarketTest is Test, Config {
         token.mint(BORROWER_1, outstandingBalance - token.balanceOf(BORROWER_1));
 
         vm.expectEmit(true, true, true, true, address(market));
-        emit RepayLoan(loanId, address(liquidityPool), BORROWER_1, outstandingBalance, 0);
+        emit RepayLoan(loanId, BORROWER_1, BORROWER_1, outstandingBalance, 0);
         market.repayLoan(loanId, outstandingBalance);
 
         (outstandingBalance, ) = market.getLoanBalance(loanId, 0);

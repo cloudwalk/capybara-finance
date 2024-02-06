@@ -93,7 +93,7 @@ contract LendingMarket is
     /// @notice Throws if called by any account other than the loan holder
     /// @param loanId The unique identifier of the loan to check
     modifier onlyLoanHolder(uint256 loanId) {
-        if (ownerOf(loanId) != msg.sender) {
+        if (msg.sender != ownerOf(loanId)) {
             revert Error.Unauthorized();
         }
         _;
@@ -213,22 +213,31 @@ contract LendingMarket is
             revert Error.InvalidAmount();
         }
 
+        // Get lender
         address lender = _creditLines[creditLine];
-        address pool = _liquidityPools[lender];
+
+        // Get liquidity pool
+        address liquidityPool = _liquidityPools[lender];
 
         if (lender == address(0)) {
             revert CreditLineNotRegistered();
         }
-        if (pool == address(0)) {
+        if (liquidityPool == address(0)) {
             revert LiquidityPoolNotRegistered();
         }
 
+        // Mint a new NFT token to the lender
         uint256 id = _safeMint(lender);
-        Loan.Terms memory terms = ICreditLine(creditLine).onBeforeLoanTaken(msg.sender, amount, id);
-        uint256 startDate = calculatePeriodDate(block.timestamp, terms.periodInSeconds, 0, 0);
-        uint256 totalAmount = amount + uint256(terms.addonAmount);
 
-        Loan.State memory loan = Loan.State({
+        // Get the terms of the loan from the credit line
+        Loan.Terms memory terms = ICreditLine(creditLine).onBeforeLoanTaken(msg.sender, amount, id);
+
+        // Calculate the start date and the total amount of the loan
+        uint256 startDate = calculatePeriodDate(block.timestamp, terms.periodInSeconds, 0, 0);
+        uint256 totalAmount = amount + terms.addonAmount;
+
+        // Create and store the loan state
+        _loans[id] = Loan.State({
             token: terms.token,
             borrower: msg.sender,
             periodInSeconds: terms.periodInSeconds,
@@ -245,15 +254,21 @@ contract LendingMarket is
             autoRepayment: terms.autoRepayment
         });
 
-        _loans[id] = loan;
+        // Notify the liquidity pool before the loan is taken
+        ILiquidityPool(liquidityPool).onBeforeLoanTaken(id, creditLine);
 
-        ILiquidityPool(pool).onBeforeLoanTaken(id, creditLine);
-        IERC20(terms.token).safeTransferFrom(pool, msg.sender, amount);
+        // Transfer the loan amount to the borrower
+        IERC20(terms.token).safeTransferFrom(liquidityPool, msg.sender, amount);
+
+        // Transfer the addon amount to the addon recipient
         if (terms.addonAmount != 0) {
-            IERC20(terms.token).safeTransferFrom(pool, terms.addonRecipient, terms.addonAmount);
+            IERC20(terms.token).safeTransferFrom(liquidityPool, terms.addonRecipient, terms.addonAmount);
         }
-        ILiquidityPool(pool).onAfterLoanTaken(id, creditLine);
 
+        // Notify the liquidity pool after the loan is taken
+        ILiquidityPool(liquidityPool).onAfterLoanTaken(id, creditLine);
+
+        // Emit the event for the loan taken
         emit TakeLoan(id, msg.sender, totalAmount);
 
         return id;
@@ -265,12 +280,23 @@ contract LendingMarket is
             revert Error.InvalidAmount();
         }
 
+        // Get lender
+        address lender = ownerOf(loanId);
+
+        // Get liquidity pool
+        address liquidityPool = _liquidityPools[lender];
+
+        // Get stored loan state
         Loan.State storage loan = _loans[loanId];
 
-        if (ifLiqudityPool(loanId) && !loan.autoRepayment) {
+        // Check for auto repayment
+        bool autoRepayment = liquidityPool == msg.sender;
+        address payer = autoRepayment ? loan.borrower : msg.sender;
+        if (autoRepayment && !loan.autoRepayment) {
             revert AutoRepaymentNotAllowed();
         }
 
+        // Calculate the outstanding balance
         (uint256 outstandingBalance, uint256 currentDate) = _outstandingBalance(loan, block.timestamp);
 
         if (amount == type(uint256).max) {
@@ -279,42 +305,27 @@ contract LendingMarket is
             revert Error.InvalidAmount();
         }
 
+        // Update the loan state
         outstandingBalance -= amount;
         loan.trackedBorrowAmount = outstandingBalance.toUint64();
         loan.trackDate = currentDate.toUint32();
-        address pool = _liquidityPools[ownerOf(loanId)];
-        ILiquidityPool(pool).onBeforeLoanPayment(loanId, amount);
-        transferRepayment(loanId, loan, pool, amount);
-        ILiquidityPool(pool).onAfterLoanPayment(loanId, amount);
 
-        emit RepayLoan(loanId, msg.sender, loan.borrower, amount, outstandingBalance);
+        // Notify the liquidity pool before the loan payment
+        ILiquidityPool(liquidityPool).onBeforeLoanPayment(loanId, amount);
 
+        // Transfer the payment amount from the payer to the liquidity pool
+        IERC20(loan.token).transferFrom(payer, liquidityPool, amount);
+
+        // Notify the liquidity pool after the loan payment
+        ILiquidityPool(liquidityPool).onAfterLoanPayment(loanId, amount);
+
+        // Emit the event for the loan payment
+        emit RepayLoan(loanId, payer, loan.borrower, amount, outstandingBalance);
+
+        // Transfer the NFT token to the borrower if the loan is repaid
         if (outstandingBalance == 0) {
-            _safeTransfer(ownerOf(loanId), loan.borrower, loanId, "");
+            _safeTransfer(lender, loan.borrower, loanId, "");
         }
-    }
-
-    /// @notice Transfer the repayment amount to the liquidity pool
-    /// @param loanId The unique identifier of the loan to check
-    /// @param loan The loan state
-    /// @param pool The address of the liquidity pool
-    /// @param amount The amount to be transferred
-    function transferRepayment(uint256 loanId, Loan.State storage loan, address pool, uint256 amount) internal {
-        if (ifLiqudityPool(loanId)) {
-            IERC20(loan.token).transferFrom(loan.borrower, pool, amount);
-        } else {
-            IERC20(loan.token).transferFrom(msg.sender, pool, amount);
-        }
-    }
-
-    /// @notice Check if the sender is the liquidity pool of the loan
-    /// @param loanId The unique identifier of the loan to check
-    function ifLiqudityPool(uint256 loanId) internal returns (bool) {
-        if (msg.sender == _liquidityPools[ownerOf(loanId)]) {
-            return true;
-        }
-
-        return false;
     }
 
     /************************************************
@@ -346,8 +357,8 @@ contract LendingMarket is
         uint256 frozenPeriods = (currentDate - loan.freezeDate) / loan.periodInSeconds;
 
         if (frozenPeriods > 0) {
-            loan.trackDate = (uint256(loan.trackDate) + (frozenPeriods * uint256(loan.periodInSeconds))).toUint32();
-            loan.durationInPeriods = (uint256(loan.durationInPeriods) + frozenPeriods).toUint32();
+            loan.trackDate += (frozenPeriods * loan.periodInSeconds).toUint32();
+            loan.durationInPeriods += frozenPeriods.toUint32();
         }
 
         loan.freezeDate = 0;
@@ -385,7 +396,7 @@ contract LendingMarket is
         uint256 currentDate = calculatePeriodDate(block.timestamp, loan.periodInSeconds, 0, 0);
         uint256 currentMoratoriumInPeriods = 0;
         if (loan.trackDate > currentDate) {
-            currentMoratoriumInPeriods = (uint256(loan.trackDate) - currentDate) / uint256(loan.periodInSeconds);
+            currentMoratoriumInPeriods = (loan.trackDate - currentDate) / loan.periodInSeconds;
         }
 
         if (newMoratoriumInPeriods <= currentMoratoriumInPeriods) {
@@ -394,7 +405,7 @@ contract LendingMarket is
 
         emit UpdateLoanMoratorium(loanId, loan.trackDate, newMoratoriumInPeriods);
 
-        loan.trackDate += (newMoratoriumInPeriods * uint256(loan.periodInSeconds)).toUint32();
+        loan.trackDate += (newMoratoriumInPeriods * loan.periodInSeconds).toUint32();
     }
 
     /// @inheritdoc ILendingMarket
@@ -468,6 +479,7 @@ contract LendingMarket is
         if (timestamp == 0) {
             timestamp = block.timestamp;
         }
+
         return _outstandingBalance(_loans[loanId], timestamp);
     }
 
@@ -521,30 +533,30 @@ contract LendingMarket is
         }
 
         if (currentDate > loan.trackDate) {
-            uint256 dueDate = uint256(loan.startDate) + uint256(loan.durationInPeriods) * uint256(loan.periodInSeconds);
+            uint256 dueDate = loan.startDate + loan.durationInPeriods * loan.periodInSeconds;
 
             if (currentDate < dueDate) {
                 outstandingBalance = calculateOutstandingBalance(
                     outstandingBalance,
-                    (currentDate - uint256(loan.trackDate)) / uint256(loan.periodInSeconds),
-                    uint256(loan.interestRatePrimary),
-                    uint256(loan.interestRateFactor),
+                    (currentDate - loan.trackDate) / loan.periodInSeconds,
+                    loan.interestRatePrimary,
+                    loan.interestRateFactor,
                     loan.interestFormula
                 );
             } else if (loan.trackDate >= dueDate) {
                 outstandingBalance = calculateOutstandingBalance(
                     outstandingBalance,
-                    (currentDate - uint256(loan.trackDate)) / uint256(loan.periodInSeconds),
-                    uint256(loan.interestRateSecondary),
-                    uint256(loan.interestRateFactor),
+                    (currentDate - loan.trackDate) / loan.periodInSeconds,
+                    loan.interestRateSecondary,
+                    loan.interestRateFactor,
                     loan.interestFormula
                 );
             } else {
                 outstandingBalance = calculateOutstandingBalance(
                     outstandingBalance,
-                    (dueDate - uint256(loan.trackDate)) / uint256(loan.periodInSeconds),
-                    uint256(loan.interestRatePrimary),
-                    uint256(loan.interestRateFactor),
+                    (dueDate - loan.trackDate) / loan.periodInSeconds,
+                    loan.interestRatePrimary,
+                    loan.interestRateFactor,
                     loan.interestFormula
                 );
             }
