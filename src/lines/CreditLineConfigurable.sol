@@ -190,7 +190,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         onlyAdmin
     {
         if (borrowers.length != configs.length) {
-            revert ArrayLengthMismatch();
+            revert Error.ArrayLengthMismatch();
         }
 
         for (uint256 i = 0; i < borrowers.length; i++) {
