@@ -634,10 +634,10 @@ contract CreditLineConfigurableTest is Test, Config {
     }
 
     /************************************************
-     *  Test `onTakeLoan` function
+     *  Test `onBeforeLoanTaken` function
      ***********************************************/
 
-    function test_onTakeLoan_Policy_Keep() public {
+    function test_onBeforeLoanTaken_Policy_Keep() public {
         configureCreditLine();
 
         ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
@@ -647,12 +647,12 @@ contract CreditLineConfigurableTest is Test, Config {
         creditLine.configureBorrower(BORROWER_1, config);
 
         vm.prank(MARKET);
-        creditLine.onTakeLoan(BORROWER_1, config.minBorrowAmount);
+        creditLine.onBeforeLoanTaken(BORROWER_1, config.minBorrowAmount, 1);
 
         assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, config.maxBorrowAmount);
     }
 
-    function test_onTakeLoan_Policy_Reset() public {
+    function test_onBeforeLoanTaken_Policy_Reset() public {
         configureCreditLine();
 
         ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
@@ -662,12 +662,12 @@ contract CreditLineConfigurableTest is Test, Config {
         creditLine.configureBorrower(BORROWER_1, config);
 
         vm.prank(MARKET);
-        creditLine.onTakeLoan(BORROWER_1, config.minBorrowAmount);
+        creditLine.onBeforeLoanTaken(BORROWER_1, config.minBorrowAmount, 1);
 
         assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, 0);
     }
 
-    function test_onTakeLoan_Policy_Decrease() public {
+    function test_onBeforeLoanTaken_Policy_Decrease() public {
         configureCreditLine();
 
         ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
@@ -677,7 +677,7 @@ contract CreditLineConfigurableTest is Test, Config {
         creditLine.configureBorrower(BORROWER_1, config);
 
         vm.prank(MARKET);
-        creditLine.onTakeLoan(BORROWER_1, config.minBorrowAmount);
+        creditLine.onBeforeLoanTaken(BORROWER_1, config.minBorrowAmount, 1);
 
         assertEq(
             creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount,
@@ -685,7 +685,7 @@ contract CreditLineConfigurableTest is Test, Config {
         );
     }
 
-    function test_onTakeLoan_Revert_IfContractIsPaused() public {
+    function test_onBeforeLoanTaken_Revert_IfContractIsPaused() public {
         configureCreditLine();
 
         ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
@@ -698,10 +698,10 @@ contract CreditLineConfigurableTest is Test, Config {
 
         vm.prank(ATTACKER);
         vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
-        creditLine.onTakeLoan(BORROWER_1, config.minBorrowAmount);
+        creditLine.onBeforeLoanTaken(BORROWER_1, config.minBorrowAmount, 1);
     }
 
-    function test_onTakeLoan_Revert_IfCallerIsNotMarket() public {
+    function test_onBeforeLoanTaken_Revert_IfCallerIsNotMarket() public {
         configureCreditLine();
 
         ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
@@ -711,7 +711,7 @@ contract CreditLineConfigurableTest is Test, Config {
 
         vm.prank(ATTACKER);
         vm.expectRevert(Error.Unauthorized.selector);
-        creditLine.onTakeLoan(BORROWER_1, config.minBorrowAmount);
+        creditLine.onBeforeLoanTaken(BORROWER_1, config.minBorrowAmount, 1);
     }
 
     /************************************************

@@ -31,8 +31,8 @@ contract CreditLineMockTest is Test {
      *  ICreditLineFactory functions
      ***********************************************/
 
-    function test_onTakeLoan() public {
-        Loan.Terms memory terms = mock.onTakeLoan(address(0x1), 100);
+    function test_onBeforeLoanTaken() public {
+        Loan.Terms memory terms = mock.onBeforeLoanTaken(address(0x1), 100, 1);
 
         assertEq(terms.token, address(0x0));
         assertEq(terms.periodInSeconds, 0);
@@ -62,7 +62,7 @@ contract CreditLineMockTest is Test {
             })
         );
 
-        terms = mock.onTakeLoan(address(0x1), 100);
+        terms = mock.onBeforeLoanTaken(address(0x1), 100, 1);
 
         assertEq(terms.token, address(0x1));
         assertEq(terms.periodInSeconds, 100);

@@ -222,11 +222,10 @@ contract LendingMarket is
             revert LiquidityPoolNotRegistered();
         }
 
-        Loan.Terms memory terms = ICreditLine(creditLine).onTakeLoan(msg.sender, amount);
-
+        uint256 id = _safeMint(lender);
+        Loan.Terms memory terms = ICreditLine(creditLine).onBeforeLoanTaken(msg.sender, amount, id);
         uint256 startDate = calculatePeriodDate(block.timestamp, terms.periodInSeconds, 0, 0);
         uint256 totalAmount = amount + uint256(terms.addonAmount);
-        uint256 id = _safeMint(lender);
 
         Loan.State memory loan = Loan.State({
             token: terms.token,

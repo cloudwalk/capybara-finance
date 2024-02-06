@@ -7,9 +7,9 @@ import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Pau
 
 import {Loan} from "../libraries/Loan.sol";
 import {Error} from "../libraries/Error.sol";
+import {SafeCast} from "../libraries/SafeCast.sol";
 import {ICreditLine} from "../interfaces/core/ICreditLine.sol";
 import {ICreditLineConfigurable} from "../interfaces/ICreditLineConfigurable.sol";
-import {SafeCast} from "../libraries/SafeCast.sol";
 
 /// @title CreditLineConfigurable contract
 /// @notice Implementation of the configurable credit line contract
@@ -206,12 +206,14 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
      ***********************************************/
 
     /// @inheritdoc ICreditLine
-    function onTakeLoan(address borrower, uint256 amount)
+    function onBeforeLoanTaken(address borrower, uint256 amount, uint256 loandId)
         external
         whenNotPaused
         onlyMarket
         returns (Loan.Terms memory terms)
     {
+        loandId; // Silence compiler warning
+
         terms = determineLoanTerms(borrower, amount);
 
         BorrowerConfig storage borrowerConfig = _borrowers[borrower];
