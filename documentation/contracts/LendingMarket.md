@@ -3,19 +3,19 @@ The LendingMarket contract is an implementation of a lending market contract. It
 
 ## Contract Details
 
-- **Version**: Solidity 0.8.20
+- **Version**: Solidity 0.8.23
 - **License**: MIT
 - **Author**: CloudWalk Inc. (See [CloudWalk](https://cloudwalk.io))
-- **Interface**: [ILendingMarket](./interfaces/ILendingMarket.md)
+- **Interface**: [ILendingMarket](contracts/interfaces/core/ILendingMarket.md.md)
 
 ## Storage Variables
 | Name	           | Type	                          | Description                                                                                  |
 |-----------------|--------------------------------|----------------------------------------------------------------------------------------------|
-| _nft            | address                        | The address of the NFT token associated with the lending market.                             |
 | _registry       | address                        | 	The address of the registry contract used for registering credit lines and liquidity pools. |
+| _tokenIdCounter | uint256                        | The counter of the NFT token identifiers.                                                    |
+| _loans          | mapping(uint256 => Loan.State) | 	Mapping of loan identifiers (loan IDs) to their respective states.                          |
 | _creditLines    | mapping(address => address)    | 	Mapping of credit line contracts to their respective lenders.                               |
 | _liquidityPools | mapping(address => address)    | 	Mapping of liquidity pool contracts to their respective lenders.                            |
-| _loans          | mapping(uint256 => Loan.State) | 	Mapping of loan identifiers (loan IDs) to their respective states.                          |
 
 ## Errors
 ### LoanNotExist
@@ -56,7 +56,7 @@ Occurs when attempting to interact with a liquidity pool that is not registered.
 
 ### CreditLineAlreadyRegistered
 ```solidity
-error CreditLineNotRegistered();
+error CreditLineAlreadyRegistered();
 ```
 Occurs when attempting to interact with a credit line that was already registered.
 
@@ -84,6 +84,12 @@ error InappropriateLoanMoratorium();
 ```
 Occurs when attempting to provide inappropriate loan moratorium.
 
+### AutoRepaymentNotAllowed
+```solidity
+error AutoRepaymentNotAllowed();
+```
+Thrown when loan auto repayment is not allowed.
+
 ## Modifiers
 
 ### onlyRegistry
@@ -94,6 +100,12 @@ Ensures that a function can only be called by the registry contract or the owner
 
 ### onlyLoanHolder
 ```solidity
+modifier onlyLoanHolder(uint256 loanId);
+```
+Ensures that a function can only be called by the loan holder
+
+### onlyLoanHolder
+```solidity
 modifier onlyOngoingLoan(uint256 loanId);
 ```
 Ensures that a function can only be called to interact with the existing loan.
@@ -101,7 +113,7 @@ Ensures that a function can only be called to interact with the existing loan.
 
 ## Initializer
 ```solidity
-function initialize(string memory _name, string memory symbol_) external initializer;
+function initialize(string memory _name, string memory symbol_) external external initializer;
 ```
 Initializes the contract with the provided name and symbol.
 
@@ -388,7 +400,7 @@ Returns the liquidity pool associated with a lender.
 
 ### getLoan
 ```solidity
-function getLoanStored(uint256 loanId) external view returns (Loan.State memory);
+function getLoanState(uint256 loanId) external view returns (Loan.State memory);
 ```
 Returns the stored state of a loan.
 
@@ -404,61 +416,25 @@ Returns the stored state of a loan.
 |------|------------|------------------------|
 | loan | Loan.State | The state of the loan. |
 
-### calculatePeriodDate
+### getLoanBalance
 ```solidity
-function calculatePeriodDate(uint256 periodInSeconds, uint256 extraPeriods, uint256 extraSeconds) public view returns (uint256)
+function getLoanBalance(uint256 loanId, uint256 timestamp) external view returns (uint256, uint256);
 ```
-Calculates the date and time for a specific period based on the current timestamp, considering additional periods and seconds.
+Gets the outstanding balance of a given loan.
 
 #### Parameters:
 
-| Name            | Type    | Description                          |
-|-----------------|---------|--------------------------------------|
-| periodInSeconds | uint256 | The duration of a period in seconds. |
-| extraPeriods    | uint256 | The number of extra periods to add.  |
-| extraSeconds    | uint256 | The number of extra seconds to add.  |
-
-#### Returns:
-
-| Name       | Type    | Description                 |
-|------------|---------|-----------------------------|
-| periodDate | uint256 | The calculated period date. |
-
-### getOutstandingBalance
-```solidity
-function getOutstandingBalance(uint256 loanId) external view returns (uint256);
-```
-Returns the current outstanding balance of the loan.
-
-#### Parameters:
-
-| Name            | Type    | Description                 |
-|-----------------|---------|-----------------------------|
-| loanId          | uint256 | The identifier of the loan. |
+| Name      | Type    | Description                                       |
+|-----------|---------|---------------------------------------------------|
+| loanId    | uint256 | The identifier of the loan.                       |
+| timestamp | uint256 | The timestamp to get the outstanding balance for. |
 
 #### Returns:
 
 | Name               | Type        | Description                          |
 |--------------------|-------------|--------------------------------------|
 | outstandingBalance | Loan.Status | The outstanding balance of the loan. |
-
-### getCurrentPeriodDate
-```solidity
-function getCurrentPeriodDate(uint256 loanId) external view returns (uint256);
-```
-Returns the current period of a loan.
-
-#### Parameters:
-
-| Name            | Type    | Description                 |
-|-----------------|---------|-----------------------------|
-| loanId          | uint256 | The identifier of the loan. |
-
-#### Returns:
-
-| Name       | Type    | Description                     |
-|------------|---------|---------------------------------|
-| periodDate | uint256 | The current period of the loan. |
+| timestamp          | uint256     | The applied period date of the loan. |
 
 ### registry
 ```solidity
@@ -472,9 +448,30 @@ Retrieves the address of the registry.
 |----------|---------|------------------------------|
 | registry | address | The address of the registry. |
 
+### calculatePeriodDate
+```solidity
+function calculatePeriodDate(uint256 timestamp, uint256 periodInSeconds, uint256 extraPeriods, uint256 extraSeconds) public view returns (uint256);
+```
+Calculates the date and time for a specific period based on the current timestamp, considering additional periods and seconds.
+
+#### Parameters:
+
+| Name            | Type    | Description                                      |
+|-----------------|---------|--------------------------------------------------|
+| timestamp       | uint256 | The timestamp to calculate the period date from. |
+| periodInSeconds | uint256 | The duration of a period in seconds.             |
+| extraPeriods    | uint256 | The number of extra periods to add.              |
+| extraSeconds    | uint256 | The number of extra seconds to add.              |
+
+#### Returns:
+
+| Name       | Type    | Description                 |
+|------------|---------|-----------------------------|
+| periodDate | uint256 | The calculated period date. |
+
 ### calculateOutstandingBalance
 ```solidity
-function calculateOutstandingBalance(uint256 originalBalance, uint256 numberOfPeriods, uint256 interestRate, uint256 interestRateFactor, Interest.Formula interestFormula) public pure returns (uint256)
+function calculateOutstandingBalance(uint256 originalBalance, uint256 numberOfPeriods, uint256 interestRate, uint256 interestRateFactor, Interest.Formula interestFormula) public pure returns (uint256);
 ```
 Calculates the outstanding balance of a loan based on its original balance, the number of periods since it was taken, the interest rate, interest rate factor, and the interest calculation formula.
 

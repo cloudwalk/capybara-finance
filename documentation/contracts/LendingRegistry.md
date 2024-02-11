@@ -4,10 +4,10 @@ The `LendingRegistry` contract is responsible for managing credit lines and liqu
 
 ## Contract Details
 
-- **Version**: Solidity 0.8.20
+- **Version**: Solidity 0.8.23
 - **License**: MIT
 - **Author**: CloudWalk Inc. (See [CloudWalk](https://cloudwalk.io))
-- **Interface**: [ILendingRegistry](./interfaces/ILendingRegistry.md)
+- **Interface**: [ILendingRegistry](contracts/interfaces/core/ILendingRegistry.md.md)
 
 ## Events
 
@@ -51,6 +51,9 @@ error LiquidityPoolFactoryNotConfigured();
 Thrown when the liquidity pool factory is not set.
 
 ## Initializer
+```solidity
+function initialize(address market_) external initializer;
+```
 Initializes the upgradable contract.
 
 #### Parameters:
@@ -63,7 +66,7 @@ Initializes the upgradable contract.
 
 ### pause
 ```solidity
-function pause() external onlyOwner
+function pause() external onlyOwner;
 ```
 Pauses the contract.
 
@@ -72,7 +75,7 @@ Pauses the contract.
 
 ### unpause
 ```solidity
-function unpause() external onlyOwner
+function unpause() external onlyOwner;
 ```
 Unpauses the contract.
 
@@ -81,7 +84,7 @@ Unpauses the contract.
 
 ### setCreditLineFactory
 ```solidity
-function setCreditLineFactory(address newFactory) external onlyOwner
+function setCreditLineFactory(address newFactory) external onlyOwner;
 ```
 Sets the credit line factory contract.
 
@@ -97,7 +100,7 @@ Sets the credit line factory contract.
 
 ### setLiquidityPoolFactory
 ```solidity
-function setLiquidityPoolFactory(address newFactory) external onlyOwner
+function setLiquidityPoolFactory(address newFactory) external onlyOwner;
 ```
 Sets the liquidity pool factory contract.
 
@@ -114,7 +117,7 @@ Sets the liquidity pool factory contract.
 
 ### createCreditLine
 ```solidity
-function createCreditLine(uint16 kind) external whenNotPaused
+function createCreditLine(uint16 kind) external whenNotPaused;
 ```
 Creates a new credit line.
 
@@ -130,7 +133,7 @@ Creates a new credit line.
 
 ### createLiquidityPool
 ```solidity
-function createLiquidityPool(uint16 kind) external whenNotPaused
+function createLiquidityPool(uint16 kind) external whenNotPaused;
 ```
 Creates a new liquidity pool.
 
@@ -146,18 +149,18 @@ Creates a new liquidity pool.
 
 ### creditLineFactory
 ```solidity
-function creditLineFactory() external view returns (address)
+function creditLineFactory() external view returns (address);
 ```
 Retrieves the address of the credit line factory.
 
 ### liquidityPoolFactory
 ```solidity
-function liquidityPoolFactory() external view returns (address)
+function liquidityPoolFactory() external view returns (address);
 ```
 Retrieves the address of the liquidity pool factory.
 
 ### market
 ```solidity
-function market() external view returns (address)
+function market() external view returns (address);
 ```
 Retrieves the address of the associated lending market.

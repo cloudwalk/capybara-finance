@@ -2,7 +2,7 @@
 
 The `ILendingMarket` interface defines the functions and events for the lending market. This interface is used to interact with the lending market within the lending system.
 
-- **Version**: Solidity 0.8.20
+- **Version**: Solidity 0.8.23
 - **License**: MIT
 - **Author**: CloudWalk Inc. (See [CloudWalk](https://cloudwalk.io))
 
@@ -174,7 +174,7 @@ Emitted when the registry contract is updated.
 | oldRegistry	 | address	 | The address of the old registry contract. |
 | newRegistry	 | address	 | The address of the new registry contract. |
 
-## Functions
+## Borrower functions
 
 ### takeLoan
 ```solidity
@@ -200,6 +200,8 @@ Allows a borrower to repay a loan.
 |--------|---------|------------------------------------------|
 | loanId | address | The identifier of the loan to be repaid. |
 | amount | uint256 | The amount to be repaid.                 |
+
+## Loan holder functions
 
 ### freeze
 ```solidity
@@ -318,6 +320,8 @@ Registers a new liquidity pool contract for a lender.
 | lender        | address | The address of the lender associated with the liquidity pool. |
 | liquidityPool | address | The address of the liquidity pool contract to be registered.  |
 
+## View functions
+
 ### getLender
 ```solidity
 function getLender(address creditLine) external view returns (address);
@@ -353,9 +357,9 @@ Returns the liquidity pool associated with a lender.
 |---------------|---------|---------------------------------------------------------------|
 | liquidityPool | address | The address of the liquidity pool associated with the lender. |
 
-### getLoan
+### getLoanState
 ```solidity
-function getLoan(uint256 loanId) external view returns (Loan.State memory);
+function getLoanState(uint256 loanId) external view returns (Loan.State memory);
 ```
 Returns the stored state of a loan.
 
@@ -371,61 +375,25 @@ Returns the stored state of a loan.
 |-----------|------------|------------------------|
 | loanState | Loan.State | The state of the loan. |
 
-### getLoanPreview
+### getLoanBalance
 ```solidity
-function getLoanPreview(uint256 loanId, uint256 repayAmount, uint256 repayDate) external view returns (Loan.State memory);
+function getLoanBalance(uint256 loanId, uint256 timestamp) external view returns (uint256, uint256);
 ```
-Returns the preview state of a loan given a repayment amount and date.
+Gets the outstanding balance of a given loan.
 
 #### Parameters:
 
-| Name        | Type    | Description                               |
-|-------------|---------|-------------------------------------------|
-| loanId      | uint256 | The identifier of the loan.               |
-| repayAmount | uint256 | The amount to be repaid in the preview.   |
-| repayDate   | uint256 | The date of the repayment in the preview. |
-
-#### Returns:
-
-| Name       | Type        | Description                     |
-|------------|-------------|---------------------------------|
-| loanState  | Loan.State  | The state of the loan.          |
-
-### getOutstandingBalance
-```solidity
-function getOutstandingBalance(uint256 loanId) external view returns (uint256);
-```
-Returns the current outstanding balance of the loan.
-
-#### Parameters:
-
-| Name            | Type    | Description                 |
-|-----------------|---------|-----------------------------|
-| loanId          | uint256 | The identifier of the loan. |
+| Name      | Type    | Description                                       |
+|-----------|---------|---------------------------------------------------|
+| loanId    | uint256 | The identifier of the loan.                       |
+| timestamp | uint256 | The timestamp to get the outstanding balance for. |
 
 #### Returns:
 
 | Name               | Type        | Description                          |
 |--------------------|-------------|--------------------------------------|
 | outstandingBalance | Loan.Status | The outstanding balance of the loan. |
-
-### getCurrentPeriodDate
-```solidity
-function getCurrentPeriodDate(uint256 loanId) external view returns (uint256);
-```
-Returns the current period of a loan.
-
-#### Parameters:
-
-| Name            | Type    | Description                 |
-|-----------------|---------|-----------------------------|
-| loanId          | uint256 | The identifier of the loan. |
-
-#### Returns:
-
-| Name       | Type    | Description                     |
-|------------|---------|---------------------------------|
-| periodDate | uint256 | The current period of the loan. |
+| timestamp          | uint256     | The applied period date of the loan. |
 
 ### registry
 ```solidity

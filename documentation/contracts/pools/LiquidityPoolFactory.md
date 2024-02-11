@@ -3,10 +3,10 @@ The LiquidityPoolFactory is a Solidity contract responsible for creating liquidi
 
 ## Contract Details
 
-- **Version**: Solidity 0.8.20
+- **Version**: Solidity 0.8.23
 - **License**: MIT
 - **Author**: CloudWalk Inc. (See [CloudWalk](https://cloudwalk.io))
-- **Interface**: [ILiquidityPoolFactory](./interfaces/ILiquidityPoolFactory.md)
+- **Interface**: [ILiquidityPoolFactory](../interfaces/ILiquidityPoolFactory.md)
 
 ## Errors
 
@@ -18,7 +18,7 @@ This error is thrown when attempting to create a liquidity pool of an unsupporte
 
 ## Initializer
 ```solidity
-initialize(address registry_)
+function initialize(address registry_) external initializer;
 ```
 Initializer for creating a LiquidityPoolFactory contract.
 
@@ -29,25 +29,6 @@ Initializer for creating a LiquidityPoolFactory contract.
 | registry_ | address | The address of the associated lending registry. |
 
 ## Functions
-
-### pause
-```solidity
-function pause() external onlyAdmin whenNotPaused;
-```
-Pauses all contract functions subject to pause controls.
-
-#### Restrictions:
-- Is reverted if caller is not the owner
-
-
-### unpause
-```solidity
-function unpause() external onlyAdmin whenPaused;
-```
-Unpauses the contract and allows functions to be called again.
-
-#### Restrictions:
-- Is reverted if caller is not the owner
 
 ### createLiquidityPool
 

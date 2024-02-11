@@ -1,10 +1,10 @@
 # Overview
 
-The `ICreditLineConfigurable` interface is a part of a CapybaraFinance system and it specifies a set of functionalities for configurable credit lines, including setting parameters for managing different loans and borrowers configurations.
+The `ICreditLineConfigurable` interface is a part of a CapybaraFinance system, and it specifies a set of functionalities for configurable credit lines, including setting parameters for managing different loans and borrowers configurations.
 
 ## Contract Details
 
-- **Version**: Solidity 0.8.20
+- **Version**: Solidity 0.8.23
 - **License**: MIT
 - **Author**: CloudWalk Inc. (See [CloudWalk](https://cloudwalk.io))
 
@@ -13,62 +13,69 @@ The `ICreditLineConfigurable` interface is a part of a CapybaraFinance system an
 ### CreditLineConfig
 ```solidity
 struct CreditLineConfig {
-    uint256 periodInSeconds;
-    uint256 durationInPeriods;
-    uint256 minBorrowAmount;
-    uint256 maxBorrowAmount;
-    uint256 interestRateFactor
-    uint256 minInterestRatePrimary
-    uint256 maxInterestRatePrimary
-    uint256 minInterestRateSecondary
-    uint256 maxInterestRateSecondary
-    uint256 addonPeriodCostRate;
-    uint256 addonFixedCostRate;
+    uint32 periodInSeconds;
+    uint32 interestRateFactor;
+    uint32 minInterestRatePrimary;
+    uint32 maxInterestRatePrimary;
+    uint32 minInterestRateSecondary;
+    uint32 maxInterestRateSecondary;
+    uint32 addonPeriodCostRate;
+    uint32 addonFixedCostRate;
+    uint32 minDurationInPeriods;
+    uint32 maxDurationInPeriods;
+    uint64 minBorrowAmount;
+    uint64 maxBorrowAmount;
 }
 ```
 
 Defines the general configuration for a credit line with the following parameters:
 
-| Name                     | Type    | Description                                                    |
-|--------------------------|---------|----------------------------------------------------------------|
-| periodInSeconds          | uint256 | The duration of one loan period in seconds.                    |
-| durationInPeriods        | uint256 | The total loan duration measured in loan periods.              |
-| minBorrowAmount          | uint256 | The minimum amount that can be borrowed.                       |
-| maxBorrowAmount          | uint256 | The maximum amount that can be borrowed.                       |
-| interestRateFactor       | uint256 | The interest rate factor used for interest calculation         |
-| minInterestRatePrimary   | uint256 | The minimum primary interest rate to be applied to the loan    |
-| maxInterestRatePrimary   | uint256 | The maximum primary interest rate to be applied to the loan    |
-| minInterestRateSecondary | uint256 | The minimum secondary interest rate to be applied to the loan  |
-| maxInterestRateSecondary | uint256 | The maximum secondary interest rate to be applied to the loan  |
-| addonPeriodCostRate      | uint256 | The cost rate for additional payments calculated per period.   |
-| addonFixedCostRate       | uint256 | The fixed cost rate for additional payments.                   |
+| Name                     | Type   | Description                                                   |
+|--------------------------|--------|---------------------------------------------------------------|
+| periodInSeconds          | uint32 | The duration of one loan period in seconds.                   |
+| interestRateFactor       | uint32 | The interest rate factor used for interest calculation        |
+| minInterestRatePrimary   | uint32 | The minimum primary interest rate to be applied to the loan   |
+| maxInterestRatePrimary   | uint32 | The maximum primary interest rate to be applied to the loan   |
+| minInterestRateSecondary | uint32 | The minimum secondary interest rate to be applied to the loan |
+| maxInterestRateSecondary | uint32 | The maximum secondary interest rate to be applied to the loan |
+| addonPeriodCostRate      | uint32 | The cost rate for additional payments calculated per period.  |
+| addonFixedCostRate       | uint32 | The fixed cost rate for additional payments.                  |
+| minDurationInPeriods     | uint32 | The maximum duration of the loan determined in periods.       |
+| maxDurationInPeriods     | uint32 | The maximum duration of the loan determined in periods.       |
+| minBorrowAmount          | uint64 | The minimum amount that can be borrowed.                      |
+| maxBorrowAmount          | uint64 | The maximum amount that can be borrowed.                      |
+
 
 ### BorrowerConfig
 ```solidity
 struct BorrowerConfig {
-    uint256 expiration;
-    uint256 minBorrowAmount;
-    uint256 maxBorrowAmount;
-    uint256 interestRatePrimary;
-    uint256 interestRateSecondary;
+    uint32 durationInPeriods;
+    uint32 interestRatePrimary;
+    uint32 interestRateSecondary;
     address addonRecipient;
+    uint32 expiration;
+    uint64 minBorrowAmount;
+    uint64 maxBorrowAmount;
     Interest.Formula interestFormula;
     BorrowPolicy policy;
+    bool autoRepayment;
 }
 ```
 
 Defines a borrower-specific configuration with parameters:
 
-| Name                  | Type             | Description                                             |
-|-----------------------|------------------|---------------------------------------------------------|
-| expiration            | uint256          | The expiration date of the borrower's configuration.    |
-| minBorrowAmount       | uint256          | The minimum borrowable amount for the borrower.         |
-| maxBorrowAmount       | uint256          | The maximum borrowable amount for the borrower.         |
-| interestRatePrimary   | uint256          | The primary interest rate applied to the loan.          |
-| interestRateSecondary | uint256          | The secondary interest rate.                            |
-| addonRecipient        | address          | The recipient address for additional payments and fees. |
-| interestFormula       | Interest.Formula | The formula used to calculate interest on the loan.     |
-| policy                | BorrowPolicy     | The borrowing policy as per BorrowPolicy enumeration.   |
+| Name                  | Type             | Description                                                   |
+|-----------------------|------------------|---------------------------------------------------------------|
+| durationInPeriods     | uint32           | The total duration of the loan determined in periods.         |
+| interestRatePrimary   | uint32           | The primary interest rate applied to the loan.                |
+| interestRateSecondary | uint32           | The secondary interest rate.                                  |
+| addonRecipient        | address          | The recipient address for additional payments and fees.       |
+| expiration            | uint32           | The expiration date of the borrower's configuration.          |
+| minBorrowAmount       | uint64           | The minimum borrowable amount for the borrower.               |
+| maxBorrowAmount       | uint64           | The maximum borrowable amount for the borrower.               |
+| interestFormula       | Interest.Formula | The formula used to calculate interest on the loan.           |
+| policy                | BorrowPolicy     | The borrowing policy as per BorrowPolicy enumeration.         |
+| autoRepayment         | bool             | The flag for marking if the loan can be repaid automatically. |
 
 ## Enums
 
@@ -145,7 +152,6 @@ Emitted when the configuration of a borrower is updated.
 ```solidity
 function configureAdmin(address admin, bool adminStatus) external;
 ```
-
 
 Configures an account's admin status.
 

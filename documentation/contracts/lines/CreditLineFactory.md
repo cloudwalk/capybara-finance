@@ -3,10 +3,10 @@ CreditLineFactory is a Solidity contract designed to create new instances of cre
 
 ## Contract Details
 
-- **Version**: Solidity 0.8.20
+- **Version**: Solidity 0.8.23
 - **License**: MIT
 - **Author**: CloudWalk Inc. (See [CloudWalk](https://cloudwalk.io))
-- **Interface**: [ICreditLineFactory](./interfaces/ICreditLineFactory.md)
+- **Interface**: [ICreditLineFactory](../interfaces/ICreditLineFactory.md)
 
 ## Errors
 ### UnsupportedKind
@@ -19,7 +19,7 @@ Emitted when an attempt is made to create a credit line of a kind that is not su
 ## Initializer
 CreditLineFactory
 ```solidity
-initialize(address registry_);
+function initialize(address registry_) external initializer;
 ```
 Initializes the contract by setting the registry address and assigning ownership.
 
@@ -30,28 +30,9 @@ Initializes the contract by setting the registry address and assigning ownership
 | registry_ | address  | The address of the associated lending registry. |
 
 ## Functions
-### pause
-```solidity
-function pause() external onlyAdmin whenNotPaused;
-```
-Pauses all contract functions subject to pause controls.
-
-#### Restrictions:
-- Is reverted if caller is not the owner
-
-
-### unpause
-```solidity
-function unpause() external onlyAdmin whenPaused;
-```
-Unpauses the contract and allows functions to be called again.
-
-#### Restrictions:
-- Is reverted if caller is not the owner
-
 ### createCreditLine
 ```solidity
-function createCreditLine(address market, address lender, uint16 kind, bytes calldata data) external onlyOwner returns (address creditLine);
+function createCreditLine(address market, address lender, address token, uint16 kind, bytes calldata data) external onlyOwner returns (address creditLine);
 ```
 Creates a new credit line contract with specified parameters. It checks if the kind of credit line is supported and, if so, proceeds with creation; otherwise, it reverts.
 
@@ -60,12 +41,13 @@ Creates a new credit line contract with specified parameters. It checks if the k
 
 #### Parameters:
 
-| Name   | Type    | Description                                                  |
-|--------|---------|--------------------------------------------------------------|
-| market | address | The address of the market where the credit line is created.  |
-| lender | address | The address of the lender for the credit line.               |
-| kind   | uint16  | The type identifier for the credit line.                     |
-| data   | bytes   | Additional data required for credit line creation.           |
+| Name   | Type    | Description                                                 |
+|--------|---------|-------------------------------------------------------------|
+| market | address | The address of the market where the credit line is created. |
+| lender | address | The address of the lender for the credit line.              |
+| token  | address | The address of the credit line token.                       |
+| kind   | uint16  | The type identifier for the credit line.                    |
+| data   | bytes   | Additional data required for credit line creation.          |
 ### Returns:
 
 | Name        | Type     | Description                                    |

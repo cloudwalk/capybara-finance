@@ -3,24 +3,25 @@ The ILiquidityPoolFactory interface is a smart contract interface created by Clo
 
 ## Contract Details
 
-- **Version**: Solidity 0.8.20
+- **Version**: Solidity 0.8.23
 - **License**: MIT
 - **Author**: CloudWalk Inc. (See [CloudWalk](https://cloudwalk.io))
 
 ## Events
 ### CreateLiquidityPool
 ```solidity
-event CreateLiquidityPool(address indexed market, uint16 indexed kind, address liquidityPool);
+event CreateLiquidityPool(address indexed market, address indexed lender, uint16 indexed kind, address liquidityPool);
 ```
 This event is emitted every time a new liquidity pool contract is created by the factory.
 
 #### Parameters:
 
-| Name             | Type        | Description                                               |
-|------------------|-------------|-----------------------------------------------------------|
-| market           | address     | The address of the associated lending market.             |
-| kind             | uint16      | An identifier for the kind of liquidity pool.             |
-| liquidityPool    | address     | The address of the newly created liquidity pool contract. |
+| Name          | Type    | Description                                               |
+|---------------|---------|-----------------------------------------------------------|
+| market        | address | The address of the associated lending market.             |
+| lender        | address | The address of the liquidity pool lender.                 |
+| kind          | uint16  | An identifier for the kind of liquidity pool.             |
+| liquidityPool | address | The address of the newly created liquidity pool contract. |
 
 ## Functions
 
@@ -33,12 +34,12 @@ This function is responsible for creating a new liquidity pool contract.
 
 #### Parameters:
 
-| Name         | Type    | Description                                                                                             |
-|--------------|---------|---------------------------------------------------------------------------------------------------------|
-| market       | address | The address of the associated lending market.                                                           |
-| lender       | address | The address of the lender providing the financial backing for the liquidity pool.                       |
-| kind         | address | An integer representing the kind (version) of the liquidity pool to be created.                         |
-| data         | address | A bytes array containing the initialization parameters or configuration data for the new liquidity pool.|
+| Name   | Type    | Description                                                                                              |
+|--------|---------|----------------------------------------------------------------------------------------------------------|
+| market | address | The address of the associated lending market.                                                            |
+| lender | address | The address of the lender providing the financial backing for the liquidity pool.                        |
+| kind   | address | An integer representing the kind (version) of the liquidity pool to be created.                          |
+| data   | address | A bytes array containing the initialization parameters or configuration data for the new liquidity pool. |
 
 ### Returns:
 

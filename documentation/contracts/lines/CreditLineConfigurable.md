@@ -3,10 +3,10 @@ CreditLineConfigurable is a Solidity contract for managing credit lines in a len
 
 ## Contract Details
 
-- **Version**: Solidity 0.8.20
+- **Version**: Solidity 0.8.23
 - **License**: MIT
 - **Author**: CloudWalk Inc. (See [CloudWalk](https://cloudwalk.io))
-- **Interface**: [ICreditLineConfigurable](./interfaces/ICreditLineConfigurable.md)
+- **Interface**: [ICreditLineConfigurable](../interfaces/ICreditLineConfigurable.md)
 
 ## Storage Variables
 
@@ -43,14 +43,6 @@ Indicates that the action cannot proceed because the borrower's configuration ha
 error UnsupportedBorrowPolicy();
 ```
 Triggered when a borrow policy being utilized is not supported by the system.
-
-
-### ArrayLengthMismatch
-```solidity
-error ArrayLengthMismatch();
-```
-Emitted when the length of two arrays that are expected to match in length do not.
-
 
 ## Modifiers
 ### onlyMarket
@@ -89,7 +81,7 @@ Unpauses the contract and allows functions to be called again.
 
 ### configureAdmin
 ```solidity
-function configureAdmin(address admin, bool status) external onlyOwner;
+function configureAdmin(address admin, bool adminStatus) external onlyOwner;
 ```
 Updates the administrative status of an address, enabling or disabling admin functions for that address.
 
@@ -100,10 +92,10 @@ Updates the administrative status of an address, enabling or disabling admin fun
 
 #### Parameters:
 
-| Name    | Type    | Description                                 |
-|---------|---------|---------------------------------------------|
-| admin   | address | The address for which to set admin status.  |
-| status  | bool    | The boolean flag for admin status.          |
+| Name   | Type        | Description                                |
+|--------|-------------|--------------------------------------------|
+| admin  | address     | The address for which to set admin status. |
+| status | adminStatus | The boolean flag for admin status.         |
 
 ### configureCreditLine
 ```solidity
@@ -187,7 +179,7 @@ Configures multiple borrowers in a single transaction.
 ### onLoanTaken
 
 ```solidity
-function onLoanTaken(address borrower, uint256 amount) external whenNotPaused onlyMarket returns (Loan.Terms memory terms)
+function onBeforeLoanTaken(address borrower, uint256 amount, uint256 loandId) external whenNotPaused onlyMarket returns (Loan.Terms memory terms);
 ```
 Called when a loan is taken out by a borrower. It determines the loan terms based on the borrower's configuration and updates the borrower's credit policy accordingly.
 
@@ -197,10 +189,11 @@ Called when a loan is taken out by a borrower. It determines the loan terms base
 
 #### Parameters:
 
-| Name      | Type     | Description                                 |
-|-----------|----------|---------------------------------------------|
-| borrower  | address  | The address of the borrower taking a loan.  |
-| amount    | uint256  | The amount of the loan being taken.         |
+| Name     | Type     | Description                                |
+|----------|----------|--------------------------------------------|
+| borrower | address  | The address of the borrower taking a loan. |
+| amount   | uint256  | The amount of the loan being taken.        |
+| loanId   | uint256  | The unique identifier of the loan.         |
 
 #### Returns:
 | Type        | Description             |
@@ -209,7 +202,7 @@ Called when a loan is taken out by a borrower. It determines the loan terms base
 
 ### determineLoanTerms
 ```solidity
-function determineLoanTerms(address borrower, uint256 amount) public view returns (Loan.Terms memory terms)
+function determineLoanTerms(address borrower, uint256 amount) public view returns (Loan.Terms memory terms);
 ```
 Determines the terms of the loan based on the borrower's configuration and the credit line's configuration.
 

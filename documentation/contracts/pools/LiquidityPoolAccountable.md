@@ -4,18 +4,19 @@ The `LiquidityPoolAccountable` is a Solidity contract designed for managing liqu
 
 ## Contract Details
 
-- **Version**: Solidity 0.8.20
+- **Version**: Solidity 0.8.23
 - **License**: MIT
 - **Author**: CloudWalk Inc. (See [CloudWalk](https://cloudwalk.io))
-- **Interface**: [ILiquidityPoolAccountable](./interfaces/ILiquidityPoolAccountable.md)
+- **Interface**: [ILiquidityPoolAccountable](../interfaces/ILiquidityPoolAccountable.md)
 
 ## Storage Variables
 
-| Name                   | Type                        | Description                                                 |
-|------------------------|-----------------------------|-------------------------------------------------------------|
-| _market                | address                     | The address of the associated lending market.               |
-| _creditLines           | mapping(uint256 => address) | Maps loan identifiers to associated credit line addresses.  |
-| _creditLineBalances    | mapping(address => uint256) | Maps credit line addresses to their token balances.         |
+| Name                | Type                        | Description                                                |
+|---------------------|-----------------------------|------------------------------------------------------------|
+| _market             | address                     | The address of the associated lending market.              |
+| _admins             | mapping(address => bool)    | The mapping of account to admin status.                    |
+| _creditLines        | mapping(uint256 => address) | Maps loan identifiers to associated credit line addresses. |
+| _creditLineBalances | mapping(address => uint256) | Maps credit line addresses to their token balances.        |
 
 ## Errors
 
@@ -42,7 +43,7 @@ Ensures that the function can only be called by the lending market associated wi
 ## Initializer
  
 ```solidity
-initialize(address market_, address lender_);
+function initialize(address market_, address lender_) external initializer;
 ```
 Initializes the contract with the address of the associated lending market and the lender. It performs basic input validation for these addresses.
 
@@ -71,6 +72,24 @@ Unpauses the contract, allowing functions to be called again.
 
 #### Restrictions:
 - Is reverted if caller is not the owner
+
+
+### configureAdmin
+```solidity
+function configureAdmin(address admin, uint256 adminStatus) external;
+```
+Configures an admin status.
+
+#### Restrictions:
+- Is reverted if admin is zero address
+- Is reverted if the admin is already configured
+
+#### Parameters:
+
+| Name        | Type    | Description                       |
+|-------------|---------|-----------------------------------|
+| admin       | address | The address of the admin account. |
+| adminStatus | bool    | The status of the admin.          |
 
 ### deposit
 ```solidity
@@ -107,6 +126,23 @@ Allows the owner (lender) to withdraw funds from either a credit line, non-credi
 |--------------|----------|----------------------------------------|
 | tokenSource  | address  | The source of tokens to withdraw from. |
 | amount       | uint256  | The amount to withdraw.                |
+
+### withdraw
+```solidity
+function autoRepay(uint256[] memory loanIds, uint256[] memory amounts) external onlyAdmin;
+```
+Forces auto repayment of loans in batch mode.
+
+#### Restrictions:
+- Is reverted if caller is not the admin
+- Is reverted if arrays length mismatch
+
+#### Parameters:
+
+| Name    | Type      | Description                                     |
+|---------|-----------|-------------------------------------------------|
+| loanIds | uin256[]  | The unique identifiers of the loans to repay.   |
+| amounts | uint256[] | The amounts that correlate with given loan ids. |
 
 ### onBeforeLoanTaken
 ```solidity
@@ -200,7 +236,22 @@ Returns the credit line associated with a loan identifier.
 | Name   | Type    | Description                 |
 |--------|---------|-----------------------------|
 | loanId | uint256 | The identifier of the loan. |
-		
+
+### isAdmin
+```solidity
+function isAdmin(address account) external view returns (bool);
+```
+Retrieves the admin status of the account.
+
+#### Parameters:
+
+| Name    | Type    | Description                               |
+|---------|---------|-------------------------------------------|
+| account | address | The address to check the admin status of. |
+
+#### Returns:
+
+The `bool` admin status of the account.
 
 ### market
 ```solidity

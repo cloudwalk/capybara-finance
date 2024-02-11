@@ -3,7 +3,7 @@ The Interest library by CloudWalk Inc. provides an enumeration to distinguish be
 
 ## Contract Details
 
-- **Version**: Solidity 0.8.20
+- **Version**: Solidity 0.8.23
 - **License**: MIT
 - **Author**: CloudWalk Inc. (See [CloudWalk](https://cloudwalk.io))
 
@@ -26,4 +26,4 @@ The Compound interest calculation involves re-investing each period's interest b
 </ul>
 
 ## Usage
-The Interest library's Formula enumeration is be used in smart contracts for specifying how interest should be calculated for a particular loan or investment.
+The Interest library's Formula enumeration is being used in smart contracts for specifying how interest should be calculated for a particular loan or investment.
