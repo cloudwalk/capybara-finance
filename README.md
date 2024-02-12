@@ -22,7 +22,7 @@
 **[List of protocol`s events](./documentation/general/Events.md)**
 <br>
 
-**[List of protocol`s types](./documentation/general/Events.md)**
+**[List of protocol`s types](./documentation/general/Types.md)**
 
 ## Introduction
 CapybaraFinance protocol establishes a framework for users to lend or borrow funds within a decentralized and transparent system.

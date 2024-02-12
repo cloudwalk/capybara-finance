@@ -1,4 +1,4 @@
-# Protocol`s event
+# Protocol`s events
 
 ### Click event name to see in-contract declaration
 
