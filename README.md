@@ -36,13 +36,13 @@ The protocol is composed primarily of several interlinking smart contracts – a
 5. **CreditLine** The lender is using credit lines to determine loan terms for each borrower. While borrower is taking loan, they can choose which credit line would be used to determine loan terms.
 6. **LiquidityPool** The lender is using liquidity pool to supply loans. Loaned funds are transferred from the pool to the borrower, and, after the repayment and collecting interest, from the borrower to the pool.
 
-![](documentation/contracts/media/system-overview.png)
+![](documentation/media/system-overview.png)
 
 ## Loan lifecycle:
 A loan is defined with all its associated elements like status, token address, duration, interest rates, among other details. This struct encapsulates all the data and operations around a single loan in the system.
 Loan can be managed and changed by the lender <i>only</i> to improve loan conditions for the borrower.
 
-![](documentation/contracts/media/loan-lifecycle.png)
+![](documentation/media/loan-lifecycle.png)
 
 
 ## Problem It Solves:
@@ -56,7 +56,7 @@ Please read through the subsequent sections for more specific details on each co
 
 ---
 
-## [Lending Market](documentation/contracts/LendingMarket.mdgMarket.md)
+## [Lending Market](documentation/contracts/LendingMarket.md)
 
 The Lending Market contract is the centerpiece of the protocol that facilitates the transfer of funds between borrowers and lenders, utilizing the mechanisms of Credit Lines and Liquidity Pools. It manages loans by creating and tracking a unique identifier `loanId` for each loan. It also handles updates to the loan status and other loan properties such as duration, moratorium, primary and secondary interest rate.
 
@@ -84,7 +84,7 @@ A lender provides liquidity to the pool, which can then be used for loans. The l
 
 ---
 
-## [Configurable Credit Line](documentation/contracts/lines/CreditLineConfigurable.mdble.md)
+## [Configurable Credit Line](documentation/contracts/lines/CreditLineConfigurable.md)
 
 The `CreditLineConfigurable` contract serves as the hub for managing the configuration of a credit line within the decentralized lending protocol. It determines various settings and parameters for the credit line, handles the interaction between borrowers and the credit line, and manages administrative roles and privileges.
 
@@ -156,7 +156,7 @@ Borrowers interact with the liquidity pool via a credit line, which defines thei
 
 ---
 
-## [Accountable Liquidity Pool](documentation/contracts/pools/LiquidityPoolAccountable.mdble.md)
+## [Accountable Liquidity Pool](documentation/contracts/pools/LiquidityPoolAccountable.md)
 
 The `LiquidityPoolAccountable` contract is a concrete implementation of the `ILiquidityPoolAccountable` and `ILiquidityPool` interfaces. It is designed to manage financial interactions between the liquidity pool and its associated credit lines and loans.
 
@@ -211,7 +211,7 @@ Includes robust security features to ensure the safety of funds and operations w
 
 `LiquidityPoolAccountable` interacts with the lending market contract. It receives triggers from the lending market contract when a loan is taken or repaid and responds by updating relative balances.
 
-## [Lending Registry](documentation/contracts/LendingRegistry.mdistry.md)
+## [Lending Registry](documentation/contracts/LendingRegistry.md)
 
 The `LendingRegistry` is a crucial part of the CapybaraFinance ecosystem. It serves as a centralized directory that is used for the creation of new credit lines and liquidity pools and where the details of credit lines and liquidity pools creations are recorded and managed.
 
@@ -221,7 +221,7 @@ The `LendingRegistry` is a crucial part of the CapybaraFinance ecosystem. It ser
 - Integration with `LendingMarket`: The registry is tightly integrated with the Lending Market, facilitating the efficient operation of credit lines and/or liquidity pools creation and management processes.
 - Access Control: It manages access rights, allowing only authorized parties to configure factory contracts, but any user to deploy their own credit line and liquidity pool.
 
-## [Credit Line Factory](documentation/contracts/lines/CreditLineFactory.mdory.md)
+## [Credit Line Factory](documentation/contracts/lines/CreditLineFactory.md)
 
 The `CreditLineFactory` contract is responsible for the creation of new credit lines within the CapybaraFinance protocol. It is an expandable component that ensures contracts are created with consistent standards and security measures in place.
 
@@ -239,10 +239,10 @@ Emits an event upon the successful creation of a new credit line, which includes
 
 ### Error Handling
 Incorporates a custom error `UnsupportedKind` to handle attempts at creating unsupported types of credit lines, ensuring transparent and clear communication of operational boundaries.
+documentation/contract
+For a comprehensive explanation of how the `CreditLineFactory` operates and integrates with the other components of the CapybaraFinance protocol, please see the [Credit Line Factory documentation](documentation/contracts/lines/CreditLineFactory.md).
 
-For a comprehensive explanation of how the `CreditLineFactory` operates and integrates with the other components of the CapybaraFinance protocol, please see the [Credit Line Factory documentation](documentation/contracts/lines/CreditLineFactory.mdory.md).
-
-## [Liquidity Pool Factory](documentation/contracts/pools/LiquidityPoolFactory.mdory.md)
+## [Liquidity Pool Factory](documentation/contracts/pools/LiquidityPoolFactory.md)
 
 The `LiquidityPoolFactory` contract is responsible for the creation of new liquidity pools within the CapybaraFinance protocol. It is an expandable component that ensures pools are created with consistent standards and security measures in place.
 
@@ -261,10 +261,9 @@ Emits an event upon the successful creation of a new liquidity pool, which inclu
 ### Error Handling
 Incorporates a custom error `UnsupportedKind` to handle attempts at creating unsupported types of liquidity pools, ensuring transparent and clear communication of operational boundaries.
 
-For a comprehensive explanation of how the `LiquidityPoolFactory` operates and integrates with the other components of the CapybaraFinance protocol, please see the [Liquidity Pool Factory documentation](documentation/contracts/pools/LiquidityPoolFactory.mdory.md).
-
+For a comprehensive explanation of how the `LiquidityPoolFactory` operates and integrates with the other components of the CapybaraFinance protocol, please see the [Liquidity Pool Factory documentation](documentation/contracts/pools/LiquidityPoolFactory.md).
 
 ## System deployment:
 
-![](documentation/contracts/media/deployment.png)
+![](documentation/media/deployment.png)
 ---
