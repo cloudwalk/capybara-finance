@@ -37,7 +37,7 @@ contract LiquidityPoolFactoryTest is Test, Config {
 
     function setUp() public {
         factory = new LiquidityPoolFactory();
-        factory.initialize(REGISTRY);
+        factory.initialize(REGISTRY_1);
     }
 
     /************************************************
@@ -46,12 +46,12 @@ contract LiquidityPoolFactoryTest is Test, Config {
 
     function test_initializer() public {
         factory = new LiquidityPoolFactory();
-        factory.initialize(REGISTRY);
-        assertEq(factory.owner(), REGISTRY);
+        factory.initialize(REGISTRY_1);
+        assertEq(factory.owner(), REGISTRY_1);
     }
 
     function test_initializer_Revert_IfRegistryIsZeroAddress() public {
-        vm.prank(REGISTRY);
+        vm.prank(REGISTRY_1);
         factory = new LiquidityPoolFactory();
         vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableInvalidOwner.selector, address(0)));
         factory.initialize(address(0));
@@ -59,9 +59,9 @@ contract LiquidityPoolFactoryTest is Test, Config {
 
     function test_initialize_Revert_IfCalledSecondTime() public {
         factory = new LiquidityPoolFactory();
-        factory.initialize(REGISTRY);
+        factory.initialize(REGISTRY_1);
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        factory.initialize(REGISTRY);
+        factory.initialize(REGISTRY_1);
     }
 
     /************************************************
@@ -69,7 +69,7 @@ contract LiquidityPoolFactoryTest is Test, Config {
      ***********************************************/
 
     function test_createLiquidityPool() public {
-        vm.prank(REGISTRY);
+        vm.prank(REGISTRY_1);
         vm.expectEmit(true, true, true, true, address(factory));
         emit CreateLiquidityPool(MARKET, LENDER_1, KIND_1, DEPLOYED_CONTRACT_ADDRESS);
         address liquidityPool = factory.createLiquidityPool(MARKET, LENDER_1, KIND_1, DATA);
@@ -80,7 +80,7 @@ contract LiquidityPoolFactoryTest is Test, Config {
     }
 
     function test_createLiquidityPool_Revert_IfUnsupportedKind() public {
-        vm.prank(REGISTRY);
+        vm.prank(REGISTRY_1);
         vm.expectRevert(LiquidityPoolFactory.UnsupportedKind.selector);
         factory.createLiquidityPool(MARKET, LENDER_1, KIND_2, DATA);
     }

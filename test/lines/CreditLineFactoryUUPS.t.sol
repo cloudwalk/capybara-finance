@@ -33,7 +33,7 @@ contract CreditLineFactoryUUPSTest is Test, Config {
 
     function setUp() public {
         proxy = CreditLineFactoryUUPS(address(new ERC1967Proxy(address(new CreditLineFactoryUUPS()), "")));
-        proxy.initialize(REGISTRY);
+        proxy.initialize(REGISTRY_1);
     }
 
     /************************************************
@@ -42,7 +42,7 @@ contract CreditLineFactoryUUPSTest is Test, Config {
 
     function test_upgradeToAndCall() public {
         address newImplemetation = address(new CreditLineFactoryUUPS());
-        vm.prank(REGISTRY);
+        vm.prank(REGISTRY_1);
         vm.expectEmit(true, true, true, true, address(proxy));
         emit Upgraded(newImplemetation);
         proxy.upgradeToAndCall(newImplemetation, "");

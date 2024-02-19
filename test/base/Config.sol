@@ -26,7 +26,9 @@ contract Config {
     address public constant LENDER_2 = address(bytes20(keccak256("lender_2")));
 
     address public constant ATTACKER = address(bytes20(keccak256("attacker")));
-    address public constant REGISTRY = address(bytes20(keccak256("registry")));
+
+    address public constant REGISTRY_1 = address(bytes20(keccak256("registry_1")));
+    address public constant REGISTRY_2 = address(bytes20(keccak256("registry_2")));
 
     address public constant BORROWER_1 = address(bytes20(keccak256("borrower_1")));
     address public constant BORROWER_2 = address(bytes20(keccak256("borrower_2")));
