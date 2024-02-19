@@ -393,15 +393,12 @@ contract LendingMarket is
     {
         Loan.State storage loan = _loans[loanId];
 
-        uint256 currentDate = calculatePeriodDate(block.timestamp, loan.periodInSeconds, 0, 0);
-        uint256 currentMoratoriumInPeriods = 0;
-        if (loan.trackDate > currentDate) {
-            currentMoratoriumInPeriods = (loan.trackDate - currentDate) / loan.periodInSeconds;
-        }
-
+        uint256 currentMoratoriumInPeriods = _moratoriumInPeriods(loan);
         if (newMoratoriumInPeriods <= currentMoratoriumInPeriods) {
             revert InappropriateLoanMoratorium();
         }
+
+        newMoratoriumInPeriods -= currentMoratoriumInPeriods;
 
         emit UpdateLoanMoratorium(loanId, loan.trackDate, newMoratoriumInPeriods);
 
@@ -563,6 +560,12 @@ contract LendingMarket is
         }
 
         return (outstandingBalance, currentDate);
+    }
+
+    /// @notice Calculates the number of moratorium periods of a loan
+    function _moratoriumInPeriods(Loan.State storage loan) internal view returns (uint256) {
+        uint256 currentDate = calculatePeriodDate(block.timestamp, loan.periodInSeconds, 0, 0);
+        return loan.trackDate > currentDate ? (loan.trackDate - currentDate) / loan.periodInSeconds : 0;
     }
 
     /// @notice Creates a new NFT token and mints it to the lender
