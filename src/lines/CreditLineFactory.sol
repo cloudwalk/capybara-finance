@@ -13,16 +13,16 @@ import {CreditLineConfigurable} from "./CreditLineConfigurable.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice Implementation of the credit line factory contract
 contract CreditLineFactory is OwnableUpgradeable, ICreditLineFactory {
-    /************************************************
-     *  Errors
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Errors                                      //
+    // -------------------------------------------- //
 
     /// @notice Thrown when the requested credit line kind is not supported
     error UnsupportedKind();
 
-    /************************************************
-     *  Initializers
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Initializers                                //
+    // -------------------------------------------- //
 
     /// @notice Initializer of the upgradable contract
     /// @param registry_ The address of the associated lending market
@@ -40,9 +40,9 @@ contract CreditLineFactory is OwnableUpgradeable, ICreditLineFactory {
     /// @notice Unchained internal initializer of the upgradable contract
     function __CreditLineFactory_init_unchained() internal onlyInitializing {}
 
-    /************************************************
-     *  Functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Functions                                   //
+    // -------------------------------------------- //
 
     /// @inheritdoc ICreditLineFactory
     function createCreditLine(address market, address lender, address token, uint16 kind, bytes calldata data)

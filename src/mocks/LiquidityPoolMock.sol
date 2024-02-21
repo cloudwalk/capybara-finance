@@ -9,9 +9,9 @@ import {ILiquidityPool} from "../interfaces/core/ILiquidityPool.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice LiquidityPool mock contract used for testing
 contract LiquidityPoolMock is ILiquidityPool {
-    /************************************************
-     *  Events
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Events                                      //
+    // -------------------------------------------- //
 
     event OnBeforeLoanTakenCalled(uint256 indexed loanId, address indexed creditLine);
     event OnAfterLoanTakenCalled(uint256 indexed loanId, address indexed creditLine);
@@ -19,9 +19,9 @@ contract LiquidityPoolMock is ILiquidityPool {
     event OnBeforeLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
     event OnAfterLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
 
-    /************************************************
-     *  Storage variables
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Storage variables                           //
+    // -------------------------------------------- //
 
     bool _onBeforeLoanTakenResult;
     bool _onAfterLoanTakenResult;
@@ -29,9 +29,9 @@ contract LiquidityPoolMock is ILiquidityPool {
     bool _onBeforeLoanPaymentResult;
     bool _onAfterLoanPaymentResult;
 
-    /************************************************
-     *  ILiquidityPoolFactory functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  ILiquidityPoolFactory functions             //
+    // -------------------------------------------- //
 
     function onBeforeLoanTaken(uint256 loanId, address creditLine) external returns (bool) {
         emit OnBeforeLoanTakenCalled(loanId, creditLine);
@@ -65,9 +65,9 @@ contract LiquidityPoolMock is ILiquidityPool {
         revert Error.NotImplemented();
     }
 
-    /************************************************
-     *  Mock functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Mock functions                              //
+    // -------------------------------------------- //
 
     function mockOnBeforeLoanTakenResult(bool result) external {
         _onBeforeLoanTakenResult = result;

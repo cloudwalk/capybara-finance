@@ -6,9 +6,9 @@ pragma solidity 0.8.23;
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice Defines the credit line factory contract functions and events
 interface ICreditLineFactory {
-    /************************************************
-     *  Events
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Events                                      //
+    // -------------------------------------------- //
 
     /// @notice Emitted when a new credit line is created
     /// @param market The address of the associated lending market
@@ -20,9 +20,9 @@ interface ICreditLineFactory {
         address indexed market, address indexed lender, address indexed token, uint16 kind, address creditLine
     );
 
-    /************************************************
-     *  Functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Functions                                   //
+    // -------------------------------------------- //
 
     /// @notice Creates a new credit line
     /// @param market The address of the lending market

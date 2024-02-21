@@ -25,9 +25,9 @@ contract LendingRegistry is
     PausableUpgradeable,
     ILendingRegistry
 {
-    /************************************************
-     *  Events
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Events                                      //
+    // -------------------------------------------- //
 
     /// @notice Emitted when the credit line factory is set
     /// @param newFactory The address of the new credit line factory
@@ -39,9 +39,9 @@ contract LendingRegistry is
     /// @param oldFactory The address of the old liquidity pool factory
     event SetLiquidityPoolFactory(address newFactory, address oldFactory);
 
-    /************************************************
-     *  Errors
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Errors                                      //
+    // -------------------------------------------- //
 
     /// @notice Thrown when the credit line factory is not configured
     error CreditLineFactoryNotConfigured();
@@ -49,9 +49,9 @@ contract LendingRegistry is
     /// @notice Thrown when the liquidity pool factory is not configured
     error LiquidityPoolFactoryNotConfigured();
 
-    /************************************************
-     *  Initializers
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Initializers                                //
+    // -------------------------------------------- //
 
     /// @notice Initializer of the upgradable contract
     /// @param market_ The address of the associated lending market
@@ -77,9 +77,9 @@ contract LendingRegistry is
         _market = market_;
     }
 
-    /************************************************
-     *  Owner functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Owner functions                             //
+    // -------------------------------------------- //
 
     /// @notice Pauses the contract
     function pause() external onlyOwner {
@@ -115,9 +115,9 @@ contract LendingRegistry is
         _liquidityPoolFactory = newFactory;
     }
 
-    /************************************************
-     *  Public functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Public functions                            //
+    // -------------------------------------------- //
 
     /// @inheritdoc ILendingRegistry
     function createCreditLine(uint16 kind, address token) external whenNotPaused {
@@ -143,9 +143,9 @@ contract LendingRegistry is
         ILendingMarket(_market).registerLiquidityPool(msg.sender, liquidityPool);
     }
 
-    /************************************************
-     *  View functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  View functions                              //
+    // -------------------------------------------- //
 
     /// @inheritdoc ILendingRegistry
     function creditLineFactory() external view returns (address) {

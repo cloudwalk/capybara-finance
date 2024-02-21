@@ -22,9 +22,9 @@ import {Config} from "test/base/Config.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice Contains tests for the LiquidityPoolAccountable contract
 contract LiquidityPoolAccountableTest is Test, Config {
-    /************************************************
-     *  Events
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Events                                      //
+    // -------------------------------------------- //
 
     event ConfigureAdmin(address indexed admin, bool adminStatus);
     event Deposit(address indexed creditLine, uint256 amount);
@@ -35,9 +35,9 @@ contract LiquidityPoolAccountableTest is Test, Config {
         uint256 repayAmount
     );
 
-    /************************************************
-     *  Storage variables
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Storage variables                           //
+    // -------------------------------------------- //
 
     LiquidityPoolAccountable public liquidityPool;
     LendingMarketMock public lendingMarket;
@@ -56,9 +56,9 @@ contract LiquidityPoolAccountableTest is Test, Config {
     uint64 public constant DEPOSIT_AMOUNT_3 = 300;
     uint256 public constant NONEXISTENT_LOAN_ID = 999999999;
 
-    /************************************************
-     *  Setup and configuration
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Setup and configuration                     //
+    // -------------------------------------------- //
 
     function setUp() public {
         token = new ERC20Mock(0);
@@ -90,9 +90,9 @@ contract LiquidityPoolAccountableTest is Test, Config {
         return (loanIds, amounts);
     }
 
-    /************************************************
-     *  Test initializer
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Test initializer                            //
+    // -------------------------------------------- //
 
     function test_initializer() public {
         liquidityPool = new LiquidityPoolAccountable();
@@ -121,9 +121,9 @@ contract LiquidityPoolAccountableTest is Test, Config {
         liquidityPool.initialize(address(lendingMarket), LENDER_1);
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `pause` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_pause() public {
         assertEq(liquidityPool.paused(), false);
@@ -145,9 +145,9 @@ contract LiquidityPoolAccountableTest is Test, Config {
         liquidityPool.pause();
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `unpause` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_unpause() public {
         vm.startPrank(LENDER_1);
@@ -173,9 +173,9 @@ contract LiquidityPoolAccountableTest is Test, Config {
         liquidityPool.unpause();
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `configureAdmin` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_configureAdmin() public {
         assertEq(liquidityPool.isAdmin(ADMIN), false);
@@ -214,9 +214,9 @@ contract LiquidityPoolAccountableTest is Test, Config {
         liquidityPool.configureAdmin(ADMIN, true);
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `deposit` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_deposit() public {
         configureLender();
@@ -253,9 +253,9 @@ contract LiquidityPoolAccountableTest is Test, Config {
         liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT_1);
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `withdraw` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_withdraw_CreditLineBalance() public {
         configureLender();
@@ -341,9 +341,9 @@ contract LiquidityPoolAccountableTest is Test, Config {
         liquidityPool.withdraw(address(creditLine), DEPOSIT_AMOUNT_1);
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `autoRepay` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_autoRepay() public {
         vm.prank(LENDER_1);
@@ -386,9 +386,9 @@ contract LiquidityPoolAccountableTest is Test, Config {
         liquidityPool.autoRepay(loanIds, amounts);
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `onBeforeLoanTaken` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_onBeforeLoanTaken() public {
         vm.prank(address(lendingMarket));
@@ -410,9 +410,9 @@ contract LiquidityPoolAccountableTest is Test, Config {
         liquidityPool.onBeforeLoanTaken(LOAN_ID_1, address(creditLine));
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `onAfterLoanTaken` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_onAfterLoanTaken() public {
         configureLender();
@@ -464,9 +464,9 @@ contract LiquidityPoolAccountableTest is Test, Config {
         liquidityPool.onAfterLoanTaken(LOAN_ID_1, address(creditLine));
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `onBeforeLoanPayment` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_onBeforeLoanPayment() public {
         vm.prank(address(lendingMarket));
@@ -488,9 +488,9 @@ contract LiquidityPoolAccountableTest is Test, Config {
         liquidityPool.onBeforeLoanPayment(LOAN_ID_1, DEPOSIT_AMOUNT_1);
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `onAfterLoanPayment` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_onAfterLoanPayment_CreditLineBalance() public {
         configureLender();
@@ -575,9 +575,9 @@ contract LiquidityPoolAccountableTest is Test, Config {
         liquidityPool.onAfterLoanPayment(LOAN_ID_1, DEPOSIT_AMOUNT_1);
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `getTokenBalance` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_getTokenBalance() public {
         assertEq(liquidityPool.getTokenBalance(address(creditLine)), 0);
@@ -595,9 +595,9 @@ contract LiquidityPoolAccountableTest is Test, Config {
         assertEq(liquidityPool.getTokenBalance(NONEXISTENT_TOKEN_SOUTRCE), 0);
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `getCreditLine` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_getCreditLine() public {
         configureLender();
@@ -632,9 +632,9 @@ contract LiquidityPoolAccountableTest is Test, Config {
         assertEq(liquidityPool.getCreditLine(LOAN_ID_1), address(creditLine));
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test view functions
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_isAdmin() public {
         assertFalse(liquidityPool.isAdmin(ADMIN));

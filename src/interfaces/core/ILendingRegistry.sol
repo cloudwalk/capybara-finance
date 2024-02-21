@@ -6,9 +6,9 @@ pragma solidity 0.8.23;
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice Defines the lending registry contract functions and events
 interface ILendingRegistry {
-    /************************************************
-     *  Functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Functions                                   //
+    // -------------------------------------------- //
 
     /// @notice Creates a new credit line
     /// @param kind The kind of the credit line

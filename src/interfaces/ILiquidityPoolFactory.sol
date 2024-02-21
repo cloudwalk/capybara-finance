@@ -6,9 +6,9 @@ pragma solidity 0.8.23;
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice Defines the liquidity pool factory contract functions and events
 interface ILiquidityPoolFactory {
-    /************************************************
-     *  Events
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Events                                      //
+    // -------------------------------------------- //
 
     /// @notice Emitted when a new liquidity pool is created
     /// @param market The address of the associated lending market
@@ -19,9 +19,9 @@ interface ILiquidityPoolFactory {
         address indexed market, address indexed lender, uint16 indexed kind, address liquidityPool
     );
 
-    /************************************************
-     *  Functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Functions                                   //
+    // -------------------------------------------- //
 
     /// @notice Creates a new liquidity pool
     /// @param market The address of the lending market

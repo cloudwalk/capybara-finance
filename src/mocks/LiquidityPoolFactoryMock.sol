@@ -9,21 +9,21 @@ import {ILiquidityPoolFactory} from "../interfaces/ILiquidityPoolFactory.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice LiquidityPoolFactory mock contract used for testing
 contract LiquidityPoolFactoryMock is ILiquidityPoolFactory {
-    /************************************************
-     *  Events
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Events                                      //
+    // -------------------------------------------- //
 
     event CreateLiquidityPoolCalled(address indexed market, address indexed lender, uint16 indexed kind, bytes data);
 
-    /************************************************
-     *  Storage variables
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Storage variables                           //
+    // -------------------------------------------- //
 
     address _liquidityPoolAddress;
 
-    /************************************************
-     *  ILiquidityPoolFactory functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  ILiquidityPoolFactory functions             //
+    // -------------------------------------------- //
 
     function createLiquidityPool(address market, address lender, uint16 kind, bytes calldata data)
         external
@@ -37,9 +37,9 @@ contract LiquidityPoolFactoryMock is ILiquidityPoolFactory {
         revert Error.NotImplemented();
     }
 
-    /************************************************
-     *  Mock functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Mock functions                              //
+    // -------------------------------------------- //
 
     function mockLiquidityPoolAddress(address liquidityPoolAddress) external {
         _liquidityPoolAddress = liquidityPoolAddress;

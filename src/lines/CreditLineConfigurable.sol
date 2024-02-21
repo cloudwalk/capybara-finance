@@ -17,9 +17,9 @@ import {ICreditLineConfigurable} from "../interfaces/ICreditLineConfigurable.sol
 /// @notice Implementation of the configurable credit line contract
 contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICreditLine, ICreditLineConfigurable {
     using SafeCast for uint256;
-    /************************************************
-     *  Storage
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Storage variables                           //
+    // -------------------------------------------- //
 
     /// @notice The address of the associated lending market
     address internal _market;
@@ -36,9 +36,9 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     /// @notice The mapping of borrower to its configuration
     mapping(address => BorrowerConfig) internal _borrowers;
 
-    /************************************************
-     *  Errors
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Errors                                      //
+    // -------------------------------------------- //
 
     /// @notice Thrown when the credit line configuration is invalid
     error InvalidCreditLineConfiguration();
@@ -52,9 +52,9 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     /// @notice Thrown when the borrow policy is unsupported
     error UnsupportedBorrowPolicy();
 
-    /************************************************
-     *  Modifiers
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Modifiers                                   //
+    // -------------------------------------------- //
 
     /// @notice Throws if called by any account other than the market
     modifier onlyMarket() {
@@ -72,9 +72,9 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         _;
     }
 
-    /************************************************
-     *  Initializers
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Initializers                                //
+    // -------------------------------------------- //
 
     /// @notice Initializer of the upgradable contract
     /// @param market_ The address of the associated lending market
@@ -121,9 +121,9 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         _token = token_;
     }
 
-    /************************************************
-     *  Owner functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Owner functions                             //
+    // -------------------------------------------- //
 
     /// @notice Pauses the contract
     function pause() external onlyOwner {
@@ -175,9 +175,9 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         emit ConfigureCreditLine(address(this), config);
     }
 
-    /************************************************
-     *  Admin functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Admin functions                             //
+    // -------------------------------------------- //
 
     /// @inheritdoc ICreditLineConfigurable
     function configureBorrower(address borrower, BorrowerConfig memory config) external whenNotPaused onlyAdmin {
@@ -199,9 +199,9 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         }
     }
 
-    /************************************************
-     *  Market functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Market functions                            //
+    // -------------------------------------------- //
 
     /// @inheritdoc ICreditLine
     function onBeforeLoanTaken(address borrower, uint256 amount, uint256 loandId)
@@ -224,9 +224,9 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         }
     }
 
-    /************************************************
-     *  View functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  View functions                              //
+    // -------------------------------------------- //
 
     /// @inheritdoc ICreditLine
     function determineLoanTerms(address borrower, uint256 amount) public view returns (Loan.Terms memory terms) {
@@ -307,9 +307,9 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         return (amount * addonRate) / _config.interestRateFactor;
     }
 
-    /************************************************
-     *  Internal functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Internal functions                          //
+    // -------------------------------------------- //
 
     /// @notice Updates the borrower configuration
     /// @param borrower The address of the borrower

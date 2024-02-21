@@ -16,33 +16,33 @@ import {Config} from "test/base/Config.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice Contains tests for the CreditLineFactory contract
 contract CreditLineFactoryTest is Test, Config {
-    /************************************************
-     *  Events
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Events                                      //
+    // -------------------------------------------- //
 
     event CreateCreditLine(
         address indexed market, address indexed lender, address indexed token, uint16 kind, address creditLine
     );
 
-    /************************************************
-     *  Storage variables
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Storage variables                           //
+    // -------------------------------------------- //
 
     CreditLineFactory public factory;
     address public constant DEPLOYED_CONTRACT_ADDRESS = 0x104fBc016F4bb334D775a19E8A6510109AC63E00;
 
-    /************************************************
+    // -------------------------------------------- //
      *  Setup and configuration
-     ***********************************************/
+    // -------------------------------------------- //
 
     function setUp() public {
         factory = new CreditLineFactory();
         factory.initialize(REGISTRY_1);
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test initializer
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_initializer() public {
         factory = new CreditLineFactory();
@@ -64,9 +64,9 @@ contract CreditLineFactoryTest is Test, Config {
         factory.initialize(REGISTRY_1);
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `createCreditLine` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_createCreditLine() public {
         vm.prank(REGISTRY_1);
@@ -92,9 +92,9 @@ contract CreditLineFactoryTest is Test, Config {
         factory.createCreditLine(MARKET, LENDER_1, TOKEN_1, KIND_1, DATA);
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `supportedKinds` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_supportedKinds() public {
         uint16[] memory kinds = factory.supportedKinds();

@@ -15,21 +15,21 @@ import {Config} from "test/base/Config.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice Contains tests for the LendingMarketUUPS contract
 contract LendingMarketUUPSTest is Test, Config {
-    /************************************************
-     *  Events
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Events                                      //
+    // -------------------------------------------- //
 
     event Upgraded(address indexed implementation);
 
-    /************************************************
-     *  Storage variables
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Storage variables                           //
+    // -------------------------------------------- //
 
     LendingMarketUUPS public proxy;
 
-    /************************************************
-     *  Setup and configuration
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Setup and configuration                     //
+    // -------------------------------------------- //
 
     function setUp() public {
         proxy = LendingMarketUUPS(address(new ERC1967Proxy(address(new LendingMarketUUPS()), "")));
@@ -37,9 +37,9 @@ contract LendingMarketUUPSTest is Test, Config {
         proxy.transferOwnership(OWNER);
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `upgradeToAndCall` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_upgradeToAndCall() public {
         address newImplemetation = address(new LendingMarketUUPS());

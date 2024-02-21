@@ -26,9 +26,9 @@ contract LiquidityPoolAccountable is
 {
     using SafeERC20 for IERC20;
 
-    /************************************************
+    // -------------------------------------------- //
      *  Storage
-     ***********************************************/
+    // -------------------------------------------- //
 
     /// @notice The address of the associated lending market
     address internal _market;
@@ -42,9 +42,9 @@ contract LiquidityPoolAccountable is
     /// @notice Mapping of credit line address to its token balance
     mapping(address => uint256) internal _creditLineBalances;
 
-    /************************************************
-     *  Errors
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Errors                                      //
+    // -------------------------------------------- //
 
     /// @notice Thrown when the token source balance is zero
     error ZeroBalance();
@@ -52,9 +52,9 @@ contract LiquidityPoolAccountable is
     /// @notice Thrown when the token source balance is insufficient
     error InsufficientBalance();
 
-    /************************************************
-     *  Modifiers
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Modifiers                                   //
+    // -------------------------------------------- //
 
     /// @notice Throws if called by any account other than the market
     modifier onlyMarket() {
@@ -72,9 +72,9 @@ contract LiquidityPoolAccountable is
         _;
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Initializers
-     ***********************************************/
+    // -------------------------------------------- //
 
     /// @notice Initializer of the upgradable contract
     /// @param market_ The address of the associated lending market
@@ -108,9 +108,9 @@ contract LiquidityPoolAccountable is
         _market = market_;
     }
 
-    /************************************************
-     *  Owner functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Owner functions                             //
+    // -------------------------------------------- //
 
     /// @notice Pauses the contract
     function pause() external onlyOwner {
@@ -207,9 +207,9 @@ contract LiquidityPoolAccountable is
         }
     }
 
-    /************************************************
-     *  Market functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Market functions                            //
+    // -------------------------------------------- //
 
     /// @inheritdoc ILiquidityPool
     function onBeforeLoanTaken(uint256 loanId, address creditLine) external whenNotPaused onlyMarket returns (bool) {
@@ -239,9 +239,9 @@ contract LiquidityPoolAccountable is
         return true;
     }
 
-    /************************************************
-     *  View functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  View functions                              //
+    // -------------------------------------------- //
 
     /// @inheritdoc ILiquidityPoolAccountable
     function getTokenBalance(address tokenSource) external view returns (uint256) {

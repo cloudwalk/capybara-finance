@@ -16,33 +16,33 @@ import {Config} from "test/base/Config.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice Contains tests for the LiquidityPoolFactory contract
 contract LiquidityPoolFactoryTest is Test, Config {
-    /************************************************
-     *  Events
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Events                                      //
+    // -------------------------------------------- //
 
     event CreateLiquidityPool(
         address indexed market, address indexed lender, uint16 indexed kind, address liquidityPool
     );
 
-    /************************************************
-     *  Storage variables
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Storage variables                           //
+    // -------------------------------------------- //
 
     LiquidityPoolFactory public factory;
     address public constant DEPLOYED_CONTRACT_ADDRESS = 0x104fBc016F4bb334D775a19E8A6510109AC63E00;
 
-    /************************************************
-     *  Setup and configuration
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Setup and configuration                     //
+    // -------------------------------------------- //
 
     function setUp() public {
         factory = new LiquidityPoolFactory();
         factory.initialize(REGISTRY_1);
     }
 
-    /************************************************
-     *  Test initializer
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Test initializer                            //
+    // -------------------------------------------- //
 
     function test_initializer() public {
         factory = new LiquidityPoolFactory();
@@ -64,9 +64,9 @@ contract LiquidityPoolFactoryTest is Test, Config {
         factory.initialize(REGISTRY_1);
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `createLiquidityPool` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_createLiquidityPool() public {
         vm.prank(REGISTRY_1);
@@ -91,9 +91,9 @@ contract LiquidityPoolFactoryTest is Test, Config {
         factory.createLiquidityPool(MARKET, LENDER_1, KIND_1, DATA);
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `supportedKinds` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_supportedKinds() public {
         uint16[] memory kinds = factory.supportedKinds();

@@ -15,30 +15,30 @@ import {Config} from "test/base/Config.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice Contains tests for the LiquidityPoolFactoryUUPS contract
 contract LiquidityPoolFactoryUUPSTest is Test, Config {
-    /************************************************
-     *  Events
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Events                                      //
+    // -------------------------------------------- //
 
     event Upgraded(address indexed implementation);
 
-    /************************************************
-     *  Storage variables
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Storage variables                           //
+    // -------------------------------------------- //
 
     LiquidityPoolFactoryUUPS public proxy;
 
-    /************************************************
-     *  Setup and configuration
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Setup and configuration                     //
+    // -------------------------------------------- //
 
     function setUp() public {
         proxy = LiquidityPoolFactoryUUPS(address(new ERC1967Proxy(address(new LiquidityPoolFactoryUUPS()), "")));
         proxy.initialize(REGISTRY_1);
     }
 
-    /************************************************
-     *  Test `upgradeToAndCall` function
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Test `upgradeToAndCall` function            //
+    // -------------------------------------------- //
 
     function test_upgradeToAndCall() public {
         address newImplemetation = address(new LiquidityPoolFactoryUUPS());

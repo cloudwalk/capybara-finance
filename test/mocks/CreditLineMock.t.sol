@@ -13,23 +13,23 @@ import {CreditLineMock} from "src/mocks/CreditLineMock.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice Contains tests for the CreditLineMock contract
 contract CreditLineMockTest is Test {
-    /************************************************
-     *  Storage variables
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Storage variables                           //
+    // -------------------------------------------- //
 
     CreditLineMock public mock;
 
-    /************************************************
-     *  Setup and configuration
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Setup and configuration                     //
+    // -------------------------------------------- //
 
     function setUp() public {
         mock = new CreditLineMock();
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  ICreditLineFactory functions
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_onBeforeLoanTaken() public {
         Loan.Terms memory terms = mock.onBeforeLoanTaken(address(0x1), 100, 1);

@@ -8,9 +8,9 @@ import {Loan} from "./libraries/Loan.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice Defines the storage layout for the lending market contract
 abstract contract LendingMarketStorage {
-    /************************************************
-     *  Storage variables
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Storage variables                           //
+    // -------------------------------------------- //
 
     /// @notice The address of the lending registry
     address internal _registry;

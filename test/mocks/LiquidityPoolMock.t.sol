@@ -13,9 +13,9 @@ import {LiquidityPoolMock} from "src/mocks/LiquidityPoolMock.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice Contains tests for the LiquidityPoolMock contract
 contract LiquidityPoolMockTest is Test {
-    /************************************************
-     *  Events
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Events                                      //
+    // -------------------------------------------- //
 
     event OnBeforeLoanTakenCalled(uint256 indexed loanId, address indexed LiquidityPool);
     event OnAfterLoanTakenCalled(uint256 indexed loanId, address indexed LiquidityPool);
@@ -23,23 +23,23 @@ contract LiquidityPoolMockTest is Test {
     event OnBeforeLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
     event OnAfterLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
 
-    /************************************************
-     *  Storage variables
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Storage variables                           //
+    // -------------------------------------------- //
 
     LiquidityPoolMock public mock;
 
-    /************************************************
-     *  Setup and configuration
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Setup and configuration                     //
+    // -------------------------------------------- //
 
     function setUp() public {
         mock = new LiquidityPoolMock();
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  ILiquidityPoolFactory functions
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_onBeforeLoanTaken() public {
         vm.expectEmit(true, true, true, true, address(mock));

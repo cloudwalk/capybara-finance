@@ -15,30 +15,30 @@ import {Config} from "test/base/Config.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice Contains tests for the CreditLineFactoryUUPS contract
 contract CreditLineFactoryUUPSTest is Test, Config {
-    /************************************************
-     *  Events
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Events                                      //
+    // -------------------------------------------- //
 
     event Upgraded(address indexed implementation);
 
-    /************************************************
-     *  Storage variables
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Storage variables                           //
+    // -------------------------------------------- //
 
     CreditLineFactoryUUPS public proxy;
 
-    /************************************************
-     *  Setup and configuration
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Setup and configuration                     //
+    // -------------------------------------------- //
 
     function setUp() public {
         proxy = CreditLineFactoryUUPS(address(new ERC1967Proxy(address(new CreditLineFactoryUUPS()), "")));
         proxy.initialize(REGISTRY_1);
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `upgradeToAndCall` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_upgradeToAndCall() public {
         address newImplemetation = address(new CreditLineFactoryUUPS());

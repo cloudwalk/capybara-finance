@@ -13,15 +13,15 @@ import {LendingRegistryUUPS} from "src/LendingRegistryUUPS.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice Contains tests for the LendingRegistryUUPS contract
 contract LendingRegistryUUPSTest is Test {
-    /************************************************
-     *  Events
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Events                                      //
+    // -------------------------------------------- //
 
     event Upgraded(address indexed implementation);
 
-    /************************************************
-     *  Storage variables
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Storage variables                           //
+    // -------------------------------------------- //
 
     LendingRegistryUUPS public proxy;
 
@@ -29,9 +29,9 @@ contract LendingRegistryUUPSTest is Test {
     address public constant MARKET = address(bytes20(keccak256("market")));
     address public constant ATTACKER = address(bytes20(keccak256("attacker")));
 
-    /************************************************
-     *  Setup and configuration
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Setup and configuration                     //
+    // -------------------------------------------- //
 
     function setUp() public {
         proxy = LendingRegistryUUPS(address(new ERC1967Proxy(address(new LendingRegistryUUPS()), "")));
@@ -39,9 +39,9 @@ contract LendingRegistryUUPSTest is Test {
         proxy.transferOwnership(OWNER);
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `upgradeToAndCall` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_upgradeToAndCall() public {
         address newImplemetation = address(new LendingRegistryUUPS());

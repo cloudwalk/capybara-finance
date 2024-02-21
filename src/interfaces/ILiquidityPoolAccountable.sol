@@ -6,9 +6,9 @@ pragma solidity 0.8.23;
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice Defines the accountable liquidity pool contract functions and events
 interface ILiquidityPoolAccountable {
-    /************************************************
-     *  Events
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Events                                      //
+    // -------------------------------------------- //
 
     /// @notice Emitted when tokens are deposited to the liquidity pool
     /// @param creditLine The address of the associated credit line
@@ -29,9 +29,9 @@ interface ILiquidityPoolAccountable {
     /// @param numberOfLoans The number of loans that were repaid
     event AutoRepay(uint256 numberOfLoans);
 
-    /************************************************
+    // -------------------------------------------- //
      *  Functions
-     ***********************************************/
+    // -------------------------------------------- //
 
     /// @notice Configures an admin status
     /// @param admin The address of the admin to configure

@@ -8,9 +8,9 @@ import {Loan} from "../../libraries/Loan.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice Defines the lending market contract functions and events
 interface ILendingMarket {
-    /************************************************
-     *  Events
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Events                                      //
+    // -------------------------------------------- //
 
     /// @notice Emitted when a credit line is registered
     /// @param lender The address of the credit line lender
@@ -91,9 +91,9 @@ interface ILendingMarket {
     /// @param oldRegistry The address of the old registry
     event SetRegistry(address indexed newRegistry, address indexed oldRegistry);
 
-    /************************************************
-     *  Borrower functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Borrower functions                          //
+    // -------------------------------------------- //
 
     /// @notice Takes a loan from a credit line
     /// @param creditLine The address of the desired credit line
@@ -106,9 +106,9 @@ interface ILendingMarket {
     /// @param amount The repayment amount
     function repayLoan(uint256 loanId, uint256 amount) external;
 
-    /************************************************
-     *  Loan holder functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Loan holder functions                       //
+    // -------------------------------------------- //
 
     /// @notice Freezes a loan
     /// @param loanId The unique identifier of the loan to be frozen
@@ -153,9 +153,9 @@ interface ILendingMarket {
     /// @param liquidityPool The address of the liquidity pool contract
     function registerLiquidityPool(address lender, address liquidityPool) external;
 
-    /************************************************
-     *  View functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  View functions                              //
+    // -------------------------------------------- //
 
     /// @notice Gets the credit line's lender
     /// @param creditLine The address of the credit line to check

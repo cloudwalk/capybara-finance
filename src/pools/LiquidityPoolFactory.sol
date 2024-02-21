@@ -13,16 +13,16 @@ import {LiquidityPoolAccountable} from "./LiquidityPoolAccountable.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice Implementation of the liquidity pool factory contract
 contract LiquidityPoolFactory is OwnableUpgradeable, ILiquidityPoolFactory {
-    /************************************************
+    // -------------------------------------------- //
      *  Errors
-     ***********************************************/
+    // -------------------------------------------- //
 
     /// @notice Thrown when the requested liquidity pool kind is not supported
     error UnsupportedKind();
 
-    /************************************************
+    // -------------------------------------------- //
      *  Initializers
-     ***********************************************/
+    // -------------------------------------------- //
 
     /// @notice Initializer of the upgradable contract
     /// @param registry_ The address of the associated lending market
@@ -40,9 +40,9 @@ contract LiquidityPoolFactory is OwnableUpgradeable, ILiquidityPoolFactory {
     /// @notice Unchained internal initializer of the upgradable contract
     function __LiquidityPoolFactory_init_unchained() internal onlyInitializing {}
 
-    /************************************************
-     *  Functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Functions                                   //
+    // -------------------------------------------- //
 
     /// @inheritdoc ILiquidityPoolFactory
     function createLiquidityPool(address market, address lender, uint16 kind, bytes calldata data)

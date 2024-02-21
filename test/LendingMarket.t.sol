@@ -23,9 +23,9 @@ import {Config} from "test/base/Config.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice Contains tests for the LendingMarket contract
 contract LendingMarketTest is Test, Config {
-    /************************************************
-     *  Events
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Events                                      //
+    // -------------------------------------------- //
 
     event OnBeforeLoanTakenCalled(uint256 indexed loanId, address indexed creditLine);
     event OnAfterLoanTakenCalled(uint256 indexed loanId, address indexed creditLine);
@@ -56,9 +56,9 @@ contract LendingMarketTest is Test, Config {
     );
     event SetRegistry(address indexed newRegistry, address indexed oldRegistry);
 
-    /************************************************
-     *  Storage variables
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Storage variables                           //
+    // -------------------------------------------- //
 
     ERC20Mock public token;
     LendingMarket public market;
@@ -71,9 +71,9 @@ contract LendingMarketTest is Test, Config {
     bool public canOverrideAutoRepayment = false;
     bool public overrideAutoRepayment = false;
 
-    /************************************************
-     *  Setup and configuration
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Setup and configuration                     //
+    // -------------------------------------------- //
 
     function setUp() public {
         token = new ERC20Mock(0);
@@ -160,9 +160,9 @@ contract LendingMarketTest is Test, Config {
         return loanId;
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `initialize` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_initialize() public {
         market = new LendingMarket();
@@ -176,9 +176,9 @@ contract LendingMarketTest is Test, Config {
         market.initialize("NEW_NAME", "NEW_SYMBOL");
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `pause` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_pause() public {
         assertEq(market.paused(), false);
@@ -201,9 +201,9 @@ contract LendingMarketTest is Test, Config {
         market.pause();
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `unpause` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_unpause() public {
         vm.startPrank(OWNER);
@@ -229,9 +229,9 @@ contract LendingMarketTest is Test, Config {
         market.unpause();
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `setRegistry` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_setRegistry() public {
         assertEq(market.registry(), REGISTRY_1);
@@ -263,9 +263,9 @@ contract LendingMarketTest is Test, Config {
         market.setRegistry(REGISTRY_1);
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `registerCreditLine` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_registerCreditLine_IfOwner() public {
         assertEq(market.getLender(address(creditLine)), address(0));
@@ -332,9 +332,9 @@ contract LendingMarketTest is Test, Config {
         market.registerCreditLine(LENDER_1, address(creditLine));
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `registerLiquidityPool` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_registerLiquidityPool_IfOwner() public {
         assertEq(market.getLiquidityPool(LENDER_1), address(0));
@@ -401,9 +401,9 @@ contract LendingMarketTest is Test, Config {
         market.registerLiquidityPool(LENDER_1, address(liquidityPool));
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `takeLoan` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_takeLoan() public {
         configureMarket();
@@ -503,9 +503,9 @@ contract LendingMarketTest is Test, Config {
         market.takeLoan(address(creditLine), borrowAmount);
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `repayLoan` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function repayLoan(uint256 loanId, bool autoRepaymnet) internal {
         Loan.State memory loan = market.getLoanState(loanId);
@@ -690,9 +690,9 @@ contract LendingMarketTest is Test, Config {
         market.repayLoan(loanId, outstandingBalance + 1);
     }
 
-    /************************************************
-     *  Test `freeze` function
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Test `freeze` function                      //
+    // -------------------------------------------- //
 
     function test_freeze() public {
         configureMarket();
@@ -759,9 +759,9 @@ contract LendingMarketTest is Test, Config {
         market.freeze(loanId);
     }
 
-    /************************************************
-     *  Test `unfreeze` function
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Test `unfreeze` function                    //
+    // -------------------------------------------- //
 
     function test_unfreeze_SamePeriod() public {
         configureMarket();
@@ -861,9 +861,9 @@ contract LendingMarketTest is Test, Config {
         market.unfreeze(loanId);
     }
 
-    /************************************************
-     *  Test `updateLoanDuration` function
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Test `updateLoanDuration` function          //
+    // -------------------------------------------- //
 
     function test_updateLoanDuration() public {
         configureMarket();
@@ -951,9 +951,9 @@ contract LendingMarketTest is Test, Config {
         market.updateLoanDuration(loanId, newDurationInPeriods);
     }
 
-    /************************************************
-     *  Test `updateLoanMoratorium` function
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Test `updateLoanMoratorium` function        //
+    // -------------------------------------------- //
 
     function test_updateLoanMoratorium() public {
         configureMarket();
@@ -1093,9 +1093,9 @@ contract LendingMarketTest is Test, Config {
         return loan.trackDate > currentPeriodDate ? (loan.trackDate - currentPeriodDate) / loan.periodInSeconds : 0;
     }
 
-    /************************************************
-     *  Test `updateLoanInterestRatePrimary` function
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Test `updateLoanInterestRatePrimary` function
+    // -------------------------------------------- //
 
     function test_updateLoanInterestRatePrimary() public {
         configureMarket();
@@ -1171,9 +1171,9 @@ contract LendingMarketTest is Test, Config {
         market.updateLoanInterestRatePrimary(loanId, newInterestRatePrimary);
     }
 
-    /************************************************
-     *  Test `updateLoanInterestRateSecondary` function
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Test `updateLoanInterestRateSecondary` function
+    // -------------------------------------------- //
 
     function test_updateLoanInterestRateSecondary() public {
         configureMarket();
@@ -1249,9 +1249,9 @@ contract LendingMarketTest is Test, Config {
         market.updateLoanInterestRateSecondary(loanId, newInterestRateSecondary);
     }
 
-    /************************************************
-     *  Test `updateLender` function
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Test `updateLender` function                //
+    // -------------------------------------------- //
 
     function test_updateLender() public {
         configureMarket();
@@ -1260,9 +1260,9 @@ contract LendingMarketTest is Test, Config {
         market.updateLender(address(creditLine), LENDER_2);
     }
 
-    /************************************************
-     *  Test view functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Test view functions                         //
+    // -------------------------------------------- //
 
     function test_getLender() public {
         assertEq(market.getLender(address(creditLine)), address(0));
@@ -1317,9 +1317,9 @@ contract LendingMarketTest is Test, Config {
         assertEq(market.calculatePeriodDate(block.timestamp, periodInSeconds, 0, 3), currentPeriodDate + periodInSeconds + 3);
     }
 
-    /************************************************
-     *  ERC165
-     ***********************************************/
+    // -------------------------------------------- //
+    //  ERC165 support                              //
+    // -------------------------------------------- //
 
     function test_supportsInterface() public {
         assertEq(market.supportsInterface(0x0), false);

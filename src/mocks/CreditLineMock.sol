@@ -10,17 +10,17 @@ import {ICreditLine} from "../interfaces/core/ICreditLine.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice CreditLine mock contract used for testing
 contract CreditLineMock is ICreditLine {
-    /************************************************
-     *  Storage variables
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Storage variables                           //
+    // -------------------------------------------- //
 
     address private _tokenAddress;
 
     mapping(address => mapping(uint256 => Loan.Terms)) _loanTerms;
 
-    /************************************************
-     *  ICreditLine functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  ICreditLine functions                       //
+    // -------------------------------------------- //
 
     function onBeforeLoanTaken(address borrower, uint256 amount, uint256 loanId) external returns (Loan.Terms memory terms) {
         return _loanTerms[borrower][amount];
@@ -46,9 +46,9 @@ contract CreditLineMock is ICreditLine {
         revert Error.NotImplemented();
     }
 
-    /************************************************
-     *  Mock functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Mock functions                              //
+    // -------------------------------------------- //
 
     function mockTokenAddress(address tokenAddress) external {
         _tokenAddress = tokenAddress;

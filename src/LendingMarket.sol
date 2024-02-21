@@ -38,9 +38,9 @@ contract LendingMarket is
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
 
-    /************************************************
-     *  Errors
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Errors                                      //
+    // -------------------------------------------- //
 
     /// @notice Thrown when the loan does not exist
     error LoanNotExist();
@@ -78,9 +78,9 @@ contract LendingMarket is
     /// @notice Thrown when loan auto repayment is not allowed
     error AutoRepaymentNotAllowed();
 
-    /************************************************
-     *  Modifiers
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Modifiers                                   //
+    // -------------------------------------------- //
 
     /// @notice Throws if called by any account other than the registry
     modifier onlyRegistryOrOwner() {
@@ -111,9 +111,9 @@ contract LendingMarket is
         _;
     }
 
-    /************************************************
-     *  Initializers
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Initializers                                //
+    // -------------------------------------------- //
 
     /// @notice Initializer of the upgradable contract
     /// @param name_ The name of the NFT token that will represent the loans
@@ -136,9 +136,9 @@ contract LendingMarket is
     /// @notice Unchained internal initializer of the upgradable contract
     function __LendingMarket_init_unchained() internal onlyInitializing {}
 
-    /************************************************
-     *  Owner functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Owner functions                             //
+    // -------------------------------------------- //
 
     /// @notice Pauses the contract
     function pause() external onlyOwner {
@@ -162,9 +162,9 @@ contract LendingMarket is
         _registry = newRegistry;
     }
 
-    /************************************************
-     *  Registry functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Registry functions                          //
+    // -------------------------------------------- //
 
     /// @inheritdoc ILendingMarket
     function registerCreditLine(address lender, address creditLine) external whenNotPaused onlyRegistryOrOwner {
@@ -200,9 +200,9 @@ contract LendingMarket is
         _liquidityPools[lender] = liquidityPool;
     }
 
-    /************************************************
-     *  Borrower functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Borrower functions                          //
+    // -------------------------------------------- //
 
     /// @inheritdoc ILendingMarket
     function takeLoan(address creditLine, uint256 amount) external whenNotPaused returns (uint256) {
@@ -336,9 +336,9 @@ contract LendingMarket is
         }
     }
 
-    /************************************************
-     *  Loan holder functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Loan holder functions                       //
+    // -------------------------------------------- //
 
     /// @inheritdoc ILendingMarket
     function freeze(uint256 loanId) external whenNotPaused onlyOngoingLoan(loanId) onlyLoanHolder(loanId) {
@@ -460,9 +460,9 @@ contract LendingMarket is
         revert Error.NotImplemented();
     }
 
-    /************************************************
-     *  View functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  View functions                              //
+    // -------------------------------------------- //
 
     /// @inheritdoc ILendingMarket
     function getLender(address creditLine) external view returns (address) {
@@ -524,9 +524,9 @@ contract LendingMarket is
         );
     }
 
-    /************************************************
-     *  Internal functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Internal functions                          //
+    // -------------------------------------------- //
 
     /// @notice Calculates the outstanding balance of a loan and the current date
     function _outstandingBalance(Loan.State storage loan, uint256 timestamp) internal view returns (uint256, uint256) {
@@ -583,9 +583,9 @@ contract LendingMarket is
         return tokenId;
     }
 
-    /************************************************
-     *  ERC721 functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  ERC721 functions                            //
+    // -------------------------------------------- //
 
     /// @inheritdoc ERC721Upgradeable
     function _update(address to, uint256 tokenId, address auth)

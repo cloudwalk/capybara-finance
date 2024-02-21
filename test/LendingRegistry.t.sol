@@ -20,9 +20,9 @@ import {Config} from "test/base/Config.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice Contains tests for the LendingRegistry contract
 contract LendingRegistryTest is Test, Config {
-    /************************************************
-     *  Events
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Events                                      //
+    // -------------------------------------------- //
 
     event SetCreditLineFactory(address newFactory, address oldFactory);
     event SetLiquidityPoolFactory(address newFactory, address oldFactory);
@@ -38,18 +38,18 @@ contract LendingRegistryTest is Test, Config {
     );
     event CreateLiquidityPoolCalled(address indexed market, address indexed lender, uint16 indexed kind, bytes data);
 
-    /************************************************
-     *  State variables
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Storage variables                           //
+    // -------------------------------------------- //
 
     LendingRegistry public registry;
     LendingMarketMock public lendingMarket;
     CreditLineFactoryMock public creditLineFactory;
     LiquidityPoolFactoryMock public liquidityPoolFactory;
 
-    /************************************************
-     *  Setup and configuration
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Setup and configuration                     //
+    // -------------------------------------------- //
 
     function setUp() public {
         lendingMarket = new LendingMarketMock();
@@ -62,9 +62,9 @@ contract LendingRegistryTest is Test, Config {
         registry.transferOwnership(OWNER);
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `initialize` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_initialize() public {
         registry = new LendingRegistry();
@@ -85,9 +85,9 @@ contract LendingRegistryTest is Test, Config {
         registry.initialize(address(lendingMarket));
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `pause` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_pause() public {
         assertEq(registry.paused(), false);
@@ -110,9 +110,9 @@ contract LendingRegistryTest is Test, Config {
         registry.pause();
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `unpause` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_unpause() public {
         vm.startPrank(OWNER);
@@ -138,9 +138,9 @@ contract LendingRegistryTest is Test, Config {
         registry.unpause();
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `setCreditLineFactory` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_setCreditLineFactory() public {
         assertEq(registry.creditLineFactory(), address(0));
@@ -176,9 +176,9 @@ contract LendingRegistryTest is Test, Config {
         registry.setCreditLineFactory(CREDIT_LINE_FACTORY_1);
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `setLiquidityPoolFactory` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_setLiquidityPoolFactory() public {
         assertEq(registry.liquidityPoolFactory(), address(0));
@@ -214,9 +214,9 @@ contract LendingRegistryTest is Test, Config {
         registry.setLiquidityPoolFactory(LIQUIDITY_POOL_FACTORY_1);
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `createCreditLine` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_createCreditLine() public {
         vm.startPrank(OWNER);
@@ -239,9 +239,9 @@ contract LendingRegistryTest is Test, Config {
         registry.createCreditLine(KIND_1, TOKEN_1);
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `createLiquidityPool` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_createLiquidityPool() public {
         vm.startPrank(OWNER);

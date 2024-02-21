@@ -11,29 +11,29 @@ import {LiquidityPoolFactoryMock} from "src/mocks/LiquidityPoolFactoryMock.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice Contains tests for the LiquidityPoolFactoryMock contract
 contract LiquidityPoolFactoryMockTest is Test {
-    /************************************************
-     *  Events
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Events                                      //
+    // -------------------------------------------- //
 
     event CreateLiquidityPoolCalled(address indexed market, address indexed lender, uint16 indexed kind, bytes data);
 
-    /************************************************
-     *  Storage variables
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Storage variables                           //
+    // -------------------------------------------- //
 
     LiquidityPoolFactoryMock public mock;
 
-    /************************************************
-     *  Setup and configuration
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Setup and configuration                     //
+    // -------------------------------------------- //
 
     function setUp() public {
         mock = new LiquidityPoolFactoryMock();
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  ILiquidityPoolFactory functions
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_createLiquidityPool() public {
         address LiquidityPool = address(0x0);

@@ -10,9 +10,9 @@ import {ILendingMarket} from "../interfaces/core/ILendingMarket.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice LendingMarket mock contract used for testing
 contract LendingMarketMock is ILendingMarket {
-    /************************************************
-     *  Events
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Events                                      //
+    // -------------------------------------------- //
 
     event RegisterCreditLineCalled(address indexed lender, address indexed creditLine);
 
@@ -22,15 +22,15 @@ contract LendingMarketMock is ILendingMarket {
         uint256 repayAmount
     );
 
-    /************************************************
-     *  Storage variables
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Storage variables                           //
+    // -------------------------------------------- //
 
     mapping(uint256 => Loan.State) _loanState;
 
-    /************************************************
-     *  ILendingMarket functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  ILendingMarket functions                    //
+    // -------------------------------------------- //
 
     function takeLoan(address creditLine, uint256 amount) external returns (uint256) {
         revert Error.NotImplemented();
@@ -96,9 +96,9 @@ contract LendingMarketMock is ILendingMarket {
         revert Error.NotImplemented();
     }
 
-    /************************************************
-     *  Mock functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Mock functions                              //
+    // -------------------------------------------- //
 
     function mockLoanState(uint256 loanId, Loan.State memory state) external {
         _loanState[loanId] = state;

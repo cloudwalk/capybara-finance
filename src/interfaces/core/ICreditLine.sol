@@ -8,9 +8,9 @@ import {Loan} from "../../libraries/Loan.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice Defines the credit line contract functions and events
 interface ICreditLine {
-    /************************************************
-     *  Functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Functions                                   //
+    // -------------------------------------------- //
 
     /// @notice A hook that is triggered by the market before a loan is taken
     /// @param borrower The address of the borrower

@@ -8,9 +8,10 @@ import {Interest} from "../libraries/Interest.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice Defines the configurable credit line contract functions and events
 interface ICreditLineConfigurable {
-    /************************************************
-     *  Events
-     ***********************************************/
+
+    // -------------------------------------------- //
+    //  Events                                      //
+    // -------------------------------------------- //
 
     /// @notice Emitted when admin is configured
     /// @param admin The address of the admin account
@@ -28,9 +29,9 @@ interface ICreditLineConfigurable {
     /// @param config The borrower configuration
     event ConfigureBorrower(address indexed creditLine, address indexed borrower, BorrowerConfig config);
 
-    /************************************************
-     *  Structs and Enums
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Structs and enums                           //
+    // -------------------------------------------- //
 
     /// @notice An enum that defines the borrow policy
     ///
@@ -102,9 +103,9 @@ interface ICreditLineConfigurable {
         bool autoRepayment;
     }
 
-    /************************************************
-     *  Functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Functions                                   //
+    // -------------------------------------------- //
 
     /// @notice Configures an admin status
     /// @param admin The address of the admin to configure

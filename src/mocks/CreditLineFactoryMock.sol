@@ -9,23 +9,23 @@ import {ICreditLineFactory} from "../interfaces/ICreditLineFactory.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice CreditLineFactory mock contract used for testing
 contract CreditLineFactoryMock is ICreditLineFactory {
-    /************************************************
-     *  Events
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Events                                      //
+    // -------------------------------------------- //
 
     event CreateCreditLineCalled(
         address indexed market, address indexed lender, address indexed token, uint16 kind, bytes data
     );
 
-    /************************************************
-     *  Storage variables
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Storage variables                           //
+    // -------------------------------------------- //
 
     address private _creditLineAddress;
 
-    /************************************************
+    // -------------------------------------------- //
      *  ICreditLineFactory functions
-     ***********************************************/
+    // -------------------------------------------- //
 
     function createCreditLine(address market, address lender, address token, uint16 kind, bytes calldata data)
         external
@@ -39,9 +39,9 @@ contract CreditLineFactoryMock is ICreditLineFactory {
         revert Error.NotImplemented();
     }
 
-    /************************************************
-     *  Mock functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Mock functions                              //
+    // -------------------------------------------- //
 
     function mockCreditLineAddress(address creditLineAddress) external {
         _creditLineAddress = creditLineAddress;

@@ -23,9 +23,9 @@ import {Config} from "test/base/Config.sol";
 contract CreditLineConfigurableTest is Test, Config {
     using SafeCast for uint256;
 
-    /************************************************
-     *  Events
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Events                                      //
+    // -------------------------------------------- //
 
     event ConfigureAdmin(address indexed admin, bool adminStatus);
     event TokenConfigured(address creditLine, address indexed token);
@@ -34,15 +34,15 @@ contract CreditLineConfigurableTest is Test, Config {
         address indexed creditLine, address indexed borrower, ICreditLineConfigurable.BorrowerConfig config
     );
 
-    /************************************************
-     *  Storage variables
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Storage variables                           //
+    // -------------------------------------------- //
 
     CreditLineConfigurable public creditLine;
 
-    /************************************************
-     *  Setup and configuration
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Setup and configuration                     //
+    // -------------------------------------------- //
 
     function setUp() public {
         creditLine = new CreditLineConfigurable();
@@ -129,9 +129,9 @@ contract CreditLineConfigurableTest is Test, Config {
         );
     }
 
-    /************************************************
-     *  Test initializer
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Test initializer                            //
+    // -------------------------------------------- //
 
     function test_initializer() public {
         creditLine = new CreditLineConfigurable();
@@ -167,9 +167,9 @@ contract CreditLineConfigurableTest is Test, Config {
         creditLine.initialize(MARKET, LENDER_1, TOKEN_1);
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `pause` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_pause() public {
         assertEq(creditLine.paused(), false);
@@ -191,9 +191,9 @@ contract CreditLineConfigurableTest is Test, Config {
         creditLine.pause();
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `unpause` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_unpause() public {
         vm.startPrank(LENDER_1);
@@ -219,9 +219,9 @@ contract CreditLineConfigurableTest is Test, Config {
         creditLine.unpause();
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `configureAdmin` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_configureAdmin() public {
         assertEq(creditLine.isAdmin(ADMIN), false);
@@ -260,9 +260,9 @@ contract CreditLineConfigurableTest is Test, Config {
         creditLine.configureAdmin(ADMIN, true);
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `configureCreditLine` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_configureCreditLine() public {
         ICreditLineConfigurable.CreditLineConfig memory config = initCreditLineConfig();
@@ -339,9 +339,9 @@ contract CreditLineConfigurableTest is Test, Config {
         creditLine.configureCreditLine(config);
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `configureBorrower` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_configureBorrower() public {
         configureCreditLine();
@@ -572,9 +572,9 @@ contract CreditLineConfigurableTest is Test, Config {
         creditLine.configureBorrower(ADMIN, borrowerConfig);
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `configureBorrowers` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_configureBorrowers() public {
         configureCreditLine();
@@ -633,9 +633,9 @@ contract CreditLineConfigurableTest is Test, Config {
         creditLine.configureBorrowers(borrowers, configs);
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `onBeforeLoanTaken` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_onBeforeLoanTaken_Policy_Keep() public {
         configureCreditLine();
@@ -714,9 +714,9 @@ contract CreditLineConfigurableTest is Test, Config {
         creditLine.onBeforeLoanTaken(BORROWER_1, config.minBorrowAmount, 1);
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `determineLoanTerms` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_determineLoanTerms_WithAddon() public {
         ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = configureCreditLine();
@@ -827,9 +827,9 @@ contract CreditLineConfigurableTest is Test, Config {
         creditLine.determineLoanTerms(BORROWER_1, config.minBorrowAmount - 1);
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test `calculateAddonAmount` function
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_calculateAddonAmount() public {
         ICreditLineConfigurable.CreditLineConfig memory config = configureCreditLine();
@@ -843,9 +843,9 @@ contract CreditLineConfigurableTest is Test, Config {
         assertEq(creditLine.calculateAddonAmount(amount, borrowerConfig.durationInPeriods), addonAmount);
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  Test view functions
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_getBorrowerConfiguration() public {
         configureCreditLine();

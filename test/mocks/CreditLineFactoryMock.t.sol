@@ -11,31 +11,31 @@ import {CreditLineFactoryMock} from "src/mocks/CreditLineFactoryMock.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice Contains tests for the CreditLineFactoryMock contract
 contract CreditLineFactoryMockTest is Test {
-    /************************************************
-     *  Events
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Events                                      //
+    // -------------------------------------------- //
 
     event CreateCreditLineCalled(
         address indexed market, address indexed lender, address indexed token, uint16 kind, bytes data
     );
 
-    /************************************************
-     *  Storage variables
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Storage variables                           //
+    // -------------------------------------------- //
 
     CreditLineFactoryMock public mock;
 
-    /************************************************
-     *  Setup and configuration
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Setup and configuration                     //
+    // -------------------------------------------- //
 
     function setUp() public {
         mock = new CreditLineFactoryMock();
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  ICreditLineFactory functions
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_createCreditLine() public {
         address creditLine = address(0x0);

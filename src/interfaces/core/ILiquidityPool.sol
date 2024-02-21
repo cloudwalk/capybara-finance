@@ -6,9 +6,9 @@ pragma solidity 0.8.23;
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice Defines the liquidity pool contract functions and events
 interface ILiquidityPool {
-    /************************************************
-     *  Functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Functions                                   //
+    // -------------------------------------------- //
 
     /// @notice A hook that is triggered by the market before a loan is taken
     /// @param loanId The unique identifier of the loan being taken

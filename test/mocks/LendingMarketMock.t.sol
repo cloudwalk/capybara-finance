@@ -13,9 +13,9 @@ import {LendingMarketMock} from "src/mocks/LendingMarketMock.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice Contains tests for the LendingMarketMock contract
 contract LendingMarketMockTest is Test {
-    /************************************************
-     *  Events
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Events                                      //
+    // -------------------------------------------- //
 
     event RegisterCreditLineCalled(address indexed lender, address indexed creditLine);
 
@@ -26,23 +26,23 @@ contract LendingMarketMockTest is Test {
         uint256 repayAmount
     );
 
-    /************************************************
-     *  Storage variables
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Storage variables                           //
+    // -------------------------------------------- //
 
     LendingMarketMock public mock;
 
-    /************************************************
-     *  Setup and configuration
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Setup and configuration                     //
+    // -------------------------------------------- //
 
     function setUp() public {
         mock = new LendingMarketMock();
     }
 
-    /************************************************
+    // -------------------------------------------- //
      *  ILendingMarket functions
-     ***********************************************/
+    // -------------------------------------------- //
 
     function test_takeLoan() public {
         vm.expectRevert(Error.NotImplemented.selector);

@@ -8,16 +8,16 @@ import {Interest} from "./Interest.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice Defines interest calculation functions
 library InterestMath {
-    /************************************************
-     *  Errors
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Errors                                      //
+    // -------------------------------------------- //
 
     /// @notice Thrown when the specified interest formula is not implemented
     error InterestFormulaNotImplemented();
 
-    /************************************************
-     *  Functions
-     ***********************************************/
+    // -------------------------------------------- //
+    //  Functions                                   //
+    // -------------------------------------------- //
 
     /// @notice Calculates the outstanding balance of a loan
     /// @param originalBalance The original balance of the loan
