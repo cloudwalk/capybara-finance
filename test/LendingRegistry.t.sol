@@ -18,7 +18,7 @@ import {Config} from "test/base/Config.sol";
 
 /// @title LendingRegistryTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Contains tests for the LendingRegistry contract
+/// @notice Contains tests for the `LendingRegistry` contract
 contract LendingRegistryTest is Test, Config {
     // -------------------------------------------- //
     //  Events                                      //
@@ -63,7 +63,7 @@ contract LendingRegistryTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `initialize` function
+    //  Test `initialize` function                  //
     // -------------------------------------------- //
 
     function test_initialize() public {
@@ -86,7 +86,7 @@ contract LendingRegistryTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `pause` function
+    //  Test `pause` function                       //
     // -------------------------------------------- //
 
     function test_pause() public {
@@ -111,7 +111,7 @@ contract LendingRegistryTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `unpause` function
+    //  Test `unpause` function                     //
     // -------------------------------------------- //
 
     function test_unpause() public {
@@ -139,7 +139,7 @@ contract LendingRegistryTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `setCreditLineFactory` function
+    //  Test `setCreditLineFactory` function        //
     // -------------------------------------------- //
 
     function test_setCreditLineFactory() public {
@@ -177,7 +177,7 @@ contract LendingRegistryTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `setLiquidityPoolFactory` function
+    //  Test `setLiquidityPoolFactory` function     //
     // -------------------------------------------- //
 
     function test_setLiquidityPoolFactory() public {
@@ -215,7 +215,7 @@ contract LendingRegistryTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `createCreditLine` function
+    //  Test `createCreditLine` function            //
     // -------------------------------------------- //
 
     function test_createCreditLine() public {
@@ -240,7 +240,7 @@ contract LendingRegistryTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `createLiquidityPool` function
+    //  Test `createLiquidityPool` function         //
     // -------------------------------------------- //
 
     function test_createLiquidityPool() public {

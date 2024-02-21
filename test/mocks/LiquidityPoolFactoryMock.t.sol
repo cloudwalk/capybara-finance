@@ -9,7 +9,7 @@ import {LiquidityPoolFactoryMock} from "src/mocks/LiquidityPoolFactoryMock.sol";
 
 /// @title LiquidityPoolFactoryMockTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Contains tests for the LiquidityPoolFactoryMock contract
+/// @notice Contains tests for the `LiquidityPoolFactoryMock` contract
 contract LiquidityPoolFactoryMockTest is Test {
     // -------------------------------------------- //
     //  Events                                      //
@@ -32,7 +32,7 @@ contract LiquidityPoolFactoryMockTest is Test {
     }
 
     // -------------------------------------------- //
-     *  ILiquidityPoolFactory functions
+    //  ILiquidityPoolFactory functions             //
     // -------------------------------------------- //
 
     function test_createLiquidityPool() public {

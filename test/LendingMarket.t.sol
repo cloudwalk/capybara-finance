@@ -21,7 +21,7 @@ import {Config} from "test/base/Config.sol";
 
 /// @title LendingMarketTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Contains tests for the LendingMarket contract
+/// @notice Contains tests for the `LendingMarket` contract
 contract LendingMarketTest is Test, Config {
     // -------------------------------------------- //
     //  Events                                      //
@@ -161,7 +161,7 @@ contract LendingMarketTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `initialize` function
+    //  Test `initialize` function                  //
     // -------------------------------------------- //
 
     function test_initialize() public {
@@ -177,7 +177,7 @@ contract LendingMarketTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `pause` function
+    //  Test `pause` function                       //
     // -------------------------------------------- //
 
     function test_pause() public {
@@ -202,7 +202,7 @@ contract LendingMarketTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `unpause` function
+    //  Test `unpause` function                     //
     // -------------------------------------------- //
 
     function test_unpause() public {
@@ -230,7 +230,7 @@ contract LendingMarketTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `setRegistry` function
+    //  Test `setRegistry` function                 //
     // -------------------------------------------- //
 
     function test_setRegistry() public {
@@ -264,7 +264,7 @@ contract LendingMarketTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `registerCreditLine` function
+    //  Test `registerCreditLine` function          //
     // -------------------------------------------- //
 
     function test_registerCreditLine_IfOwner() public {
@@ -333,7 +333,7 @@ contract LendingMarketTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `registerLiquidityPool` function
+    //  Test `registerLiquidityPool` function       //
     // -------------------------------------------- //
 
     function test_registerLiquidityPool_IfOwner() public {
@@ -402,7 +402,7 @@ contract LendingMarketTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `takeLoan` function
+    //  Test `takeLoan` function                    //
     // -------------------------------------------- //
 
     function test_takeLoan() public {
@@ -504,7 +504,7 @@ contract LendingMarketTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `repayLoan` function
+    //  Test `repayLoan` function                  //
     // -------------------------------------------- //
 
     function repayLoan(uint256 loanId, bool autoRepaymnet) internal {

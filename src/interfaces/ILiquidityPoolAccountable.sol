@@ -30,7 +30,7 @@ interface ILiquidityPoolAccountable {
     event AutoRepay(uint256 numberOfLoans);
 
     // -------------------------------------------- //
-     *  Functions
+    //  Functions                                   //
     // -------------------------------------------- //
 
     /// @notice Configures an admin status

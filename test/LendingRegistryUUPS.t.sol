@@ -11,7 +11,7 @@ import {LendingRegistryUUPS} from "src/LendingRegistryUUPS.sol";
 
 /// @title LendingRegistryUUPSTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Contains tests for the LendingRegistryUUPS contract
+/// @notice Contains tests for the `LendingRegistryUUPS` contract
 contract LendingRegistryUUPSTest is Test {
     // -------------------------------------------- //
     //  Events                                      //
@@ -40,7 +40,7 @@ contract LendingRegistryUUPSTest is Test {
     }
 
     // -------------------------------------------- //
-     *  Test `upgradeToAndCall` function
+    //  Test `upgradeToAndCall` function            //
     // -------------------------------------------- //
 
     function test_upgradeToAndCall() public {

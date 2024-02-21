@@ -24,7 +24,7 @@ contract CreditLineFactoryMock is ICreditLineFactory {
     address private _creditLineAddress;
 
     // -------------------------------------------- //
-     *  ICreditLineFactory functions
+    //  ICreditLineFactory functions                //
     // -------------------------------------------- //
 
     function createCreditLine(address market, address lender, address token, uint16 kind, bytes calldata data)

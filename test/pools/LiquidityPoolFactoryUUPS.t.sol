@@ -13,7 +13,7 @@ import {Config} from "test/base/Config.sol";
 
 /// @title LiquidityPoolFactoryUUPSTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Contains tests for the LiquidityPoolFactoryUUPS contract
+/// @notice Contains tests for the `LiquidityPoolFactoryUUPS` contract
 contract LiquidityPoolFactoryUUPSTest is Test, Config {
     // -------------------------------------------- //
     //  Events                                      //

@@ -20,7 +20,7 @@ import {Config} from "test/base/Config.sol";
 
 /// @title LiquidityPoolAccountableTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Contains tests for the LiquidityPoolAccountable contract
+/// @notice Contains tests for the `LiquidityPoolAccountable` contract
 contract LiquidityPoolAccountableTest is Test, Config {
     // -------------------------------------------- //
     //  Events                                      //
@@ -122,7 +122,7 @@ contract LiquidityPoolAccountableTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `pause` function
+    //  Test `pause` function                       //
     // -------------------------------------------- //
 
     function test_pause() public {
@@ -146,7 +146,7 @@ contract LiquidityPoolAccountableTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `unpause` function
+    //  Test `unpause` function                     //
     // -------------------------------------------- //
 
     function test_unpause() public {
@@ -174,7 +174,7 @@ contract LiquidityPoolAccountableTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `configureAdmin` function
+    //  Test `configureAdmin` function              //
     // -------------------------------------------- //
 
     function test_configureAdmin() public {
@@ -215,7 +215,7 @@ contract LiquidityPoolAccountableTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `deposit` function
+    //  Test `deposit` function                     //
     // -------------------------------------------- //
 
     function test_deposit() public {
@@ -254,7 +254,7 @@ contract LiquidityPoolAccountableTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `withdraw` function
+    //  Test `withdraw` function                    //
     // -------------------------------------------- //
 
     function test_withdraw_CreditLineBalance() public {
@@ -342,7 +342,7 @@ contract LiquidityPoolAccountableTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `autoRepay` function
+    //  Test `autoRepay` function                   //
     // -------------------------------------------- //
 
     function test_autoRepay() public {
@@ -387,7 +387,7 @@ contract LiquidityPoolAccountableTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `onBeforeLoanTaken` function
+    //  Test `onBeforeLoanTaken` function           //
     // -------------------------------------------- //
 
     function test_onBeforeLoanTaken() public {
@@ -411,7 +411,7 @@ contract LiquidityPoolAccountableTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `onAfterLoanTaken` function
+    //  Test `onAfterLoanTaken` function            //
     // -------------------------------------------- //
 
     function test_onAfterLoanTaken() public {
@@ -465,7 +465,7 @@ contract LiquidityPoolAccountableTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `onBeforeLoanPayment` function
+    //  Test `onBeforeLoanPayment` function         //
     // -------------------------------------------- //
 
     function test_onBeforeLoanPayment() public {
@@ -489,7 +489,7 @@ contract LiquidityPoolAccountableTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `onAfterLoanPayment` function
+    //  Test `onAfterLoanPayment` function          //
     // -------------------------------------------- //
 
     function test_onAfterLoanPayment_CreditLineBalance() public {
@@ -576,7 +576,7 @@ contract LiquidityPoolAccountableTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `getTokenBalance` function
+    //  Test `getTokenBalance` function             //
     // -------------------------------------------- //
 
     function test_getTokenBalance() public {
@@ -596,7 +596,7 @@ contract LiquidityPoolAccountableTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `getCreditLine` function
+    //  Test `getCreditLine` function               //
     // -------------------------------------------- //
 
     function test_getCreditLine() public {
@@ -633,7 +633,7 @@ contract LiquidityPoolAccountableTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test view functions
+    //  Test view functions                         //
     // -------------------------------------------- //
 
     function test_isAdmin() public {

@@ -27,7 +27,7 @@ contract LiquidityPoolAccountable is
     using SafeERC20 for IERC20;
 
     // -------------------------------------------- //
-     *  Storage
+    //  Storage variables                           //
     // -------------------------------------------- //
 
     /// @notice The address of the associated lending market
@@ -73,7 +73,7 @@ contract LiquidityPoolAccountable is
     }
 
     // -------------------------------------------- //
-     *  Initializers
+    //  Initializers                                //
     // -------------------------------------------- //
 
     /// @notice Initializer of the upgradable contract

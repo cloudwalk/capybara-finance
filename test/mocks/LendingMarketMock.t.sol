@@ -11,7 +11,7 @@ import {LendingMarketMock} from "src/mocks/LendingMarketMock.sol";
 
 /// @title LendingMarketMockTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Contains tests for the LendingMarketMock contract
+/// @notice Contains tests for the `LendingMarketMock` contract
 contract LendingMarketMockTest is Test {
     // -------------------------------------------- //
     //  Events                                      //
@@ -41,7 +41,7 @@ contract LendingMarketMockTest is Test {
     }
 
     // -------------------------------------------- //
-     *  ILendingMarket functions
+    //  ILendingMarket functions                    //
     // -------------------------------------------- //
 
     function test_takeLoan() public {

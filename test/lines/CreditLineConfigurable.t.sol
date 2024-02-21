@@ -19,7 +19,7 @@ import {Config} from "test/base/Config.sol";
 
 /// @title CreditLineConfigurableTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Contains tests for the CreditLineConfigurable contract
+/// @notice Contains tests for the `CreditLineConfigurable` contract
 contract CreditLineConfigurableTest is Test, Config {
     using SafeCast for uint256;
 
@@ -168,7 +168,7 @@ contract CreditLineConfigurableTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `pause` function
+    //  Test `pause` function                       //
     // -------------------------------------------- //
 
     function test_pause() public {
@@ -192,7 +192,7 @@ contract CreditLineConfigurableTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `unpause` function
+    //  Test `unpause` function                     //
     // -------------------------------------------- //
 
     function test_unpause() public {
@@ -220,7 +220,7 @@ contract CreditLineConfigurableTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `configureAdmin` function
+    //  Test `configureAdmin` function              //
     // -------------------------------------------- //
 
     function test_configureAdmin() public {
@@ -261,7 +261,7 @@ contract CreditLineConfigurableTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `configureCreditLine` function
+    //  Test `configureCreditLine` function         //
     // -------------------------------------------- //
 
     function test_configureCreditLine() public {
@@ -340,7 +340,7 @@ contract CreditLineConfigurableTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `configureBorrower` function
+    //  Test `configureBorrower` function           //
     // -------------------------------------------- //
 
     function test_configureBorrower() public {
@@ -573,7 +573,7 @@ contract CreditLineConfigurableTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `configureBorrowers` function
+    //  Test `configureBorrowers` function          //
     // -------------------------------------------- //
 
     function test_configureBorrowers() public {
@@ -634,7 +634,7 @@ contract CreditLineConfigurableTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `onBeforeLoanTaken` function
+    //  Test `onBeforeLoanTaken` function           //
     // -------------------------------------------- //
 
     function test_onBeforeLoanTaken_Policy_Keep() public {
@@ -715,7 +715,7 @@ contract CreditLineConfigurableTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `determineLoanTerms` function
+    //  Test `determineLoanTerms` function          //
     // -------------------------------------------- //
 
     function test_determineLoanTerms_WithAddon() public {
@@ -828,7 +828,7 @@ contract CreditLineConfigurableTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `calculateAddonAmount` function
+    //  Test `calculateAddonAmount` function        //
     // -------------------------------------------- //
 
     function test_calculateAddonAmount() public {
@@ -844,7 +844,7 @@ contract CreditLineConfigurableTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test view functions
+    //  Test view functions                         //
     // -------------------------------------------- //
 
     function test_getBorrowerConfiguration() public {

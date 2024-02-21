@@ -14,7 +14,7 @@ import {Config} from "test/base/Config.sol";
 
 /// @title CreditLineFactoryTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Contains tests for the CreditLineFactory contract
+/// @notice Contains tests for the `CreditLineFactory` contract
 contract CreditLineFactoryTest is Test, Config {
     // -------------------------------------------- //
     //  Events                                      //
@@ -32,7 +32,7 @@ contract CreditLineFactoryTest is Test, Config {
     address public constant DEPLOYED_CONTRACT_ADDRESS = 0x104fBc016F4bb334D775a19E8A6510109AC63E00;
 
     // -------------------------------------------- //
-     *  Setup and configuration
+    //  Setup and configuration                     //
     // -------------------------------------------- //
 
     function setUp() public {
@@ -41,7 +41,7 @@ contract CreditLineFactoryTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test initializer
+    //  Test initializer                            //
     // -------------------------------------------- //
 
     function test_initializer() public {
@@ -65,7 +65,7 @@ contract CreditLineFactoryTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `createCreditLine` function
+    //  Test `createCreditLine` function            //
     // -------------------------------------------- //
 
     function test_createCreditLine() public {
@@ -93,7 +93,7 @@ contract CreditLineFactoryTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `supportedKinds` function
+    //  Test `supportedKinds` function              //
     // -------------------------------------------- //
 
     function test_supportedKinds() public {

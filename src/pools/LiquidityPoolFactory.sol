@@ -14,14 +14,14 @@ import {LiquidityPoolAccountable} from "./LiquidityPoolAccountable.sol";
 /// @notice Implementation of the liquidity pool factory contract
 contract LiquidityPoolFactory is OwnableUpgradeable, ILiquidityPoolFactory {
     // -------------------------------------------- //
-     *  Errors
+    //  Errors                                      //
     // -------------------------------------------- //
 
     /// @notice Thrown when the requested liquidity pool kind is not supported
     error UnsupportedKind();
 
     // -------------------------------------------- //
-     *  Initializers
+    //  Initializers                                //
     // -------------------------------------------- //
 
     /// @notice Initializer of the upgradable contract

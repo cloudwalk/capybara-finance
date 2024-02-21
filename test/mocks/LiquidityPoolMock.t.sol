@@ -11,7 +11,7 @@ import {LiquidityPoolMock} from "src/mocks/LiquidityPoolMock.sol";
 
 /// @title LiquidityPoolMockTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Contains tests for the LiquidityPoolMock contract
+/// @notice Contains tests for the `LiquidityPoolMock` contract
 contract LiquidityPoolMockTest is Test {
     // -------------------------------------------- //
     //  Events                                      //
@@ -38,7 +38,7 @@ contract LiquidityPoolMockTest is Test {
     }
 
     // -------------------------------------------- //
-     *  ILiquidityPoolFactory functions
+    //  ILiquidityPoolFactory functions             //
     // -------------------------------------------- //
 
     function test_onBeforeLoanTaken() public {

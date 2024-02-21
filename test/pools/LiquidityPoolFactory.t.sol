@@ -14,7 +14,7 @@ import {Config} from "test/base/Config.sol";
 
 /// @title LiquidityPoolFactoryTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Contains tests for the LiquidityPoolFactory contract
+/// @notice Contains tests for the `LiquidityPoolFactory` contract
 contract LiquidityPoolFactoryTest is Test, Config {
     // -------------------------------------------- //
     //  Events                                      //
@@ -65,7 +65,7 @@ contract LiquidityPoolFactoryTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `createLiquidityPool` function
+    //  Test `createLiquidityPool` function         //
     // -------------------------------------------- //
 
     function test_createLiquidityPool() public {
@@ -92,7 +92,7 @@ contract LiquidityPoolFactoryTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `supportedKinds` function
+    //  Test `supportedKinds` function              //
     // -------------------------------------------- //
 
     function test_supportedKinds() public {

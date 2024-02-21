@@ -13,7 +13,7 @@ import {Config} from "test/base/Config.sol";
 
 /// @title LendingMarketUUPSTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Contains tests for the LendingMarketUUPS contract
+/// @notice Contains tests for the `LendingMarketUUPS` contract
 contract LendingMarketUUPSTest is Test, Config {
     // -------------------------------------------- //
     //  Events                                      //
@@ -38,7 +38,7 @@ contract LendingMarketUUPSTest is Test, Config {
     }
 
     // -------------------------------------------- //
-     *  Test `upgradeToAndCall` function
+    //  Test `upgradeToAndCall` function            //
     // -------------------------------------------- //
 
     function test_upgradeToAndCall() public {
