@@ -5,8 +5,8 @@ pragma solidity 0.8.23;
 import {Interest} from "../libraries/Interest.sol";
 
 /// @title ICreditLineConfigurable interface
-/// @notice Defines the configurable credit line contract functions and events
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
+/// @notice Defines the configurable credit line contract functions and events
 interface ICreditLineConfigurable {
     /************************************************
      *  Events

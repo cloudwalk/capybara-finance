@@ -6,8 +6,8 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 import {LendingMarket} from "./LendingMarket.sol";
 
 /// @title LendingMarketUUPS contract
-/// @notice Upgradeable version of the lending market contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
+/// @notice Upgradeable version of the lending market contract
 contract LendingMarketUUPS is LendingMarket, UUPSUpgradeable {
     /// @dev Constructor that prohibits the initialization of the implementation of the upgradable contract
     /// @custom:oz-upgrades-unsafe-allow constructor

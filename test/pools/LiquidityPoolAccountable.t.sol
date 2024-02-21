@@ -19,8 +19,8 @@ import {ERC20Mock} from "src/mocks/ERC20Mock.sol";
 import {Config} from "test/base/Config.sol";
 
 /// @title LiquidityPoolAccountableTest contract
-/// @notice Contains tests for the LiquidityPoolAccountable contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
+/// @notice Contains tests for the LiquidityPoolAccountable contract
 contract LiquidityPoolAccountableTest is Test, Config {
     /************************************************
      *  Events

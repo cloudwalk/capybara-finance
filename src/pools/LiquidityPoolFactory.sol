@@ -10,8 +10,8 @@ import {ILiquidityPoolFactory} from "../interfaces/ILiquidityPoolFactory.sol";
 import {LiquidityPoolAccountable} from "./LiquidityPoolAccountable.sol";
 
 /// @title LiquidityPoolFactory contract
-/// @notice Implementation of the liquidity pool factory contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
+/// @notice Implementation of the liquidity pool factory contract
 contract LiquidityPoolFactory is OwnableUpgradeable, ILiquidityPoolFactory {
     /************************************************
      *  Errors

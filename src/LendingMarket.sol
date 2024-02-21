@@ -24,8 +24,8 @@ import {ICreditLine} from "./interfaces/core/ICreditLine.sol";
 import {LendingMarketStorage} from "./LendingMarketStorage.sol";
 
 /// @title LendingMarket contract
-/// @notice Implementation of the lending market contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
+/// @notice Implementation of the lending market contract
 contract LendingMarket is
     LendingMarketStorage,
     Initializable,
@@ -283,8 +283,16 @@ contract LendingMarket is
         // Get lender
         address lender = ownerOf(loanId);
 
+        // Is there any chance that liquidityPool is not set?
+
         // Get liquidity pool
         address liquidityPool = _liquidityPools[lender];
+
+        // Support for liquidity pool as lender
+
+        if (liquidityPool == address(0)) {
+            revert LiquidityPoolNotRegistered();
+        }
 
         // Get stored loan state
         Loan.State storage loan = _loans[loanId];

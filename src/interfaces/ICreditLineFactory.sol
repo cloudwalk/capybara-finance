@@ -3,8 +3,8 @@
 pragma solidity 0.8.23;
 
 /// @title ICreditLineFactory interface
-/// @notice Defines the credit line factory contract functions and events
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
+/// @notice Defines the credit line factory contract functions and events
 interface ICreditLineFactory {
     /************************************************
      *  Events

@@ -10,8 +10,8 @@ import {Interest} from "src/libraries/Interest.sol";
 import {CreditLineMock} from "src/mocks/CreditLineMock.sol";
 
 /// @title CreditLineMockTest contract
-/// @notice Contains tests for the CreditLineMock contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
+/// @notice Contains tests for the CreditLineMock contract
 contract CreditLineMockTest is Test {
     /************************************************
      *  Storage variables

@@ -9,8 +9,8 @@ import {Interest} from "src/libraries/Interest.sol";
 import {ICreditLineConfigurable} from "src/interfaces/ICreditLineConfigurable.sol";
 
 /// @title Config contract
-/// @notice Contains common configurations used for testing
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
+/// @notice Contains common configurations used for testing
 contract Config {
     using SafeCast for uint256;
 

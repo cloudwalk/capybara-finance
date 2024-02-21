@@ -7,8 +7,8 @@ import {Error} from "../libraries/Error.sol";
 import {ICreditLine} from "../interfaces/core/ICreditLine.sol";
 
 /// @title CreditLineMock contract
-/// @notice CreditLine mock contract used for testing
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
+/// @notice CreditLine mock contract used for testing
 contract CreditLineMock is ICreditLine {
     /************************************************
      *  Storage variables

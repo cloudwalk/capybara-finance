@@ -3,8 +3,8 @@
 pragma solidity 0.8.23;
 
 /// @title Error library
-/// @notice Defines common error types
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
+/// @notice Defines common error types
 library Error {
     /// @notice Thrown when the caller is not authorized
     error Unauthorized();

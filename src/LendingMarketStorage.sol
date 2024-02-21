@@ -5,8 +5,8 @@ pragma solidity 0.8.23;
 import {Loan} from "./libraries/Loan.sol";
 
 /// @title LendingMarketStorage contract
-/// @notice Defines the storage layout for the lending market contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
+/// @notice Defines the storage layout for the lending market contract
 abstract contract LendingMarketStorage {
     /************************************************
      *  Storage variables

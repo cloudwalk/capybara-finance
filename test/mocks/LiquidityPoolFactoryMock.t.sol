@@ -8,8 +8,8 @@ import {Error} from "src/libraries/Error.sol";
 import {LiquidityPoolFactoryMock} from "src/mocks/LiquidityPoolFactoryMock.sol";
 
 /// @title LiquidityPoolFactoryMockTest contract
-/// @notice Contains tests for the LiquidityPoolFactoryMock contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
+/// @notice Contains tests for the LiquidityPoolFactoryMock contract
 contract LiquidityPoolFactoryMockTest is Test {
     /************************************************
      *  Events

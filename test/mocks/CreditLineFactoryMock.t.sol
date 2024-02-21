@@ -8,8 +8,8 @@ import {Error} from "src/libraries/Error.sol";
 import {CreditLineFactoryMock} from "src/mocks/CreditLineFactoryMock.sol";
 
 /// @title CreditLineFactoryMockTest contract
-/// @notice Contains tests for the CreditLineFactoryMock contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
+/// @notice Contains tests for the CreditLineFactoryMock contract
 contract CreditLineFactoryMockTest is Test {
     /************************************************
      *  Events

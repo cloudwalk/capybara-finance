@@ -12,8 +12,8 @@ import {LendingMarketUUPS} from "src/LendingMarketUUPS.sol";
 import {Config} from "test/base/Config.sol";
 
 /// @title LendingMarketUUPSTest contract
-/// @notice Contains tests for the LendingMarketUUPS contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
+/// @notice Contains tests for the LendingMarketUUPS contract
 contract LendingMarketUUPSTest is Test, Config {
     /************************************************
      *  Events

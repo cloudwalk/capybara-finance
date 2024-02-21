@@ -12,8 +12,8 @@ import {LiquidityPoolAccountableUUPS} from "src/pools/LiquidityPoolAccountableUU
 import {Config} from "test/base/Config.sol";
 
 /// @title LiquidityPoolAccountableUUPSTest contract
-/// @notice Contains tests for the LiquidityPoolAccountableUUPS contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
+/// @notice Contains tests for the LiquidityPoolAccountableUUPS contract
 contract LiquidityPoolAccountableUUPSTest is Test, Config {
     /************************************************
      *  Events

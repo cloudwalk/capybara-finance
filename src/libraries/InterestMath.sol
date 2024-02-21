@@ -5,8 +5,8 @@ pragma solidity 0.8.23;
 import {Interest} from "./Interest.sol";
 
 /// @title InterestMath library
-/// @notice Defines interest calculation functions
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
+/// @notice Defines interest calculation functions
 library InterestMath {
     /************************************************
      *  Errors

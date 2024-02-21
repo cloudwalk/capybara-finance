@@ -10,8 +10,8 @@ import {ICreditLineFactory} from "../interfaces/ICreditLineFactory.sol";
 import {CreditLineConfigurable} from "./CreditLineConfigurable.sol";
 
 /// @title CreditLineFactory contract
-/// @notice Implementation of the credit line factory contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
+/// @notice Implementation of the credit line factory contract
 contract CreditLineFactory is OwnableUpgradeable, ICreditLineFactory {
     /************************************************
      *  Errors

@@ -6,8 +6,8 @@ import {Error} from "../libraries/Error.sol";
 import {ILiquidityPoolFactory} from "../interfaces/ILiquidityPoolFactory.sol";
 
 /// @title LiquidityPoolFactoryMock contract
-/// @notice LiquidityPoolFactory mock contract used for testing
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
+/// @notice LiquidityPoolFactory mock contract used for testing
 contract LiquidityPoolFactoryMock is ILiquidityPoolFactory {
     /************************************************
      *  Events

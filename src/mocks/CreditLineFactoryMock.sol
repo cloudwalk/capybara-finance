@@ -6,8 +6,8 @@ import {Error} from "../libraries/Error.sol";
 import {ICreditLineFactory} from "../interfaces/ICreditLineFactory.sol";
 
 /// @title CreditLineFactoryMock contract
-/// @notice CreditLineFactory mock contract used for testing
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
+/// @notice CreditLineFactory mock contract used for testing
 contract CreditLineFactoryMock is ICreditLineFactory {
     /************************************************
      *  Events

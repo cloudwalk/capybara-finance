@@ -3,8 +3,8 @@
 pragma solidity 0.8.23;
 
 /// @title LendingRegistryStorage contract
-/// @notice Defines the storage layout for the lending registry contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
+/// @notice Defines the storage layout for the lending registry contract
 abstract contract LendingRegistryStorage {
     /************************************************
      *  Storage variables

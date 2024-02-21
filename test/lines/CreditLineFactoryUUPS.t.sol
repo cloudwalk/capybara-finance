@@ -12,8 +12,8 @@ import {CreditLineFactoryUUPS} from "src/lines/CreditLineFactoryUUPS.sol";
 import {Config} from "test/base/Config.sol";
 
 /// @title CreditLineFactoryUUPSTest contract
-/// @notice Contains tests for the CreditLineFactoryUUPS contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
+/// @notice Contains tests for the CreditLineFactoryUUPS contract
 contract CreditLineFactoryUUPSTest is Test, Config {
     /************************************************
      *  Events

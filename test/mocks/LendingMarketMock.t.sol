@@ -10,8 +10,8 @@ import {Interest} from "src/libraries/Interest.sol";
 import {LendingMarketMock} from "src/mocks/LendingMarketMock.sol";
 
 /// @title LendingMarketMockTest contract
-/// @notice Contains tests for the LendingMarketMock contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
+/// @notice Contains tests for the LendingMarketMock contract
 contract LendingMarketMockTest is Test {
     /************************************************
      *  Events

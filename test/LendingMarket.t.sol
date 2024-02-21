@@ -20,8 +20,8 @@ import {LiquidityPoolMock} from "src/mocks/LiquidityPoolMock.sol";
 import {Config} from "test/base/Config.sol";
 
 /// @title LendingMarketTest contract
-/// @notice Contains tests for the LendingMarket contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
+/// @notice Contains tests for the LendingMarket contract
 contract LendingMarketTest is Test, Config {
     /************************************************
      *  Events

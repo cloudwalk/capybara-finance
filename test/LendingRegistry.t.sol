@@ -17,8 +17,8 @@ import {LiquidityPoolFactoryMock} from "src/mocks/LiquidityPoolFactoryMock.sol";
 import {Config} from "test/base/Config.sol";
 
 /// @title LendingRegistryTest contract
-/// @notice Contains tests for the LendingRegistry contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
+/// @notice Contains tests for the LendingRegistry contract
 contract LendingRegistryTest is Test, Config {
     /************************************************
      *  Events

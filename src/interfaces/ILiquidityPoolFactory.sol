@@ -3,8 +3,8 @@
 pragma solidity 0.8.23;
 
 /// @title ILiquidityPoolFactory interface
-/// @notice Defines the liquidity pool factory contract functions and events
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
+/// @notice Defines the liquidity pool factory contract functions and events
 interface ILiquidityPoolFactory {
     /************************************************
      *  Events

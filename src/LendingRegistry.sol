@@ -16,8 +16,8 @@ import {ICreditLineFactory} from "./interfaces/ICreditLineFactory.sol";
 import {LendingRegistryStorage} from "./LendingRegistryStorage.sol";
 
 /// @title LendingRegistry contract
-/// @notice Implementation of the lending registry contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
+/// @notice Implementation of the lending registry contract
 contract LendingRegistry is
     LendingRegistryStorage,
     Initializable,

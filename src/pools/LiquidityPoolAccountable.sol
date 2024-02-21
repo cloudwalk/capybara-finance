@@ -16,8 +16,8 @@ import {ILiquidityPoolAccountable} from "../interfaces/ILiquidityPoolAccountable
 import {ILendingMarket} from "../interfaces/core/ILendingMarket.sol";
 
 /// @title LiquidityPoolAccountable contract
-/// @notice Implementation of the accountable liquidity pool contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
+/// @notice Implementation of the accountable liquidity pool contract
 contract LiquidityPoolAccountable is
     OwnableUpgradeable,
     PausableUpgradeable,

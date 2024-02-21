@@ -5,8 +5,8 @@ pragma solidity 0.8.23;
 import {Loan} from "../../libraries/Loan.sol";
 
 /// @title ILendingMarket interface
-/// @notice Defines the lending market contract functions and events
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
+/// @notice Defines the lending market contract functions and events
 interface ILendingMarket {
     /************************************************
      *  Events

@@ -5,8 +5,8 @@ pragma solidity 0.8.23;
 import {Loan} from "../../libraries/Loan.sol";
 
 /// @title ICreditLine interface
-/// @notice Defines the credit line contract functions and events
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
+/// @notice Defines the credit line contract functions and events
 interface ICreditLine {
     /************************************************
      *  Functions

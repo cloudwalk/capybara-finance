@@ -3,8 +3,8 @@
 pragma solidity 0.8.23;
 
 /// @title Interest library
-/// @notice Defines interest calculation types
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
+/// @notice Defines interest calculation types
 library Interest {
     /// @notice An enum that defines the available interest formulas
     ///

@@ -13,8 +13,8 @@ import {LiquidityPoolFactory} from "src/pools/LiquidityPoolFactory.sol";
 import {Config} from "test/base/Config.sol";
 
 /// @title LiquidityPoolFactoryTest contract
-/// @notice Contains tests for the LiquidityPoolFactory contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
+/// @notice Contains tests for the LiquidityPoolFactory contract
 contract LiquidityPoolFactoryTest is Test, Config {
     /************************************************
      *  Events

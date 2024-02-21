@@ -13,8 +13,8 @@ import {CreditLineFactory} from "src/lines/CreditLineFactory.sol";
 import {Config} from "test/base/Config.sol";
 
 /// @title CreditLineFactoryTest contract
-/// @notice Contains tests for the CreditLineFactory contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
+/// @notice Contains tests for the CreditLineFactory contract
 contract CreditLineFactoryTest is Test, Config {
     /************************************************
      *  Events

@@ -3,8 +3,8 @@
 pragma solidity 0.8.23;
 
 /// @title ILiquidityPoolAccountable interface
-/// @notice Defines the accountable liquidity pool contract functions and events
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
+/// @notice Defines the accountable liquidity pool contract functions and events
 interface ILiquidityPoolAccountable {
     /************************************************
      *  Events
