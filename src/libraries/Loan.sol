@@ -6,7 +6,7 @@ import {Interest} from "./Interest.sol";
 
 /// @title Loan library
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Defines loan related types
+/// @notice Defines loan related structs and enums
 library Loan {
     /// @notice An enum that defines the possible loan statuses
     ///

@@ -7,7 +7,7 @@ import {ICreditLineFactory} from "../interfaces/ICreditLineFactory.sol";
 
 /// @title CreditLineFactoryMock contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice CreditLineFactory mock contract used for testing
+/// @notice Mock of the `CreditLineFactory` contract used for testing
 contract CreditLineFactoryMock is ICreditLineFactory {
     // -------------------------------------------- //
     //  Events                                      //

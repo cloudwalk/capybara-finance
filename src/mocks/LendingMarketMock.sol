@@ -8,7 +8,7 @@ import {ILendingMarket} from "../interfaces/core/ILendingMarket.sol";
 
 /// @title LendingMarketMock contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice LendingMarket mock contract used for testing
+/// @notice Mock of the `LendingMarket` contract used for testing
 contract LendingMarketMock is ILendingMarket {
     // -------------------------------------------- //
     //  Events                                      //
