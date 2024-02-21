@@ -75,7 +75,6 @@ library Loan {
         /// @notice The initial principal amount of the loan
         uint64 initialBorrowAmount;
 
-
         //slot 3
         /// @notice The duration of the loan period specified in seconds
         uint32 periodInSeconds;
