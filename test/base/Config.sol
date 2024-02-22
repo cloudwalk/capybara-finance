@@ -33,10 +33,13 @@ contract Config {
     address public constant BORROWER_1 = address(bytes20(keccak256("borrower_1")));
     address public constant BORROWER_2 = address(bytes20(keccak256("borrower_2")));
     address public constant BORROWER_3 = address(bytes20(keccak256("borrower_3")));
+
     address public constant ADDON_RECIPIENT = address(bytes20(keccak256("recipient")));
 
     address public constant CREDIT_LINE_1 = address(bytes20(keccak256("credit_line_1")));
     address public constant CREDIT_LINE_2 = address(bytes20(keccak256("credit_line_2")));
+
+    address public constant LENDER_1_ALIAS = address(bytes20(keccak256("lender_1_alias")));
 
     address public constant LIQUIDITY_POOL_1 = address(bytes20(keccak256("liquidity_pool_1")));
     address public constant LIQUIDITY_POOL_2 = address(bytes20(keccak256("liquidity_pool_2")));

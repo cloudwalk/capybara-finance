@@ -54,6 +54,7 @@ contract LendingMarketTest is Test, Config {
     event UpdateLoanInterestRateSecondary(
         uint256 indexed loanId, uint256 indexed newInterestRate, uint256 indexed oldInterestRate
     );
+    event ConfigureLenderAlias(address indexed lender, address indexed account, bool isAlias);
     event SetRegistry(address indexed newRegistry, address indexed oldRegistry);
 
     // -------------------------------------------- //
@@ -88,17 +89,20 @@ contract LendingMarketTest is Test, Config {
         skip(INIT_BLOCK_TIMESTAMP);
     }
 
-    function configureMarket() internal {
+    function configureMarket() private {
         vm.startPrank(REGISTRY_1);
         market.registerCreditLine(LENDER_1, address(creditLine));
         market.registerLiquidityPool(LENDER_1, address(liquidityPool));
         vm.stopPrank();
 
+        vm.prank(LENDER_1);
+        market.configureAlias(LENDER_1_ALIAS, true);
+
         vm.prank(address(liquidityPool));
         token.approve(address(market), type(uint256).max);
     }
 
-    function mockLoanTerms() internal returns (uint256, Loan.Terms memory) {
+    function mockLoanTerms() private returns (uint256, Loan.Terms memory) {
         Loan.Terms memory terms = initLoanTerms(address(token));
 
         if (canOverrideAutoRepayment) {
@@ -109,7 +113,7 @@ contract LendingMarketTest is Test, Config {
         return (BORROW_AMOUNT, terms);
     }
 
-    function createActiveLoan(uint256 skipPeriodsAfterCreated) internal returns (uint256) {
+    function createActiveLoan(uint256 skipPeriodsAfterCreated) private returns (uint256) {
         (uint256 borrowAmount, Loan.Terms memory terms) = mockLoanTerms();
         token.mint(address(liquidityPool), borrowAmount + terms.addonAmount);
 
@@ -122,7 +126,7 @@ contract LendingMarketTest is Test, Config {
         return loanId;
     }
 
-    function createFrozenLoan(uint256 skipPeriodsBeforeFreezing) internal returns (uint256) {
+    function createFrozenLoan(uint256 skipPeriodsBeforeFreezing) private returns (uint256) {
         uint256 loanId = createActiveLoan(skipPeriodsBeforeFreezing);
 
         vm.prank(LENDER_1);
@@ -131,7 +135,7 @@ contract LendingMarketTest is Test, Config {
         return loanId;
     }
 
-    function createRepaidLoan(uint256 skipPeriodsBeforeRepayment) internal returns (uint256) {
+    function createRepaidLoan(uint256 skipPeriodsBeforeRepayment) private returns (uint256) {
         uint256 loanId = createActiveLoan(skipPeriodsBeforeRepayment);
         Loan.State memory loan = market.getLoanState(loanId);
 
@@ -150,7 +154,7 @@ contract LendingMarketTest is Test, Config {
         return loanId;
     }
 
-    function createDefaultedLoan(uint256 skipPeriodsAfterDefault) internal returns (uint256) {
+    function createDefaultedLoan(uint256 skipPeriodsAfterDefault) private returns (uint256) {
         uint256 loanId = createActiveLoan(0);
         Loan.State memory loan = market.getLoanState(loanId);
 
@@ -507,7 +511,7 @@ contract LendingMarketTest is Test, Config {
     //  Test `repayLoan` function                  //
     // -------------------------------------------- //
 
-    function repayLoan(uint256 loanId, bool autoRepaymnet) internal {
+    function repayLoan(uint256 loanId, bool autoRepaymnet) private {
         Loan.State memory loan = market.getLoanState(loanId);
 
         assertEq(market.ownerOf(loanId), LENDER_1);
@@ -694,7 +698,7 @@ contract LendingMarketTest is Test, Config {
     //  Test `freeze` function                      //
     // -------------------------------------------- //
 
-    function test_freeze() public {
+    function test_freeze(address caller) private {
         configureMarket();
         uint256 loanId = createActiveLoan(1);
 
@@ -703,13 +707,21 @@ contract LendingMarketTest is Test, Config {
 
         (, uint256 currentPeriodDate) = market.getLoanBalance(loanId, 0);
 
-        vm.prank(LENDER_1);
+        vm.prank(caller);
         vm.expectEmit(true, true, true, true, address(market));
         emit FreezeLoan(loanId, currentPeriodDate);
         market.freeze(loanId);
 
         loan = market.getLoanState(loanId);
         assertEq(loan.freezeDate, currentPeriodDate);
+    }
+
+    function test_freeze_IfLender() public {
+        test_freeze(LENDER_1);
+    }
+
+    function test_freeze_IfLenderAlias() public {
+        test_freeze(LENDER_1_ALIAS);
     }
 
     function test_freeze_Revert_IfContractIsPaused() public {
@@ -763,7 +775,29 @@ contract LendingMarketTest is Test, Config {
     //  Test `unfreeze` function                    //
     // -------------------------------------------- //
 
-    function test_unfreeze_SamePeriod() public {
+    function test_unfreeze(address caller) private {
+        configureMarket();
+        uint256 loanId = createFrozenLoan(0);
+
+        Loan.State memory loan = market.getLoanState(loanId);
+        assertEq(loan.freezeDate != 0, true);
+
+        vm.prank(caller);
+        market.unfreeze(loanId);
+
+        loan = market.getLoanState(loanId);
+        assertEq(loan.freezeDate, 0);
+    }
+
+    function test_unfreeze_IfLender() public {
+        test_unfreeze(LENDER_1);
+    }
+
+    function test_unfreeze_IfLenderAlias() public {
+        test_unfreeze(LENDER_1_ALIAS);
+    }
+
+    function test_unfreeze_IfSamePeriod() public {
         configureMarket();
         uint256 loanId = createFrozenLoan(0);
         Loan.State memory loan = market.getLoanState(loanId);
@@ -788,7 +822,7 @@ contract LendingMarketTest is Test, Config {
         assertEq(newOutstandingBalance, oldOutstandingBalance);
     }
 
-    function test_unfreeze_DifferentPeriod() public {
+    function test_unfreeze_IfDifferentPeriod() public {
         configureMarket();
         uint256 loanId = createFrozenLoan(0);
         Loan.State memory loan = market.getLoanState(loanId);
@@ -865,20 +899,28 @@ contract LendingMarketTest is Test, Config {
     //  Test `updateLoanDuration` function          //
     // -------------------------------------------- //
 
-    function test_updateLoanDuration() public {
+    function test_updateLoanDuration(address caller) private {
         configureMarket();
         uint256 loanId = createActiveLoan(1);
         Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 newDurationInPeriods = loan.durationInPeriods + 2;
 
-        vm.prank(LENDER_1);
+        vm.prank(caller);
         vm.expectEmit(true, true, true, true, address(market));
         emit UpdateLoanDuration(loanId, newDurationInPeriods, loan.durationInPeriods);
         market.updateLoanDuration(loanId, newDurationInPeriods);
 
         loan = market.getLoanState(loanId);
         assertEq(loan.durationInPeriods, newDurationInPeriods);
+    }
+
+    function test_updateLoanDuration_IfLender() public {
+        test_updateLoanDuration(LENDER_1);
+    }
+
+    function test_updateLoanDuration_IfLenderAlias() public {
+        test_updateLoanDuration(LENDER_1_ALIAS);
     }
 
     function test_updateLoanDuration_Revert_IfContractIsPaused() public {
@@ -955,7 +997,7 @@ contract LendingMarketTest is Test, Config {
     //  Test `updateLoanMoratorium` function        //
     // -------------------------------------------- //
 
-    function test_updateLoanMoratorium() public {
+    function test_updateLoanMoratorium(address caller) private {
         configureMarket();
         uint256 loanId = createActiveLoan(0);
         Loan.State memory loan = market.getLoanState(loanId);
@@ -968,7 +1010,7 @@ contract LendingMarketTest is Test, Config {
         uint256 newMoratoriumInPeriods = 2;
         uint256 newTrackDate = loan.trackDate + newMoratoriumInPeriods * loan.periodInSeconds;
 
-        vm.prank(LENDER_1);
+        vm.prank(caller);
         vm.expectEmit(true, true, true, true, address(market));
         emit UpdateLoanMoratorium(loanId, loan.trackDate, newMoratoriumInPeriods);
         market.updateLoanMoratorium(loanId, newMoratoriumInPeriods);
@@ -985,7 +1027,7 @@ contract LendingMarketTest is Test, Config {
         uint256 increaseInPeriods = newMoratoriumInPeriods - currentMoratoriumInPeriods;
         newTrackDate = loan.trackDate + increaseInPeriods * loan.periodInSeconds;
 
-        vm.prank(LENDER_1);
+        vm.prank(caller);
         vm.expectEmit(true, true, true, true, address(market));
         emit UpdateLoanMoratorium(loanId, loan.trackDate, increaseInPeriods);
         market.updateLoanMoratorium(loanId, newMoratoriumInPeriods);
@@ -993,6 +1035,14 @@ contract LendingMarketTest is Test, Config {
         loan = market.getLoanState(loanId);
         assertEq(loan.trackDate, newTrackDate);
         assertEq(getMoratoriumInPeriods(loanId), newMoratoriumInPeriods);
+    }
+
+    function test_updateLoanMoratorium_IfLender() public {
+        test_updateLoanMoratorium(LENDER_1);
+    }
+
+    function test_updateLoanMoratorium_IfLenderAlias() public {
+        test_updateLoanMoratorium(LENDER_1_ALIAS);
     }
 
     function test_updateLoanMoratorium_Flow() public {
@@ -1087,7 +1137,7 @@ contract LendingMarketTest is Test, Config {
         market.updateLoanMoratorium(loanId, newMoratoriumInPeriods - 1);
     }
 
-    function getMoratoriumInPeriods(uint256 loanId) internal view returns (uint256) {
+    function getMoratoriumInPeriods(uint256 loanId) private view returns (uint256) {
         Loan.State memory loan = market.getLoanState(loanId);
         uint256 currentPeriodDate = market.calculatePeriodDate(block.timestamp, loan.periodInSeconds, 0, 0);
         return loan.trackDate > currentPeriodDate ? (loan.trackDate - currentPeriodDate) / loan.periodInSeconds : 0;
@@ -1097,7 +1147,7 @@ contract LendingMarketTest is Test, Config {
     //  Test `updateLoanInterestRatePrimary` function
     // -------------------------------------------- //
 
-    function test_updateLoanInterestRatePrimary() public {
+    function test_updateLoanInterestRatePrimary(address caller) private {
         configureMarket();
         uint256 loanId = createActiveLoan(1);
         Loan.State memory loan = market.getLoanState(loanId);
@@ -1105,13 +1155,21 @@ contract LendingMarketTest is Test, Config {
         uint256 oldInterestRatePrimary = loan.interestRatePrimary;
         uint256 newInterestRatePrimary = oldInterestRatePrimary - 1;
 
-        vm.prank(LENDER_1);
+        vm.prank(caller);
         vm.expectEmit(true, true, true, true, address(market));
         emit UpdateLoanInterestRatePrimary(loanId, newInterestRatePrimary, oldInterestRatePrimary);
         market.updateLoanInterestRatePrimary(loanId, newInterestRatePrimary);
 
         loan = market.getLoanState(loanId);
         assertEq(loan.interestRatePrimary, newInterestRatePrimary);
+    }
+
+    function test_updateLoanInterestRatePrimary_IfLender() public {
+        test_updateLoanInterestRatePrimary(LENDER_1);
+    }
+
+    function test_updateLoanInterestRatePrimary_IfLenderAlias() public {
+        test_updateLoanInterestRatePrimary(LENDER_1_ALIAS);
     }
 
     function test_updateLoanInterestRatePrimary_Revert_IfContractIsPaused() public {
@@ -1175,7 +1233,7 @@ contract LendingMarketTest is Test, Config {
     //  Test `updateLoanInterestRateSecondary` function
     // -------------------------------------------- //
 
-    function test_updateLoanInterestRateSecondary() public {
+    function test_updateLoanInterestRateSecondary(address caller) private {
         configureMarket();
         uint256 loanId = createActiveLoan(1);
         Loan.State memory loan = market.getLoanState(loanId);
@@ -1183,13 +1241,21 @@ contract LendingMarketTest is Test, Config {
         uint256 oldInterestRateSecondary = loan.interestRateSecondary;
         uint256 newInterestRateSecondary = oldInterestRateSecondary - 1;
 
-        vm.prank(LENDER_1);
+        vm.prank(caller);
         vm.expectEmit(true, true, true, true, address(market));
         emit UpdateLoanInterestRateSecondary(loanId, newInterestRateSecondary, oldInterestRateSecondary);
         market.updateLoanInterestRateSecondary(loanId, newInterestRateSecondary);
 
         loan = market.getLoanState(loanId);
         assertEq(loan.interestRateSecondary, newInterestRateSecondary);
+    }
+
+    function test_updateLoanInterestRateSecondary_IfLender() public {
+        test_updateLoanInterestRateSecondary(LENDER_1);
+    }
+
+    function test_updateLoanInterestRateSecondary_IfLenderAlias() public {
+        test_updateLoanInterestRateSecondary(LENDER_1_ALIAS);
     }
 
     function test_updateLoanInterestRateSecondary_Revert_IfContractIsPaused() public {
@@ -1247,6 +1313,53 @@ contract LendingMarketTest is Test, Config {
         vm.prank(LENDER_1);
         vm.expectRevert(LendingMarket.InappropriateInterestRate.selector);
         market.updateLoanInterestRateSecondary(loanId, newInterestRateSecondary);
+    }
+
+    // -------------------------------------------- //
+    //  Test `configureAlias` function              //
+    // -------------------------------------------- //
+
+    function test_configureAlias() public {
+        configureMarket();
+
+        vm.startPrank(LENDER_1);
+
+        vm.expectEmit(true, true, true, true, address(market));
+        emit ConfigureLenderAlias(LENDER_1, LENDER_1_ALIAS, false);
+        market.configureAlias(LENDER_1_ALIAS, false);
+        assertEq(market.hasAlias(LENDER_1, LENDER_1_ALIAS), false);
+
+        vm.expectEmit(true, true, true, true, address(market));
+        emit ConfigureLenderAlias(LENDER_1, LENDER_1_ALIAS, true);
+        market.configureAlias(LENDER_1_ALIAS, true);
+        assertEq(market.hasAlias(LENDER_1, LENDER_1_ALIAS), true);
+    }
+
+    function test_configureAlias_Revert_IfContractIsPaused() public {
+        configureMarket();
+
+        vm.prank(OWNER);
+        market.pause();
+
+        vm.prank(LENDER_1);
+        vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
+        market.configureAlias(LENDER_1_ALIAS, true);
+    }
+
+    function test_configureAlias_Revert_IfAliasIsZeroAddress() public {
+        configureMarket();
+
+        vm.prank(LENDER_1);
+        vm.expectRevert(Error.ZeroAddress.selector);
+        market.configureAlias(address(0), true);
+    }
+
+    function test_configureAlias_Revert_IfAliasIsAlreadyConfigured() public {
+        configureMarket();
+
+        vm.prank(LENDER_1);
+        vm.expectRevert(Error.AlreadyConfigured.selector);
+        market.configureAlias(LENDER_1_ALIAS, true);
     }
 
     // -------------------------------------------- //

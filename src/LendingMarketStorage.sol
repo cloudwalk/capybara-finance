@@ -27,7 +27,10 @@ abstract contract LendingMarketStorage {
     /// @notice The mapping of lender to associated liquidity pool
     mapping(address => address) internal _liquidityPools;
 
+    /// @notice The mapping of lender to the alias account status
+    mapping(address => mapping (address => bool)) internal _hasAlias;
+
     /// @dev This empty reserved space is put in place to allow future versions
     /// to add new variables without shifting down storage in the inheritance chain
-    uint256[45] private __gap;
+    uint256[44] private __gap;
 }

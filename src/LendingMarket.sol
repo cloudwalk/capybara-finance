@@ -90,10 +90,11 @@ contract LendingMarket is
         _;
     }
 
-    /// @notice Throws if called by any account other than the loan holder
+    /// @notice Throws if called by any account other than the lender or its alias
     /// @param loanId The unique identifier of the loan to check
-    modifier onlyLoanHolder(uint256 loanId) {
-        if (msg.sender != ownerOf(loanId)) {
+    modifier onlyLenderOrAlias(uint256 loanId) {
+        address lender = ownerOf(loanId);
+        if (msg.sender != lender && _hasAlias[lender][msg.sender] == false) {
             revert Error.Unauthorized();
         }
         _;
@@ -341,7 +342,7 @@ contract LendingMarket is
     // -------------------------------------------- //
 
     /// @inheritdoc ILendingMarket
-    function freeze(uint256 loanId) external whenNotPaused onlyOngoingLoan(loanId) onlyLoanHolder(loanId) {
+    function freeze(uint256 loanId) external whenNotPaused onlyOngoingLoan(loanId) onlyLenderOrAlias(loanId) {
         Loan.State storage loan = _loans[loanId];
 
         if (loan.freezeDate != 0) {
@@ -354,7 +355,7 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ILendingMarket
-    function unfreeze(uint256 loanId) external whenNotPaused onlyOngoingLoan(loanId) onlyLoanHolder(loanId) {
+    function unfreeze(uint256 loanId) external whenNotPaused onlyOngoingLoan(loanId) onlyLenderOrAlias(loanId) {
         Loan.State storage loan = _loans[loanId];
 
         if (loan.freezeDate == 0) {
@@ -379,7 +380,7 @@ contract LendingMarket is
         external
         whenNotPaused
         onlyOngoingLoan(loanId)
-        onlyLoanHolder(loanId)
+        onlyLenderOrAlias(loanId)
     {
         Loan.State storage loan = _loans[loanId];
 
@@ -397,7 +398,7 @@ contract LendingMarket is
         external
         whenNotPaused
         onlyOngoingLoan(loanId)
-        onlyLoanHolder(loanId)
+        onlyLenderOrAlias(loanId)
     {
         Loan.State storage loan = _loans[loanId];
 
@@ -418,7 +419,7 @@ contract LendingMarket is
         external
         whenNotPaused
         onlyOngoingLoan(loanId)
-        onlyLoanHolder(loanId)
+        onlyLenderOrAlias(loanId)
     {
         Loan.State storage loan = _loans[loanId];
 
@@ -436,7 +437,7 @@ contract LendingMarket is
         external
         whenNotPaused
         onlyOngoingLoan(loanId)
-        onlyLoanHolder(loanId)
+        onlyLenderOrAlias(loanId)
     {
         Loan.State storage loan = _loans[loanId];
 
@@ -458,6 +459,20 @@ contract LendingMarket is
          */
 
         revert Error.NotImplemented();
+    }
+
+    /// @inheritdoc ILendingMarket
+    function configureAlias(address account, bool isAlias) external whenNotPaused {
+        if (account == address(0)) {
+            revert Error.ZeroAddress();
+        }
+        if (_hasAlias[msg.sender][account] == isAlias) {
+            revert Error.AlreadyConfigured();
+        }
+
+        emit ConfigureLenderAlias(msg.sender, account, isAlias);
+
+        _hasAlias[msg.sender][account] = isAlias;
     }
 
     // -------------------------------------------- //
@@ -486,6 +501,11 @@ contract LendingMarket is
         }
 
         return _outstandingBalance(_loans[loanId], timestamp);
+    }
+
+    /// @inheritdoc ILendingMarket
+    function hasAlias(address lender, address account) external view returns(bool) {
+        return _hasAlias[lender][account];
     }
 
     /// @inheritdoc ILendingMarket

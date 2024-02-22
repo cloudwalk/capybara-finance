@@ -76,6 +76,10 @@ contract LendingMarketMock is ILendingMarket {
         emit RegisterLiquidityPoolCalled(lender, liquidityPool);
     }
 
+    function configureAlias(address account, bool isAlias) external {
+        revert Error.NotImplemented();
+    }
+
     function getLender(address creditLine) external pure returns (address) {
         revert Error.NotImplemented();
     }
@@ -89,6 +93,10 @@ contract LendingMarketMock is ILendingMarket {
     }
 
     function getLoanBalance(uint256 loanId, uint256 timestamp) external pure returns (uint256, uint256) {
+        revert Error.NotImplemented();
+    }
+
+    function hasAlias(address lender, address account) external pure returns (bool) {
         revert Error.NotImplemented();
     }
 

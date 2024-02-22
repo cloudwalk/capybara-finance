@@ -91,6 +91,12 @@ interface ILendingMarket {
     /// @param oldRegistry The address of the old registry
     event SetRegistry(address indexed newRegistry, address indexed oldRegistry);
 
+    /// @notice Emitted when a lender alias is configured
+    /// @param lender The address of the lender account
+    /// @param account The address of the alias account
+    /// @param isAlias True if the account is configured as an alias, otherwise false
+    event ConfigureLenderAlias(address indexed lender, address indexed account, bool isAlias);
+
     // -------------------------------------------- //
     //  Borrower functions                          //
     // -------------------------------------------- //
@@ -153,6 +159,11 @@ interface ILendingMarket {
     /// @param liquidityPool The address of the liquidity pool contract
     function registerLiquidityPool(address lender, address liquidityPool) external;
 
+    /// @notice Configures an alias for a lender
+    /// @param account The address to be configured as an alias
+    /// @param isAlias True if the account is an alias, otherwise false
+    function configureAlias(address account, bool isAlias) external;
+
     // -------------------------------------------- //
     //  View functions                              //
     // -------------------------------------------- //
@@ -175,6 +186,12 @@ interface ILendingMarket {
     /// @param timestamp The timestamp to get the outstanding balance for
     /// @return The outstanding balance and the applied period date of the loan
     function getLoanBalance(uint256 loanId, uint256 timestamp) external view returns (uint256, uint256);
+
+    /// @notice Checks if the account is an alias for a lender
+    /// @param lender The address of the lender to check alias for
+    /// @param account The address to check whether it's an alias or not
+    /// @return True if the account is an alias for the lender, otherwise false
+    function hasAlias(address lender, address account) external view returns (bool);
 
     /// @notice Gets the address of the registry contract
     function registry() external view returns (address);
