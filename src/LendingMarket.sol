@@ -451,17 +451,6 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ILendingMarket
-    function updateLender(address creditLine, address newLender) external {
-        /**
-         * TBD
-         * Updating the lender results in a different liquidity pool.
-         * Understand all the side effects of this operation.
-         */
-
-        revert Error.NotImplemented();
-    }
-
-    /// @inheritdoc ILendingMarket
     function configureAlias(address account, bool isAlias) external whenNotPaused {
         if (account == address(0)) {
             revert Error.ZeroAddress();
@@ -480,13 +469,18 @@ contract LendingMarket is
     // -------------------------------------------- //
 
     /// @inheritdoc ILendingMarket
-    function getLender(address creditLine) external view returns (address) {
+    function getCreditLineLender(address creditLine) external view returns (address) {
         return _creditLines[creditLine];
     }
 
     /// @inheritdoc ILendingMarket
-    function getLiquidityPool(address lender) external view returns (address) {
-        return _liquidityPools[lender];
+    function getLiquidityPoolLender(address liquidityPool) external view returns (address) {
+        return _liquidityPools[liquidityPool];
+    }
+
+    /// @inheritdoc ILendingMarket
+    function getLiquidityPoolByCreditLine(address creditLine) external view returns (address) {
+        return _liquidityPoolByCreditLine[creditLine];
     }
 
     /// @inheritdoc ILendingMarket

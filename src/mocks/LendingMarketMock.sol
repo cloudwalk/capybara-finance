@@ -64,10 +64,6 @@ contract LendingMarketMock is ILendingMarket {
         revert Error.NotImplemented();
     }
 
-    function updateLender(address creditLine, address newLender) external {
-        revert Error.NotImplemented();
-    }
-
     function registerCreditLine(address lender, address creditLine) external {
         emit RegisterCreditLineCalled(lender, creditLine);
     }
@@ -76,15 +72,23 @@ contract LendingMarketMock is ILendingMarket {
         emit RegisterLiquidityPoolCalled(lender, liquidityPool);
     }
 
+    function assignLiquidityPoolToCreditLine(address creditLine, address liquidityPool) external {
+        revert Error.NotImplemented();
+    }
+
     function configureAlias(address account, bool isAlias) external {
         revert Error.NotImplemented();
     }
 
-    function getLender(address creditLine) external pure returns (address) {
+    function getCreditLineLender(address creditLine) external pure returns (address) {
         revert Error.NotImplemented();
     }
 
-    function getLiquidityPool(address lender) external pure returns (address) {
+    function getLiquidityPoolLender(address lender) external pure returns (address) {
+        revert Error.NotImplemented();
+    }
+
+    function getLiquidityPoolByCreditLine(address creditLine) external pure returns (address) {
         revert Error.NotImplemented();
     }
 

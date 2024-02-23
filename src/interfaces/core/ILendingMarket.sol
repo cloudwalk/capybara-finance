@@ -97,6 +97,14 @@ interface ILendingMarket {
     /// @param isAlias True if the account is configured as an alias, otherwise false
     event ConfigureLenderAlias(address indexed lender, address indexed account, bool isAlias);
 
+    /// @notice Emitted when a liquidity pool is assigned to a credit line
+    /// @param creditLine The address of the credit line contract
+    /// @param newLiquidityPool The address of the new liquidity pool contract
+    /// @param oldLiquidityPool The address of the old liquidity pool contract
+    event AssignLiquidityPoolToCreditLine(
+        address indexed creditLine, address indexed newLiquidityPool, address indexed oldLiquidityPool
+    );
+
     // -------------------------------------------- //
     //  Borrower functions                          //
     // -------------------------------------------- //
@@ -144,11 +152,6 @@ interface ILendingMarket {
     /// @param newInterestRate The new secondary interest rate of the loan
     function updateLoanInterestRateSecondary(uint256 loanId, uint256 newInterestRate) external;
 
-    /// @notice Updates the lender associated with a credit line
-    /// @param creditLine The address of the credit line whose lender is to be updated
-    /// @param newLender The address of the new lender
-    function updateLender(address creditLine, address newLender) external;
-
     /// @notice Registers a credit line
     /// @param lender The address of the credit line lender
     /// @param creditLine The address of the credit line contract
@@ -158,6 +161,11 @@ interface ILendingMarket {
     /// @param lender The address of the liquidity pool lender
     /// @param liquidityPool The address of the liquidity pool contract
     function registerLiquidityPool(address lender, address liquidityPool) external;
+
+    /// @notice Assigns a liquidity pool to a credit line
+    /// @param creditLine The address of the credit line contract
+    /// @param liquidityPool The address of the liquidity pool contract
+    function assignLiquidityPoolToCreditLine(address creditLine, address liquidityPool) external;
 
     /// @notice Configures an alias for a lender
     /// @param account The address to be configured as an alias
@@ -170,11 +178,18 @@ interface ILendingMarket {
 
     /// @notice Gets the credit line's lender
     /// @param creditLine The address of the credit line to check
-    function getLender(address creditLine) external view returns (address);
+    /// @return The address of the lender of the credit line
+    function getCreditLineLender(address creditLine) external view returns (address);
 
-    /// @notice Gets the lender's liquidity pool
-    /// @param lender The address of the lender to check
-    function getLiquidityPool(address lender) external view returns (address);
+    /// @notice Gets the liquidity pool's lender
+    /// @param liquidityPool The address of the liquidity pool to check
+    /// @return The address of the lender of the liquidity pool
+    function getLiquidityPoolLender(address liquidityPool) external view returns (address);
+
+    /// @notice Gets the liquidity pool assigned to a credit line
+    /// @param liquidityPool The address of the liquidity pool to check
+    /// @return The address of the credit line that the liquidity pool is assigned to
+    function getLiquidityPoolByCreditLine(address liquidityPool) external view returns (address);
 
     /// @notice Gets the current state of a given loan
     /// @param loanId The unique identifier of the loan to check

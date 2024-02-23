@@ -24,8 +24,10 @@ abstract contract LendingMarketStorage {
     /// @notice The mapping of credit line to associated lender
     mapping(address => address) internal _creditLines;
 
-    /// @notice The mapping of lender to associated liquidity pool
+    /// @notice The mapping of liquidity pool to associated lender
     mapping(address => address) internal _liquidityPools;
+
+    mapping(address => address) internal _liquidityPoolByCreditLine;
 
     /// @notice The mapping of lender to the alias account status
     mapping(address => mapping (address => bool)) internal _hasAlias;

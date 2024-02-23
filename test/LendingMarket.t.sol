@@ -272,25 +272,25 @@ contract LendingMarketTest is Test, Config {
     // -------------------------------------------- //
 
     function test_registerCreditLine_IfOwner() public {
-        assertEq(market.getLender(address(creditLine)), address(0));
+        assertEq(market.getCreditLineLender(address(creditLine)), address(0));
 
         vm.prank(OWNER);
         vm.expectEmit(true, true, true, true, address(market));
         emit RegisterCreditLine(LENDER_1, address(creditLine));
         market.registerCreditLine(LENDER_1, address(creditLine));
 
-        assertEq(market.getLender(address(creditLine)), LENDER_1);
+        assertEq(market.getCreditLineLender(address(creditLine)), LENDER_1);
     }
 
     function test_registerCreditLine_IfRegistry() public {
-        assertEq(market.getLender(address(creditLine)), address(0));
+        assertEq(market.getCreditLineLender(address(creditLine)), address(0));
 
         vm.prank(REGISTRY_1);
         vm.expectEmit(true, true, true, true, address(market));
         emit RegisterCreditLine(LENDER_1, address(creditLine));
         market.registerCreditLine(LENDER_1, address(creditLine));
 
-        assertEq(market.getLender(address(creditLine)), LENDER_1);
+        assertEq(market.getCreditLineLender(address(creditLine)), LENDER_1);
     }
 
     function test_registerCreditLine_Revert_IfOwner_ContractIsPaused() public {
@@ -341,25 +341,25 @@ contract LendingMarketTest is Test, Config {
     // -------------------------------------------- //
 
     function test_registerLiquidityPool_IfOwner() public {
-        assertEq(market.getLiquidityPool(LENDER_1), address(0));
+        assertEq(market.getLiquidityPoolLender(address(liquidityPool)), address(0));
 
         vm.prank(OWNER);
         vm.expectEmit(true, true, true, true, address(market));
         emit RegisterLiquidityPool(LENDER_1, address(liquidityPool));
         market.registerLiquidityPool(LENDER_1, address(liquidityPool));
 
-        assertEq(market.getLiquidityPool(LENDER_1), address(liquidityPool));
+        assertEq(market.getLiquidityPoolLender(address(liquidityPool)), LENDER_1);
     }
 
     function test_registerLiquidityPool_IfRegistry() public {
-        assertEq(market.getLiquidityPool(LENDER_1), address(0));
+        assertEq(market.getLiquidityPoolLender(address(liquidityPool)), address(0));
 
         vm.prank(REGISTRY_1);
         vm.expectEmit(true, true, true, true, address(market));
         emit RegisterLiquidityPool(LENDER_1, address(liquidityPool));
         market.registerLiquidityPool(LENDER_1, address(liquidityPool));
 
-        assertEq(market.getLiquidityPool(LENDER_1), address(liquidityPool));
+        assertEq(market.getLiquidityPoolLender(address(liquidityPool)), LENDER_1);
     }
 
     function test_registerLiquidityPool_Revert_IfOwner_ContractIsPaused() public {
@@ -1363,33 +1363,26 @@ contract LendingMarketTest is Test, Config {
     }
 
     // -------------------------------------------- //
-    //  Test `updateLender` function                //
-    // -------------------------------------------- //
-
-    function test_updateLender() public {
-        configureMarket();
-        assertEq(market.getLender(address(creditLine)), LENDER_1);
-        vm.expectRevert(Error.NotImplemented.selector);
-        market.updateLender(address(creditLine), LENDER_2);
-    }
-
-    // -------------------------------------------- //
     //  Test view functions                         //
     // -------------------------------------------- //
 
-    function test_getLender() public {
-        assertEq(market.getLender(address(creditLine)), address(0));
+    function test_getCreditLineLender() public {
+        assertEq(market.getCreditLineLender(address(creditLine)), address(0));
+
         vm.prank(REGISTRY_1);
         market.registerCreditLine(LENDER_1, address(creditLine));
-        assertEq(market.getLender(address(creditLine)), LENDER_1);
+
+        assertEq(market.getCreditLineLender(address(creditLine)), LENDER_1);
     }
 
-    function test_getLiquidityPool() public {
-        assertEq(market.getLiquidityPool(LENDER_1), address(0));
+    function test_getLiquidityPoolLender() public {
+        assertEq(market.getLiquidityPoolLender(address(liquidityPool)), address(0));
 
         vm.prank(REGISTRY_1);
         market.registerLiquidityPool(LENDER_1, address(liquidityPool));
-        assertEq(market.getLiquidityPool(LENDER_1), address(liquidityPool));
+
+        assertEq(market.getLiquidityPoolLender(address(liquidityPool)), LENDER_1);
+
     }
 
     function test_calculatePeriodDate_1_Second_Period() public {
