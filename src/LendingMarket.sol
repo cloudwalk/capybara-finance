@@ -527,6 +527,15 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ILendingMarket
+    function getLoanCurrent(uint256 loanId) external view returns (Loan.State memory) {
+        Loan.State memory loan = _loans[loanId];
+        (uint256 outstandingBalance, uint256 currentDate) = _outstandingBalance(loan, block.timestamp);
+        loan.trackedBorrowAmount = outstandingBalance.toUint64();
+        loan.trackDate = currentDate.toUint32();
+        return loan;
+    }
+
+    /// @inheritdoc ILendingMarket
     function getLoanBalance(uint256 loanId, uint256 timestamp) external view returns (uint256, uint256) {
         if (timestamp == 0) {
             timestamp = block.timestamp;
@@ -581,7 +590,7 @@ contract LendingMarket is
     // -------------------------------------------- //
 
     /// @notice Calculates the outstanding balance of a loan and the current date
-    function _outstandingBalance(Loan.State storage loan, uint256 timestamp) internal view returns (uint256, uint256) {
+    function _outstandingBalance(Loan.State memory loan, uint256 timestamp) internal view returns (uint256, uint256) {
         uint256 outstandingBalance = loan.trackedBorrowAmount;
 
         uint256 currentDate = calculatePeriodDate(timestamp, loan.periodInSeconds, 0, 0);
