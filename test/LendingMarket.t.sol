@@ -128,7 +128,7 @@ contract LendingMarketTest is Test, Config {
         vm.prank(BORROWER_1);
         uint256 loanId = market.takeLoan(address(creditLine), borrowAmount);
 
-        Loan.State memory loan = market.getLoanStored(loanId);
+        Loan.State memory loan = market.getLoanState(loanId);
         skip(loan.periodInSeconds * skipPeriodsAfterCreated);
 
         return loanId;
@@ -145,7 +145,7 @@ contract LendingMarketTest is Test, Config {
 
     function createRepaidLoan(uint256 skipPeriodsBeforeRepayment) private returns (uint256) {
         uint256 loanId = createActiveLoan(skipPeriodsBeforeRepayment);
-        Loan.State memory loan = market.getLoanStored(loanId);
+        Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
         assertEq(outstandingBalance != 0, true);
@@ -164,7 +164,7 @@ contract LendingMarketTest is Test, Config {
 
     function createDefaultedLoan(uint256 skipPeriodsAfterDefault) private returns (uint256) {
         uint256 loanId = createActiveLoan(0);
-        Loan.State memory loan = market.getLoanStored(loanId);
+        Loan.State memory loan = market.getLoanState(loanId);
 
         skip(loan.periodInSeconds * loan.durationInPeriods);
         skip(loan.periodInSeconds * skipPeriodsAfterDefault);
@@ -511,7 +511,7 @@ contract LendingMarketTest is Test, Config {
         vm.prank(BORROWER_1);
         assertEq(market.takeLoan(address(creditLine), borrowAmount), loanId);
 
-        Loan.State memory loan = market.getLoanStored(loanId);
+        Loan.State memory loan = market.getLoanState(loanId);
         Loan.Preview memory preview = market.getLoanPreview(loanId, 0);
 
         assertEq(market.ownerOf(loanId), LENDER_1);
@@ -592,7 +592,7 @@ contract LendingMarketTest is Test, Config {
     // -------------------------------------------- //
 
     function repayLoan(uint256 loanId, bool autoRepaymnet) private {
-        Loan.State memory loan = market.getLoanStored(loanId);
+        Loan.State memory loan = market.getLoanState(loanId);
 
         assertEq(market.ownerOf(loanId), LENDER_1);
         assertEq(loan.trackedBorrowAmount >= 2, true);
@@ -679,7 +679,7 @@ contract LendingMarketTest is Test, Config {
     function test_repayLoan_IRepaymentAmountIsUint256Max() public {
         configureMarket();
         uint256 loanId = createActiveLoan(1);
-        Loan.State memory loan = market.getLoanStored(loanId);
+        Loan.State memory loan = market.getLoanState(loanId);
 
         vm.startPrank(BORROWER_1);
 
@@ -701,7 +701,7 @@ contract LendingMarketTest is Test, Config {
     function test_repayLoan_Revert_IfContractIsPaused() public {
         configureMarket();
         uint256 loanId = createActiveLoan(1);
-        Loan.State memory loan = market.getLoanStored(loanId);
+        Loan.State memory loan = market.getLoanState(loanId);
 
         vm.startPrank(OWNER);
         market.pause();
@@ -764,7 +764,7 @@ contract LendingMarketTest is Test, Config {
     function test_repayLoan_Revert_IfRepayAmountIsGreaterThanBorrowAmount() public {
         configureMarket();
         uint256 loanId = createActiveLoan(1);
-        Loan.State memory loan = market.getLoanStored(loanId);
+        Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
         token.mint(BORROWER_1, outstandingBalance - token.balanceOf(BORROWER_1) + 1);
@@ -782,7 +782,7 @@ contract LendingMarketTest is Test, Config {
         configureMarket();
         uint256 loanId = createActiveLoan(1);
 
-        Loan.State memory loan = market.getLoanStored(loanId);
+        Loan.State memory loan = market.getLoanState(loanId);
         assertEq(loan.freezeDate, 0);
 
         uint256 currentDate = market.getLoanPreview(loanId, 0).periodDate;
@@ -792,7 +792,7 @@ contract LendingMarketTest is Test, Config {
         emit FreezeLoan(loanId, currentDate);
         market.freeze(loanId);
 
-        loan = market.getLoanStored(loanId);
+        loan = market.getLoanState(loanId);
         assertEq(loan.freezeDate, currentDate);
     }
 
@@ -859,13 +859,13 @@ contract LendingMarketTest is Test, Config {
         configureMarket();
         uint256 loanId = createFrozenLoan(0);
 
-        Loan.State memory loan = market.getLoanStored(loanId);
+        Loan.State memory loan = market.getLoanState(loanId);
         assertEq(loan.freezeDate != 0, true);
 
         vm.prank(caller);
         market.unfreeze(loanId);
 
-        loan = market.getLoanStored(loanId);
+        loan = market.getLoanState(loanId);
         assertEq(loan.freezeDate, 0);
     }
 
@@ -880,7 +880,7 @@ contract LendingMarketTest is Test, Config {
     function test_unfreeze_IfSamePeriod() public {
         configureMarket();
         uint256 loanId = createFrozenLoan(0);
-        Loan.State memory loan = market.getLoanStored(loanId);
+        Loan.State memory loan = market.getLoanState(loanId);
         Loan.Preview memory preview = market.getLoanPreview(loanId, 0);
 
         uint256 oldDurationInPeriods = loan.durationInPeriods;
@@ -895,7 +895,7 @@ contract LendingMarketTest is Test, Config {
         emit UnfreezeLoan(loanId, currentDate);
         market.unfreeze(loanId);
 
-        loan = market.getLoanStored(loanId);
+        loan = market.getLoanState(loanId);
 
         assertEq(loan.freezeDate, 0);
         assertEq(loan.trackedDate, currentDate);
@@ -907,7 +907,7 @@ contract LendingMarketTest is Test, Config {
     function test_unfreeze_IfDifferentPeriod() public {
         configureMarket();
         uint256 loanId = createFrozenLoan(0);
-        Loan.State memory loan = market.getLoanStored(loanId);
+        Loan.State memory loan = market.getLoanState(loanId);
         Loan.Preview memory preview = market.getLoanPreview(loanId, 0);
 
         uint256 oldDurationInPeriods = loan.durationInPeriods;
@@ -925,7 +925,7 @@ contract LendingMarketTest is Test, Config {
         emit UnfreezeLoan(loanId, currentDate + loan.periodInSeconds * skipPeriods);
         market.unfreeze(loanId);
 
-        loan = market.getLoanStored(loanId);
+        loan = market.getLoanState(loanId);
 
         assertEq(loan.freezeDate, 0);
         assertEq(loan.trackedDate, currentDate + loan.periodInSeconds * skipPeriods);
@@ -986,7 +986,7 @@ contract LendingMarketTest is Test, Config {
     function test_updateLoanDuration(address caller) private {
         configureMarket();
         uint256 loanId = createActiveLoan(1);
-        Loan.State memory loan = market.getLoanStored(loanId);
+        Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 newDurationInPeriods = loan.durationInPeriods + 2;
 
@@ -995,7 +995,7 @@ contract LendingMarketTest is Test, Config {
         emit UpdateLoanDuration(loanId, newDurationInPeriods, loan.durationInPeriods);
         market.updateLoanDuration(loanId, newDurationInPeriods);
 
-        loan = market.getLoanStored(loanId);
+        loan = market.getLoanState(loanId);
         assertEq(loan.durationInPeriods, newDurationInPeriods);
     }
 
@@ -1010,7 +1010,7 @@ contract LendingMarketTest is Test, Config {
     function test_updateLoanDuration_Revert_IfContractIsPaused() public {
         configureMarket();
         uint256 loanId = createActiveLoan(1);
-        Loan.State memory loan = market.getLoanStored(loanId);
+        Loan.State memory loan = market.getLoanState(loanId);
 
         vm.prank(OWNER);
         market.pause();
@@ -1025,7 +1025,7 @@ contract LendingMarketTest is Test, Config {
     function test_updateLoanDuration_Revert_IfCallerNotLender() public {
         configureMarket();
         uint256 loanId = createActiveLoan(1);
-        Loan.State memory loan = market.getLoanStored(loanId);
+        Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 newDurationInPeriods = loan.durationInPeriods + 2;
 
@@ -1044,7 +1044,7 @@ contract LendingMarketTest is Test, Config {
     function test_updateLoanDuration_Revert_IfRepaidLoan() public {
         configureMarket();
         uint256 loanId = createRepaidLoan(1);
-        Loan.State memory loan = market.getLoanStored(loanId);
+        Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 newDurationInPeriods = loan.durationInPeriods + 2;
 
@@ -1056,7 +1056,7 @@ contract LendingMarketTest is Test, Config {
     function test_updateLoanDuration_Revert_IfSameLoanDuration() public {
         configureMarket();
         uint256 loanId = createActiveLoan(1);
-        Loan.State memory loan = market.getLoanStored(loanId);
+        Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 newDurationInPeriods = loan.durationInPeriods;
 
@@ -1068,7 +1068,7 @@ contract LendingMarketTest is Test, Config {
     function test_updateLoanDuration_Revert_IfDecreasedLoanDuration() public {
         configureMarket();
         uint256 loanId = createActiveLoan(1);
-        Loan.State memory loan = market.getLoanStored(loanId);
+        Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 newDurationInPeriods = loan.durationInPeriods - 1;
 
@@ -1084,7 +1084,7 @@ contract LendingMarketTest is Test, Config {
     function test_updateLoanMoratorium(address caller) private {
         configureMarket();
         uint256 loanId = createActiveLoan(0);
-        Loan.State memory loan = market.getLoanStored(loanId);
+        Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 currentMoratoriumInPeriods = getMoratoriumInPeriods(loanId);
         assertEq(currentMoratoriumInPeriods, 0);
@@ -1099,7 +1099,7 @@ contract LendingMarketTest is Test, Config {
         emit UpdateLoanMoratorium(loanId, loan.trackedDate, newMoratoriumInPeriods);
         market.updateLoanMoratorium(loanId, newMoratoriumInPeriods);
 
-        loan = market.getLoanStored(loanId);
+        loan = market.getLoanState(loanId);
         currentMoratoriumInPeriods = getMoratoriumInPeriods(loanId);
 
         assertEq(currentMoratoriumInPeriods, newMoratoriumInPeriods);
@@ -1116,7 +1116,7 @@ contract LendingMarketTest is Test, Config {
         emit UpdateLoanMoratorium(loanId, loan.trackedDate, increaseInPeriods);
         market.updateLoanMoratorium(loanId, newMoratoriumInPeriods);
 
-        loan = market.getLoanStored(loanId);
+        loan = market.getLoanState(loanId);
         assertEq(loan.trackedDate, newTrackDate);
         assertEq(getMoratoriumInPeriods(loanId), newMoratoriumInPeriods);
     }
@@ -1132,7 +1132,7 @@ contract LendingMarketTest is Test, Config {
     function test_updateLoanMoratorium_Flow() public {
         configureMarket();
         uint256 loanId = createActiveLoan(0);
-        Loan.State memory loan = market.getLoanStored(loanId);
+        Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 skipPeriods = 2;
         uint256 addonPeriods = 3;
@@ -1222,7 +1222,7 @@ contract LendingMarketTest is Test, Config {
     }
 
     function getMoratoriumInPeriods(uint256 loanId) private view returns (uint256) {
-        Loan.State memory loan = market.getLoanStored(loanId);
+        Loan.State memory loan = market.getLoanState(loanId);
         uint256 currentDate = market.calculatePeriodDate(block.timestamp, loan.periodInSeconds, 0, 0);
         return loan.trackedDate > currentDate ? (loan.trackedDate - currentDate) / loan.periodInSeconds : 0;
     }
@@ -1234,7 +1234,7 @@ contract LendingMarketTest is Test, Config {
     function test_updateLoanInterestRatePrimary(address caller) private {
         configureMarket();
         uint256 loanId = createActiveLoan(1);
-        Loan.State memory loan = market.getLoanStored(loanId);
+        Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 oldInterestRatePrimary = loan.interestRatePrimary;
         uint256 newInterestRatePrimary = oldInterestRatePrimary - 1;
@@ -1244,7 +1244,7 @@ contract LendingMarketTest is Test, Config {
         emit UpdateLoanInterestRatePrimary(loanId, newInterestRatePrimary, oldInterestRatePrimary);
         market.updateLoanInterestRatePrimary(loanId, newInterestRatePrimary);
 
-        loan = market.getLoanStored(loanId);
+        loan = market.getLoanState(loanId);
         assertEq(loan.interestRatePrimary, newInterestRatePrimary);
     }
 
@@ -1259,7 +1259,7 @@ contract LendingMarketTest is Test, Config {
     function test_updateLoanInterestRatePrimary_Revert_IfContractIsPaused() public {
         configureMarket();
         uint256 loanId = createActiveLoan(1);
-        Loan.State memory loan = market.getLoanStored(loanId);
+        Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 newInterestRatePrimary = loan.interestRatePrimary - 1;
 
@@ -1274,7 +1274,7 @@ contract LendingMarketTest is Test, Config {
     function test_updateLoanInterestRatePrimary_Revert_IfCallerNotLender() public {
         configureMarket();
         uint256 loanId = createActiveLoan(1);
-        Loan.State memory loan = market.getLoanStored(loanId);
+        Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 newInterestRatePrimary = loan.interestRatePrimary - 1;
 
@@ -1292,7 +1292,7 @@ contract LendingMarketTest is Test, Config {
     function test_updateLoanInterestRatePrimary_Revert_IfLoadIsRepaid() public {
         configureMarket();
         uint256 loanId = createRepaidLoan(1);
-        Loan.State memory loan = market.getLoanStored(loanId);
+        Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 newInterestRatePrimary = loan.interestRatePrimary - 1;
 
@@ -1304,7 +1304,7 @@ contract LendingMarketTest is Test, Config {
     function test_updateLoanInterestRatePrimary_Revert_IfIncreasedInterestRate() public {
         configureMarket();
         uint256 loanId = createActiveLoan(1);
-        Loan.State memory loan = market.getLoanStored(loanId);
+        Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 newInterestRatePrimary = loan.interestRatePrimary + 1;
 
@@ -1320,7 +1320,7 @@ contract LendingMarketTest is Test, Config {
     function test_updateLoanInterestRateSecondary(address caller) private {
         configureMarket();
         uint256 loanId = createActiveLoan(1);
-        Loan.State memory loan = market.getLoanStored(loanId);
+        Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 oldInterestRateSecondary = loan.interestRateSecondary;
         uint256 newInterestRateSecondary = oldInterestRateSecondary - 1;
@@ -1330,7 +1330,7 @@ contract LendingMarketTest is Test, Config {
         emit UpdateLoanInterestRateSecondary(loanId, newInterestRateSecondary, oldInterestRateSecondary);
         market.updateLoanInterestRateSecondary(loanId, newInterestRateSecondary);
 
-        loan = market.getLoanStored(loanId);
+        loan = market.getLoanState(loanId);
         assertEq(loan.interestRateSecondary, newInterestRateSecondary);
     }
 
@@ -1345,7 +1345,7 @@ contract LendingMarketTest is Test, Config {
     function test_updateLoanInterestRateSecondary_Revert_IfContractIsPaused() public {
         configureMarket();
         uint256 loanId = createActiveLoan(1);
-        Loan.State memory loan = market.getLoanStored(loanId);
+        Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 newInterestRateSecondary = loan.interestRateSecondary - 1;
 
@@ -1360,7 +1360,7 @@ contract LendingMarketTest is Test, Config {
     function test_updateLoanInterestRateSecondary_Revert_IfCallerNotLender() public {
         configureMarket();
         uint256 loanId = createActiveLoan(1);
-        Loan.State memory loan = market.getLoanStored(loanId);
+        Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 newInterestRateSecondary = loan.interestRateSecondary - 1;
 
@@ -1378,7 +1378,7 @@ contract LendingMarketTest is Test, Config {
     function test_updateLoanInterestRateSecondary_Revert_IfLoadIsRepaid() public {
         configureMarket();
         uint256 loanId = createRepaidLoan(1);
-        Loan.State memory loan = market.getLoanStored(loanId);
+        Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 newInterestRateSecondary = loan.interestRateSecondary - 1;
 
@@ -1390,7 +1390,7 @@ contract LendingMarketTest is Test, Config {
     function test_updateLoanInterestRateSecondary_Revert_IfIncreasedInterestRate() public {
         configureMarket();
         uint256 loanId = createActiveLoan(1);
-        Loan.State memory loan = market.getLoanStored(loanId);
+        Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 newInterestRateSecondary = loan.interestRateSecondary + 1;
 

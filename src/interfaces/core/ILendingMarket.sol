@@ -204,12 +204,7 @@ interface ILendingMarket {
     /// @notice Gets the stored state of a given loan
     /// @param loanId The unique identifier of the loan to check
     /// @return The stored state of the loan (see Loan.State struct)
-    function getLoanStored(uint256 loanId) external view returns (Loan.State memory);
-
-    /// @notice Gets the current state of a given loan
-    /// @param loanId The unique identifier of the loan to check
-    /// @return The current state of the loan (see Loan.State struct)
-    function getLoanCurrent(uint256 loanId) external view returns (Loan.State memory);
+    function getLoanState(uint256 loanId) external view returns (Loan.State memory);
 
     /// @notice Gets the loan preview at a specific timestamp
     /// @param loanId The unique identifier of the loan to check

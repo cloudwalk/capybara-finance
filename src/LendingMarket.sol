@@ -522,17 +522,8 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ILendingMarket
-    function getLoanStored(uint256 loanId) external view returns (Loan.State memory) {
+    function getLoanState(uint256 loanId) external view returns (Loan.State memory) {
         return _loans[loanId];
-    }
-
-    /// @inheritdoc ILendingMarket
-    function getLoanCurrent(uint256 loanId) external view returns (Loan.State memory) {
-        Loan.State memory loan = _loans[loanId];
-        (uint256 outstandingBalance, uint256 currentDate) = _outstandingBalance(loan, block.timestamp);
-        loan.trackedBorrowAmount = outstandingBalance.toUint64();
-        loan.trackedDate = currentDate.toUint32();
-        return loan;
     }
 
     /// @inheritdoc ILendingMarket

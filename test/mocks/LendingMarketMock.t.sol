@@ -108,8 +108,8 @@ contract LendingMarketMockTest is Test {
         mock.getLiquidityPoolLender(address(0x1));
     }
 
-    function test_getLoanStored() public {
-        Loan.State memory loan = mock.getLoanStored(1);
+    function test_getLoanState() public {
+        Loan.State memory loan = mock.getLoanState(1);
 
         assertEq(loan.token, address(0x0));
         assertEq(loan.borrower, address(0x0));
@@ -146,7 +146,7 @@ contract LendingMarketMockTest is Test {
             })
         );
 
-        loan = mock.getLoanStored(1);
+        loan = mock.getLoanState(1);
 
         assertEq(loan.token, address(0x1));
         assertEq(loan.borrower, address(0x2));
