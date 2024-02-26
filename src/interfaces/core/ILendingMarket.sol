@@ -211,11 +211,11 @@ interface ILendingMarket {
     /// @return The current state of the loan (see Loan.State struct)
     function getLoanCurrent(uint256 loanId) external view returns (Loan.State memory);
 
-    /// @notice Gets the outstanding balance of a given loan
+    /// @notice Gets the loan preview at a specific timestamp
     /// @param loanId The unique identifier of the loan to check
-    /// @param timestamp The timestamp to get the outstanding balance for
-    /// @return The outstanding balance and the applied period date of the loan
-    function getLoanBalance(uint256 loanId, uint256 timestamp) external view returns (uint256, uint256);
+    /// @param timestamp The timestamp to get the loan preview for
+    /// @return The loan preview (see Loan.Preview struct)
+    function getLoanPreview(uint256 loanId, uint256 timestamp) external view returns (Loan.Preview memory);
 
     /// @notice Checks if the account is an alias for a lender
     /// @param lender The address of the lender to check alias for

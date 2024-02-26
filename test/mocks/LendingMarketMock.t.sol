@@ -163,9 +163,9 @@ contract LendingMarketMockTest is Test {
         assertEq(loan.freezeDate, 1000);
     }
 
-    function test_getLoanBalance() public {
+    function test_getLoanPreview() public {
         vm.expectRevert(Error.NotImplemented.selector);
-        mock.getLoanBalance(1, 0);
+        mock.getLoanPreview(1, 0);
     }
 
     function test_registry() public {

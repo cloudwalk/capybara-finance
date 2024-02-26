@@ -147,7 +147,7 @@ contract LendingMarketTest is Test, Config {
         uint256 loanId = createActiveLoan(skipPeriodsBeforeRepayment);
         Loan.State memory loan = market.getLoanStored(loanId);
 
-        (uint256 outstandingBalance, ) = market.getLoanBalance(loanId, 0);
+        uint256 outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
         assertEq(outstandingBalance != 0, true);
         token.mint(BORROWER_1, outstandingBalance);
 
@@ -156,7 +156,7 @@ contract LendingMarketTest is Test, Config {
         market.repayLoan(loanId, outstandingBalance);
         vm.stopPrank();
 
-        (outstandingBalance, ) = market.getLoanBalance(loanId, 0);
+        outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
         assertEq(outstandingBalance == 0, true);
 
         return loanId;
@@ -512,7 +512,7 @@ contract LendingMarketTest is Test, Config {
         assertEq(market.takeLoan(address(creditLine), borrowAmount), loanId);
 
         Loan.State memory loan = market.getLoanStored(loanId);
-        (, uint256 startDate) = market.getLoanBalance(loanId, 0);
+        Loan.Preview memory preview = market.getLoanPreview(loanId, 0);
 
         assertEq(market.ownerOf(loanId), LENDER_1);
         assertEq(token.balanceOf(address(liquidityPool)), 0);
@@ -522,8 +522,8 @@ contract LendingMarketTest is Test, Config {
         assertEq(market.totalSupply(), 1);
 
         assertEq(loan.borrower, BORROWER_1);
-        assertEq(loan.startDate, startDate);
-        assertEq(loan.trackedDate, startDate);
+        assertEq(loan.startDate, preview.periodDate);
+        assertEq(loan.trackedDate, preview.periodDate);
         assertEq(loan.freezeDate, 0);
         assertEq(loan.initialBorrowAmount, borrowAmount + terms.addonAmount);
         assertEq(loan.trackedBorrowAmount, borrowAmount + terms.addonAmount);
@@ -611,7 +611,7 @@ contract LendingMarketTest is Test, Config {
 
         skip(loan.periodInSeconds * 2);
 
-        (uint256 outstandingBalance, ) = market.getLoanBalance(loanId, 0);
+        uint256 outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
         uint256 repayAmount = outstandingBalance / 2;
         outstandingBalance -= repayAmount;
         token.mint(BORROWER_1, outstandingBalance - token.balanceOf(BORROWER_1));
@@ -620,7 +620,7 @@ contract LendingMarketTest is Test, Config {
         emit RepayLoan(loanId, BORROWER_1, BORROWER_1, repayAmount, outstandingBalance);
         market.repayLoan(loanId, repayAmount);
 
-        (uint256 newOutstandingBalance, ) = market.getLoanBalance(loanId, 0);
+        uint256 newOutstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
         assertEq(newOutstandingBalance, outstandingBalance);
         assertEq(market.ownerOf(loanId), LENDER_1);
 
@@ -628,14 +628,14 @@ contract LendingMarketTest is Test, Config {
 
         skip(loan.periodInSeconds * 3);
 
-        (outstandingBalance, ) = market.getLoanBalance(loanId, 0);
+        outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
         token.mint(BORROWER_1, outstandingBalance - token.balanceOf(BORROWER_1));
 
         vm.expectEmit(true, true, true, true, address(market));
         emit RepayLoan(loanId, BORROWER_1, BORROWER_1, outstandingBalance, 0);
         market.repayLoan(loanId, outstandingBalance);
 
-        (newOutstandingBalance, ) = market.getLoanBalance(loanId, 0);
+        newOutstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
         assertEq(newOutstandingBalance, 0);
         assertEq(market.ownerOf(loanId), BORROWER_1);
     }
@@ -685,7 +685,7 @@ contract LendingMarketTest is Test, Config {
 
         token.approve(address(market), type(uint256).max);
 
-        (uint256 outstandingBalance, ) = market.getLoanBalance(loanId, 0);
+        uint256 outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
         assertEq(outstandingBalance != 0, true);
 
         token.mint(BORROWER_1, outstandingBalance - token.balanceOf(BORROWER_1));
@@ -694,7 +694,7 @@ contract LendingMarketTest is Test, Config {
         emit RepayLoan(loanId, BORROWER_1, BORROWER_1, outstandingBalance, 0);
         market.repayLoan(loanId, type(uint256).max);
 
-        (outstandingBalance, ) = market.getLoanBalance(loanId, 0);
+        outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
         assertEq(outstandingBalance, 0);
     }
 
@@ -753,7 +753,7 @@ contract LendingMarketTest is Test, Config {
         configureMarket();
         uint256 loanId = createActiveLoan(1);
 
-        (uint256 outstandingBalance, ) = market.getLoanBalance(loanId, 0);
+        uint256 outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
         token.mint(BORROWER_1, outstandingBalance - token.balanceOf(BORROWER_1));
 
         vm.prank(address(liquidityPool));
@@ -766,7 +766,7 @@ contract LendingMarketTest is Test, Config {
         uint256 loanId = createActiveLoan(1);
         Loan.State memory loan = market.getLoanStored(loanId);
 
-        (uint256 outstandingBalance, ) = market.getLoanBalance(loanId, 0);
+        uint256 outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
         token.mint(BORROWER_1, outstandingBalance - token.balanceOf(BORROWER_1) + 1);
 
         vm.prank(BORROWER_1);
@@ -785,15 +785,15 @@ contract LendingMarketTest is Test, Config {
         Loan.State memory loan = market.getLoanStored(loanId);
         assertEq(loan.freezeDate, 0);
 
-        (, uint256 currentPeriodDate) = market.getLoanBalance(loanId, 0);
+        uint256 currentDate = market.getLoanPreview(loanId, 0).periodDate;
 
         vm.prank(caller);
         vm.expectEmit(true, true, true, true, address(market));
-        emit FreezeLoan(loanId, currentPeriodDate);
+        emit FreezeLoan(loanId, currentDate);
         market.freeze(loanId);
 
         loan = market.getLoanStored(loanId);
-        assertEq(loan.freezeDate, currentPeriodDate);
+        assertEq(loan.freezeDate, currentDate);
     }
 
     function test_freeze_IfLender() public {
@@ -881,24 +881,26 @@ contract LendingMarketTest is Test, Config {
         configureMarket();
         uint256 loanId = createFrozenLoan(0);
         Loan.State memory loan = market.getLoanStored(loanId);
+        Loan.Preview memory preview = market.getLoanPreview(loanId, 0);
 
         uint256 oldDurationInPeriods = loan.durationInPeriods;
-        (uint256 oldOutstandingBalance, uint256 currentPeriodDate) = market.getLoanBalance(loanId, 0);
+        uint256 oldOutstandingBalance = preview.outstandingBalance;
+        uint256 currentDate = preview.periodDate;
 
-        assertEq(loan.freezeDate, currentPeriodDate);
-        assertEq(loan.trackedDate, currentPeriodDate);
+        assertEq(loan.freezeDate, currentDate);
+        assertEq(loan.trackedDate, currentDate);
 
         vm.prank(LENDER_1);
         vm.expectEmit(true, true, true, true, address(market));
-        emit UnfreezeLoan(loanId, currentPeriodDate);
+        emit UnfreezeLoan(loanId, currentDate);
         market.unfreeze(loanId);
 
         loan = market.getLoanStored(loanId);
 
         assertEq(loan.freezeDate, 0);
-        assertEq(loan.trackedDate, currentPeriodDate);
+        assertEq(loan.trackedDate, currentDate);
         assertEq(loan.durationInPeriods, oldDurationInPeriods);
-        (uint256 newOutstandingBalance, ) = market.getLoanBalance(loanId, 0);
+        uint256 newOutstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
         assertEq(newOutstandingBalance, oldOutstandingBalance);
     }
 
@@ -906,27 +908,29 @@ contract LendingMarketTest is Test, Config {
         configureMarket();
         uint256 loanId = createFrozenLoan(0);
         Loan.State memory loan = market.getLoanStored(loanId);
+        Loan.Preview memory preview = market.getLoanPreview(loanId, 0);
 
         uint256 oldDurationInPeriods = loan.durationInPeriods;
-        (uint256 oldOutstandingBalance, uint256 currentPeriodDate) = market.getLoanBalance(loanId, 0);
+        uint256 oldOutstandingBalance = preview.outstandingBalance;
+        uint256 currentDate = preview.periodDate;
 
-        assertEq(loan.freezeDate, currentPeriodDate);
-        assertEq(loan.trackedDate, currentPeriodDate);
+        assertEq(loan.freezeDate, currentDate);
+        assertEq(loan.trackedDate, currentDate);
 
         uint256 skipPeriods = 2;
         skip(loan.periodInSeconds * skipPeriods);
 
         vm.prank(LENDER_1);
         vm.expectEmit(true, true, true, true, address(market));
-        emit UnfreezeLoan(loanId, currentPeriodDate + loan.periodInSeconds * skipPeriods);
+        emit UnfreezeLoan(loanId, currentDate + loan.periodInSeconds * skipPeriods);
         market.unfreeze(loanId);
 
         loan = market.getLoanStored(loanId);
 
         assertEq(loan.freezeDate, 0);
-        assertEq(loan.trackedDate, currentPeriodDate + loan.periodInSeconds * skipPeriods);
+        assertEq(loan.trackedDate, currentDate + loan.periodInSeconds * skipPeriods);
         assertEq(loan.durationInPeriods, oldDurationInPeriods + skipPeriods);
-        (uint256 newOutstandingBalance, ) = market.getLoanBalance(loanId, 0);
+        uint256 newOutstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
         assertEq(newOutstandingBalance, oldOutstandingBalance);
     }
 
@@ -1219,8 +1223,8 @@ contract LendingMarketTest is Test, Config {
 
     function getMoratoriumInPeriods(uint256 loanId) private view returns (uint256) {
         Loan.State memory loan = market.getLoanStored(loanId);
-        uint256 currentPeriodDate = market.calculatePeriodDate(block.timestamp, loan.periodInSeconds, 0, 0);
-        return loan.trackedDate > currentPeriodDate ? (loan.trackedDate - currentPeriodDate) / loan.periodInSeconds : 0;
+        uint256 currentDate = market.calculatePeriodDate(block.timestamp, loan.periodInSeconds, 0, 0);
+        return loan.trackedDate > currentDate ? (loan.trackedDate - currentDate) / loan.periodInSeconds : 0;
     }
 
     // -------------------------------------------- //
@@ -1470,18 +1474,18 @@ contract LendingMarketTest is Test, Config {
 
         uint256 periodInSeconds = 1 seconds;
         uint256 currentPeriodSeconds = block.timestamp % periodInSeconds;
-        uint256 currentPeriodDate = market.calculatePeriodDate(block.timestamp, periodInSeconds, 0, 0);
+        uint256 currentDate = market.calculatePeriodDate(block.timestamp, periodInSeconds, 0, 0);
 
         skip(periodInSeconds - currentPeriodSeconds - 1);
 
-        assertEq(market.calculatePeriodDate(block.timestamp, periodInSeconds, 0, 0), currentPeriodDate);
+        assertEq(market.calculatePeriodDate(block.timestamp, periodInSeconds, 0, 0), currentDate);
 
         skip(1);
 
-        assertEq(market.calculatePeriodDate(block.timestamp, periodInSeconds, 0, 0), currentPeriodDate + periodInSeconds);
+        assertEq(market.calculatePeriodDate(block.timestamp, periodInSeconds, 0, 0), currentDate + periodInSeconds);
 
-        assertEq(market.calculatePeriodDate(block.timestamp, periodInSeconds, 2, 0), currentPeriodDate + periodInSeconds * 3);
-        assertEq(market.calculatePeriodDate(block.timestamp, periodInSeconds, 0, 3), currentPeriodDate + periodInSeconds + 3);
+        assertEq(market.calculatePeriodDate(block.timestamp, periodInSeconds, 2, 0), currentDate + periodInSeconds * 3);
+        assertEq(market.calculatePeriodDate(block.timestamp, periodInSeconds, 0, 3), currentDate + periodInSeconds + 3);
     }
 
     function test_calculatePeriodDate_59_Second_Period() public {
@@ -1489,18 +1493,18 @@ contract LendingMarketTest is Test, Config {
 
         uint256 periodInSeconds = 59 seconds;
         uint256 currentPeriodSeconds = block.timestamp % periodInSeconds;
-        uint256 currentPeriodDate = market.calculatePeriodDate(block.timestamp, periodInSeconds, 0, 0);
+        uint256 currentDate = market.calculatePeriodDate(block.timestamp, periodInSeconds, 0, 0);
 
         skip(periodInSeconds - currentPeriodSeconds - 1);
 
-        assertEq(market.calculatePeriodDate(block.timestamp, periodInSeconds, 0, 0), currentPeriodDate);
+        assertEq(market.calculatePeriodDate(block.timestamp, periodInSeconds, 0, 0), currentDate);
 
         skip(1);
 
-        assertEq(market.calculatePeriodDate(block.timestamp, periodInSeconds, 0, 0), currentPeriodDate + periodInSeconds);
+        assertEq(market.calculatePeriodDate(block.timestamp, periodInSeconds, 0, 0), currentDate + periodInSeconds);
 
-        assertEq(market.calculatePeriodDate(block.timestamp, periodInSeconds, 2, 0), currentPeriodDate + periodInSeconds * 3);
-        assertEq(market.calculatePeriodDate(block.timestamp, periodInSeconds, 0, 3), currentPeriodDate + periodInSeconds + 3);
+        assertEq(market.calculatePeriodDate(block.timestamp, periodInSeconds, 2, 0), currentDate + periodInSeconds * 3);
+        assertEq(market.calculatePeriodDate(block.timestamp, periodInSeconds, 0, 3), currentDate + periodInSeconds + 3);
     }
 
     // -------------------------------------------- //

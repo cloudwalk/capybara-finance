@@ -536,14 +536,14 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ILendingMarket
-    function getLoanBalance(uint256 loanId, uint256 timestamp) external view returns (uint256, uint256) {
+    function getLoanPreview(uint256 loanId, uint256 timestamp) external view returns (Loan.Preview memory) {
         if (timestamp == 0) {
             timestamp = block.timestamp;
         }
 
-        Loan.State memory loan = _loans[loanId];
-
-        return _outstandingBalance(loan, timestamp);
+        Loan.Preview memory preview;
+        (preview.outstandingBalance, preview.periodDate) = _outstandingBalance(_loans[loanId], timestamp);
+        return preview;
     }
 
     /// @inheritdoc ILendingMarket

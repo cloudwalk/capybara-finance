@@ -8,24 +8,6 @@ import {Interest} from "./Interest.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice Defines loan related structs and enums
 library Loan {
-    /// @notice An enum that defines the possible loan statuses
-    ///
-    /// The possible values:
-    /// - Nonexistent - Indicates that the loan does not exist
-    /// - Active ------ Indicates that the loan exists and is active
-    /// - Repaid ------ Indicates that the loan has been fully repaid
-    /// - Frozen ------ Indicates that the loan has been temporarily frozen
-    /// - Defaulted --- Indicates that the borrower has defaulted on the loan
-    /// - Recovered --- Indicates that the loan has been recovered after default
-    enum Status {
-        Nonexistent, //- 0
-        Active, //------ 1
-        Repaid, //------ 2
-        Frozen, //------ 3
-        Defaulted, //--- 4
-        Recovered //---- 5
-    }
-
     /// @notice A struct that defines the terms of the loan
     struct Terms {
         //slot 1
@@ -59,7 +41,7 @@ library Loan {
         address holder;
     }
 
-    /// @notice A struct that defines the stored state of the loan
+    /// @notice A struct that defines the state of the loan
     struct State {
         //slot 1
         /// @notice The address of the token used in the loan
@@ -98,5 +80,13 @@ library Loan {
         //slot 4
         /// @notice The address of the loan holder
         address holder;
+    }
+
+    /// @notice A struct that defines the preview of the loan
+    struct Preview {
+        /// @notice The period date that the loan is previewed for
+        uint256 periodDate;
+        /// @notice The outstanding balance of the loan at previewed period
+        uint256 outstandingBalance;
     }
 }
