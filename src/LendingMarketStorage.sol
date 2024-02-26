@@ -22,11 +22,12 @@ abstract contract LendingMarketStorage {
     mapping(uint256 => Loan.State) internal _loans;
 
     /// @notice The mapping of credit line to associated lender
-    mapping(address => address) internal _creditLines;
+    mapping(address => address) internal _creditLineLenders;
 
     /// @notice The mapping of liquidity pool to associated lender
-    mapping(address => address) internal _liquidityPools;
+    mapping(address => address) internal _liquidityPoolLenders;
 
+    /// @notice The mapping of credit line to associated liquidity pool
     mapping(address => address) internal _liquidityPoolByCreditLine;
 
     /// @notice The mapping of lender to the alias account status

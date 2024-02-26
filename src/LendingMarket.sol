@@ -175,13 +175,13 @@ contract LendingMarket is
         if (creditLine == address(0)) {
             revert Error.ZeroAddress();
         }
-        if (_creditLines[creditLine] != address(0)) {
+        if (_creditLineLenders[creditLine] != address(0)) {
             revert CreditLineAlreadyRegistered();
         }
 
         emit RegisterCreditLine(lender, creditLine);
 
-        _creditLines[creditLine] = lender;
+        _creditLineLenders[creditLine] = lender;
     }
 
     /// @inheritdoc ILendingMarket
@@ -192,13 +192,13 @@ contract LendingMarket is
         if (liquidityPool == address(0)) {
             revert Error.ZeroAddress();
         }
-        if (_liquidityPools[liquidityPool] != address(0)) {
+        if (_liquidityPoolLenders[liquidityPool] != address(0)) {
             revert LiquidityPoolAlreadyRegistered();
         }
 
         emit RegisterLiquidityPool(lender, liquidityPool);
 
-        _liquidityPools[liquidityPool] = lender;
+        _liquidityPoolLenders[liquidityPool] = lender;
     }
 
     /// @inheritdoc ILendingMarket
@@ -216,7 +216,7 @@ contract LendingMarket is
             revert Error.NotImplemented();
         }
 
-        if (_creditLines[creditLine] != msg.sender || _liquidityPools[liquidityPool] != msg.sender) {
+        if (_creditLineLenders[creditLine] != msg.sender || _liquidityPoolLenders[liquidityPool] != msg.sender) {
             revert Error.Unauthorized();
         }
 
@@ -239,7 +239,7 @@ contract LendingMarket is
         }
 
         // Get lender
-        address lender = _creditLines[creditLine];
+        address lender = _creditLineLenders[creditLine];
 
         // Get liquidity pool
         address liquidityPool = _liquidityPoolByCreditLine[creditLine];
@@ -495,12 +495,12 @@ contract LendingMarket is
 
     /// @inheritdoc ILendingMarket
     function getCreditLineLender(address creditLine) external view returns (address) {
-        return _creditLines[creditLine];
+        return _creditLineLenders[creditLine];
     }
 
     /// @inheritdoc ILendingMarket
     function getLiquidityPoolLender(address liquidityPool) external view returns (address) {
-        return _liquidityPools[liquidityPool];
+        return _liquidityPoolLenders[liquidityPool];
     }
 
     /// @inheritdoc ILendingMarket
