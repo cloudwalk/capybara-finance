@@ -202,6 +202,19 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ILendingMarket
+    function updateCreditLineLender(address creditLine, address newLender) external {
+        // TBD Check if updating the lender associated with the credit line
+        // can have any unexpected side effects during the loan lifecycle
+        revert Error.NotImplemented();
+    }
+
+    function updateLiquidityPoolLender(address liquidityPool, address newLender) external {
+        // TBD Check if updating the lender associated with the liquidity pool
+        // can have any unexpected side effects during the loan lifecycle
+        revert Error.NotImplemented();
+    }
+
+    /// @inheritdoc ILendingMarket
     function assignLiquidityPoolToCreditLine(address creditLine, address liquidityPool) external whenNotPaused {
         if (creditLine == address(0)) {
             revert Error.ZeroAddress();
@@ -211,8 +224,8 @@ contract LendingMarket is
         }
 
         if (_liquidityPoolByCreditLine[creditLine] != address(0)) {
-            // TBD Check if replacing the liquidity pool associated with the credit line
-            // can have any unexpected side effects during the loan lifecycle.
+            // TBD Check if updating the liquidity pool associated with the credit line
+            // can have any unexpected side effects during the loan lifecycle
             revert Error.NotImplemented();
         }
 

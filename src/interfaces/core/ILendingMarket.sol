@@ -162,6 +162,16 @@ interface ILendingMarket {
     /// @param liquidityPool The address of the liquidity pool contract
     function registerLiquidityPool(address lender, address liquidityPool) external;
 
+    /// @notice Updates the lender of a given credit line
+    /// @param creditLine The address of the credit line to update
+    /// @param newLender The address of the new lender of the credit line
+    function updateCreditLineLender(address creditLine, address newLender) external;
+
+    /// @notice Updates the lender of a given liquidity pool
+    /// @param liquidityPool The address of the liquidity pool to update
+    /// @param newLender The address of the new lender of the liquidity pool
+    function updateLiquidityPoolLender(address liquidityPool, address newLender) external;
+
     /// @notice Assigns a liquidity pool to a credit line
     /// @param creditLine The address of the credit line contract
     /// @param liquidityPool The address of the liquidity pool contract

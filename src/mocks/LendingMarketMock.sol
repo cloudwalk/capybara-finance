@@ -72,6 +72,14 @@ contract LendingMarketMock is ILendingMarket {
         emit RegisterLiquidityPoolCalled(lender, liquidityPool);
     }
 
+    function updateCreditLineLender(address creditLine, address newLender) external {
+        revert Error.NotImplemented();
+    }
+
+    function updateLiquidityPoolLender(address liquidityPool, address newLender) external {
+        revert Error.NotImplemented();
+    }
+
     function assignLiquidityPoolToCreditLine(address creditLine, address liquidityPool) external {
         revert Error.NotImplemented();
     }
