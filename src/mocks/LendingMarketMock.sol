@@ -100,7 +100,7 @@ contract LendingMarketMock is ILendingMarket {
         revert Error.NotImplemented();
     }
 
-    function getLoanState(uint256 loanId) external view returns (Loan.State memory) {
+    function getLoanStored(uint256 loanId) external view returns (Loan.State memory) {
         return _loanState[loanId];
     }
 
