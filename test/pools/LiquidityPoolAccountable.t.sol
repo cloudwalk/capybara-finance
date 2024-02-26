@@ -421,6 +421,7 @@ contract LiquidityPoolAccountableTest is Test, Config {
             Loan.State({
                 token: address(token),
                 borrower: address(0),
+                holder: address(0),
                 periodInSeconds: 0,
                 durationInPeriods: 0,
                 interestRateFactor: 0,
@@ -499,6 +500,7 @@ contract LiquidityPoolAccountableTest is Test, Config {
             Loan.State({
                 token: address(token),
                 borrower: address(0),
+                holder: address(0),
                 periodInSeconds: 0,
                 durationInPeriods: 0,
                 interestRateFactor: 0,
@@ -534,6 +536,7 @@ contract LiquidityPoolAccountableTest is Test, Config {
             Loan.State({
                 token: address(token),
                 borrower: address(0),
+                holder: address(0),
                 periodInSeconds: 0,
                 durationInPeriods: 0,
                 interestRateFactor: 0,
@@ -606,6 +609,7 @@ contract LiquidityPoolAccountableTest is Test, Config {
             Loan.State({
                 token: address(token),
                 borrower: address(0),
+                holder: address(0),
                 periodInSeconds: 0,
                 durationInPeriods: 0,
                 interestRateFactor: 0,

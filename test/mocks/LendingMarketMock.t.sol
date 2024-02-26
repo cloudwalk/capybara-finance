@@ -86,11 +86,6 @@ contract LendingMarketMockTest is Test {
         mock.updateLoanInterestRateSecondary(1, 100);
     }
 
-    function test_updateLender() public {
-        vm.expectRevert(Error.NotImplemented.selector);
-        mock.updateLender(address(0x1), address(0x2));
-    }
-
     function test_registerCreditLine() public {
         vm.expectEmit(true, true, true, true, address(mock));
         emit RegisterCreditLineCalled(address(0x1), address(0x2));
@@ -103,14 +98,14 @@ contract LendingMarketMockTest is Test {
         mock.registerLiquidityPool(address(0x3), address(0x4));
     }
 
-    function test_getLender() public {
+    function test_getCreditLineLender() public {
         vm.expectRevert(Error.NotImplemented.selector);
-        mock.getLender(address(0x1));
+        mock.getCreditLineLender(address(0x1));
     }
 
-    function test_getLiquidityPool() public {
+    function test_getLiquidityPoolLender() public {
         vm.expectRevert(Error.NotImplemented.selector);
-        mock.getLiquidityPool(address(0x1));
+        mock.getLiquidityPoolLender(address(0x1));
     }
 
     function test_getLoanState() public {
@@ -135,6 +130,7 @@ contract LendingMarketMockTest is Test {
             Loan.State({
                 token: address(0x1),
                 borrower: address(0x2),
+                holder: address(0x3),
                 periodInSeconds: 100,
                 durationInPeriods: 200,
                 interestRateFactor: 300,

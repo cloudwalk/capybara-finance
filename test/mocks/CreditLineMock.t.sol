@@ -50,6 +50,7 @@ contract CreditLineMockTest is Test {
             100,
             Loan.Terms({
                 token: address(0x1),
+                holder: address(0x2),
                 periodInSeconds: 100,
                 durationInPeriods: 200,
                 interestRateFactor: 300,
@@ -95,6 +96,7 @@ contract CreditLineMockTest is Test {
             100,
             Loan.Terms({
                 token: address(0x1),
+                holder: address(0x2),
                 periodInSeconds: 100,
                 durationInPeriods: 200,
                 interestRateFactor: 300,

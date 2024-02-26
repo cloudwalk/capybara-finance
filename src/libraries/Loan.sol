@@ -53,6 +53,10 @@ library Loan {
         bool autoRepayment;
         /// @notice The formula to be used for interest calculation on the loan
         Interest.Formula interestFormula;
+
+        //slot 4
+        /// @notice The address of the loan holder
+        address holder;
     }
 
     /// @notice A struct that defines the stored state of the loan
@@ -90,5 +94,9 @@ library Loan {
         bool autoRepayment;
         /// @notice The formula used for interest calculation on the loan
         Interest.Formula interestFormula;
+
+        //slot 4
+        /// @notice The address of the loan holder
+        address holder;
     }
 }

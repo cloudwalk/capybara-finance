@@ -192,13 +192,37 @@ contract LendingMarket is
         if (liquidityPool == address(0)) {
             revert Error.ZeroAddress();
         }
-        if (_liquidityPools[lender] != address(0)) {
+        if (_liquidityPools[liquidityPool] != address(0)) {
             revert LiquidityPoolAlreadyRegistered();
         }
 
         emit RegisterLiquidityPool(lender, liquidityPool);
 
-        _liquidityPools[lender] = liquidityPool;
+        _liquidityPools[liquidityPool] = lender;
+    }
+
+    /// @inheritdoc ILendingMarket
+    function assignLiquidityPoolToCreditLine(address creditLine, address liquidityPool) external whenNotPaused {
+        if (creditLine == address(0)) {
+            revert Error.ZeroAddress();
+        }
+        if (liquidityPool == address(0)) {
+            revert Error.ZeroAddress();
+        }
+
+        if (_liquidityPoolByCreditLine[creditLine] != address(0)) {
+            // TBD Check if replacing the liquidity pool associated with the credit line
+            // can have any unexpected side effects during the loan lifecycle.
+            revert Error.NotImplemented();
+        }
+
+        if (_creditLines[creditLine] != msg.sender || _liquidityPools[liquidityPool] != msg.sender) {
+            revert Error.Unauthorized();
+        }
+
+        emit AssignLiquidityPoolToCreditLine(creditLine, liquidityPool, _liquidityPoolByCreditLine[creditLine]);
+
+        _liquidityPoolByCreditLine[creditLine] = liquidityPool;
     }
 
     // -------------------------------------------- //
@@ -218,7 +242,7 @@ contract LendingMarket is
         address lender = _creditLines[creditLine];
 
         // Get liquidity pool
-        address liquidityPool = _liquidityPools[lender];
+        address liquidityPool = _liquidityPoolByCreditLine[creditLine];
 
         if (lender == address(0)) {
             revert CreditLineNotRegistered();
@@ -227,11 +251,15 @@ contract LendingMarket is
             revert LiquidityPoolNotRegistered();
         }
 
+        // TBD Validate the credit line and the liquidity pool according to the lending market requirements
+
         // Mint a new NFT token to the lender
         uint256 id = _safeMint(lender);
 
         // Get the terms of the loan from the credit line
         Loan.Terms memory terms = ICreditLine(creditLine).onBeforeLoanTaken(msg.sender, amount, id);
+
+        // TBD Validate the terms of the loan according to the lending market requirements
 
         // Calculate the start date and the total amount of the loan
         uint256 startDate = calculatePeriodDate(block.timestamp, terms.periodInSeconds, 0, 0);
@@ -240,6 +268,7 @@ contract LendingMarket is
         // Create and store the loan state
         _loans[id] = Loan.State({
             token: terms.token,
+            holder: terms.holder,
             borrower: msg.sender,
             periodInSeconds: terms.periodInSeconds,
             durationInPeriods: terms.durationInPeriods,
@@ -284,22 +313,18 @@ contract LendingMarket is
         // Get lender
         address lender = ownerOf(loanId);
 
-        // Is there any chance that liquidityPool is not set?
-
-        // Get liquidity pool
-        address liquidityPool = _liquidityPools[lender];
-
-        // Support for liquidity pool as lender
-
-        if (liquidityPool == address(0)) {
-            revert LiquidityPoolNotRegistered();
-        }
-
         // Get stored loan state
         Loan.State storage loan = _loans[loanId];
 
+        // TBD Validate the loan according to the lending market requirements
+
+        if (loan.holder.code.length == 0) {
+            // TBD Add support for EOA liquidity pools
+            revert Error.NotImplemented();
+        }
+
         // Check for auto repayment
-        bool autoRepayment = liquidityPool == msg.sender;
+        bool autoRepayment = loan.holder == msg.sender;
         address payer = autoRepayment ? loan.borrower : msg.sender;
         if (autoRepayment && !loan.autoRepayment) {
             revert AutoRepaymentNotAllowed();
@@ -320,13 +345,13 @@ contract LendingMarket is
         loan.trackDate = currentDate.toUint32();
 
         // Notify the liquidity pool before the loan payment
-        ILiquidityPool(liquidityPool).onBeforeLoanPayment(loanId, amount);
+        ILiquidityPool(loan.holder).onBeforeLoanPayment(loanId, amount);
 
         // Transfer the payment amount from the payer to the liquidity pool
-        IERC20(loan.token).transferFrom(payer, liquidityPool, amount);
+        IERC20(loan.token).transferFrom(payer, loan.holder, amount);
 
         // Notify the liquidity pool after the loan payment
-        ILiquidityPool(liquidityPool).onAfterLoanPayment(loanId, amount);
+        ILiquidityPool(loan.holder).onAfterLoanPayment(loanId, amount);
 
         // Emit the event for the loan payment
         emit RepayLoan(loanId, payer, loan.borrower, amount, outstandingBalance);

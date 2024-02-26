@@ -145,6 +145,7 @@ contract Config {
         ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(0);
         return Loan.Terms({
             token: token,
+            holder: address(0),
             periodInSeconds: creditLineConfig.periodInSeconds,
             durationInPeriods: borrowerConfig.durationInPeriods,
             interestRateFactor: creditLineConfig.interestRateFactor,
