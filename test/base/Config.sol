@@ -98,8 +98,7 @@ contract Config {
             maxInterestRatePrimary: INIT_CREDIT_LINE_MAX_INTEREST_RATE_PRIMARY,
             minInterestRateSecondary: INIT_CREDIT_LINE_MIN_INTEREST_RATE_SECONDARY,
             maxInterestRateSecondary: INIT_CREDIT_LINE_MAX_INTEREST_RATE_SECONDARY,
-            addonPeriodCostRate: INIT_CREDIT_LINE_ADDON_PERIOD_COST_RATE,
-            addonFixedCostRate: INIT_CREDIT_LINE_ADDON_FIXED_COST_RATE
+            addonRecipient: ADDON_RECIPIENT
         });
     }
 
@@ -116,9 +115,10 @@ contract Config {
             interestRatePrimary: INIT_BORROWER_INTEREST_RATE_PRIMARY,
             interestRateSecondary: INIT_BORROWER_INTEREST_RATE_SECONDARY,
             interestFormula: INIT_BORROWER_INTEREST_FORMULA_COMPOUND,
-            addonRecipient: ADDON_RECIPIENT,
             borrowPolicy: INIT_BORROWER_POLICY,
-            autoRepayment: INIT_BORROWER_AUTOREPAYMENT
+            autoRepayment: INIT_BORROWER_AUTOREPAYMENT,
+            addonPeriodCostRate: INIT_CREDIT_LINE_ADDON_PERIOD_COST_RATE,
+            addonFixedCostRate: INIT_CREDIT_LINE_ADDON_FIXED_COST_RATE
         });
     }
 
@@ -152,7 +152,7 @@ contract Config {
             interestRatePrimary: borrowerConfig.interestRatePrimary,
             interestRateSecondary: borrowerConfig.interestRateSecondary,
             interestFormula: borrowerConfig.interestFormula,
-            addonRecipient: borrowerConfig.addonRecipient,
+            addonRecipient: creditLineConfig.addonRecipient,
             autoRepayment: borrowerConfig.autoRepayment,
             addonAmount: ADDON_AMOUNT
         });

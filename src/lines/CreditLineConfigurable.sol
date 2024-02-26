@@ -250,17 +250,17 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         }
 
         terms.token = _token;
+        terms.addonRecipient = _config.addonRecipient;
         terms.periodInSeconds = _config.periodInSeconds;
         terms.interestRateFactor = _config.interestRateFactor;
         terms.durationInPeriods = borrowerConfig.durationInPeriods;
         terms.interestRatePrimary = borrowerConfig.interestRatePrimary;
         terms.interestRateSecondary = borrowerConfig.interestRateSecondary;
         terms.interestFormula = borrowerConfig.interestFormula;
-        terms.addonRecipient = borrowerConfig.addonRecipient;
         terms.autoRepayment = borrowerConfig.autoRepayment;
 
         if (terms.addonRecipient != address(0)) {
-            terms.addonAmount = calculateAddonAmount(amount, borrowerConfig.durationInPeriods).toUint64();
+            terms.addonAmount = calculateAddonAmount(amount, borrowerConfig).toUint64();
         }
     }
 
@@ -301,9 +301,9 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
 
     /// @notice Calculates the additional payment amount
     /// @param amount The initial principal amount of the loan
-    /// @param loanDurationInPeriods The duration of the loan in periods
-    function calculateAddonAmount(uint256 amount, uint256 loanDurationInPeriods) public view returns (uint256) {
-        uint256 addonRate = uint256(_config.addonPeriodCostRate) * loanDurationInPeriods + _config.addonFixedCostRate;
+    /// @param borrower The borrower configuration
+    function calculateAddonAmount(uint256 amount, BorrowerConfig memory borrower) public view returns (uint256) {
+        uint256 addonRate = uint256(borrower.addonPeriodCostRate) * borrower.durationInPeriods + borrower.addonFixedCostRate;
         return (amount * addonRate) / _config.interestRateFactor;
     }
 
@@ -352,8 +352,8 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         if (config.interestRateSecondary > _config.maxInterestRateSecondary) {
             revert InvalidBorrowerConfiguration();
         }
-        if (_config.addonPeriodCostRate != 0 || _config.addonFixedCostRate != 0) {
-            if (config.addonRecipient == address(0)) {
+        if (config.addonPeriodCostRate != 0 || config.addonFixedCostRate != 0) {
+            if (_config.addonRecipient == address(0)) {
                 revert InvalidCreditLineConfiguration();
             }
         }
