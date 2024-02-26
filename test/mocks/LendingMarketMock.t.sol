@@ -122,7 +122,7 @@ contract LendingMarketMockTest is Test {
         assertEq(loan.initialBorrowAmount, 0);
         assertEq(loan.trackedBorrowAmount, 0);
         assertEq(loan.startDate, 0);
-        assertEq(loan.trackDate, 0);
+        assertEq(loan.trackedDate, 0);
         assertEq(loan.freezeDate, 0);
 
         mock.mockLoanState(
@@ -140,7 +140,7 @@ contract LendingMarketMockTest is Test {
                 initialBorrowAmount: 600,
                 trackedBorrowAmount: 700,
                 startDate: 800,
-                trackDate: 900,
+                trackedDate: 900,
                 freezeDate: 1000,
                 autoRepayment: false
             })
@@ -159,7 +159,7 @@ contract LendingMarketMockTest is Test {
         assertEq(loan.initialBorrowAmount, 600);
         assertEq(loan.trackedBorrowAmount, 700);
         assertEq(loan.startDate, 800);
-        assertEq(loan.trackDate, 900);
+        assertEq(loan.trackedDate, 900);
         assertEq(loan.freezeDate, 1000);
     }
 

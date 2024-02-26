@@ -87,7 +87,7 @@ library Loan {
         /// @notice The updated loan amount after the last repayment
         uint64 trackedBorrowAmount;
         /// @notice The date of the last repayment
-        uint32 trackDate;
+        uint32 trackedDate;
         /// @notice The date when the loan was frozen
         uint32 freezeDate;
         /// @notice Whether the loan can be repaid automatically

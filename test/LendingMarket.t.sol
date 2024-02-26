@@ -523,7 +523,7 @@ contract LendingMarketTest is Test, Config {
 
         assertEq(loan.borrower, BORROWER_1);
         assertEq(loan.startDate, startDate);
-        assertEq(loan.trackDate, startDate);
+        assertEq(loan.trackedDate, startDate);
         assertEq(loan.freezeDate, 0);
         assertEq(loan.initialBorrowAmount, borrowAmount + terms.addonAmount);
         assertEq(loan.trackedBorrowAmount, borrowAmount + terms.addonAmount);
@@ -886,7 +886,7 @@ contract LendingMarketTest is Test, Config {
         (uint256 oldOutstandingBalance, uint256 currentPeriodDate) = market.getLoanBalance(loanId, 0);
 
         assertEq(loan.freezeDate, currentPeriodDate);
-        assertEq(loan.trackDate, currentPeriodDate);
+        assertEq(loan.trackedDate, currentPeriodDate);
 
         vm.prank(LENDER_1);
         vm.expectEmit(true, true, true, true, address(market));
@@ -896,7 +896,7 @@ contract LendingMarketTest is Test, Config {
         loan = market.getLoanStored(loanId);
 
         assertEq(loan.freezeDate, 0);
-        assertEq(loan.trackDate, currentPeriodDate);
+        assertEq(loan.trackedDate, currentPeriodDate);
         assertEq(loan.durationInPeriods, oldDurationInPeriods);
         (uint256 newOutstandingBalance, ) = market.getLoanBalance(loanId, 0);
         assertEq(newOutstandingBalance, oldOutstandingBalance);
@@ -911,7 +911,7 @@ contract LendingMarketTest is Test, Config {
         (uint256 oldOutstandingBalance, uint256 currentPeriodDate) = market.getLoanBalance(loanId, 0);
 
         assertEq(loan.freezeDate, currentPeriodDate);
-        assertEq(loan.trackDate, currentPeriodDate);
+        assertEq(loan.trackedDate, currentPeriodDate);
 
         uint256 skipPeriods = 2;
         skip(loan.periodInSeconds * skipPeriods);
@@ -924,7 +924,7 @@ contract LendingMarketTest is Test, Config {
         loan = market.getLoanStored(loanId);
 
         assertEq(loan.freezeDate, 0);
-        assertEq(loan.trackDate, currentPeriodDate + loan.periodInSeconds * skipPeriods);
+        assertEq(loan.trackedDate, currentPeriodDate + loan.periodInSeconds * skipPeriods);
         assertEq(loan.durationInPeriods, oldDurationInPeriods + skipPeriods);
         (uint256 newOutstandingBalance, ) = market.getLoanBalance(loanId, 0);
         assertEq(newOutstandingBalance, oldOutstandingBalance);
@@ -1088,32 +1088,32 @@ contract LendingMarketTest is Test, Config {
         // Set initial moratorium
 
         uint256 newMoratoriumInPeriods = 2;
-        uint256 newTrackDate = loan.trackDate + newMoratoriumInPeriods * loan.periodInSeconds;
+        uint256 newTrackDate = loan.trackedDate + newMoratoriumInPeriods * loan.periodInSeconds;
 
         vm.prank(caller);
         vm.expectEmit(true, true, true, true, address(market));
-        emit UpdateLoanMoratorium(loanId, loan.trackDate, newMoratoriumInPeriods);
+        emit UpdateLoanMoratorium(loanId, loan.trackedDate, newMoratoriumInPeriods);
         market.updateLoanMoratorium(loanId, newMoratoriumInPeriods);
 
         loan = market.getLoanStored(loanId);
         currentMoratoriumInPeriods = getMoratoriumInPeriods(loanId);
 
         assertEq(currentMoratoriumInPeriods, newMoratoriumInPeriods);
-        assertEq(loan.trackDate, newTrackDate);
+        assertEq(loan.trackedDate, newTrackDate);
 
         // Increase moratorium by 1 period
 
         newMoratoriumInPeriods += 1;
         uint256 increaseInPeriods = newMoratoriumInPeriods - currentMoratoriumInPeriods;
-        newTrackDate = loan.trackDate + increaseInPeriods * loan.periodInSeconds;
+        newTrackDate = loan.trackedDate + increaseInPeriods * loan.periodInSeconds;
 
         vm.prank(caller);
         vm.expectEmit(true, true, true, true, address(market));
-        emit UpdateLoanMoratorium(loanId, loan.trackDate, increaseInPeriods);
+        emit UpdateLoanMoratorium(loanId, loan.trackedDate, increaseInPeriods);
         market.updateLoanMoratorium(loanId, newMoratoriumInPeriods);
 
         loan = market.getLoanStored(loanId);
-        assertEq(loan.trackDate, newTrackDate);
+        assertEq(loan.trackedDate, newTrackDate);
         assertEq(getMoratoriumInPeriods(loanId), newMoratoriumInPeriods);
     }
 
@@ -1220,7 +1220,7 @@ contract LendingMarketTest is Test, Config {
     function getMoratoriumInPeriods(uint256 loanId) private view returns (uint256) {
         Loan.State memory loan = market.getLoanStored(loanId);
         uint256 currentPeriodDate = market.calculatePeriodDate(block.timestamp, loan.periodInSeconds, 0, 0);
-        return loan.trackDate > currentPeriodDate ? (loan.trackDate - currentPeriodDate) / loan.periodInSeconds : 0;
+        return loan.trackedDate > currentPeriodDate ? (loan.trackedDate - currentPeriodDate) / loan.periodInSeconds : 0;
     }
 
     // -------------------------------------------- //

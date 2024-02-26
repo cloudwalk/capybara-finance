@@ -430,7 +430,7 @@ contract LiquidityPoolAccountableTest is Test, Config {
                 interestFormula: Interest.Formula.Simple,
                 startDate: 0,
                 freezeDate: 0,
-                trackDate: 0,
+                trackedDate: 0,
                 initialBorrowAmount: DEPOSIT_AMOUNT_1 - 1,
                 trackedBorrowAmount: 0,
                 autoRepayment: false
@@ -509,7 +509,7 @@ contract LiquidityPoolAccountableTest is Test, Config {
                 interestFormula: Interest.Formula.Simple,
                 startDate: 0,
                 freezeDate: 0,
-                trackDate: 0,
+                trackedDate: 0,
                 initialBorrowAmount: DEPOSIT_AMOUNT_1,
                 trackedBorrowAmount: 0,
                 autoRepayment: false
@@ -545,7 +545,7 @@ contract LiquidityPoolAccountableTest is Test, Config {
                 interestFormula: Interest.Formula.Simple,
                 startDate: 0,
                 freezeDate: 0,
-                trackDate: 0,
+                trackedDate: 0,
                 initialBorrowAmount: DEPOSIT_AMOUNT_1,
                 trackedBorrowAmount: 0,
                 autoRepayment: false
@@ -618,7 +618,7 @@ contract LiquidityPoolAccountableTest is Test, Config {
                 interestFormula: Interest.Formula.Simple,
                 startDate: 0,
                 freezeDate: 0,
-                trackDate: 0,
+                trackedDate: 0,
                 initialBorrowAmount: DEPOSIT_AMOUNT_1,
                 trackedBorrowAmount: 0,
                 autoRepayment: false
