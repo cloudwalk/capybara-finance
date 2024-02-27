@@ -27,10 +27,13 @@ contract CreditLineFactoryMock is ICreditLineFactory {
     //  ICreditLineFactory functions                //
     // -------------------------------------------- //
 
-    function createCreditLine(address market, address lender, address token, uint16 kind, bytes calldata data)
-        external
-        returns (address creditLine)
-    {
+    function createCreditLine(
+        address market,
+        address lender,
+        address token,
+        uint16 kind,
+        bytes calldata data
+    ) external returns (address creditLine) {
         emit CreateCreditLineCalled(market, lender, token, kind, data);
         return _creditLineAddress;
     }

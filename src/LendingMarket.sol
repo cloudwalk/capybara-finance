@@ -414,12 +414,10 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ILendingMarket
-    function updateLoanDuration(uint256 loanId, uint256 newDurationInPeriods)
-        external
-        whenNotPaused
-        onlyOngoingLoan(loanId)
-        onlyLenderOrAlias(loanId)
-    {
+    function updateLoanDuration(
+        uint256 loanId,
+        uint256 newDurationInPeriods
+    ) external whenNotPaused onlyOngoingLoan(loanId) onlyLenderOrAlias(loanId) {
         Loan.State storage loan = _loans[loanId];
 
         if (newDurationInPeriods <= loan.durationInPeriods) {
@@ -432,12 +430,10 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ILendingMarket
-    function updateLoanMoratorium(uint256 loanId, uint256 newMoratoriumInPeriods)
-        external
-        whenNotPaused
-        onlyOngoingLoan(loanId)
-        onlyLenderOrAlias(loanId)
-    {
+    function updateLoanMoratorium(
+        uint256 loanId,
+        uint256 newMoratoriumInPeriods
+    ) external whenNotPaused onlyOngoingLoan(loanId) onlyLenderOrAlias(loanId) {
         Loan.State storage loan = _loans[loanId];
 
         uint256 currentMoratoriumInPeriods = _moratoriumInPeriods(loan);
@@ -453,12 +449,10 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ILendingMarket
-    function updateLoanInterestRatePrimary(uint256 loanId, uint256 newInterestRate)
-        external
-        whenNotPaused
-        onlyOngoingLoan(loanId)
-        onlyLenderOrAlias(loanId)
-    {
+    function updateLoanInterestRatePrimary(
+        uint256 loanId,
+        uint256 newInterestRate
+    ) external whenNotPaused onlyOngoingLoan(loanId) onlyLenderOrAlias(loanId) {
         Loan.State storage loan = _loans[loanId];
 
         if (newInterestRate >= loan.interestRatePrimary) {
@@ -471,12 +465,10 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ILendingMarket
-    function updateLoanInterestRateSecondary(uint256 loanId, uint256 newInterestRate)
-        external
-        whenNotPaused
-        onlyOngoingLoan(loanId)
-        onlyLenderOrAlias(loanId)
-    {
+    function updateLoanInterestRateSecondary(
+        uint256 loanId,
+        uint256 newInterestRate
+    ) external whenNotPaused onlyOngoingLoan(loanId) onlyLenderOrAlias(loanId) {
         Loan.State storage loan = _loans[loanId];
 
         if (newInterestRate >= loan.interestRateSecondary) {
@@ -552,11 +544,12 @@ contract LendingMarket is
     /// @param periodInSeconds The duration of the period in seconds
     /// @param extraPeriods The number of extra periods to add
     /// @param extraSeconds The number of extra seconds to add
-    function calculatePeriodDate(uint256 timestamp, uint256 periodInSeconds, uint256 extraPeriods, uint256 extraSeconds)
-        public
-        pure
-        returns (uint256)
-    {
+    function calculatePeriodDate(
+        uint256 timestamp,
+        uint256 periodInSeconds,
+        uint256 extraPeriods,
+        uint256 extraSeconds
+    ) public pure returns (uint256) {
         return (timestamp / periodInSeconds) * periodInSeconds + periodInSeconds * extraPeriods + extraSeconds;
     }
 
@@ -641,21 +634,19 @@ contract LendingMarket is
     // -------------------------------------------- //
 
     /// @inheritdoc ERC721Upgradeable
-    function _update(address to, uint256 tokenId, address auth)
-        internal
-        override(ERC721Upgradeable, ERC721EnumerableUpgradeable)
-        whenNotPaused
-        returns (address)
-    {
+    function _update(
+        address to,
+        uint256 tokenId,
+        address auth
+    ) internal override(ERC721Upgradeable, ERC721EnumerableUpgradeable) whenNotPaused returns (address) {
         return super._update(to, tokenId, auth);
     }
 
     /// @inheritdoc ERC721Upgradeable
-    function _increaseBalance(address account, uint128 value)
-        internal
-        override(ERC721Upgradeable, ERC721EnumerableUpgradeable)
-        whenNotPaused
-    {
+    function _increaseBalance(
+        address account,
+        uint128 value
+    ) internal override(ERC721Upgradeable, ERC721EnumerableUpgradeable) whenNotPaused {
         super._increaseBalance(account, value);
     }
 

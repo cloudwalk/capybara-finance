@@ -45,11 +45,12 @@ contract LiquidityPoolFactory is OwnableUpgradeable, ILiquidityPoolFactory {
     // -------------------------------------------- //
 
     /// @inheritdoc ILiquidityPoolFactory
-    function createLiquidityPool(address market, address lender, uint16 kind, bytes calldata data)
-        external
-        onlyOwner
-        returns (address)
-    {
+    function createLiquidityPool(
+        address market,
+        address lender,
+        uint16 kind,
+        bytes calldata data
+    ) external onlyOwner returns (address) {
         if (kind != 1) {
             revert UnsupportedKind();
         }

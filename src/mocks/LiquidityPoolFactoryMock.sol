@@ -25,10 +25,12 @@ contract LiquidityPoolFactoryMock is ILiquidityPoolFactory {
     //  ILiquidityPoolFactory functions             //
     // -------------------------------------------- //
 
-    function createLiquidityPool(address market, address lender, uint16 kind, bytes calldata data)
-        external
-        returns (address)
-    {
+    function createLiquidityPool(
+        address market,
+        address lender,
+        uint16 kind,
+        bytes calldata data
+    ) external returns (address) {
         emit CreateLiquidityPoolCalled(market, lender, kind, data);
         return _liquidityPoolAddress;
     }

@@ -31,9 +31,13 @@ interface ICreditLineFactory {
     /// @param kind The kind of credit line to create
     /// @param data The data to configure the credit line
     /// @return The address of the created credit line contract
-    function createCreditLine(address market, address lender, address token, uint16 kind, bytes calldata data)
-        external
-        returns (address);
+    function createCreditLine(
+        address market,
+        address lender,
+        address token,
+        uint16 kind,
+        bytes calldata data
+    ) external returns (address);
 
     /// @notice Returns the list of supported credit line kinds
     function supportedKinds() external view returns (uint16[] memory);

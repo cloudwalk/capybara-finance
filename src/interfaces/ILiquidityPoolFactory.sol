@@ -29,9 +29,12 @@ interface ILiquidityPoolFactory {
     /// @param kind The kind of liquidity pool to create
     /// @param data The data to configure the liquidity pool
     /// @return The address of the created liquidity pool contract
-    function createLiquidityPool(address market, address lender, uint16 kind, bytes calldata data)
-        external
-        returns (address);
+    function createLiquidityPool(
+        address market,
+        address lender,
+        uint16 kind,
+        bytes calldata data
+    ) external returns (address);
 
     /// @notice Returns the list of supported liquidity pool kinds
     function supportedKinds() external view returns (uint16[] memory);

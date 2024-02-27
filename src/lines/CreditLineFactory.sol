@@ -45,11 +45,13 @@ contract CreditLineFactory is OwnableUpgradeable, ICreditLineFactory {
     // -------------------------------------------- //
 
     /// @inheritdoc ICreditLineFactory
-    function createCreditLine(address market, address lender, address token, uint16 kind, bytes calldata data)
-        external
-        onlyOwner
-        returns (address)
-    {
+    function createCreditLine(
+        address market,
+        address lender,
+        address token,
+        uint16 kind,
+        bytes calldata data
+    ) external onlyOwner returns (address) {
         if (kind != 1) {
             revert UnsupportedKind();
         }
