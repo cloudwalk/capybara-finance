@@ -735,20 +735,16 @@ contract CreditLineConfigurableTest is Test, Config {
         assertEq(terms.interestRatePrimary, borrowerConfig.interestRatePrimary);
         assertEq(terms.interestRateSecondary, borrowerConfig.interestRateSecondary);
         assertEq(uint256(terms.interestFormula), uint256(borrowerConfig.interestFormula));
-        assertEq(terms.addonRecipient, borrowerConfig.addonRecipient);
-        assertEq(terms.addonAmount, creditLine.calculateAddonAmount(borrowerConfig.minBorrowAmount, borrowerConfig.durationInPeriods));
+        assertEq(terms.addonRecipient, creditLineConfig.addonRecipient);
+        assertEq(terms.addonAmount, creditLine.calculateAddonAmount(borrowerConfig.minBorrowAmount, borrowerConfig));
     }
 
-    function test_determineLoanTerms_WithoutAddon() public {
+    function test_determineLoanTerms_WithoutAddon_ZeroAddonRates() public {
         ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = configureCreditLine();
-        creditLineConfig.addonPeriodCostRate = 0;
-        creditLineConfig.addonFixedCostRate = 0;
-
-        vm.prank(LENDER_1);
-        creditLine.configureCreditLine(creditLineConfig);
 
         ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(block.timestamp);
-        borrowerConfig.addonRecipient = address(0);
+        borrowerConfig.addonPeriodCostRate = 0;
+        borrowerConfig.addonFixedCostRate = 0;
 
         vm.prank(ADMIN);
         creditLine.configureBorrower(BORROWER_1, borrowerConfig);
@@ -762,7 +758,32 @@ contract CreditLineConfigurableTest is Test, Config {
         assertEq(terms.interestRatePrimary, borrowerConfig.interestRatePrimary);
         assertEq(terms.interestRateSecondary, borrowerConfig.interestRateSecondary);
         assertEq(uint256(terms.interestFormula), uint256(borrowerConfig.interestFormula));
-        assertEq(terms.addonRecipient, borrowerConfig.addonRecipient);
+        assertEq(terms.addonRecipient, creditLineConfig.addonRecipient);
+        assertEq(terms.addonAmount, 0);
+    }
+
+    function test_determineLoanTerms_WithoutAddon_ZeroAddonRecipient() public {
+        ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = configureCreditLine();
+        creditLineConfig.addonRecipient = address(0);
+
+        vm.prank(LENDER_1);
+        creditLine.configureCreditLine(creditLineConfig);
+
+        ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(block.timestamp);
+
+        vm.prank(ADMIN);
+        creditLine.configureBorrower(BORROWER_1, borrowerConfig);
+
+        Loan.Terms memory terms = creditLine.determineLoanTerms(BORROWER_1, borrowerConfig.minBorrowAmount);
+
+        assertEq(terms.token, creditLine.token());
+        assertEq(terms.interestRateFactor, creditLineConfig.interestRateFactor);
+        assertEq(terms.periodInSeconds, creditLineConfig.periodInSeconds);
+        assertEq(terms.durationInPeriods, borrowerConfig.durationInPeriods);
+        assertEq(terms.interestRatePrimary, borrowerConfig.interestRatePrimary);
+        assertEq(terms.interestRateSecondary, borrowerConfig.interestRateSecondary);
+        assertEq(uint256(terms.interestFormula), uint256(borrowerConfig.interestFormula));
+        assertEq(terms.addonRecipient, creditLineConfig.addonRecipient);
         assertEq(terms.addonAmount, 0);
     }
 
@@ -837,10 +858,10 @@ contract CreditLineConfigurableTest is Test, Config {
 
         uint256 amount = 300;
 
-        uint256 addonRate = config.addonFixedCostRate + config.addonPeriodCostRate * borrowerConfig.durationInPeriods;
+        uint256 addonRate = borrowerConfig.addonFixedCostRate + borrowerConfig.addonPeriodCostRate * borrowerConfig.durationInPeriods;
         uint256 addonAmount = (amount * addonRate) / config.interestRateFactor;
 
-        assertEq(creditLine.calculateAddonAmount(amount, borrowerConfig.durationInPeriods), addonAmount);
+        assertEq(creditLine.calculateAddonAmount(amount, borrowerConfig), addonAmount);
     }
 
     // -------------------------------------------- //
