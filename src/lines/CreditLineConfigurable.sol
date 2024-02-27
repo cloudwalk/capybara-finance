@@ -304,11 +304,11 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         return 1;
     }
 
-    /// @notice Calculates the additional payment amount
+    /// @notice Calculates the addon payment amount
     /// @param amount The initial principal amount of the loan
     /// @param durationInPeriods The duration of the loan in periods
-    /// @param addonFixedCostRate The fixed cost rate of the loan additional payment
-    /// @param addonPeriodCostRate The period cost rate of the loan additional payment
+    /// @param addonFixedCostRate The fixed cost rate of the loan addon payment
+    /// @param addonPeriodCostRate The period cost rate of the loan addon payment
     function calculateAddonAmount(
         uint256 amount,
         uint256 durationInPeriods,
