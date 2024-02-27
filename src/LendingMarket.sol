@@ -638,7 +638,7 @@ contract LendingMarket is
         address to,
         uint256 tokenId,
         address auth
-    ) internal override(ERC721Upgradeable, ERC721EnumerableUpgradeable) whenNotPaused returns (address) {
+    ) internal override (ERC721Upgradeable, ERC721EnumerableUpgradeable) whenNotPaused returns (address) {
         return super._update(to, tokenId, auth);
     }
 
@@ -646,7 +646,7 @@ contract LendingMarket is
     function _increaseBalance(
         address account,
         uint128 value
-    ) internal override(ERC721Upgradeable, ERC721EnumerableUpgradeable) whenNotPaused {
+    ) internal override (ERC721Upgradeable, ERC721EnumerableUpgradeable) whenNotPaused {
         super._increaseBalance(account, value);
     }
 
@@ -654,7 +654,7 @@ contract LendingMarket is
     function supportsInterface(bytes4 interfaceId)
         public
         view
-        override(ERC721Upgradeable, ERC721EnumerableUpgradeable)
+        override (ERC721Upgradeable, ERC721EnumerableUpgradeable)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
