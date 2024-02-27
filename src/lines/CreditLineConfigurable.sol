@@ -260,7 +260,9 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         terms.autoRepayment = borrowerConfig.autoRepayment;
 
         if (terms.addonRecipient != address(0)) {
-            terms.addonAmount = calculateAddonAmount(amount, borrowerConfig).toUint64();
+            terms.addonAmount = calculateAddonAmount(
+                amount, borrowerConfig.durationInPeriods, borrowerConfig.addonFixedCostRate, borrowerConfig.addonPeriodCostRate
+            ).toUint64();
         }
     }
 
@@ -301,9 +303,11 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
 
     /// @notice Calculates the additional payment amount
     /// @param amount The initial principal amount of the loan
-    /// @param borrower The borrower configuration
-    function calculateAddonAmount(uint256 amount, BorrowerConfig memory borrower) public view returns (uint256) {
-        uint256 addonRate = uint256(borrower.addonPeriodCostRate) * borrower.durationInPeriods + borrower.addonFixedCostRate;
+    /// @param durationInPeriods The duration of the loan in periods
+    /// @param addonFixedCostRate The fixed cost rate of the loan additional payment
+    /// @param addonPeriodCostRate The period cost rate of the loan additional payment
+    function calculateAddonAmount(uint256 amount, uint256 durationInPeriods, uint256 addonFixedCostRate, uint256 addonPeriodCostRate) public view returns (uint256) {
+        uint256 addonRate = uint256(addonPeriodCostRate) * durationInPeriods + addonFixedCostRate;
         return (amount * addonRate) / _config.interestRateFactor;
     }
 

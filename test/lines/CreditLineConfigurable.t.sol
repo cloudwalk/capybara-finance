@@ -516,62 +516,6 @@ contract CreditLineConfigurableTest is Test, Config {
         creditLine.configureBorrower(BORROWER_1, config);
     }
 
-    function test_configureBorrower_Revert_IfAddonAddressNotZero_AddonPeriodCostRate() public {
-        ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = configureCreditLine();
-        uint32 addonPeriodCostRate = creditLineConfig.addonPeriodCostRate;
-
-        ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(block.timestamp);
-        borrowerConfig.addonRecipient = address(0);
-
-        // Should not revert if addonPeriodCostRate and addonFixedCostRate are zero
-        creditLineConfig.addonPeriodCostRate = 0;
-        creditLineConfig.addonFixedCostRate = 0;
-
-        vm.prank(LENDER_1);
-        creditLine.configureCreditLine(creditLineConfig);
-
-        vm.prank(ADMIN);
-        creditLine.configureBorrower(ADMIN, borrowerConfig);
-
-        // Should revert if addonPeriodCostRate is not zero
-        creditLineConfig.addonPeriodCostRate = addonPeriodCostRate;
-
-        vm.prank(LENDER_1);
-        creditLine.configureCreditLine(creditLineConfig);
-
-        vm.prank(ADMIN);
-        vm.expectRevert(CreditLineConfigurable.InvalidCreditLineConfiguration.selector);
-        creditLine.configureBorrower(ADMIN, borrowerConfig);
-    }
-
-    function test_configureBorrower_Revert_IfAddonAddressNotZero_AddonFixedCostRate() public {
-        ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = configureCreditLine();
-        uint32 addonFixedCostRate = creditLineConfig.addonFixedCostRate;
-
-        ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(block.timestamp);
-        borrowerConfig.addonRecipient = address(0);
-
-        // Should not revert if addonPeriodCostRate and addonFixedCostRate are zero
-        creditLineConfig.addonPeriodCostRate = 0;
-        creditLineConfig.addonFixedCostRate = 0;
-
-        vm.prank(LENDER_1);
-        creditLine.configureCreditLine(creditLineConfig);
-
-        vm.prank(ADMIN);
-        creditLine.configureBorrower(ADMIN, borrowerConfig);
-
-        // Should revert if addonFixedCostRate is not zero
-        creditLineConfig.addonFixedCostRate = addonFixedCostRate;
-
-        vm.prank(LENDER_1);
-        creditLine.configureCreditLine(creditLineConfig);
-
-        vm.prank(ADMIN);
-        vm.expectRevert(CreditLineConfigurable.InvalidCreditLineConfiguration.selector);
-        creditLine.configureBorrower(ADMIN, borrowerConfig);
-    }
-
     // -------------------------------------------- //
     //  Test `configureBorrowers` function          //
     // -------------------------------------------- //
@@ -736,7 +680,7 @@ contract CreditLineConfigurableTest is Test, Config {
         assertEq(terms.interestRateSecondary, borrowerConfig.interestRateSecondary);
         assertEq(uint256(terms.interestFormula), uint256(borrowerConfig.interestFormula));
         assertEq(terms.addonRecipient, creditLineConfig.addonRecipient);
-        assertEq(terms.addonAmount, creditLine.calculateAddonAmount(borrowerConfig.minBorrowAmount, borrowerConfig));
+        assertEq(terms.addonAmount, creditLine.calculateAddonAmount(borrowerConfig.minBorrowAmount, borrowerConfig.durationInPeriods, borrowerConfig.addonFixedCostRate, borrowerConfig.addonPeriodCostRate));
     }
 
     function test_determineLoanTerms_WithoutAddon_ZeroAddonRates() public {
@@ -859,9 +803,11 @@ contract CreditLineConfigurableTest is Test, Config {
         uint256 amount = 300;
 
         uint256 addonRate = borrowerConfig.addonFixedCostRate + borrowerConfig.addonPeriodCostRate * borrowerConfig.durationInPeriods;
-        uint256 addonAmount = (amount * addonRate) / config.interestRateFactor;
+        uint256 expectedAddonAmount = (amount * addonRate) / config.interestRateFactor;
 
-        assertEq(creditLine.calculateAddonAmount(amount, borrowerConfig), addonAmount);
+        uint256 actualAddonAmount = creditLine.calculateAddonAmount(amount, borrowerConfig.durationInPeriods, borrowerConfig.addonFixedCostRate, borrowerConfig.addonPeriodCostRate);
+
+        assertEq(actualAddonAmount, expectedAddonAmount);
     }
 
     // -------------------------------------------- //
