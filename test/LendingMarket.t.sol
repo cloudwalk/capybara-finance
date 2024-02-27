@@ -69,7 +69,7 @@ contract LendingMarketTest is Test, Config {
     CreditLineMock public creditLine;
     LiquidityPoolMock public liquidityPool;
 
-    uint256 public constant NONEXISTENT_LOAN_ID = 9999999;
+    uint256 public constant NONEXISTENT_LOAN_ID = 9_999_999;
     uint256 public constant INIT_BLOCK_TIMESTAMP = INIT_CREDIT_LINE_PERIOD_IN_SECONDS + 1;
 
     bool public canOverrideAutoRepayment = false;

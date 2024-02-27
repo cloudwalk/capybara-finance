@@ -51,7 +51,7 @@ contract LiquidityPoolAccountableTest is Test, Config {
     uint64 public constant DEPOSIT_AMOUNT_1 = 100;
     uint64 public constant DEPOSIT_AMOUNT_2 = 200;
     uint64 public constant DEPOSIT_AMOUNT_3 = 300;
-    uint256 public constant NONEXISTENT_LOAN_ID = 999999999;
+    uint256 public constant NONEXISTENT_LOAN_ID = 999_999_999;
 
     // -------------------------------------------- //
     //  Setup and configuration                     //
