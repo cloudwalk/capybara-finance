@@ -2,12 +2,12 @@
 
 pragma solidity 0.8.23;
 
-import {Test} from "forge-std/Test.sol";
+import { Test } from "forge-std/Test.sol";
 
-import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { ERC1967Proxy } from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-import {LendingRegistryUUPS} from "src/LendingRegistryUUPS.sol";
+import { LendingRegistryUUPS } from "src/LendingRegistryUUPS.sol";
 
 /// @title LendingRegistryUUPSTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)

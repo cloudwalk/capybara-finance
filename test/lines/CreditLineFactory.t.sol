@@ -4,13 +4,13 @@ pragma solidity 0.8.23;
 
 import "forge-std/Test.sol";
 
-import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-import {CreditLineConfigurable} from "src/lines/CreditLineConfigurable.sol";
-import {CreditLineFactory} from "src/lines/CreditLineFactory.sol";
+import { CreditLineConfigurable } from "src/lines/CreditLineConfigurable.sol";
+import { CreditLineFactory } from "src/lines/CreditLineFactory.sol";
 
-import {Config} from "test/base/Config.sol";
+import { Config } from "test/base/Config.sol";
 
 /// @title CreditLineFactoryTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)

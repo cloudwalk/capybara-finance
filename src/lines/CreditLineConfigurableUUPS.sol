@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.23;
 
-import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {CreditLineConfigurable} from "./CreditLineConfigurable.sol";
+import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import { CreditLineConfigurable } from "./CreditLineConfigurable.sol";
 
 /// @title CreditLineConfigurableUUPS contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
@@ -16,5 +16,5 @@ contract CreditLineConfigurableUUPS is CreditLineConfigurable, UUPSUpgradeable {
     }
 
     /// @inheritdoc UUPSUpgradeable
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner { }
 }

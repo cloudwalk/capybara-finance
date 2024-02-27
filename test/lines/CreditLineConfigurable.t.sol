@@ -2,20 +2,20 @@
 
 pragma solidity 0.8.23;
 
-import {Test} from "forge-std/Test.sol";
+import { Test } from "forge-std/Test.sol";
 
-import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
+import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
-import {SafeCast} from "src/libraries/SafeCast.sol";
-import {Loan} from "src/libraries/Loan.sol";
-import {Error} from "src/libraries/Error.sol";
-import {Interest} from "src/libraries/Interest.sol";
-import {ICreditLineConfigurable} from "src/interfaces/ICreditLineConfigurable.sol";
-import {CreditLineConfigurable} from "src/lines/CreditLineConfigurable.sol";
+import { SafeCast } from "src/libraries/SafeCast.sol";
+import { Loan } from "src/libraries/Loan.sol";
+import { Error } from "src/libraries/Error.sol";
+import { Interest } from "src/libraries/Interest.sol";
+import { ICreditLineConfigurable } from "src/interfaces/ICreditLineConfigurable.sol";
+import { CreditLineConfigurable } from "src/lines/CreditLineConfigurable.sol";
 
-import {Config} from "test/base/Config.sol";
+import { Config } from "test/base/Config.sol";
 
 /// @title CreditLineConfigurableTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)

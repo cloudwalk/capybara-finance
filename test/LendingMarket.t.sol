@@ -4,20 +4,20 @@ pragma solidity 0.8.23;
 
 import "forge-std/Test.sol";
 
-import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
+import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
-import {Loan} from "src/libraries/Loan.sol";
-import {Error} from "src/libraries/Error.sol";
-import {Interest} from "src/libraries/Interest.sol";
+import { Loan } from "src/libraries/Loan.sol";
+import { Error } from "src/libraries/Error.sol";
+import { Interest } from "src/libraries/Interest.sol";
 
-import {ERC20Mock} from "src/mocks/ERC20Mock.sol";
-import {LendingMarket} from "src/LendingMarket.sol";
-import {CreditLineMock} from "src/mocks/CreditLineMock.sol";
-import {LiquidityPoolMock} from "src/mocks/LiquidityPoolMock.sol";
+import { ERC20Mock } from "src/mocks/ERC20Mock.sol";
+import { LendingMarket } from "src/LendingMarket.sol";
+import { CreditLineMock } from "src/mocks/CreditLineMock.sol";
+import { LiquidityPoolMock } from "src/mocks/LiquidityPoolMock.sol";
 
-import {Config} from "test/base/Config.sol";
+import { Config } from "test/base/Config.sol";
 
 /// @title LendingMarketTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)

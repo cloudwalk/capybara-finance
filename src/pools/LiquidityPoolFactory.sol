@@ -2,12 +2,12 @@
 
 pragma solidity 0.8.23;
 
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-import {ILiquidityPool} from "../interfaces/core/ILiquidityPool.sol";
-import {ILiquidityPoolFactory} from "../interfaces/ILiquidityPoolFactory.sol";
+import { ILiquidityPool } from "../interfaces/core/ILiquidityPool.sol";
+import { ILiquidityPoolFactory } from "../interfaces/ILiquidityPoolFactory.sol";
 
-import {LiquidityPoolAccountable} from "./LiquidityPoolAccountable.sol";
+import { LiquidityPoolAccountable } from "./LiquidityPoolAccountable.sol";
 
 /// @title LiquidityPoolFactory contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
@@ -38,7 +38,7 @@ contract LiquidityPoolFactory is OwnableUpgradeable, ILiquidityPoolFactory {
     }
 
     /// @notice Unchained internal initializer of the upgradable contract
-    function __LiquidityPoolFactory_init_unchained() internal onlyInitializing {}
+    function __LiquidityPoolFactory_init_unchained() internal onlyInitializing { }
 
     // -------------------------------------------- //
     //  Functions                                   //

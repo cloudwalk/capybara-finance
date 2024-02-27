@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.23;
 
-import {Interest} from "../libraries/Interest.sol";
+import { Interest } from "../libraries/Interest.sol";
 
 /// @title ICreditLineConfigurable interface
 /// @author CloudWalk Inc. (See https://cloudwalk.io)

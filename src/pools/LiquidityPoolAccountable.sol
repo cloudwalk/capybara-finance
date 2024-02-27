@@ -2,18 +2,18 @@
 
 pragma solidity 0.8.23;
 
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
-import {Loan} from "../libraries/Loan.sol";
-import {Error} from "../libraries/Error.sol";
+import { Loan } from "../libraries/Loan.sol";
+import { Error } from "../libraries/Error.sol";
 
-import {ICreditLine} from "../interfaces/core/ICreditLine.sol";
-import {ILiquidityPool} from "../interfaces/core/ILiquidityPool.sol";
-import {ILiquidityPoolAccountable} from "../interfaces/ILiquidityPoolAccountable.sol";
-import {ILendingMarket} from "../interfaces/core/ILendingMarket.sol";
+import { ICreditLine } from "../interfaces/core/ICreditLine.sol";
+import { ILiquidityPool } from "../interfaces/core/ILiquidityPool.sol";
+import { ILiquidityPoolAccountable } from "../interfaces/ILiquidityPoolAccountable.sol";
+import { ILendingMarket } from "../interfaces/core/ILendingMarket.sol";
 
 /// @title LiquidityPoolAccountable contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
@@ -187,7 +187,7 @@ contract LiquidityPoolAccountable is
             IERC20(tokenSource).safeTransfer(msg.sender, amount);
             emit Withdraw(tokenSource, amount);
             return;
-        } else {}
+        } else { }
 
         // Revert with zero balance error
         revert ZeroBalance();

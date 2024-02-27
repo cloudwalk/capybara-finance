@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.23;
 
-import {Error} from "../libraries/Error.sol";
-import {ICreditLineFactory} from "../interfaces/ICreditLineFactory.sol";
+import { Error } from "../libraries/Error.sol";
+import { ICreditLineFactory } from "../interfaces/ICreditLineFactory.sol";
 
 /// @title CreditLineFactoryMock contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)

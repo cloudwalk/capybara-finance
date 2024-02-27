@@ -2,11 +2,11 @@
 
 pragma solidity 0.8.23;
 
-import {Loan} from "src/libraries/Loan.sol";
-import {Error} from "src/libraries/Error.sol";
-import {SafeCast} from "src/libraries/SafeCast.sol";
-import {Interest} from "src/libraries/Interest.sol";
-import {ICreditLineConfigurable} from "src/interfaces/ICreditLineConfigurable.sol";
+import { Loan } from "src/libraries/Loan.sol";
+import { Error } from "src/libraries/Error.sol";
+import { SafeCast } from "src/libraries/SafeCast.sol";
+import { Interest } from "src/libraries/Interest.sol";
+import { ICreditLineConfigurable } from "src/interfaces/ICreditLineConfigurable.sol";
 
 /// @title Config contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)

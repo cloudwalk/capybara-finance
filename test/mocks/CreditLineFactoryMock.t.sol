@@ -4,8 +4,8 @@ pragma solidity 0.8.23;
 
 import "forge-std/Test.sol";
 
-import {Error} from "src/libraries/Error.sol";
-import {CreditLineFactoryMock} from "src/mocks/CreditLineFactoryMock.sol";
+import { Error } from "src/libraries/Error.sol";
+import { CreditLineFactoryMock } from "src/mocks/CreditLineFactoryMock.sol";
 
 /// @title CreditLineFactoryMockTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)

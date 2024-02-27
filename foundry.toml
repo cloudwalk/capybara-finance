@@ -4,6 +4,9 @@ out = "out"
 libs = ["lib", "node_modules", "src/libraries"]
 
 [fmt]
+int_types = "long"
+line_length = 120
+bracket_spacing = true
 multiline_func_header = "params_first"
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

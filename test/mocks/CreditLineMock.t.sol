@@ -4,10 +4,10 @@ pragma solidity 0.8.23;
 
 import "forge-std/Test.sol";
 
-import {Loan} from "src/libraries/Loan.sol";
-import {Error} from "src/libraries/Error.sol";
-import {Interest} from "src/libraries/Interest.sol";
-import {CreditLineMock} from "src/mocks/CreditLineMock.sol";
+import { Loan } from "src/libraries/Loan.sol";
+import { Error } from "src/libraries/Error.sol";
+import { Interest } from "src/libraries/Interest.sol";
+import { CreditLineMock } from "src/mocks/CreditLineMock.sol";
 
 /// @title CreditLineMockTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)

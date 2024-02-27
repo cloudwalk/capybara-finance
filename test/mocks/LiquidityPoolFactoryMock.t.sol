@@ -4,8 +4,8 @@ pragma solidity 0.8.23;
 
 import "forge-std/Test.sol";
 
-import {Error} from "src/libraries/Error.sol";
-import {LiquidityPoolFactoryMock} from "src/mocks/LiquidityPoolFactoryMock.sol";
+import { Error } from "src/libraries/Error.sol";
+import { LiquidityPoolFactoryMock } from "src/mocks/LiquidityPoolFactoryMock.sol";
 
 /// @title LiquidityPoolFactoryMockTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)

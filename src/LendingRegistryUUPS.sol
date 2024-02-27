@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.23;
 
-import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {LendingRegistry} from "./LendingRegistry.sol";
+import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import { LendingRegistry } from "./LendingRegistry.sol";
 
 /// @title LendingRegistryUUPS contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
@@ -16,5 +16,5 @@ contract LendingRegistryUUPS is LendingRegistry, UUPSUpgradeable {
     }
 
     /// @inheritdoc UUPSUpgradeable
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner { }
 }

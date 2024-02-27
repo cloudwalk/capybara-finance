@@ -2,12 +2,12 @@
 
 pragma solidity 0.8.23;
 
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-import {ICreditLine} from "../interfaces/core/ICreditLine.sol";
-import {ICreditLineFactory} from "../interfaces/ICreditLineFactory.sol";
+import { ICreditLine } from "../interfaces/core/ICreditLine.sol";
+import { ICreditLineFactory } from "../interfaces/ICreditLineFactory.sol";
 
-import {CreditLineConfigurable} from "./CreditLineConfigurable.sol";
+import { CreditLineConfigurable } from "./CreditLineConfigurable.sol";
 
 /// @title CreditLineFactory contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
@@ -38,7 +38,7 @@ contract CreditLineFactory is OwnableUpgradeable, ICreditLineFactory {
     }
 
     /// @notice Unchained internal initializer of the upgradable contract
-    function __CreditLineFactory_init_unchained() internal onlyInitializing {}
+    function __CreditLineFactory_init_unchained() internal onlyInitializing { }
 
     // -------------------------------------------- //
     //  Functions                                   //

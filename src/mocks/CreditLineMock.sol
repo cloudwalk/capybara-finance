@@ -2,9 +2,9 @@
 
 pragma solidity 0.8.23;
 
-import {Loan} from "../libraries/Loan.sol";
-import {Error} from "../libraries/Error.sol";
-import {ICreditLine} from "../interfaces/core/ICreditLine.sol";
+import { Loan } from "../libraries/Loan.sol";
+import { Error } from "../libraries/Error.sol";
+import { ICreditLine } from "../interfaces/core/ICreditLine.sol";
 
 /// @title CreditLineMock contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)

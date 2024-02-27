@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.23;
 
-import {Loan} from "../../libraries/Loan.sol";
+import { Loan } from "../../libraries/Loan.sol";
 
 /// @title ILendingMarket interface
 /// @author CloudWalk Inc. (See https://cloudwalk.io)

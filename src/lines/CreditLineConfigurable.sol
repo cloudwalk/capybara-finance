@@ -2,15 +2,15 @@
 
 pragma solidity 0.8.23;
 
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
+import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
-import {Loan} from "../libraries/Loan.sol";
-import {Error} from "../libraries/Error.sol";
-import {SafeCast} from "../libraries/SafeCast.sol";
+import { Loan } from "../libraries/Loan.sol";
+import { Error } from "../libraries/Error.sol";
+import { SafeCast } from "../libraries/SafeCast.sol";
 
-import {ICreditLine} from "../interfaces/core/ICreditLine.sol";
-import {ICreditLineConfigurable} from "../interfaces/ICreditLineConfigurable.sol";
+import { ICreditLine } from "../interfaces/core/ICreditLine.sol";
+import { ICreditLineConfigurable } from "../interfaces/ICreditLineConfigurable.sol";
 
 /// @title CreditLineConfigurable contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
@@ -218,7 +218,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
             borrowerConfig.maxBorrowAmount = 0;
         } else if (borrowerConfig.borrowPolicy == BorrowPolicy.Decrease) {
             borrowerConfig.maxBorrowAmount -= amount.toUint64();
-        } else if (borrowerConfig.borrowPolicy == BorrowPolicy.Keep) {} else {
+        } else if (borrowerConfig.borrowPolicy == BorrowPolicy.Keep) { } else {
             // NOTE: This should never happen since all possible policies are checked above
             revert UnsupportedBorrowPolicy();
         }

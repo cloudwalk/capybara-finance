@@ -2,26 +2,26 @@
 
 pragma solidity 0.8.23;
 
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
-import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
-import {ERC721EnumerableUpgradeable} from
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
+import { ERC721Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+import { ERC721EnumerableUpgradeable } from
     "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 
-import {Loan} from "./libraries/Loan.sol";
-import {Error} from "./libraries/Error.sol";
-import {Interest} from "./libraries/Interest.sol";
-import {InterestMath} from "./libraries/InterestMath.sol";
-import {SafeCast} from "./libraries/SafeCast.sol";
+import { Loan } from "./libraries/Loan.sol";
+import { Error } from "./libraries/Error.sol";
+import { Interest } from "./libraries/Interest.sol";
+import { InterestMath } from "./libraries/InterestMath.sol";
+import { SafeCast } from "./libraries/SafeCast.sol";
 
-import {ILendingMarket} from "./interfaces/core/ILendingMarket.sol";
-import {ILiquidityPool} from "./interfaces/core/ILiquidityPool.sol";
-import {ICreditLine} from "./interfaces/core/ICreditLine.sol";
+import { ILendingMarket } from "./interfaces/core/ILendingMarket.sol";
+import { ILiquidityPool } from "./interfaces/core/ILiquidityPool.sol";
+import { ICreditLine } from "./interfaces/core/ICreditLine.sol";
 
-import {LendingMarketStorage} from "./LendingMarketStorage.sol";
+import { LendingMarketStorage } from "./LendingMarketStorage.sol";
 
 /// @title LendingMarket contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
@@ -135,7 +135,7 @@ contract LendingMarket is
     }
 
     /// @notice Unchained internal initializer of the upgradable contract
-    function __LendingMarket_init_unchained() internal onlyInitializing {}
+    function __LendingMarket_init_unchained() internal onlyInitializing { }
 
     // -------------------------------------------- //
     //  Owner functions                             //
