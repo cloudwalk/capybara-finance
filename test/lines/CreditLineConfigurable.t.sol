@@ -68,7 +68,8 @@ contract CreditLineConfigurableTest is Test, Config {
         assertEq(config1.maxBorrowAmount, config2.maxBorrowAmount);
         assertEq(config1.interestRatePrimary, config2.interestRatePrimary);
         assertEq(config1.interestRateSecondary, config2.interestRateSecondary);
-        assertEq(config1.addonRecipient, config2.addonRecipient);
+        assertEq(config1.addonFixedCostRate, config2.addonFixedCostRate);
+        assertEq(config1.addonPeriodCostRate, config2.addonPeriodCostRate);
         assertEq(config1.autoRepayment, config2.autoRepayment);
         assertEq(uint256(config1.interestFormula), uint256(config2.interestFormula));
         assertEq(uint256(config1.borrowPolicy), uint256(config2.borrowPolicy));
@@ -85,7 +86,8 @@ contract CreditLineConfigurableTest is Test, Config {
                 && config1.maxBorrowAmount == config2.maxBorrowAmount
                 && config1.interestRatePrimary == config2.interestRatePrimary
                 && config1.interestRateSecondary == config2.interestRateSecondary
-                && config1.addonRecipient == config2.addonRecipient
+                && config1.addonFixedCostRate == config2.addonFixedCostRate
+                && config1.addonPeriodCostRate == config2.addonPeriodCostRate
                 && config1.autoRepayment == config2.autoRepayment
                 && uint256(config1.interestFormula) == uint256(config2.interestFormula)
                 && uint256(config1.borrowPolicy) == uint256(config2.borrowPolicy)
@@ -106,8 +108,7 @@ contract CreditLineConfigurableTest is Test, Config {
         assertEq(config1.maxInterestRatePrimary, config2.maxInterestRatePrimary);
         assertEq(config1.minInterestRateSecondary, config2.minInterestRateSecondary);
         assertEq(config1.maxInterestRateSecondary, config2.maxInterestRateSecondary);
-        assertEq(config1.addonPeriodCostRate, config2.addonPeriodCostRate);
-        assertEq(config1.addonFixedCostRate, config2.addonFixedCostRate);
+        assertEq(config1.addonRecipient, config2.addonRecipient);
     }
 
     function assertFalseCreditLineConfig(
@@ -124,8 +125,7 @@ contract CreditLineConfigurableTest is Test, Config {
                 && config1.maxInterestRatePrimary == config2.maxInterestRatePrimary
                 && config1.minInterestRateSecondary == config2.minInterestRateSecondary
                 && config1.maxInterestRateSecondary == config2.maxInterestRateSecondary
-                && config1.addonPeriodCostRate == config2.addonPeriodCostRate
-                && config1.addonFixedCostRate == config2.addonFixedCostRate
+                && config1.addonRecipient == config2.addonRecipient
         );
     }
 
