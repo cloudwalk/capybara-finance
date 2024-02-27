@@ -80,10 +80,8 @@ contract CreditLineConfigurableTest is Test, Config {
         ICreditLineConfigurable.BorrowerConfig memory config2
     ) internal {
         assertFalse(
-            config1.expiration == config2.expiration
-                && config1.durationInPeriods == config2.durationInPeriods
-                && config1.minBorrowAmount == config2.minBorrowAmount
-                && config1.maxBorrowAmount == config2.maxBorrowAmount
+            config1.expiration == config2.expiration && config1.durationInPeriods == config2.durationInPeriods
+                && config1.minBorrowAmount == config2.minBorrowAmount && config1.maxBorrowAmount == config2.maxBorrowAmount
                 && config1.interestRatePrimary == config2.interestRatePrimary
                 && config1.interestRateSecondary == config2.interestRateSecondary
                 && config1.addonFixedCostRate == config2.addonFixedCostRate
@@ -680,7 +678,15 @@ contract CreditLineConfigurableTest is Test, Config {
         assertEq(terms.interestRateSecondary, borrowerConfig.interestRateSecondary);
         assertEq(uint256(terms.interestFormula), uint256(borrowerConfig.interestFormula));
         assertEq(terms.addonRecipient, creditLineConfig.addonRecipient);
-        assertEq(terms.addonAmount, creditLine.calculateAddonAmount(borrowerConfig.minBorrowAmount, borrowerConfig.durationInPeriods, borrowerConfig.addonFixedCostRate, borrowerConfig.addonPeriodCostRate));
+        assertEq(
+            terms.addonAmount,
+            creditLine.calculateAddonAmount(
+                borrowerConfig.minBorrowAmount,
+                borrowerConfig.durationInPeriods,
+                borrowerConfig.addonFixedCostRate,
+                borrowerConfig.addonPeriodCostRate
+            )
+        );
     }
 
     function test_determineLoanTerms_WithoutAddon_ZeroAddonRates() public {
@@ -802,10 +808,16 @@ contract CreditLineConfigurableTest is Test, Config {
 
         uint256 amount = 300;
 
-        uint256 addonRate = borrowerConfig.addonFixedCostRate + borrowerConfig.addonPeriodCostRate * borrowerConfig.durationInPeriods;
+        uint256 addonRate =
+            borrowerConfig.addonFixedCostRate + borrowerConfig.addonPeriodCostRate * borrowerConfig.durationInPeriods;
         uint256 expectedAddonAmount = (amount * addonRate) / creditLineConfig.interestRateFactor;
 
-        uint256 actualAddonAmount = creditLine.calculateAddonAmount(amount, borrowerConfig.durationInPeriods, borrowerConfig.addonFixedCostRate, borrowerConfig.addonPeriodCostRate);
+        uint256 actualAddonAmount = creditLine.calculateAddonAmount(
+            amount,
+            borrowerConfig.durationInPeriods,
+            borrowerConfig.addonFixedCostRate,
+            borrowerConfig.addonPeriodCostRate
+        );
 
         assertEq(actualAddonAmount, expectedAddonAmount);
     }

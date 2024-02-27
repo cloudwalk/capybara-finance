@@ -19,7 +19,6 @@ library Loan {
         uint32 interestRateSecondary;
         /// @notice The rate factor used together with interest rate
         uint32 interestRateFactor;
-
         //slot 2
         /// @notice The address of the borrower
         address borrower;
@@ -27,7 +26,6 @@ library Loan {
         uint32 startDate;
         /// @notice The initial principal amount of the loan
         uint64 initialBorrowAmount;
-
         //slot 3
         /// @notice The duration of the loan period specified in seconds
         uint32 periodInSeconds;
@@ -43,7 +41,6 @@ library Loan {
         bool autoRepayment;
         /// @notice The formula used for interest calculation on the loan
         Interest.Formula interestFormula;
-
         //slot 4
         /// @notice The address of the loan holder
         address holder;
@@ -60,7 +57,6 @@ library Loan {
         uint32 durationInPeriods;
         /// @notice The rate factor used together with interest rate
         uint32 interestRateFactor;
-
         //slot 2
         /// @notice The address of the recipient of additional payments and fees
         address addonRecipient;
@@ -68,7 +64,6 @@ library Loan {
         uint64 addonAmount;
         /// @notice The primary interest rate to be applied to the loan
         uint32 interestRatePrimary;
-
         //slot 3
         /// @notice The secondary interest rate to be applied to the loan
         uint32 interestRateSecondary;
@@ -76,7 +71,6 @@ library Loan {
         bool autoRepayment;
         /// @notice The formula to be used for interest calculation on the loan
         Interest.Formula interestFormula;
-
         //slot 4
         /// @notice The address of the loan holder
         address holder;

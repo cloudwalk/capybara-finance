@@ -540,7 +540,7 @@ contract LendingMarketTest is Test, Config {
 
     function test_takeLoan_Revert_IfContractIsPaused() public {
         configureMarket();
-        (uint256 borrowAmount, ) = mockLoanTerms();
+        (uint256 borrowAmount,) = mockLoanTerms();
 
         vm.prank(OWNER);
         market.pause();
@@ -561,7 +561,7 @@ contract LendingMarketTest is Test, Config {
 
     function test_takeLoan_Revert_IfCreditLineIsZeroAddress() public {
         configureMarket();
-        (uint256 borrowAmount, ) = mockLoanTerms();
+        (uint256 borrowAmount,) = mockLoanTerms();
 
         vm.prank(BORROWER_1);
         vm.expectRevert(Error.ZeroAddress.selector);
@@ -569,7 +569,7 @@ contract LendingMarketTest is Test, Config {
     }
 
     function test_takeLoan_Revert_IfCreditLineIsNotRegistered() public {
-        (uint256 borrowAmount, ) = mockLoanTerms();
+        (uint256 borrowAmount,) = mockLoanTerms();
 
         vm.prank(BORROWER_1);
         vm.expectRevert(LendingMarket.CreditLineNotRegistered.selector);
@@ -577,7 +577,7 @@ contract LendingMarketTest is Test, Config {
     }
 
     function test_takeLoan_Revert_IfLiquidityPoolIsNotRegistered() public {
-        (uint256 borrowAmount, ) = mockLoanTerms();
+        (uint256 borrowAmount,) = mockLoanTerms();
 
         vm.prank(REGISTRY_1);
         market.registerCreditLine(LENDER_1, address(creditLine));
@@ -1466,11 +1466,10 @@ contract LendingMarketTest is Test, Config {
         market.registerLiquidityPool(LENDER_1, address(liquidityPool));
 
         assertEq(market.getLiquidityPoolLender(address(liquidityPool)), LENDER_1);
-
     }
 
     function test_calculatePeriodDate_1_Second_Period() public {
-        skip(10**6 - 1);
+        skip(10 ** 6 - 1);
 
         uint256 periodInSeconds = 1 seconds;
         uint256 currentPeriodSeconds = block.timestamp % periodInSeconds;
@@ -1489,7 +1488,7 @@ contract LendingMarketTest is Test, Config {
     }
 
     function test_calculatePeriodDate_59_Second_Period() public {
-        skip(10**6 - 1);
+        skip(10 ** 6 - 1);
 
         uint256 periodInSeconds = 59 seconds;
         uint256 currentPeriodSeconds = block.timestamp % periodInSeconds;

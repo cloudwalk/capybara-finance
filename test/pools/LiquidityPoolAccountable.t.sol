@@ -30,10 +30,7 @@ contract LiquidityPoolAccountableTest is Test, Config {
     event Deposit(address indexed creditLine, uint256 amount);
     event Withdraw(address indexed tokenSource, uint256 amount);
     event AutoRepay(uint256 numberOfLoans);
-    event RepayLoanCalled(
-        uint256 indexed loanId,
-        uint256 repayAmount
-    );
+    event RepayLoanCalled(uint256 indexed loanId, uint256 repayAmount);
 
     // -------------------------------------------- //
     //  Storage variables                           //

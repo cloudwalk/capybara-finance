@@ -17,10 +17,7 @@ contract LendingMarketMock is ILendingMarket {
     event RegisterCreditLineCalled(address indexed lender, address indexed creditLine);
 
     event RegisterLiquidityPoolCalled(address indexed lender, address indexed liquidityPool);
-    event RepayLoanCalled(
-        uint256 indexed loanId,
-        uint256 repayAmount
-    );
+    event RepayLoanCalled(uint256 indexed loanId, uint256 repayAmount);
 
     // -------------------------------------------- //
     //  Storage variables                           //

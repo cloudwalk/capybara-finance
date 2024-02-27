@@ -8,7 +8,6 @@ import {Interest} from "../libraries/Interest.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice Defines the configurable credit line contract functions and events
 interface ICreditLineConfigurable {
-
     // -------------------------------------------- //
     //  Events                                      //
     // -------------------------------------------- //
@@ -56,7 +55,6 @@ interface ICreditLineConfigurable {
         uint32 minDurationInPeriods;
         /// @notice The maximum duration of the loan determined in periods
         uint32 maxDurationInPeriods;
-
         //slot 2
         /// @notice The minimum amount the borrower can take as a loan
         uint64 minBorrowAmount;
@@ -70,7 +68,6 @@ interface ICreditLineConfigurable {
         uint32 minInterestRateSecondary;
         /// @notice The maximum secondary interest rate to be applied to the loan
         uint32 maxInterestRateSecondary;
-
         //slot 3
         /// @notice The interest rate factor used for interest calculation
         uint32 interestRateFactor;
@@ -91,7 +88,6 @@ interface ICreditLineConfigurable {
         uint64 minBorrowAmount;
         /// @notice The maximum amount the borrower can take as a loan
         uint64 maxBorrowAmount;
-
         //slot 2
         /// @notice The fixed cost rate to be used for additional payment calculation
         uint32 addonFixedCostRate;

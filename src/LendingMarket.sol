@@ -538,7 +538,7 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ILendingMarket
-    function hasAlias(address lender, address account) external view returns(bool) {
+    function hasAlias(address lender, address account) external view returns (bool) {
         return _hasAlias[lender][account];
     }
 
@@ -552,12 +552,11 @@ contract LendingMarket is
     /// @param periodInSeconds The duration of the period in seconds
     /// @param extraPeriods The number of extra periods to add
     /// @param extraSeconds The number of extra seconds to add
-    function calculatePeriodDate(
-        uint256 timestamp,
-        uint256 periodInSeconds,
-        uint256 extraPeriods,
-        uint256 extraSeconds
-    ) public pure returns (uint256) {
+    function calculatePeriodDate(uint256 timestamp, uint256 periodInSeconds, uint256 extraPeriods, uint256 extraSeconds)
+        public
+        pure
+        returns (uint256)
+    {
         return (timestamp / periodInSeconds) * periodInSeconds + periodInSeconds * extraPeriods + extraSeconds;
     }
 
