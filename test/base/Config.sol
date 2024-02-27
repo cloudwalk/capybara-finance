@@ -85,6 +85,7 @@ contract Config {
     uint64 public constant BORROW_AMOUNT = 100;
     uint64 public constant ADDON_AMOUNT = 100;
     uint256 public constant ZERO_VALUE = 0;
+    uint8 public constant DECIMALS = 6;
 
     function initCreditLineConfig() public pure returns (ICreditLineConfigurable.CreditLineConfig memory) {
         return ICreditLineConfigurable.CreditLineConfig({
