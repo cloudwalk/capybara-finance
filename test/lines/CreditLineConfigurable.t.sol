@@ -448,23 +448,23 @@ contract CreditLineConfigurableTest is Test, Config {
     function test_configureBorrower_Revert_IfMinBorrowAmountIsLessThanMinBorrowAmount_On_CreditLineConfig() public {
         ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = configureCreditLine();
 
-        ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
-        config.minBorrowAmount = creditLineConfig.minBorrowAmount - 1;
+        ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(block.timestamp);
+        borrowerConfig.minBorrowAmount = creditLineConfig.minBorrowAmount - 1;
 
         vm.prank(ADMIN);
         vm.expectRevert(CreditLineConfigurable.InvalidBorrowerConfiguration.selector);
-        creditLine.configureBorrower(BORROWER_1, config);
+        creditLine.configureBorrower(BORROWER_1, borrowerConfig);
     }
 
     function test_configureBorrower_Revert_IfMaxBorrowAmountIsGreaterThanMaxBorrowAmount_On_CreditLineConfig() public {
         ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = configureCreditLine();
 
-        ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
-        config.maxBorrowAmount = creditLineConfig.maxBorrowAmount + 1;
+        ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(block.timestamp);
+        borrowerConfig.maxBorrowAmount = creditLineConfig.maxBorrowAmount + 1;
 
         vm.prank(ADMIN);
         vm.expectRevert(CreditLineConfigurable.InvalidBorrowerConfiguration.selector);
-        creditLine.configureBorrower(BORROWER_1, config);
+        creditLine.configureBorrower(BORROWER_1, borrowerConfig);
     }
 
     function test_configureBorrower_Revert_IfInterestRatePrimaryIsLessThanMinInterestRatePrimary_On_CreditLineConfig()
@@ -472,48 +472,48 @@ contract CreditLineConfigurableTest is Test, Config {
     {
         ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = configureCreditLine();
 
-        ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
-        config.interestRatePrimary = creditLineConfig.minInterestRatePrimary - 1;
+        ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(block.timestamp);
+        borrowerConfig.interestRatePrimary = creditLineConfig.minInterestRatePrimary - 1;
 
         vm.prank(ADMIN);
         vm.expectRevert(CreditLineConfigurable.InvalidBorrowerConfiguration.selector);
-        creditLine.configureBorrower(BORROWER_1, config);
+        creditLine.configureBorrower(BORROWER_1, borrowerConfig);
     }
 
     function test_configureBorrower_Revert_IfInterestRatePrimaryIsGreaterThanMaxInterestRatePrimary_On_CreditLineConfig(
     ) public {
         ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = configureCreditLine();
 
-        ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
-        config.interestRatePrimary = creditLineConfig.maxInterestRatePrimary + 1;
+        ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(block.timestamp);
+        borrowerConfig.interestRatePrimary = creditLineConfig.maxInterestRatePrimary + 1;
 
         vm.prank(ADMIN);
         vm.expectRevert(CreditLineConfigurable.InvalidBorrowerConfiguration.selector);
-        creditLine.configureBorrower(BORROWER_1, config);
+        creditLine.configureBorrower(BORROWER_1, borrowerConfig);
     }
 
     function test_configureBorrower_Revert_IfInterestRateSecondaryIsLessThanMinInterestRateSecondary_On_CreditLineConfig(
     ) public {
         ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = configureCreditLine();
 
-        ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
-        config.interestRateSecondary = creditLineConfig.minInterestRateSecondary - 1;
+        ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(block.timestamp);
+        borrowerConfig.interestRateSecondary = creditLineConfig.minInterestRateSecondary - 1;
 
         vm.prank(ADMIN);
         vm.expectRevert(CreditLineConfigurable.InvalidBorrowerConfiguration.selector);
-        creditLine.configureBorrower(BORROWER_1, config);
+        creditLine.configureBorrower(BORROWER_1, borrowerConfig);
     }
 
     function test_configureBorrower_Revert_IfInterestRateSecondaryIsGreaterThanMaxInterestRateSecondary_On_CreditLineConfig(
     ) public {
         ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = configureCreditLine();
 
-        ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
-        config.interestRateSecondary = creditLineConfig.maxInterestRateSecondary + 1;
+        ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(block.timestamp);
+        borrowerConfig.interestRateSecondary = creditLineConfig.maxInterestRateSecondary + 1;
 
         vm.prank(ADMIN);
         vm.expectRevert(CreditLineConfigurable.InvalidBorrowerConfiguration.selector);
-        creditLine.configureBorrower(BORROWER_1, config);
+        creditLine.configureBorrower(BORROWER_1, borrowerConfig);
     }
 
     // -------------------------------------------- //
@@ -797,13 +797,13 @@ contract CreditLineConfigurableTest is Test, Config {
     // -------------------------------------------- //
 
     function test_calculateAddonAmount() public {
-        ICreditLineConfigurable.CreditLineConfig memory config = configureCreditLine();
+        ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = configureCreditLine();
         ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(block.timestamp);
 
         uint256 amount = 300;
 
         uint256 addonRate = borrowerConfig.addonFixedCostRate + borrowerConfig.addonPeriodCostRate * borrowerConfig.durationInPeriods;
-        uint256 expectedAddonAmount = (amount * addonRate) / config.interestRateFactor;
+        uint256 expectedAddonAmount = (amount * addonRate) / creditLineConfig.interestRateFactor;
 
         uint256 actualAddonAmount = creditLine.calculateAddonAmount(amount, borrowerConfig.durationInPeriods, borrowerConfig.addonFixedCostRate, borrowerConfig.addonPeriodCostRate);
 
