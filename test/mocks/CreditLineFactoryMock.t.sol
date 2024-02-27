@@ -50,7 +50,7 @@ contract CreditLineFactoryMockTest is Test {
         creditLine = mock.createCreditLine(market, lender, token, kind, data);
         assertEq(creditLine, address(0x0));
 
-        mock.mockCreditLineAddress(address(0x4));
+        mock.mockCreatedCreditLineAddress(address(0x4));
         vm.expectEmit(true, true, true, true, address(mock));
         emit CreateCreditLineCalled(market, lender, token, kind, data);
         creditLine = mock.createCreditLine(market, lender, token, kind, data);

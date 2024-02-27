@@ -7,7 +7,7 @@ import { ILiquidityPoolFactory } from "../interfaces/ILiquidityPoolFactory.sol";
 
 /// @title LiquidityPoolFactoryMock contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Mock of the `LiquidityPoolFactory` contract used for testing
+/// @notice Mock of the `LiquidityPoolFactory` contract used for testing.
 contract LiquidityPoolFactoryMock is ILiquidityPoolFactory {
     // -------------------------------------------- //
     //  Events                                      //
@@ -19,7 +19,7 @@ contract LiquidityPoolFactoryMock is ILiquidityPoolFactory {
     //  Storage variables                           //
     // -------------------------------------------- //
 
-    address _liquidityPoolAddress;
+    address _createdLiquidityPoolAddress;
 
     // -------------------------------------------- //
     //  ILiquidityPoolFactory functions             //
@@ -32,7 +32,7 @@ contract LiquidityPoolFactoryMock is ILiquidityPoolFactory {
         bytes calldata data
     ) external returns (address) {
         emit CreateLiquidityPoolCalled(market, lender, kind, data);
-        return _liquidityPoolAddress;
+        return _createdLiquidityPoolAddress;
     }
 
     function supportedKinds() external pure override returns (uint16[] memory) {
@@ -43,7 +43,7 @@ contract LiquidityPoolFactoryMock is ILiquidityPoolFactory {
     //  Mock functions                              //
     // -------------------------------------------- //
 
-    function mockLiquidityPoolAddress(address liquidityPoolAddress) external {
-        _liquidityPoolAddress = liquidityPoolAddress;
+    function mockCreatedLiquidityPoolAddress(address liquidityPoolAddress) external {
+        _createdLiquidityPoolAddress = liquidityPoolAddress;
     }
 }

@@ -7,9 +7,9 @@ import { LiquidityPoolAccountable } from "./LiquidityPoolAccountable.sol";
 
 /// @title LiquidityPoolAccountableUUPS contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Upgradeable version of the accountable liquidity pool contract
+/// @notice Upgradeable version of the accountable liquidity pool contract.
 contract LiquidityPoolAccountableUUPS is LiquidityPoolAccountable, UUPSUpgradeable {
-    /// @dev Constructor that prohibits the initialization of the implementation of the upgradable contract
+    /// @dev Constructor that prohibits the initialization of the implementation of the upgradable contract.
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();

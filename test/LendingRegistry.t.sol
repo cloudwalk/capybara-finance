@@ -221,7 +221,7 @@ contract LendingRegistryTest is Test, Config {
     function test_createCreditLine() public {
         vm.startPrank(OWNER);
 
-        creditLineFactory.mockCreditLineAddress(EXPECTED_CONTRACT_ADDRESS);
+        creditLineFactory.mockCreatedCreditLineAddress(EXPECTED_CONTRACT_ADDRESS);
         registry.setCreditLineFactory(address(creditLineFactory));
 
         vm.expectEmit(true, true, true, true, address(creditLineFactory));
@@ -246,7 +246,7 @@ contract LendingRegistryTest is Test, Config {
     function test_createLiquidityPool() public {
         vm.startPrank(OWNER);
 
-        liquidityPoolFactory.mockLiquidityPoolAddress(EXPECTED_CONTRACT_ADDRESS);
+        liquidityPoolFactory.mockCreatedLiquidityPoolAddress(EXPECTED_CONTRACT_ADDRESS);
         registry.setLiquidityPoolFactory(address(liquidityPoolFactory));
 
         vm.expectEmit(true, true, true, true, address(liquidityPoolFactory));

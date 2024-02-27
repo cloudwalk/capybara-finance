@@ -17,7 +17,7 @@ import { LendingRegistryStorage } from "./LendingRegistryStorage.sol";
 
 /// @title LendingRegistry contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Implementation of the lending registry contract
+/// @notice Implementation of the lending registry contract.
 contract LendingRegistry is
     LendingRegistryStorage,
     Initializable,
@@ -29,46 +29,46 @@ contract LendingRegistry is
     //  Events                                      //
     // -------------------------------------------- //
 
-    /// @notice Emitted when the credit line factory is set
-    /// @param newFactory The address of the new credit line factory
-    /// @param oldFactory The address of the old credit line factory
+    /// @notice Emitted when the credit line factory is set.
+    /// @param newFactory The address of the new credit line factory.
+    /// @param oldFactory The address of the old credit line factory.
     event SetCreditLineFactory(address newFactory, address oldFactory);
 
-    /// @notice Emitted when the liquidity pool factory is set
-    /// @param newFactory The address of the new liquidity pool factory
-    /// @param oldFactory The address of the old liquidity pool factory
+    /// @notice Emitted when the liquidity pool factory is set.
+    /// @param newFactory The address of the new liquidity pool factory.
+    /// @param oldFactory The address of the old liquidity pool factory.
     event SetLiquidityPoolFactory(address newFactory, address oldFactory);
 
     // -------------------------------------------- //
     //  Errors                                      //
     // -------------------------------------------- //
 
-    /// @notice Thrown when the credit line factory is not configured
+    /// @notice Thrown when the credit line factory is not configured.
     error CreditLineFactoryNotConfigured();
 
-    /// @notice Thrown when the liquidity pool factory is not configured
+    /// @notice Thrown when the liquidity pool factory is not configured.
     error LiquidityPoolFactoryNotConfigured();
 
     // -------------------------------------------- //
     //  Initializers                                //
     // -------------------------------------------- //
 
-    /// @notice Initializer of the upgradable contract
-    /// @param market_ The address of the associated lending market
+    /// @notice Initializer of the upgradable contract.
+    /// @param market_ The address of the associated lending market.
     function initialize(address market_) external initializer {
         __LendingRegistry_init(market_);
     }
 
-    /// @notice Internal initializer of the upgradable contract
-    /// @param market_ The address of the associated lending market
+    /// @notice Internal initializer of the upgradable contract.
+    /// @param market_ The address of the associated lending market.
     function __LendingRegistry_init(address market_) internal onlyInitializing {
         __Ownable_init_unchained(msg.sender);
         __Pausable_init_unchained();
         __LendingRegistry_init_unchained(market_);
     }
 
-    /// @notice Unchained internal initializer of the upgradable contract
-    /// @param market_ The address of the associated lending market
+    /// @notice Unchained internal initializer of the upgradable contract.
+    /// @param market_ The address of the associated lending market.
     function __LendingRegistry_init_unchained(address market_) internal onlyInitializing {
         if (market_ == address(0)) {
             revert Error.ZeroAddress();
@@ -81,18 +81,18 @@ contract LendingRegistry is
     //  Owner functions                             //
     // -------------------------------------------- //
 
-    /// @notice Pauses the contract
+    /// @notice Pauses the contract.
     function pause() external onlyOwner {
         _pause();
     }
 
-    /// @notice Unpauses the contract
+    /// @notice Unpauses the contract.
     function unpause() external onlyOwner {
         _unpause();
     }
 
-    /// @notice Sets the credit line factory contract
-    /// @param newFactory The address of the new credit line factory
+    /// @notice Sets the credit line factory contract.
+    /// @param newFactory The address of the new credit line factory.
     function setCreditLineFactory(address newFactory) external onlyOwner {
         if (_creditLineFactory == newFactory) {
             revert Error.AlreadyConfigured();
@@ -103,8 +103,8 @@ contract LendingRegistry is
         _creditLineFactory = newFactory;
     }
 
-    /// @notice Sets the liquidity pool factory contract
-    /// @param newFactory The address of the new liquidity pool factory
+    /// @notice Sets the liquidity pool factory contract.
+    /// @param newFactory The address of the new liquidity pool factory.
     function setLiquidityPoolFactory(address newFactory) external onlyOwner {
         if (_liquidityPoolFactory == newFactory) {
             revert Error.AlreadyConfigured();
@@ -125,8 +125,7 @@ contract LendingRegistry is
             revert CreditLineFactoryNotConfigured();
         }
 
-        address creditLine =
-            ICreditLineFactory(_creditLineFactory).createCreditLine(_market, msg.sender, token, kind, "0x");
+        address creditLine = ICreditLineFactory(_creditLineFactory).createCreditLine(_market, msg.sender, token, kind, "0x");
 
         ILendingMarket(_market).registerCreditLine(msg.sender, creditLine);
     }
@@ -137,8 +136,7 @@ contract LendingRegistry is
             revert LiquidityPoolFactoryNotConfigured();
         }
 
-        address liquidityPool =
-            ILiquidityPoolFactory(_liquidityPoolFactory).createLiquidityPool(_market, msg.sender, kind, "0x");
+        address liquidityPool = ILiquidityPoolFactory(_liquidityPoolFactory).createLiquidityPool(_market, msg.sender, kind, "0x");
 
         ILendingMarket(_market).registerLiquidityPool(msg.sender, liquidityPool);
     }

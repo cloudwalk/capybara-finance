@@ -8,14 +8,13 @@ import { ILendingMarket } from "../interfaces/core/ILendingMarket.sol";
 
 /// @title LendingMarketMock contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Mock of the `LendingMarket` contract used for testing
+/// @notice Mock of the `LendingMarket` contract used for testing.
 contract LendingMarketMock is ILendingMarket {
     // -------------------------------------------- //
     //  Events                                      //
     // -------------------------------------------- //
 
     event RegisterCreditLineCalled(address indexed lender, address indexed creditLine);
-
     event RegisterLiquidityPoolCalled(address indexed lender, address indexed liquidityPool);
     event RepayLoanCalled(uint256 indexed loanId, uint256 repayAmount);
 

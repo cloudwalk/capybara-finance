@@ -6,25 +6,25 @@ import { Interest } from "./Interest.sol";
 
 /// @title InterestMath library
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Defines interest calculation functions
+/// @notice Defines the common functions used for interest calculation.
 library InterestMath {
     // -------------------------------------------- //
     //  Errors                                      //
     // -------------------------------------------- //
 
-    /// @notice Thrown when the specified interest formula is not implemented
+    /// @notice Thrown when the specified interest formula is not implemented.
     error InterestFormulaNotImplemented();
 
     // -------------------------------------------- //
     //  Functions                                   //
     // -------------------------------------------- //
 
-    /// @notice Calculates the outstanding balance of a loan
-    /// @param originalBalance The original balance of the loan
-    /// @param numberOfPeriods The number of periods since the loan was taken
-    /// @param interestRate The interest rate applied to the loan
-    /// @param interestRateFactor The interest rate factor
-    /// @param interestFormula The interest formula
+    /// @notice Calculates the outstanding loan balance.
+    /// @param originalBalance The balance of the loan at the beginning.
+    /// @param numberOfPeriods The number of periods to calculate the outstanding balance.
+    /// @param interestRate The interest rate applied to the loan.
+    /// @param interestRateFactor The interest rate factor.
+    /// @param interestFormula The interest formula.
     function calculateOutstandingBalance(
         uint256 originalBalance,
         uint256 numberOfPeriods,

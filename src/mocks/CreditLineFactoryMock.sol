@@ -7,7 +7,7 @@ import { ICreditLineFactory } from "../interfaces/ICreditLineFactory.sol";
 
 /// @title CreditLineFactoryMock contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Mock of the `CreditLineFactory` contract used for testing
+/// @notice Mock of the `CreditLineFactory` contract used for testing.
 contract CreditLineFactoryMock is ICreditLineFactory {
     // -------------------------------------------- //
     //  Events                                      //
@@ -21,7 +21,7 @@ contract CreditLineFactoryMock is ICreditLineFactory {
     //  Storage variables                           //
     // -------------------------------------------- //
 
-    address private _creditLineAddress;
+    address private _createdCreditLineAddress;
 
     // -------------------------------------------- //
     //  ICreditLineFactory functions                //
@@ -35,7 +35,7 @@ contract CreditLineFactoryMock is ICreditLineFactory {
         bytes calldata data
     ) external returns (address creditLine) {
         emit CreateCreditLineCalled(market, lender, token, kind, data);
-        return _creditLineAddress;
+        return _createdCreditLineAddress;
     }
 
     function supportedKinds() external pure override returns (uint16[] memory) {
@@ -46,7 +46,7 @@ contract CreditLineFactoryMock is ICreditLineFactory {
     //  Mock functions                              //
     // -------------------------------------------- //
 
-    function mockCreditLineAddress(address creditLineAddress) external {
-        _creditLineAddress = creditLineAddress;
+    function mockCreatedCreditLineAddress(address creditLineAddress) external {
+        _createdCreditLineAddress = creditLineAddress;
     }
 }

@@ -47,7 +47,7 @@ contract LiquidityPoolFactoryMockTest is Test {
         LiquidityPool = mock.createLiquidityPool(market, lender, kind, data);
         assertEq(LiquidityPool, address(0x0));
 
-        mock.mockLiquidityPoolAddress(address(0x3));
+        mock.mockCreatedLiquidityPoolAddress(address(0x3));
         vm.expectEmit(true, true, true, true, address(mock));
         emit CreateLiquidityPoolCalled(market, lender, kind, data);
         LiquidityPool = mock.createLiquidityPool(market, lender, kind, data);
