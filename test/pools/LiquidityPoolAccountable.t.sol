@@ -61,7 +61,7 @@ contract LiquidityPoolAccountableTest is Test, Config {
     // -------------------------------------------- //
 
     function setUp() public {
-        token = new ERC20Mock(0);
+        token = new ERC20Mock(0, DECIMALS);
         creditLine = new CreditLineMock();
         creditLine.mockTokenAddress(address(token));
         lendingMarket = new LendingMarketMock();

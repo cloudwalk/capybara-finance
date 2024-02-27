@@ -80,7 +80,7 @@ contract LendingMarketTest is Test, Config {
     // -------------------------------------------- //
 
     function setUp() public {
-        token = new ERC20Mock(0);
+        token = new ERC20Mock(0, DECIMALS);
         creditLine = new CreditLineMock();
         liquidityPool = new LiquidityPoolMock();
 
