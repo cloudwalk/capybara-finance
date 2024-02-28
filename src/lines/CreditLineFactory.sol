@@ -25,13 +25,13 @@ contract CreditLineFactory is OwnableUpgradeable, ICreditLineFactory {
     // -------------------------------------------- //
 
     /// @notice Initializer of the upgradable contract.
-    /// @param registry_ The address of the associated lending market.
+    /// @param registry_ The address of the lending market registry.
     function initialize(address registry_) external initializer {
         __CreditLineFactory_init(registry_);
     }
 
     /// @dev Internal initializer of the upgradable contract.
-    /// @param registry_ The address of the associated lending market.
+    /// @param registry_ The address of the lending market registry.
     function __CreditLineFactory_init(address registry_) internal onlyInitializing {
         __Ownable_init_unchained(registry_);
         __CreditLineFactory_init_unchained();

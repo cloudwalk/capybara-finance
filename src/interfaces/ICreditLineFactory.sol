@@ -11,7 +11,7 @@ interface ICreditLineFactory {
     // -------------------------------------------- //
 
     /// @notice Emitted when a new credit line is created.
-    /// @param market The address of the associated lending market.
+    /// @param market The address of the lending market.
     /// @param lender The address of the credit line lender.
     /// @param token The address of the credit line token.
     /// @param kind The kind of the created credit line.
@@ -25,7 +25,7 @@ interface ICreditLineFactory {
     // -------------------------------------------- //
 
     /// @notice Creates a new credit line.
-    /// @param market The address of the associated lending market.
+    /// @param market The address of the lending market.
     /// @param lender The address of the credit line lender.
     /// @param token The address of the credit line token.
     /// @param kind The kind of credit line to create.

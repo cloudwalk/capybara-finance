@@ -16,12 +16,12 @@ interface ILiquidityPoolAccountable {
     event ConfigureAdmin(address indexed admin, bool adminStatus);
 
     /// @notice Emitted when tokens are deposited to the liquidity pool.
-    /// @param creditLine The address of the associated credit line.
+    /// @param creditLine The address of the credit line.
     /// @param amount The amount of tokens deposited.
     event Deposit(address indexed creditLine, uint256 amount);
 
     /// @notice Emitted when tokens are withdrawn from the liquidity pool.
-    /// @param tokenSource The address of the associated token source.
+    /// @param tokenSource The address of the token source.
     /// @param amount The amount of tokens withdrawn.
     event Withdraw(address indexed tokenSource, uint256 amount);
 
@@ -39,12 +39,12 @@ interface ILiquidityPoolAccountable {
     function configureAdmin(address admin, bool adminStatus) external;
 
     /// @notice Depisits tokens to the liquidity pool.
-    /// @param creditLine The address of the associated credit line.
+    /// @param creditLine The address of the credit line.
     /// @param amount The amount of tokens to deposit.
     function deposit(address creditLine, uint256 amount) external;
 
     /// @notice Withdraws tokens from the liquidity pool.
-    /// @param tokenSource The address of the associated token source.
+    /// @param tokenSource The address of the token source.
     /// @param amount The amount of tokens to withdraw.
     function withdraw(address tokenSource, uint256 amount) external;
 

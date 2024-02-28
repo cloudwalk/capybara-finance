@@ -30,16 +30,16 @@ contract LiquidityPoolAccountable is
     //  Storage variables                           //
     // -------------------------------------------- //
 
-    /// @dev The address of the associated lending market.
+    /// @dev The address of the lending market.
     address internal _market;
 
     /// @dev The mapping of account to admin status.
     mapping(address => bool) internal _admins;
 
-    /// @dev The mapping of loan identifier to associated credit line.
+    /// @dev The mapping of loan identifier to credit line.
     mapping(uint256 => address) internal _creditLines;
 
-    /// @dev Mapping of credit line address to its token balance.
+    /// @dev Mapping of credit line to its token balance.
     mapping(address => uint256) internal _creditLineBalances;
 
     // -------------------------------------------- //
@@ -77,15 +77,15 @@ contract LiquidityPoolAccountable is
     // -------------------------------------------- //
 
     /// @notice Initializer of the upgradable contract.
-    /// @param market_ The address of the associated lending market.
-    /// @param lender_ The address of the associated lender.
+    /// @param market_ The address of the lending market.
+    /// @param lender_ The address of the lender.
     function initialize(address market_, address lender_) external initializer {
         __LiquidityPoolAccountable_init(market_, lender_);
     }
 
     /// @dev Internal initializer of the upgradable contract.
-    /// @param market_ The address of the associated lending market.
-    /// @param lender_ The address of the associated lender.
+    /// @param market_ The address of the lending market.
+    /// @param lender_ The address of the lender.
     function __LiquidityPoolAccountable_init(address market_, address lender_) internal onlyInitializing {
         __Ownable_init_unchained(lender_);
         __Pausable_init_unchained();
@@ -93,8 +93,8 @@ contract LiquidityPoolAccountable is
     }
 
     /// @dev Unchained internal initializer of the upgradable contract.
-    /// @param market_ The address of the associated lending market.
-    /// @param lender_ The address of the associated lender.
+    /// @param market_ The address of the lending market.
+    /// @param lender_ The address of the lender.
     function __LiquidityPoolAccountable_init_unchained(address market_, address lender_) internal onlyInitializing {
         if (market_ == address(0)) {
             revert Error.ZeroAddress();
