@@ -115,7 +115,7 @@ interface ILendingMarket {
     function repayLoan(uint256 loanId, uint256 repayAmount) external;
 
     // -------------------------------------------- //
-    //  Loan holder functions                       //
+    //  Lender functions                       //
     // -------------------------------------------- //
 
     /// @notice Freezes a loan.

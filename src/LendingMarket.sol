@@ -342,7 +342,7 @@ contract LendingMarket is
     }
 
     // -------------------------------------------- //
-    //  Loan holder functions                       //
+    //  Lender functions                       //
     // -------------------------------------------- //
 
     /// @inheritdoc ILendingMarket
