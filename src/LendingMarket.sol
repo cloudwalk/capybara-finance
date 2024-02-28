@@ -548,21 +548,21 @@ contract LendingMarket is
             currentDate = loan.freezeDate;
         }
 
-        if (currentDate > loan.trackDate) {
+        if (currentDate > loan.trackedDate) {
             uint256 dueDate = loan.startDate + loan.durationInPeriods * loan.periodInSeconds;
 
             if (currentDate < dueDate) {
                 outstandingBalance = calculateOutstandingBalance(
                     outstandingBalance,
-                    (currentDate - loan.trackDate) / loan.periodInSeconds,
+                    (currentDate - loan.trackedDate) / loan.periodInSeconds,
                     loan.interestRatePrimary,
                     loan.interestRateFactor,
                     loan.interestFormula
                 );
-            } else if (loan.trackDate >= dueDate) {
+            } else if (loan.trackedDate >= dueDate) {
                 outstandingBalance = calculateOutstandingBalance(
                     outstandingBalance,
-                    (currentDate - loan.trackDate) / loan.periodInSeconds,
+                    (currentDate - loan.trackedDate) / loan.periodInSeconds,
                     loan.interestRateSecondary,
                     loan.interestRateFactor,
                     loan.interestFormula
@@ -570,7 +570,7 @@ contract LendingMarket is
             } else {
                 outstandingBalance = calculateOutstandingBalance(
                     outstandingBalance,
-                    (dueDate - loan.trackDate) / loan.periodInSeconds,
+                    (dueDate - loan.trackedDate) / loan.periodInSeconds,
                     loan.interestRatePrimary,
                     loan.interestRateFactor,
                     loan.interestFormula
