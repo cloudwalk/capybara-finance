@@ -91,7 +91,7 @@ contract LendingRegistry is
         _unpause();
     }
 
-    /// @notice Sets the credit line factory contract.
+    /// @notice Sets the credit line factory.
     /// @param newFactory The address of the new credit line factory.
     function setCreditLineFactory(address newFactory) external onlyOwner {
         if (_creditLineFactory == newFactory) {
@@ -103,7 +103,7 @@ contract LendingRegistry is
         _creditLineFactory = newFactory;
     }
 
-    /// @notice Sets the liquidity pool factory contract.
+    /// @notice Sets the liquidity pool factory.
     /// @param newFactory The address of the new liquidity pool factory.
     function setLiquidityPoolFactory(address newFactory) external onlyOwner {
         if (_liquidityPoolFactory == newFactory) {
