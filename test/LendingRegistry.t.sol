@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.23;
 
-import "forge-std/Test.sol";
+import { Test } from "forge-std/Test.sol";
 
 import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";

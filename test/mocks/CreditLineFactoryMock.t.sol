@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.23;
 
-import "forge-std/Test.sol";
+import { Test } from "forge-std/Test.sol";
 
 import { Error } from "src/libraries/Error.sol";
 import { CreditLineFactoryMock } from "src/mocks/CreditLineFactoryMock.sol";
