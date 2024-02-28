@@ -525,10 +525,11 @@ contract LendingMarket is
     }
 
     /// @notice Calculates the outstanding balance of a loan.
-    /// @param originalBalance The original balance of the loan.
-    /// @param numberOfPeriods The number of periods since the loan was taken.
-    /// @param interestRate The interest rate of the loan (in basis points).
-    /// @param interestRateFactor The interest rate factor used with interest rate.
+    /// @param originalBalance The balance of the loan at the beginning.
+    /// @param numberOfPeriods The number of periods to calculate the outstanding balance.
+    /// @param interestRate The interest rate applied to the loan.
+    /// @param interestRateFactor The interest rate factor.
+    /// @param interestFormula The interest formula.
     function calculateOutstandingBalance(
         uint256 originalBalance,
         uint256 numberOfPeriods,
