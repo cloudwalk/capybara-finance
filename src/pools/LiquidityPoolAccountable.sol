@@ -17,7 +17,7 @@ import { ILendingMarket } from "../interfaces/core/ILendingMarket.sol";
 
 /// @title LiquidityPoolAccountable contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Implementation of the accountable liquidity pool contract
+/// @notice Implementation of the accountable liquidity pool contract.
 contract LiquidityPoolAccountable is
     OwnableUpgradeable,
     PausableUpgradeable,
@@ -30,33 +30,33 @@ contract LiquidityPoolAccountable is
     //  Storage variables                           //
     // -------------------------------------------- //
 
-    /// @notice The address of the associated lending market
+    /// @notice The address of the associated lending market.
     address internal _market;
 
-    /// @notice The mapping of account to admin status
+    /// @notice The mapping of account to admin status.
     mapping(address => bool) internal _admins;
 
-    /// @notice The mapping of loan identifier to associated credit line
+    /// @notice The mapping of loan identifier to associated credit line.
     mapping(uint256 => address) internal _creditLines;
 
-    /// @notice Mapping of credit line address to its token balance
+    /// @notice Mapping of credit line address to its token balance.
     mapping(address => uint256) internal _creditLineBalances;
 
     // -------------------------------------------- //
     //  Errors                                      //
     // -------------------------------------------- //
 
-    /// @notice Thrown when the token source balance is zero
+    /// @notice Thrown when the token source balance is zero.
     error ZeroBalance();
 
-    /// @notice Thrown when the token source balance is insufficient
+    /// @notice Thrown when the token source balance is insufficient.
     error InsufficientBalance();
 
     // -------------------------------------------- //
     //  Modifiers                                   //
     // -------------------------------------------- //
 
-    /// @notice Throws if called by any account other than the market
+    /// @notice Throws if called by any account other than the lending market.
     modifier onlyMarket() {
         if (msg.sender != _market) {
             revert Error.Unauthorized();
@@ -64,7 +64,7 @@ contract LiquidityPoolAccountable is
         _;
     }
 
-    /// @notice Throws if called by any account other than the admin
+    /// @notice Throws if called by any account other than the admin.
     modifier onlyAdmin() {
         if (!_admins[msg.sender]) {
             revert Error.Unauthorized();
@@ -76,32 +76,32 @@ contract LiquidityPoolAccountable is
     //  Initializers                                //
     // -------------------------------------------- //
 
-    /// @notice Initializer of the upgradable contract
-    /// @param market_ The address of the associated lending market
-    /// @param lender_ The address of the associated lender
+    /// @notice Initializer of the upgradable contract.
+    /// @param market_ The address of the associated lending market.
+    /// @param lender_ The address of the associated lender.
     function initialize(address market_, address lender_) external initializer {
         __LiquidityPoolAccountable_init(market_, lender_);
     }
 
-    /// @notice Internal initializer of the upgradable contract
-    /// @param market_ The address of the associated lending market
-    /// @param lender_ The address of the associated lender
+    /// @notice Internal initializer of the upgradable contract.
+    /// @param market_ The address of the associated lending market.
+    /// @param lender_ The address of the associated lender.
     function __LiquidityPoolAccountable_init(address market_, address lender_) internal onlyInitializing {
         __Ownable_init_unchained(lender_);
         __Pausable_init_unchained();
         __LiquidityPoolAccountable_init_unchained(market_, lender_);
     }
 
-    /// @notice Unchained internal initializer of the upgradable contract
-    /// @param market_ The address of the associated lending market
-    /// @param lender_ The address of the associated lender
+    /// @notice Unchained internal initializer of the upgradable contract.
+    /// @param market_ The address of the associated lending market.
+    /// @param lender_ The address of the associated lender.
     function __LiquidityPoolAccountable_init_unchained(address market_, address lender_) internal onlyInitializing {
         if (market_ == address(0)) {
             revert Error.ZeroAddress();
         }
         if (lender_ == address(0)) {
             // NOTE: This should never happen since the lender is the contract owner,
-            // and its address is checked to be non-zero by the Ownable contract
+            // and its address is checked to be non-zero by the Ownable contract.
             revert Error.ZeroAddress();
         }
 
@@ -112,12 +112,12 @@ contract LiquidityPoolAccountable is
     //  Owner functions                             //
     // -------------------------------------------- //
 
-    /// @notice Pauses the contract
+    /// @notice Pauses the contract.
     function pause() external onlyOwner {
         _pause();
     }
 
-    /// @notice Unpauses the contract
+    /// @notice Unpauses the contract.
     function unpause() external onlyOwner {
         _unpause();
     }

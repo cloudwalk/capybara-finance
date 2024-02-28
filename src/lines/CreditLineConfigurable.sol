@@ -14,49 +14,49 @@ import { ICreditLineConfigurable } from "../interfaces/ICreditLineConfigurable.s
 
 /// @title CreditLineConfigurable contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Implementation of the configurable credit line contract
+/// @notice Implementation of the configurable credit line contract.
 contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICreditLine, ICreditLineConfigurable {
     using SafeCast for uint256;
     // -------------------------------------------- //
     //  Storage variables                           //
     // -------------------------------------------- //
 
-    /// @notice The address of the associated lending market
+    /// @notice The address of the associated lending market.
     address internal _market;
 
-    /// @notice The address of the associated token
+    /// @notice The address of the associated token.
     address internal _token;
 
-    /// @notice The credit line configuration
+    /// @notice The credit line configuration.
     CreditLineConfig internal _config;
 
-    /// @notice The mapping of account to admin status
+    /// @notice The mapping of account to admin status.
     mapping(address => bool) internal _admins;
 
-    /// @notice The mapping of borrower to its configuration
+    /// @notice The mapping of borrower to its configuration.
     mapping(address => BorrowerConfig) internal _borrowers;
 
     // -------------------------------------------- //
     //  Errors                                      //
     // -------------------------------------------- //
 
-    /// @notice Thrown when the credit line configuration is invalid
+    /// @notice Thrown when the credit line configuration is invalid.
     error InvalidCreditLineConfiguration();
 
-    /// @notice Thrown when the borrower configuration is invalid
+    /// @notice Thrown when the borrower configuration is invalid.
     error InvalidBorrowerConfiguration();
 
-    /// @notice Thrown when the borrower configuration has expired
+    /// @notice Thrown when the borrower configuration has expired.
     error BorrowerConfigurationExpired();
 
-    /// @notice Thrown when the borrow policy is unsupported
+    /// @notice Thrown when the borrow policy is unsupported.
     error UnsupportedBorrowPolicy();
 
     // -------------------------------------------- //
     //  Modifiers                                   //
     // -------------------------------------------- //
 
-    /// @notice Throws if called by any account other than the market
+    /// @notice Throws if called by any account other than the lending market.
     modifier onlyMarket() {
         if (msg.sender != _market) {
             revert Error.Unauthorized();
@@ -64,7 +64,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         _;
     }
 
-    /// @notice Throws if called by any account other than the admin
+    /// @notice Throws if called by any account other than the admin.
     modifier onlyAdmin() {
         if (!_admins[msg.sender]) {
             revert Error.Unauthorized();
@@ -76,18 +76,18 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     //  Initializers                                //
     // -------------------------------------------- //
 
-    /// @notice Initializer of the upgradable contract
-    /// @param market_ The address of the associated lending market
-    /// @param lender_ The address of the associated lender
-    /// @param token_ The address of the associated token
+    /// @notice Initializer of the upgradable contract.
+    /// @param market_ The address of the associated lending market.
+    /// @param lender_ The address of the associated lender.
+    /// @param token_ The address of the associated token.
     function initialize(address market_, address lender_, address token_) external initializer {
         __CreditLineConfigurable_init(market_, lender_, token_);
     }
 
-    /// @notice Internal initializer of the upgradable contract
-    /// @param market_ The address of the associated lending market
-    /// @param lender_ The address of the associated lender
-    /// @param token_ The address of the associated token
+    /// @notice Internal initializer of the upgradable contract.
+    /// @param market_ The address of the associated lending market.
+    /// @param lender_ The address of the associated lender.
+    /// @param token_ The address of the associated token.
     function __CreditLineConfigurable_init(
         address market_,
         address lender_,
@@ -98,10 +98,10 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         __CreditLineConfigurable_init_unchained(market_, lender_, token_);
     }
 
-    /// @notice Unchained internal initializer of the upgradable contract
-    /// @param market_ The address of the associated lending market
-    /// @param lender_ The address of the associated lender
-    /// @param token_ The address of the associated token
+    /// @notice Unchained internal initializer of the upgradable contract.
+    /// @param market_ The address of the associated lending market.
+    /// @param lender_ The address of the associated lender.
+    /// @param token_ The address of the associated token.
     function __CreditLineConfigurable_init_unchained(
         address market_,
         address lender_,
@@ -112,7 +112,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         }
         if (lender_ == address(0)) {
             // NOTE: This should never happen since the lender is the contract owner,
-            // and its address is checked to be non-zero by the Ownable contract
+            // and its address is checked to be non-zero by the Ownable contract.
             revert Error.ZeroAddress();
         }
         if (token_ == address(0)) {
@@ -127,12 +127,12 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     //  Owner functions                             //
     // -------------------------------------------- //
 
-    /// @notice Pauses the contract
+    /// @notice Pauses the contract.
     function pause() external onlyOwner {
         _pause();
     }
 
-    /// @notice Unpauses the contract
+    /// @notice Unpauses the contract.
     function unpause() external onlyOwner {
         _unpause();
     }
@@ -304,11 +304,11 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         return 1;
     }
 
-    /// @notice Calculates the addon payment amount
-    /// @param amount The initial principal amount of the loan
-    /// @param durationInPeriods The duration of the loan in periods
-    /// @param addonFixedCostRate The fixed cost rate of the loan addon payment
-    /// @param addonPeriodCostRate The period cost rate of the loan addon payment
+    /// @notice Calculates the addon payment amount.
+    /// @param amount The initial principal amount of the loan.
+    /// @param durationInPeriods The duration of the loan in periods.
+    /// @param addonFixedCostRate The fixed cost rate of the loan addon payment.
+    /// @param addonPeriodCostRate The period cost rate of the loan addon payment.
     function calculateAddonAmount(
         uint256 amount,
         uint256 durationInPeriods,
@@ -323,16 +323,16 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     //  Internal functions                          //
     // -------------------------------------------- //
 
-    /// @notice Updates the borrower configuration
-    /// @param borrower The address of the borrower
-    /// @param config The new borrower configuration
+    /// @notice Updates the borrower configuration.
+    /// @param borrower The address of the borrower to configure.
+    /// @param config The new borrower configuration to be applied.
     function _configureBorrower(address borrower, BorrowerConfig memory config) internal {
         if (borrower == address(0)) {
             revert Error.ZeroAddress();
         }
 
         // NOTE: We don't check for expiration here, because
-        // it can be used for disabling a borrower by setting it to 0
+        // it can be used for disabling a borrower by setting it to 0.
 
         if (config.durationInPeriods == 0) {
             revert InvalidBorrowerConfiguration();
