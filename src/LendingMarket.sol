@@ -270,17 +270,17 @@ contract LendingMarket is
             token: terms.token,
             holder: terms.holder,
             borrower: msg.sender,
+            startDate: startDate.toUint32(),
             periodInSeconds: terms.periodInSeconds,
             durationInPeriods: terms.durationInPeriods,
             interestRateFactor: terms.interestRateFactor,
             interestRatePrimary: terms.interestRatePrimary,
             interestRateSecondary: terms.interestRateSecondary,
             interestFormula: terms.interestFormula,
-            startDate: startDate.toUint32(),
-            freezeDate: 0,
-            trackedDate: startDate.toUint32(),
             initialBorrowAmount: totalAmount.toUint64(),
             trackedBorrowAmount: totalAmount.toUint64(),
+            trackedDate: startDate.toUint32(),
+            freezeDate: 0,
             autoRepayment: terms.autoRepayment
         });
 
@@ -311,7 +311,8 @@ contract LendingMarket is
             revert Error.NotImplemented();
         }
 
-        (uint256 outstandingBalance, uint256 currentDate) = _outstandingBalance(loan, block.timestamp);
+        uint256 currentDate = calculatePeriodDate(block.timestamp, loan.periodInSeconds, 0, 0);
+        uint256 outstandingBalance = _outstandingBalance(loan, currentDate);
 
         if (repayAmount == type(uint256).max) {
             repayAmount = outstandingBalance;
@@ -401,7 +402,7 @@ contract LendingMarket is
     ) external whenNotPaused onlyOngoingLoan(loanId) onlyLenderOrAlias(loanId) {
         Loan.State storage loan = _loans[loanId];
 
-        uint256 currentMoratoriumInPeriods = _moratoriumInPeriods(loan);
+        uint256 currentMoratoriumInPeriods = _moratoriumInPeriods(loan, block.timestamp);
         if (newMoratoriumInPeriods <= currentMoratoriumInPeriods) {
             revert InappropriateLoanMoratorium();
         }
@@ -490,7 +491,12 @@ contract LendingMarket is
         }
 
         Loan.Preview memory preview;
-        (preview.outstandingBalance, preview.periodDate) = _outstandingBalance(_loans[loanId], timestamp);
+        Loan.State storage loan = _loans[loanId];
+
+        uint256 currentDate = calculatePeriodDate(timestamp, loan.periodInSeconds, 0, 0);
+        preview.outstandingBalance = _outstandingBalance(loan, currentDate);
+        preview.periodDate = currentDate;
+
         return preview;
     }
 
@@ -539,22 +545,24 @@ contract LendingMarket is
     //  Internal functions                          //
     // -------------------------------------------- //
 
-    /// @notice Calculates the outstanding balance and the current period date.
-    function _outstandingBalance(Loan.State storage loan, uint256 timestamp) internal view returns (uint256, uint256) {
+    /// @notice Calculates the outstanding balance of a loan.
+    /// @param loan The loan to calculate the outstanding balance for.
+    /// @param periodDate The period date to calculate the outstanding balance at.
+    /// @return The outstanding balance of the loan at the specified period date.
+    function _outstandingBalance(Loan.State storage loan, uint256 periodDate) internal view returns (uint256) {
         uint256 outstandingBalance = loan.trackedBorrowAmount;
 
-        uint256 currentDate = calculatePeriodDate(timestamp, loan.periodInSeconds, 0, 0);
         if (loan.freezeDate != 0) {
-            currentDate = loan.freezeDate;
+            periodDate = loan.freezeDate;
         }
 
-        if (currentDate > loan.trackedDate) {
+        if (periodDate > loan.trackedDate) {
             uint256 dueDate = loan.startDate + loan.durationInPeriods * loan.periodInSeconds;
 
-            if (currentDate < dueDate) {
+            if (periodDate < dueDate) {
                 outstandingBalance = calculateOutstandingBalance(
                     outstandingBalance,
-                    (currentDate - loan.trackedDate) / loan.periodInSeconds,
+                    (periodDate - loan.trackedDate) / loan.periodInSeconds,
                     loan.interestRatePrimary,
                     loan.interestRateFactor,
                     loan.interestFormula
@@ -562,7 +570,7 @@ contract LendingMarket is
             } else if (loan.trackedDate >= dueDate) {
                 outstandingBalance = calculateOutstandingBalance(
                     outstandingBalance,
-                    (currentDate - loan.trackedDate) / loan.periodInSeconds,
+                    (periodDate - loan.trackedDate) / loan.periodInSeconds,
                     loan.interestRateSecondary,
                     loan.interestRateFactor,
                     loan.interestFormula
@@ -575,10 +583,10 @@ contract LendingMarket is
                     loan.interestRateFactor,
                     loan.interestFormula
                 );
-                if (currentDate > dueDate) {
+                if (periodDate > dueDate) {
                     outstandingBalance = calculateOutstandingBalance(
                         outstandingBalance,
-                        (currentDate - dueDate) / loan.periodInSeconds,
+                        (periodDate - dueDate) / loan.periodInSeconds,
                         loan.interestRateSecondary,
                         loan.interestRateFactor,
                         loan.interestFormula
@@ -587,16 +595,21 @@ contract LendingMarket is
             }
         }
 
-        return (outstandingBalance, currentDate);
+        return outstandingBalance;
     }
 
-    /// @notice Calculates the number of moratorium periods.
-    function _moratoriumInPeriods(Loan.State storage loan) internal view returns (uint256) {
-        uint256 currentDate = calculatePeriodDate(block.timestamp, loan.periodInSeconds, 0, 0);
+    /// @notice Calculates the moratorium periods of a loan.
+    /// @param loan The loan to calculate the moratorium periods for.
+    /// @param timestamp The timestamp to calculate the moratorium periods at.
+    /// @return The number of moratorium periods of the loan at the specified timestamp.
+    function _moratoriumInPeriods(Loan.State storage loan, uint256 timestamp) internal view returns (uint256) {
+        uint256 currentDate = calculatePeriodDate(timestamp, loan.periodInSeconds, 0, 0);
         return loan.trackedDate > currentDate ? (loan.trackedDate - currentDate) / loan.periodInSeconds : 0;
     }
 
-    /// @notice Creates a new NFT token and mints it to the lender.
+    /// @notice Mints a new NFT token.
+    /// @param to The address to mint the token to.
+    /// @return The unique identifier of the minted token.
     function _safeMint(address to) internal returns (uint256) {
         uint256 tokenId = _tokenIdCounter++;
         _safeMint(to, tokenId);
