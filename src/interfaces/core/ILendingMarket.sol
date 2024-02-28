@@ -115,7 +115,7 @@ interface ILendingMarket {
     function repayLoan(uint256 loanId, uint256 repayAmount) external;
 
     // -------------------------------------------- //
-    //  Lender functions                       //
+    //  Lender functions                            //
     // -------------------------------------------- //
 
     /// @notice Freezes a loan.
@@ -203,7 +203,7 @@ interface ILendingMarket {
     /// @notice Gets the loan preview at a specific timestamp.
     /// @param loanId The unique identifier of the loan to check.
     /// @param timestamp The timestamp to get the loan preview for.
-    /// @return The loan preview (see Loan.Preview struct).
+    /// @return The preview state of the loan (see Loan.Preview struct).
     function getLoanPreview(uint256 loanId, uint256 timestamp) external view returns (Loan.Preview memory);
 
     /// @notice Checks if the account is an alias for a lender.
