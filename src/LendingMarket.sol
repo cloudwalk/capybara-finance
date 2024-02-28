@@ -540,46 +540,55 @@ contract LendingMarket is
     // -------------------------------------------- //
 
     /// @notice Calculates the outstanding balance and the current period date.
-    function _outstandingBalance(Loan.State memory loan, uint256 timestamp) internal view returns (uint256, uint256) {
-        uint256 outstandingBalance = loan.trackedBorrowAmount;
+function _outstandingBalance(Loan.State storage loan, uint256 timestamp) internal view returns (uint256, uint256) {
+    uint256 outstandingBalance = loan.trackedBorrowAmount;
 
-        uint256 currentDate = calculatePeriodDate(timestamp, loan.periodInSeconds, 0, 0);
-        if (loan.freezeDate != 0) {
-            currentDate = loan.freezeDate;
-        }
+    uint256 currentDate = calculatePeriodDate(timestamp, loan.periodInSeconds, 0, 0);
+    if (loan.freezeDate != 0) {
+        currentDate = loan.freezeDate;
+    }
 
-        if (currentDate > loan.trackedDate) {
-            uint256 dueDate = loan.startDate + loan.durationInPeriods * loan.periodInSeconds;
+    if (currentDate > loan.trackDate) {
+        uint256 dueDate = loan.startDate + loan.durationInPeriods * loan.periodInSeconds;
 
-            if (currentDate < dueDate) {
+        if (currentDate < dueDate) {
+            outstandingBalance = calculateOutstandingBalance(
+                outstandingBalance,
+                (currentDate - loan.trackDate) / loan.periodInSeconds,
+                loan.interestRatePrimary,
+                loan.interestRateFactor,
+                loan.interestFormula
+            );
+        } else if (loan.trackDate >= dueDate) {
+            outstandingBalance = calculateOutstandingBalance(
+                outstandingBalance,
+                (currentDate - loan.trackDate) / loan.periodInSeconds,
+                loan.interestRateSecondary,
+                loan.interestRateFactor,
+                loan.interestFormula
+            );
+        } else {
+            outstandingBalance = calculateOutstandingBalance(
+                outstandingBalance,
+                (dueDate - loan.trackDate) / loan.periodInSeconds,
+                loan.interestRatePrimary,
+                loan.interestRateFactor,
+                loan.interestFormula
+            );
+            if (currentDate > dueDate) {
                 outstandingBalance = calculateOutstandingBalance(
-                    outstandingBalance,
-                    (currentDate - loan.trackedDate) / loan.periodInSeconds,
-                    loan.interestRatePrimary,
-                    loan.interestRateFactor,
-                    loan.interestFormula
-                );
-            } else if (loan.trackedDate >= dueDate) {
-                outstandingBalance = calculateOutstandingBalance(
-                    outstandingBalance,
-                    (currentDate - loan.trackedDate) / loan.periodInSeconds,
+                outstandingBalance,
+                    (currentDate - dueDate) / loan.periodInSeconds,
                     loan.interestRateSecondary,
                     loan.interestRateFactor,
                     loan.interestFormula
-                );
-            } else {
-                outstandingBalance = calculateOutstandingBalance(
-                    outstandingBalance,
-                    (dueDate - loan.trackedDate) / loan.periodInSeconds,
-                    loan.interestRatePrimary,
-                    loan.interestRateFactor,
-                    loan.interestFormula
-                );
+            );
             }
         }
-
-        return (outstandingBalance, currentDate);
     }
+
+    return (outstandingBalance, currentDate);
+}
 
     /// @notice Calculates the number of moratorium periods.
     function _moratoriumInPeriods(Loan.State storage loan) internal view returns (uint256) {
