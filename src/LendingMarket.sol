@@ -25,7 +25,7 @@ import { LendingMarketStorage } from "./LendingMarketStorage.sol";
 
 /// @title LendingMarket contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Implementation of the lending market contract
+/// @notice Implementation of the lending market contract.
 contract LendingMarket is
     LendingMarketStorage,
     Initializable,
@@ -42,47 +42,47 @@ contract LendingMarket is
     //  Errors                                      //
     // -------------------------------------------- //
 
-    /// @notice Thrown when the loan does not exist
+    /// @notice Thrown when the loan does not exist.
     error LoanNotExist();
 
-    /// @notice Thrown when the loan does not frozen
+    /// @notice Thrown when the loan is not frozen.
     error LoanNotFrozen();
 
-    /// @notice Thrown when the loan is already repaid
+    /// @notice Thrown when the loan is already repaid.
     error LoanAlreadyRepaid();
 
-    /// @notice Thrown when the loan is already frozen
+    /// @notice Thrown when the loan is already frozen.
     error LoanAlreadyFrozen();
 
-    /// @notice Thrown when the credit line is not registered
+    /// @notice Thrown when the credit line is not registered.
     error CreditLineNotRegistered();
 
-    /// @notice Thrown when the liquidity pool is not registered
+    /// @notice Thrown when the liquidity pool is not registered.
     error LiquidityPoolNotRegistered();
 
-    /// @notice Thrown when the credit line is already registered
+    /// @notice Thrown when the credit line is already registered.
     error CreditLineAlreadyRegistered();
 
-    /// @notice Thrown when the liquidity pool is already registered
+    /// @notice Thrown when the liquidity pool is already registered.
     error LiquidityPoolAlreadyRegistered();
 
-    /// @notice Thrown when provided with an inappropriate interest rate
+    /// @notice Thrown when provided interest rate is inappropriate.
     error InappropriateInterestRate();
 
-    /// @notice Thrown when provided with an inappropriate loan duration
+    /// @notice Thrown when provided loan duration is inappropriate.
     error InappropriateLoanDuration();
 
-    /// @notice Thrown when provided with an inappropriate loan moratorium
+    /// @notice Thrown when provided loan moratorium is inappropriate.
     error InappropriateLoanMoratorium();
 
-    /// @notice Thrown when loan auto repayment is not allowed
+    /// @notice Thrown when loan auto repayment is not allowed.
     error AutoRepaymentNotAllowed();
 
     // -------------------------------------------- //
     //  Modifiers                                   //
     // -------------------------------------------- //
 
-    /// @notice Throws if called by any account other than the registry
+    /// @notice Throws if called by any account other than the market registry or the owner.
     modifier onlyRegistryOrOwner() {
         if (msg.sender != _registry && msg.sender != owner()) {
             revert Error.Unauthorized();
@@ -90,8 +90,8 @@ contract LendingMarket is
         _;
     }
 
-    /// @notice Throws if called by any account other than the lender or its alias
-    /// @param loanId The unique identifier of the loan to check
+    /// @notice Throws if called by any account other than the lender or its alias.
+    /// @param loanId The unique identifier of the loan to check.
     modifier onlyLenderOrAlias(uint256 loanId) {
         address lender = ownerOf(loanId);
         if (msg.sender != lender && _hasAlias[lender][msg.sender] == false) {
@@ -100,8 +100,8 @@ contract LendingMarket is
         _;
     }
 
-    /// @notice Throws if the loan does not exist or is already repaid
-    /// @param loanId The unique identifier of the loan to check
+    /// @notice Throws if the loan does not exist or has already been repaid.
+    /// @param loanId The unique identifier of the loan to check.
     modifier onlyOngoingLoan(uint256 loanId) {
         if (_loans[loanId].token == address(0)) {
             revert LoanNotExist();
@@ -116,16 +116,16 @@ contract LendingMarket is
     //  Initializers                                //
     // -------------------------------------------- //
 
-    /// @notice Initializer of the upgradable contract
-    /// @param name_ The name of the NFT token that will represent the loans
-    /// @param symbol_ The symbol of the NFT token that will represent the loans
+    /// @notice Initializer of the upgradable contract.
+    /// @param name_ The name of the NFT token that will represent the loans.
+    /// @param symbol_ The symbol of the NFT token that will represent the loans.
     function initialize(string memory name_, string memory symbol_) external initializer {
         __LendingMarket_init(name_, symbol_);
     }
 
-    /// @notice Internal initializer of the upgradable contract
-    /// @param name_ The name of the NFT token that will represent the loans
-    /// @param symbol_ The symbol of the NFT token that will represent the loans
+    /// @notice Internal initializer of the upgradable contract.
+    /// @param name_ The name of the NFT token that will represent the loans.
+    /// @param symbol_ The symbol of the NFT token that will represent the loans.
     function __LendingMarket_init(string memory name_, string memory symbol_) internal onlyInitializing {
         __Ownable_init_unchained(msg.sender);
         __Pausable_init_unchained();
@@ -134,25 +134,25 @@ contract LendingMarket is
         __LendingMarket_init_unchained();
     }
 
-    /// @notice Unchained internal initializer of the upgradable contract
+    /// @notice Unchained internal initializer of the upgradable contract.
     function __LendingMarket_init_unchained() internal onlyInitializing { }
 
     // -------------------------------------------- //
     //  Owner functions                             //
     // -------------------------------------------- //
 
-    /// @notice Pauses the contract
+    /// @notice Pauses the contract.
     function pause() external onlyOwner {
         _pause();
     }
 
-    /// @notice Unpauses the contract
+    /// @notice Unpauses the contract.
     function unpause() external onlyOwner {
         _unpause();
     }
 
-    /// @notice Sets the address of the registry contract
-    /// @param newRegistry The address of the new registry contract
+    /// @notice Sets the address of the lending market registry.
+    /// @param newRegistry The address of the new registry.
     function setRegistry(address newRegistry) external onlyOwner {
         if (newRegistry == _registry) {
             revert Error.AlreadyConfigured();
@@ -204,13 +204,13 @@ contract LendingMarket is
     /// @inheritdoc ILendingMarket
     function updateCreditLineLender(address creditLine, address newLender) external {
         // TBD Check if updating the lender associated with the credit line
-        // can have any unexpected side effects during the loan lifecycle
+        // can have any unexpected side effects during the loan lifecycle.
         revert Error.NotImplemented();
     }
 
     function updateLiquidityPoolLender(address liquidityPool, address newLender) external {
         // TBD Check if updating the lender associated with the liquidity pool
-        // can have any unexpected side effects during the loan lifecycle
+        // can have any unexpected side effects during the loan lifecycle.
         revert Error.NotImplemented();
     }
 
@@ -225,7 +225,7 @@ contract LendingMarket is
 
         if (_liquidityPoolByCreditLine[creditLine] != address(0)) {
             // TBD Check if updating the liquidity pool associated with the credit line
-            // can have any unexpected side effects during the loan lifecycle
+            // can have any unexpected side effects during the loan lifecycle.
             revert Error.NotImplemented();
         }
 
@@ -243,18 +243,15 @@ contract LendingMarket is
     // -------------------------------------------- //
 
     /// @inheritdoc ILendingMarket
-    function takeLoan(address creditLine, uint256 amount) external whenNotPaused returns (uint256) {
+    function takeLoan(address creditLine, uint256 borrowAmount) external whenNotPaused returns (uint256) {
         if (creditLine == address(0)) {
             revert Error.ZeroAddress();
         }
-        if (amount == 0) {
+        if (borrowAmount == 0) {
             revert Error.InvalidAmount();
         }
 
-        // Get lender
         address lender = _creditLineLenders[creditLine];
-
-        // Get liquidity pool
         address liquidityPool = _liquidityPoolByCreditLine[creditLine];
 
         if (lender == address(0)) {
@@ -264,21 +261,11 @@ contract LendingMarket is
             revert LiquidityPoolNotRegistered();
         }
 
-        // TBD Validate the credit line and the liquidity pool according to the lending market requirements
-
-        // Mint a new NFT token to the lender
         uint256 id = _safeMint(lender);
-
-        // Get the terms of the loan from the credit line
-        Loan.Terms memory terms = ICreditLine(creditLine).onBeforeLoanTaken(msg.sender, amount, id);
-
-        // TBD Validate the terms of the loan according to the lending market requirements
-
-        // Calculate the start date and the total amount of the loan
+        Loan.Terms memory terms = ICreditLine(creditLine).onBeforeLoanTaken(msg.sender, borrowAmount, id);
         uint256 startDate = calculatePeriodDate(block.timestamp, terms.periodInSeconds, 0, 0);
-        uint256 totalAmount = amount + terms.addonAmount;
+        uint256 totalAmount = borrowAmount + terms.addonAmount;
 
-        // Create and store the loan state
         _loans[id] = Loan.State({
             token: terms.token,
             holder: terms.holder,
@@ -297,81 +284,59 @@ contract LendingMarket is
             autoRepayment: terms.autoRepayment
         });
 
-        // Notify the liquidity pool before the loan is taken
         ILiquidityPool(liquidityPool).onBeforeLoanTaken(id, creditLine);
 
-        // Transfer the loan amount to the borrower
-        IERC20(terms.token).safeTransferFrom(liquidityPool, msg.sender, amount);
-
-        // Transfer the addon amount to the addon recipient
+        IERC20(terms.token).safeTransferFrom(liquidityPool, msg.sender, borrowAmount);
         if (terms.addonAmount != 0) {
             IERC20(terms.token).safeTransferFrom(liquidityPool, terms.addonRecipient, terms.addonAmount);
         }
 
-        // Notify the liquidity pool after the loan is taken
         ILiquidityPool(liquidityPool).onAfterLoanTaken(id, creditLine);
 
-        // Emit the event for the loan taken
         emit TakeLoan(id, msg.sender, totalAmount);
 
         return id;
     }
 
     /// @inheritdoc ILendingMarket
-    function repayLoan(uint256 loanId, uint256 amount) external whenNotPaused onlyOngoingLoan(loanId) {
-        if (amount == 0) {
+    function repayLoan(uint256 loanId, uint256 repayAmount) external whenNotPaused onlyOngoingLoan(loanId) {
+        if (repayAmount == 0) {
             revert Error.InvalidAmount();
         }
 
-        // Get lender
-        address lender = ownerOf(loanId);
-
-        // Get stored loan state
         Loan.State storage loan = _loans[loanId];
 
-        // TBD Validate the loan according to the lending market requirements
-
         if (loan.holder.code.length == 0) {
-            // TBD Add support for EOA liquidity pools
+            // TBD Add support for EOA liquidity pools.
             revert Error.NotImplemented();
         }
 
-        // Check for auto repayment
+        (uint256 outstandingBalance, uint256 currentDate) = _outstandingBalance(loan, block.timestamp);
+
+        if (repayAmount == type(uint256).max) {
+            repayAmount = outstandingBalance;
+        } else if (repayAmount > outstandingBalance) {
+            revert Error.InvalidAmount();
+        }
+
         bool autoRepayment = loan.holder == msg.sender;
         address payer = autoRepayment ? loan.borrower : msg.sender;
         if (autoRepayment && !loan.autoRepayment) {
             revert AutoRepaymentNotAllowed();
         }
 
-        // Calculate the outstanding balance
-        (uint256 outstandingBalance, uint256 currentDate) = _outstandingBalance(loan, block.timestamp);
-
-        if (amount == type(uint256).max) {
-            amount = outstandingBalance;
-        } else if (amount > outstandingBalance) {
-            revert Error.InvalidAmount();
-        }
-
-        // Update the loan state
-        outstandingBalance -= amount;
+        outstandingBalance -= repayAmount;
         loan.trackedBorrowAmount = outstandingBalance.toUint64();
         loan.trackedDate = currentDate.toUint32();
 
-        // Notify the liquidity pool before the loan payment
-        ILiquidityPool(loan.holder).onBeforeLoanPayment(loanId, amount);
+        ILiquidityPool(loan.holder).onBeforeLoanPayment(loanId, repayAmount);
+        IERC20(loan.token).transferFrom(payer, loan.holder, repayAmount);
+        ILiquidityPool(loan.holder).onAfterLoanPayment(loanId, repayAmount);
 
-        // Transfer the payment amount from the payer to the liquidity pool
-        IERC20(loan.token).transferFrom(payer, loan.holder, amount);
+        emit RepayLoan(loanId, payer, loan.borrower, repayAmount, outstandingBalance);
 
-        // Notify the liquidity pool after the loan payment
-        ILiquidityPool(loan.holder).onAfterLoanPayment(loanId, amount);
-
-        // Emit the event for the loan payment
-        emit RepayLoan(loanId, payer, loan.borrower, amount, outstandingBalance);
-
-        // Transfer the NFT token to the borrower if the loan is repaid
         if (outstandingBalance == 0) {
-            _safeTransfer(lender, loan.borrower, loanId, "");
+            _safeTransfer(ownerOf(loanId), loan.borrower, loanId, "");
         }
     }
 
@@ -539,11 +504,11 @@ contract LendingMarket is
         return _registry;
     }
 
-    /// @notice Calculates the period date based on the current timestamp
-    /// @param timestamp The timestamp to calculate the period date from
-    /// @param periodInSeconds The duration of the period in seconds
-    /// @param extraPeriods The number of extra periods to add
-    /// @param extraSeconds The number of extra seconds to add
+    /// @notice Calculates the period date based on the current timestamp.
+    /// @param timestamp The timestamp to calculate the period date for.
+    /// @param periodInSeconds The duration of the period in seconds.
+    /// @param extraPeriods The number of extra periods to add.
+    /// @param extraSeconds The number of extra seconds to add.
     function calculatePeriodDate(
         uint256 timestamp,
         uint256 periodInSeconds,
@@ -553,11 +518,11 @@ contract LendingMarket is
         return (timestamp / periodInSeconds) * periodInSeconds + periodInSeconds * extraPeriods + extraSeconds;
     }
 
-    /// @notice Calculates the outstanding balance of a loan
-    /// @param originalBalance The original balance of the loan
-    /// @param numberOfPeriods The number of periods since the loan was taken
-    /// @param interestRate The interest rate of the loan (in basis points)
-    /// @param interestRateFactor The interest rate factor used with interest rate
+    /// @notice Calculates the outstanding balance of a loan.
+    /// @param originalBalance The original balance of the loan.
+    /// @param numberOfPeriods The number of periods since the loan was taken.
+    /// @param interestRate The interest rate of the loan (in basis points).
+    /// @param interestRateFactor The interest rate factor used with interest rate.
     function calculateOutstandingBalance(
         uint256 originalBalance,
         uint256 numberOfPeriods,
@@ -574,7 +539,7 @@ contract LendingMarket is
     //  Internal functions                          //
     // -------------------------------------------- //
 
-    /// @notice Calculates the outstanding balance of a loan and the current date
+    /// @notice Calculates the outstanding balance and the current period date.
     function _outstandingBalance(Loan.State memory loan, uint256 timestamp) internal view returns (uint256, uint256) {
         uint256 outstandingBalance = loan.trackedBorrowAmount;
 
@@ -616,13 +581,13 @@ contract LendingMarket is
         return (outstandingBalance, currentDate);
     }
 
-    /// @notice Calculates the number of moratorium periods of a loan
+    /// @notice Calculates the number of moratorium periods.
     function _moratoriumInPeriods(Loan.State storage loan) internal view returns (uint256) {
         uint256 currentDate = calculatePeriodDate(block.timestamp, loan.periodInSeconds, 0, 0);
         return loan.trackedDate > currentDate ? (loan.trackedDate - currentDate) / loan.periodInSeconds : 0;
     }
 
-    /// @notice Creates a new NFT token and mints it to the lender
+    /// @notice Creates a new NFT token and mints it to the lender.
     function _safeMint(address to) internal returns (uint256) {
         uint256 tokenId = _tokenIdCounter++;
         _safeMint(to, tokenId);
