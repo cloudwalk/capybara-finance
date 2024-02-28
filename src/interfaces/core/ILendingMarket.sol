@@ -172,7 +172,7 @@ interface ILendingMarket {
     function assignLiquidityPoolToCreditLine(address creditLine, address liquidityPool) external;
 
     /// @notice Configures an alias for a lender.
-    /// @param account The address to be configured as an alias.
+    /// @param account The address to configure as an alias.
     /// @param isAlias True if the account is an alias, otherwise false.
     function configureAlias(address account, bool isAlias) external;
 
