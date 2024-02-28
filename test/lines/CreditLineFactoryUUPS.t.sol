@@ -13,7 +13,7 @@ import { Config } from "test/base/Config.sol";
 
 /// @title CreditLineFactoryUUPSTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Contains tests for the `CreditLineFactoryUUPS` contract
+/// @notice Contains tests for the `CreditLineFactoryUUPS` contract.
 contract CreditLineFactoryUUPSTest is Test, Config {
     // -------------------------------------------- //
     //  Events                                      //
@@ -48,7 +48,7 @@ contract CreditLineFactoryUUPSTest is Test, Config {
         proxy.upgradeToAndCall(newImplemetation, "");
     }
 
-    function test_upgradeToAndCall_Revert_IfNotOwner() public {
+    function test_upgradeToAndCall_Revert_IfCallerNotOwner() public {
         address newImplemetation = address(new CreditLineFactoryUUPS());
         vm.prank(ATTACKER);
         vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));

@@ -14,7 +14,7 @@ import { Config } from "test/base/Config.sol";
 
 /// @title LiquidityPoolFactoryTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Contains tests for the `LiquidityPoolFactory` contract
+/// @notice Contains tests for the `LiquidityPoolFactory` contract.
 contract LiquidityPoolFactoryTest is Test, Config {
     // -------------------------------------------- //
     //  Events                                      //
@@ -61,7 +61,7 @@ contract LiquidityPoolFactoryTest is Test, Config {
         factory = new LiquidityPoolFactory();
         factory.initialize(REGISTRY_1);
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        factory.initialize(REGISTRY_1);
+        factory.initialize(REGISTRY_2);
     }
 
     // -------------------------------------------- //

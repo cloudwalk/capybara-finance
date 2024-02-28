@@ -18,7 +18,7 @@ import { Config } from "test/base/Config.sol";
 
 /// @title LendingRegistryTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Contains tests for the `LendingRegistry` contract
+/// @notice Contains tests for the `LendingRegistry` contract.
 contract LendingRegistryTest is Test, Config {
     // -------------------------------------------- //
     //  Events                                      //

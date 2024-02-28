@@ -11,7 +11,7 @@ import { LendingRegistryUUPS } from "src/LendingRegistryUUPS.sol";
 
 /// @title LendingRegistryUUPSTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Contains tests for the `LendingRegistryUUPS` contract
+/// @notice Contains tests for the `LendingRegistryUUPS` contract.
 contract LendingRegistryUUPSTest is Test {
     // -------------------------------------------- //
     //  Events                                      //
@@ -51,7 +51,7 @@ contract LendingRegistryUUPSTest is Test {
         proxy.upgradeToAndCall(newImplemetation, "");
     }
 
-    function test_upgradeToAndCall_Revert_IfNotOwner() public {
+    function test_upgradeToAndCall_Revert_IfCallerNotOwner() public {
         address newImplemetation = address(new LendingRegistryUUPS());
         vm.prank(ATTACKER);
         vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));

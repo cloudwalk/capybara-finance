@@ -14,7 +14,7 @@ import { Config } from "test/base/Config.sol";
 
 /// @title CreditLineFactoryTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Contains tests for the `CreditLineFactory` contract
+/// @notice Contains tests for the `CreditLineFactory` contract.
 contract CreditLineFactoryTest is Test, Config {
     // -------------------------------------------- //
     //  Events                                      //
@@ -61,7 +61,7 @@ contract CreditLineFactoryTest is Test, Config {
         factory = new CreditLineFactory();
         factory.initialize(REGISTRY_1);
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        factory.initialize(REGISTRY_1);
+        factory.initialize(REGISTRY_2);
     }
 
     // -------------------------------------------- //

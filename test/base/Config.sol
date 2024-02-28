@@ -10,7 +10,7 @@ import { ICreditLineConfigurable } from "src/interfaces/ICreditLineConfigurable.
 
 /// @title Config contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Contains common configurations used for testing
+/// @notice Contains common configurations used for testing.
 contract Config {
     using SafeCast for uint256;
 

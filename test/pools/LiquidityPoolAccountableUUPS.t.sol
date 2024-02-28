@@ -13,7 +13,7 @@ import { Config } from "test/base/Config.sol";
 
 /// @title LiquidityPoolAccountableUUPSTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Contains tests for the `LiquidityPoolAccountableUUPS` contract
+/// @notice Contains tests for the `LiquidityPoolAccountableUUPS` contract.
 contract LiquidityPoolAccountableUUPSTest is Test, Config {
     // -------------------------------------------- //
     //  Events                                      //
@@ -48,7 +48,7 @@ contract LiquidityPoolAccountableUUPSTest is Test, Config {
         proxy.upgradeToAndCall(newImplemetation, "");
     }
 
-    function test_upgradeToAndCall_Revert_IfNotOwner() public {
+    function test_upgradeToAndCall_Revert_IfCallerNotOwner() public {
         address newImplemetation = address(new LiquidityPoolAccountableUUPS());
         vm.prank(ATTACKER);
         vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));

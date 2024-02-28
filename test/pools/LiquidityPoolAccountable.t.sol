@@ -20,7 +20,7 @@ import { Config } from "test/base/Config.sol";
 
 /// @title LiquidityPoolAccountableTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Contains tests for the `LiquidityPoolAccountable` contract
+/// @notice Contains tests for the `LiquidityPoolAccountable` contract.
 contract LiquidityPoolAccountableTest is Test, Config {
     // -------------------------------------------- //
     //  Events                                      //

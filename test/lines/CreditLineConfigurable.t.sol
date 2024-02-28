@@ -19,7 +19,7 @@ import { Config } from "test/base/Config.sol";
 
 /// @title CreditLineConfigurableTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Contains tests for the `CreditLineConfigurable` contract
+/// @notice Contains tests for the `CreditLineConfigurable` contract.
 contract CreditLineConfigurableTest is Test, Config {
     using SafeCast for uint256;
 

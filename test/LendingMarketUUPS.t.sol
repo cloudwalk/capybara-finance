@@ -13,7 +13,7 @@ import { Config } from "test/base/Config.sol";
 
 /// @title LendingMarketUUPSTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Contains tests for the `LendingMarketUUPS` contract
+/// @notice Contains tests for the `LendingMarketUUPS` contract.
 contract LendingMarketUUPSTest is Test, Config {
     // -------------------------------------------- //
     //  Events                                      //
@@ -49,7 +49,7 @@ contract LendingMarketUUPSTest is Test, Config {
         proxy.upgradeToAndCall(newImplemetation, "");
     }
 
-    function test_upgradeToAndCall_Revert_IfNotOwner() public {
+    function test_upgradeToAndCall_Revert_IfCallerNotOwner() public {
         address newImplemetation = address(new LendingMarketUUPS());
         vm.prank(ATTACKER);
         vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));

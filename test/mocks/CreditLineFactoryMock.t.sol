@@ -9,7 +9,7 @@ import { CreditLineFactoryMock } from "src/mocks/CreditLineFactoryMock.sol";
 
 /// @title CreditLineFactoryMockTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Contains tests for the `CreditLineFactoryMock` contract
+/// @notice Contains tests for the `CreditLineFactoryMock` contract.
 contract CreditLineFactoryMockTest is Test {
     // -------------------------------------------- //
     //  Events                                      //
