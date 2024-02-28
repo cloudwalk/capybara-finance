@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.24;
 
 import { Test } from "forge-std/Test.sol";
 
@@ -50,7 +50,7 @@ contract LiquidityPoolFactoryMockTest is Test {
 
         vm.expectEmit(true, true, true, true, address(mock));
         emit CreateLiquidityPoolCalled(market, lender, kind, data);
-        assertEq( mock.createLiquidityPool(market, lender, kind, data);, mockedLiquidityPoolAddress);
+        assertEq(mock.createLiquidityPool(market, lender, kind, data), mockedLiquidityPoolAddress);
     }
 
     function test_supportedKinds() public {

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.23;
+pragma solidity 0.8.24;
 
 import { Loan } from "src/libraries/Loan.sol";
 import { Error } from "src/libraries/Error.sol";
