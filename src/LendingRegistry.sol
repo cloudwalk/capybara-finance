@@ -59,7 +59,7 @@ contract LendingRegistry is
         __LendingRegistry_init(market_);
     }
 
-    /// @notice Internal initializer of the upgradable contract.
+    /// @dev Internal initializer of the upgradable contract.
     /// @param market_ The address of the associated lending market.
     function __LendingRegistry_init(address market_) internal onlyInitializing {
         __Ownable_init_unchained(msg.sender);
@@ -67,7 +67,7 @@ contract LendingRegistry is
         __LendingRegistry_init_unchained(market_);
     }
 
-    /// @notice Unchained internal initializer of the upgradable contract.
+    /// @dev Unchained internal initializer of the upgradable contract.
     /// @param market_ The address of the associated lending market.
     function __LendingRegistry_init_unchained(address market_) internal onlyInitializing {
         if (market_ == address(0)) {

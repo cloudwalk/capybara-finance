@@ -30,16 +30,16 @@ contract LiquidityPoolAccountable is
     //  Storage variables                           //
     // -------------------------------------------- //
 
-    /// @notice The address of the associated lending market.
+    /// @dev The address of the associated lending market.
     address internal _market;
 
-    /// @notice The mapping of account to admin status.
+    /// @dev The mapping of account to admin status.
     mapping(address => bool) internal _admins;
 
-    /// @notice The mapping of loan identifier to associated credit line.
+    /// @dev The mapping of loan identifier to associated credit line.
     mapping(uint256 => address) internal _creditLines;
 
-    /// @notice Mapping of credit line address to its token balance.
+    /// @dev Mapping of credit line address to its token balance.
     mapping(address => uint256) internal _creditLineBalances;
 
     // -------------------------------------------- //
@@ -83,7 +83,7 @@ contract LiquidityPoolAccountable is
         __LiquidityPoolAccountable_init(market_, lender_);
     }
 
-    /// @notice Internal initializer of the upgradable contract.
+    /// @dev Internal initializer of the upgradable contract.
     /// @param market_ The address of the associated lending market.
     /// @param lender_ The address of the associated lender.
     function __LiquidityPoolAccountable_init(address market_, address lender_) internal onlyInitializing {
@@ -92,7 +92,7 @@ contract LiquidityPoolAccountable is
         __LiquidityPoolAccountable_init_unchained(market_, lender_);
     }
 
-    /// @notice Unchained internal initializer of the upgradable contract.
+    /// @dev Unchained internal initializer of the upgradable contract.
     /// @param market_ The address of the associated lending market.
     /// @param lender_ The address of the associated lender.
     function __LiquidityPoolAccountable_init_unchained(address market_, address lender_) internal onlyInitializing {

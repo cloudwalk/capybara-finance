@@ -19,7 +19,7 @@ library InterestMath {
     //  Functions                                   //
     // -------------------------------------------- //
 
-    /// @notice Calculates the outstanding loan balance.
+    /// @dev Calculates the outstanding loan balance.
     /// @param originalBalance The balance of the loan at the beginning.
     /// @param numberOfPeriods The number of periods to calculate the outstanding balance.
     /// @param interestRate The interest rate applied to the loan.

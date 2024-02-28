@@ -123,7 +123,7 @@ contract LendingMarket is
         __LendingMarket_init(name_, symbol_);
     }
 
-    /// @notice Internal initializer of the upgradable contract.
+    /// @dev Internal initializer of the upgradable contract.
     /// @param name_ The name of the NFT token that will represent the loans.
     /// @param symbol_ The symbol of the NFT token that will represent the loans.
     function __LendingMarket_init(string memory name_, string memory symbol_) internal onlyInitializing {
@@ -134,7 +134,7 @@ contract LendingMarket is
         __LendingMarket_init_unchained();
     }
 
-    /// @notice Unchained internal initializer of the upgradable contract.
+    /// @dev Unchained internal initializer of the upgradable contract.
     function __LendingMarket_init_unchained() internal onlyInitializing { }
 
     // -------------------------------------------- //
@@ -545,7 +545,7 @@ contract LendingMarket is
     //  Internal functions                          //
     // -------------------------------------------- //
 
-    /// @notice Calculates the outstanding balance of a loan.
+    /// @dev Calculates the outstanding balance of a loan.
     /// @param loan The loan to calculate the outstanding balance for.
     /// @param periodDate The period date to calculate the outstanding balance at.
     /// @return The outstanding balance of the loan at the specified period date.
@@ -598,7 +598,7 @@ contract LendingMarket is
         return outstandingBalance;
     }
 
-    /// @notice Calculates the moratorium periods of a loan.
+    /// @dev Calculates the moratorium periods of a loan.
     /// @param loan The loan to calculate the moratorium periods for.
     /// @param timestamp The timestamp to calculate the moratorium periods at.
     /// @return The number of moratorium periods of the loan at the specified timestamp.
@@ -607,7 +607,7 @@ contract LendingMarket is
         return loan.trackedDate > currentDate ? (loan.trackedDate - currentDate) / loan.periodInSeconds : 0;
     }
 
-    /// @notice Mints a new NFT token.
+    /// @dev Mints a new NFT token.
     /// @param to The address to mint the token to.
     /// @return The unique identifier of the minted token.
     function _safeMint(address to) internal returns (uint256) {

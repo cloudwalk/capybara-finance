@@ -21,19 +21,19 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     //  Storage variables                           //
     // -------------------------------------------- //
 
-    /// @notice The address of the associated lending market.
+    /// @dev The address of the associated lending market.
     address internal _market;
 
-    /// @notice The address of the associated token.
+    /// @dev The address of the associated token.
     address internal _token;
 
-    /// @notice The credit line configuration.
+    /// @dev The credit line configuration.
     CreditLineConfig internal _config;
 
-    /// @notice The mapping of account to admin status.
+    /// @dev The mapping of account to admin status.
     mapping(address => bool) internal _admins;
 
-    /// @notice The mapping of borrower to its configuration.
+    /// @dev The mapping of borrower to its configuration.
     mapping(address => BorrowerConfig) internal _borrowers;
 
     // -------------------------------------------- //
@@ -84,7 +84,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         __CreditLineConfigurable_init(market_, lender_, token_);
     }
 
-    /// @notice Internal initializer of the upgradable contract.
+    /// @dev Internal initializer of the upgradable contract.
     /// @param market_ The address of the associated lending market.
     /// @param lender_ The address of the associated lender.
     /// @param token_ The address of the associated token.
@@ -98,7 +98,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         __CreditLineConfigurable_init_unchained(market_, lender_, token_);
     }
 
-    /// @notice Unchained internal initializer of the upgradable contract.
+    /// @dev Unchained internal initializer of the upgradable contract.
     /// @param market_ The address of the associated lending market.
     /// @param lender_ The address of the associated lender.
     /// @param token_ The address of the associated token.
@@ -323,7 +323,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     //  Internal functions                          //
     // -------------------------------------------- //
 
-    /// @notice Updates the borrower configuration.
+    /// @dev Updates the borrower configuration.
     /// @param borrower The address of the borrower to configure.
     /// @param config The new borrower configuration to be applied.
     function _configureBorrower(address borrower, BorrowerConfig memory config) internal {

@@ -30,14 +30,14 @@ contract LiquidityPoolFactory is OwnableUpgradeable, ILiquidityPoolFactory {
         __LiquidityPoolFactory_init(registry_);
     }
 
-    /// @notice Internal initializer of the upgradable contract.
+    /// @dev Internal initializer of the upgradable contract.
     /// @param registry_ The address of the associated lending market.
     function __LiquidityPoolFactory_init(address registry_) internal onlyInitializing {
         __Ownable_init_unchained(registry_);
         __LiquidityPoolFactory_init_unchained();
     }
 
-    /// @notice Unchained internal initializer of the upgradable contract.
+    /// @dev Unchained internal initializer of the upgradable contract.
     function __LiquidityPoolFactory_init_unchained() internal onlyInitializing { }
 
     // -------------------------------------------- //

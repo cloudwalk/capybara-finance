@@ -10,13 +10,13 @@ abstract contract LendingRegistryStorage {
     //  Storage variables                           //
     // -------------------------------------------- //
 
-    /// @notice The address of the lending market.
+    /// @dev The address of the lending market.
     address internal _market;
 
-    /// @notice The address of the credit line factory.
+    /// @dev The address of the credit line factory.
     address internal _creditLineFactory;
 
-    /// @notice The address of the liquidity pool factory.
+    /// @dev The address of the liquidity pool factory.
     address internal _liquidityPoolFactory;
 
     /// @dev This empty reserved space is put in place to allow future versions
