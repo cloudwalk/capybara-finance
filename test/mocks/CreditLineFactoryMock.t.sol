@@ -38,23 +38,22 @@ contract CreditLineFactoryMockTest is Test {
     // -------------------------------------------- //
 
     function test_createCreditLine() public {
-        address creditLine = address(0x0);
-        address market = address(0x1);
-        address lender = address(0x2);
-        address token = address(0x3);
+        address market = address(1);
+        address lender = address(2);
+        address token = address(3);
         uint16 kind = 1;
         bytes memory data = "data";
 
         vm.expectEmit(true, true, true, true, address(mock));
         emit CreateCreditLineCalled(market, lender, token, kind, data);
-        creditLine = mock.createCreditLine(market, lender, token, kind, data);
-        assertEq(creditLine, address(0x0));
+        assertEq(mock.createCreditLine(market, lender, token, kind, data), address(0));
 
-        mock.mockCreatedCreditLineAddress(address(0x4));
+        address mockedCreditLineAddress = address(4);
+        mock.mockCreatedCreditLineAddress(mockedCreditLineAddress);
+
         vm.expectEmit(true, true, true, true, address(mock));
         emit CreateCreditLineCalled(market, lender, token, kind, data);
-        creditLine = mock.createCreditLine(market, lender, token, kind, data);
-        assertEq(creditLine, address(0x4));
+        assertEq(mock.createCreditLine(market, lender, token, kind, data), mockedCreditLineAddress);
     }
 
     function test_supportedKinds() public {

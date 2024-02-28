@@ -36,22 +36,21 @@ contract LiquidityPoolFactoryMockTest is Test {
     // -------------------------------------------- //
 
     function test_createLiquidityPool() public {
-        address LiquidityPool = address(0x0);
-        address market = address(0x1);
-        address lender = address(0x2);
+        address market = address(1);
+        address lender = address(2);
         uint16 kind = 1;
         bytes memory data = "data";
 
         vm.expectEmit(true, true, true, true, address(mock));
         emit CreateLiquidityPoolCalled(market, lender, kind, data);
-        LiquidityPool = mock.createLiquidityPool(market, lender, kind, data);
-        assertEq(LiquidityPool, address(0x0));
+        assertEq(mock.createLiquidityPool(market, lender, kind, data), address(0));
 
-        mock.mockCreatedLiquidityPoolAddress(address(0x3));
+        address mockedLiquidityPoolAddress = address(3);
+        mock.mockCreatedLiquidityPoolAddress(mockedLiquidityPoolAddress);
+
         vm.expectEmit(true, true, true, true, address(mock));
         emit CreateLiquidityPoolCalled(market, lender, kind, data);
-        LiquidityPool = mock.createLiquidityPool(market, lender, kind, data);
-        assertEq(LiquidityPool, address(0x3));
+        assertEq( mock.createLiquidityPool(market, lender, kind, data);, mockedLiquidityPoolAddress);
     }
 
     function test_supportedKinds() public {
