@@ -228,7 +228,97 @@ contract LendingMarketComplexTest is Test {
         takeLoanAndVerifyCalculations(loan);
     }
 
+    function test_repayLoan_Case9() public {
+        ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_9();
+        takeLoanAndVerifyCalculations(loan);
+    }
 
+    function test_repayLoan_Case10() public {
+        ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_10();
+        takeLoanAndVerifyCalculations(loan);
+    }
+
+    function test_repayLoan_Case11() public {
+        ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_11();
+        takeLoanAndVerifyCalculations(loan);
+    }
+
+    function test_repayLoan_Case12() public {
+        ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_12();
+        takeLoanAndVerifyCalculations(loan);
+    }
+
+    function test_repayLoan_Case13() public {
+        ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_13();
+        takeLoanAndVerifyCalculations(loan);
+    }
+
+    function test_repayLoan_Case14() public {
+        ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_14();
+        takeLoanAndVerifyCalculations(loan);
+    }
+
+    function test_repayLoan_Case15() public {
+        ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_15();
+        takeLoanAndVerifyCalculations(loan);
+    }
+
+    function test_repayLoan_Case16() public {
+        ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_16();
+        takeLoanAndVerifyCalculations(loan);
+    }
+
+    function test_repayLoan_Case17() public {
+        ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_17();
+        takeLoanAndVerifyCalculations(loan);
+    }
+        function test_repayLoan_Case18() public {
+        ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_18();
+        takeLoanAndVerifyCalculations(loan);
+    }
+    function test_repayLoan_Case19() public {
+        ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_19();
+        takeLoanAndVerifyCalculations(loan);
+    }
+    function test_repayLoan_Case20() public {
+        ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_20();
+        takeLoanAndVerifyCalculations(loan);
+    }
+
+    function test_repayLoan_Case21() public {
+        ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_21();
+        takeLoanAndVerifyCalculations(loan);
+    }
+
+    function test_repayLoan_Case22() public {
+        ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_22();
+        takeLoanAndVerifyCalculations(loan);
+    }
+
+    function test_repayLoan_Case23() public {
+        ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_23();
+        takeLoanAndVerifyCalculations(loan);
+    }
+    function test_repayLoan_Case24() public {
+        ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_24();
+        takeLoanAndVerifyCalculations(loan);
+    }
+        function test_repayLoan_Case25() public {
+        ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_25();
+        takeLoanAndVerifyCalculations(loan);
+    }
+    function test_repayLoan_Case26() public {
+        ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_26();
+        takeLoanAndVerifyCalculations(loan);
+    }
+    function test_repayLoan_Case27() public {
+        ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_27();
+        takeLoanAndVerifyCalculations(loan);
+    }
+    function test_repayLoan_Case28() public {
+        ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_28();
+        takeLoanAndVerifyCalculations(loan);
+    }
     function takeLoanAndVerifyCalculations(ComplexScenarios.LoanParameters memory loan) public {
         configureLendingMarketForComplexTests(loan);
         uint256 loanId = takeLoan(BORROWER, loan.borrowAmount);
@@ -250,8 +340,8 @@ contract LendingMarketComplexTest is Test {
     }
 
     function removeDecimals(uint256 tokenDecimals, uint256 contractValue, uint256 expectedValue) public returns (uint256, uint256) {
-        uint256 roundedContractValue = contractValue / 10 ** tokenDecimals;
-        uint256 roundedExpectedValue = expectedValue / 10 ** tokenDecimals;
+        uint256 roundedContractValue = contractValue / 10 ** (tokenDecimals - 2);
+        uint256 roundedExpectedValue = expectedValue / 10 ** (tokenDecimals - 2);
         return (roundedContractValue, roundedExpectedValue);
     }
 
