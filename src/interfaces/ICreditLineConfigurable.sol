@@ -46,7 +46,7 @@ interface ICreditLineConfigurable {
     /// @notice A struct that defines credit line configuration.
     struct CreditLineConfig {
         // Slot 1
-        address addonRecipient;          // The address of addon payments recipient.
+        address holder;                  // The address of the loan holder.
         uint32 periodInSeconds;          // The duration of the loan period determined in seconds.
         uint32 minDurationInPeriods;     // The minimum duration of the loan determined in periods.
         uint32 maxDurationInPeriods;     // The maximum duration of the loan determined in periods.
@@ -59,6 +59,7 @@ interface ICreditLineConfigurable {
         uint32 maxInterestRateSecondary; // The maximum secondary interest rate to be applied to the loan.
         // Slot 3
         uint32 interestRateFactor;       // The interest rate factor used for interest calculation.
+        address addonRecipient;          // The address of addon payments recipient.
     }
 
     /// @notice A struct that defines borrower configuration.

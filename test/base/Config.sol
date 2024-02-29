@@ -98,7 +98,8 @@ contract Config {
             maxInterestRatePrimary: INIT_CREDIT_LINE_MAX_INTEREST_RATE_PRIMARY,
             minInterestRateSecondary: INIT_CREDIT_LINE_MIN_INTEREST_RATE_SECONDARY,
             maxInterestRateSecondary: INIT_CREDIT_LINE_MAX_INTEREST_RATE_SECONDARY,
-            addonRecipient: ADDON_RECIPIENT
+            addonRecipient: ADDON_RECIPIENT,
+            holder: LIQUIDITY_POOL_1
         });
     }
 
