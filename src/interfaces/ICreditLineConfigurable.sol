@@ -60,17 +60,22 @@ interface ICreditLineConfigurable {
         // Slot 3
         uint32 interestRateFactor;       // The interest rate factor used for interest calculation.
         address addonRecipient;          // The address of addon payments recipient.
+        uint32 minAddonFixedCostRate;    // The minimum addon fixed cost rate to be applied to the loan.
+        uint32 maxAddonFixedCostRate;    // The maximum addon fixed cost rate to be applied to the loan.
+        // Slot 4
+        uint32 minAddonPeriodCostRate;   // The minimum addon period cost rate to be applied to the loan.
+        uint32 maxAddonPeriodCostRate;   // The minimum addon period cost rate to be applied to the loan.
     }
 
     /// @notice A struct that defines borrower configuration.
     struct BorrowerConfig {
         // Slot 1
         uint32 expiration;                // The expiration date of the configuration.
+        uint64 minBorrowAmount;           // The minimum amount of tokens the borrower can take as a loan.
+        uint64 maxBorrowAmount;           // The maximum amount of tokens the borrower can take as a loan.
         uint32 durationInPeriods;         // The initial loan duration determined in periods.
         uint32 interestRatePrimary;       // The primary interest rate to be applied to the loan.
         uint32 interestRateSecondary;     // The secondary interest rate to be applied to the loan.
-        uint64 minBorrowAmount;           // The minimum amount of tokens the borrower can take as a loan.
-        uint64 maxBorrowAmount;           // The maximum amount of tokens the borrower can take as a loan.
         // Slot 2
         uint32 addonFixedCostRate;        // The fixed cost rate to be used for addon payment calculation.
         uint32 addonPeriodCostRate;       // The period cost rate to be used for addon payment calculation.

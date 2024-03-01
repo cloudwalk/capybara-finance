@@ -35,9 +35,9 @@ library Loan {
     struct Terms {
         // Slot 1
         address token;                    // The address of the token to be used in the loan.
-        uint32 interestRateFactor;        // The rate factor used together with interest rate.
         uint32 interestRatePrimary;       // The primary interest rate to be applied to the loan.
         uint32 interestRateSecondary;     // The secondary interest rate to be applied to the loan.
+        uint32 interestRateFactor;        // The rate factor used together with interest rate.
         // Slot 2
         address holder;                   // The address of the loan holder.
         uint32 periodInSeconds;           // The duration of the loan period specified in seconds.

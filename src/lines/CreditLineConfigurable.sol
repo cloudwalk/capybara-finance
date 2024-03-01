@@ -171,6 +171,12 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         if (config.minInterestRateSecondary > config.maxInterestRateSecondary) {
             revert InvalidCreditLineConfiguration();
         }
+        if (config.minAddonFixedCostRate > config.maxAddonFixedCostRate) {
+            revert InvalidCreditLineConfiguration();
+        }
+        if (config.minAddonPeriodCostRate > config.maxAddonPeriodCostRate) {
+            revert InvalidCreditLineConfiguration();
+        }
 
         _config = config;
 
@@ -363,6 +369,18 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
             revert InvalidBorrowerConfiguration();
         }
         if (config.interestRateSecondary > _config.maxInterestRateSecondary) {
+            revert InvalidBorrowerConfiguration();
+        }
+        if (config.addonFixedCostRate < _config.minAddonFixedCostRate) {
+            revert InvalidBorrowerConfiguration();
+        }
+        if (config.addonFixedCostRate > _config.maxAddonFixedCostRate) {
+            revert InvalidBorrowerConfiguration();
+        }
+        if (config.addonPeriodCostRate < _config.minAddonPeriodCostRate) {
+            revert InvalidBorrowerConfiguration();
+        }
+        if (config.addonPeriodCostRate > _config.maxAddonPeriodCostRate) {
             revert InvalidBorrowerConfiguration();
         }
 
