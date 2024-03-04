@@ -44,7 +44,7 @@ contract LiquidityPoolAccountableTest is Test {
     address public constant ADMIN = address(bytes20(keccak256("admin")));
     address public constant LENDER = address(bytes20(keccak256("lender")));
     address public constant ATTACKER = address(bytes20(keccak256("attacker")));
-    address public constant NONEXISTENT_TOKEN_SOURCE = address(bytes20(keccak256("nonexistent_token_source")));
+    address public constant TOKEN_SOURCE_NONEXISTENT = address(bytes20(keccak256("token_source_nonexistent")));
 
     uint256 public constant LOAN_ID_1 = 1;
     uint256 public constant LOAN_ID_2 = 2;
@@ -547,7 +547,7 @@ contract LiquidityPoolAccountableTest is Test {
     function test_getTokenBalance() public {
         assertEq(liquidityPool.getTokenBalance(address(creditLine)), 0);
         assertEq(liquidityPool.getTokenBalance(address(token)), 0);
-        assertEq(liquidityPool.getTokenBalance(NONEXISTENT_TOKEN_SOURCE), 0);
+        assertEq(liquidityPool.getTokenBalance(TOKEN_SOURCE_NONEXISTENT), 0);
 
         vm.startPrank(LENDER);
         token.mint(LENDER, DEPOSIT_AMOUNT_1 + 1);
@@ -557,7 +557,7 @@ contract LiquidityPoolAccountableTest is Test {
 
         assertEq(liquidityPool.getTokenBalance(address(creditLine)), DEPOSIT_AMOUNT_1 + 1);
         assertEq(liquidityPool.getTokenBalance(address(token)), DEPOSIT_AMOUNT_1 * 2 + 3);
-        assertEq(liquidityPool.getTokenBalance(NONEXISTENT_TOKEN_SOURCE), 0);
+        assertEq(liquidityPool.getTokenBalance(TOKEN_SOURCE_NONEXISTENT), 0);
     }
 
     function test_getCreditLine() public {
