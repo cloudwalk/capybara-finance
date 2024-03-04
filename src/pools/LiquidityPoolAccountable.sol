@@ -187,7 +187,7 @@ contract LiquidityPoolAccountable is
             IERC20(tokenSource).safeTransfer(msg.sender, amount);
             emit Withdraw(tokenSource, amount);
             return;
-        } else { }
+        }
 
         // Revert with zero balance error
         revert ZeroBalance();
