@@ -55,26 +55,33 @@ contract LendingMarketComplexTest is Test {
     uint32 public constant BASE_BLOCKTIMESTAMP = 1337;
     uint256 public constant ZERO_VALUE = 0;
 
-    address public constant BORROWER = address(bytes20(keccak256("borrower")));
     address public constant LENDER = address(bytes20(keccak256("lender")));
+    address public constant BORROWER = address(bytes20(keccak256("borrower")));
+    address public constant LOAN_HOLDER = address(bytes20(keccak256("loan_holder")));
     address public constant ADDON_RECIPIENT = address(bytes20(keccak256("addon_recipient")));
 
-    uint64 public constant INIT_CREDIT_LINE_MIN_BORROW_AMOUNT = 0;
-    uint64 public constant INIT_CREDIT_LINE_MAX_BORROW_AMOUNT = type(uint64).max;
-    uint32 public constant INIT_CREDIT_LINE_MIN_INTEREST_RATE_PRIMARY = 0;
-    uint32 public constant INIT_CREDIT_LINE_MAX_INTEREST_RATE_PRIMARY = type(uint32).max;
-    uint32 public constant INIT_CREDIT_LINE_MIN_INTEREST_RATE_SECONDARY = 0;
-    uint32 public constant INIT_CREDIT_LINE_MAX_INTEREST_RATE_SECONDARY = type(uint32).max;
-    uint32 public constant INIT_CREDIT_LINE_MIN_DURATION_IN_PERIODS = 0;
-    uint32 public constant INIT_CREDIT_LINE_MAX_DURATION_IN_PERIODS = type(uint32).max;
+    uint64 public constant CREDIT_LINE_CONFIG_MIN_BORROW_AMOUNT = 0;
+    uint64 public constant CREDIT_LINE_CONFIG_MAX_BORROW_AMOUNT = type(uint64).max;
+    uint32 public constant CREDIT_LINE_CONFIG_MIN_INTEREST_RATE_PRIMARY = 0;
+    uint32 public constant CREDIT_LINE_CONFIG_MAX_INTEREST_RATE_PRIMARY = type(uint32).max;
+    uint32 public constant CREDIT_LINE_CONFIG_MIN_INTEREST_RATE_SECONDARY = 0;
+    uint32 public constant CREDIT_LINE_CONFIG_MAX_INTEREST_RATE_SECONDARY = type(uint32).max;
+    uint32 public constant CREDIT_LINE_CONFIG_MIN_DURATION_IN_PERIODS = 0;
+    uint32 public constant CREDIT_LINE_CONFIG_MAX_DURATION_IN_PERIODS = type(uint32).max;
+    uint32 public constant CREDIT_LINE_CONFIG_MIN_ADDON_PERIOD_COST_RATE = 0;
+    uint32 public constant CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_COST_RATE = type(uint32).max;
+    uint32 public constant CREDIT_LINE_CONFIG_MIN_ADDON_FIXED_COST_RATE = 0;
+    uint32 public constant CREDIT_LINE_CONFIG_MAX_ADDON_FIXED_COST_RATE = type(uint32).max;
 
-    uint32 public constant INIT_BORROWER_DURATION = 1000;
-    uint64 public constant INIT_BORROWER_MIN_BORROW_AMOUNT = 0;
-    uint64 public constant INIT_BORROWER_MAX_BORROW_AMOUNT = type(uint64).max;
-    ICreditLineConfigurable.BorrowPolicy public constant INIT_BORROWER_POLICY =
+    uint32 public constant BORROWER_CONFIG_DURATION = 1000;
+    uint64 public constant BORROWER_CONFIG_MIN_BORROW_AMOUNT = 0;
+    uint64 public constant BORROWER_CONFIG_MAX_BORROW_AMOUNT = type(uint64).max;
+    ICreditLineConfigurable.BorrowPolicy public constant BORROWER_CONFIG_BORROW_POLICY_KEEP =
     ICreditLineConfigurable.BorrowPolicy.Keep;
-    Interest.Formula public constant INIT_BORROWER_INTEREST_FORMULA_COMPOUND =
+    Interest.Formula public constant BORROWER_CONFIG_INTEREST_FORMULA_COMPOUND =
     Interest.Formula.Compound;
+
+    bool public constant BORROWER_CONFIG_AUTOREPAYMENT = false;
 
     /************************************************
      *  Setup and configuration
@@ -124,7 +131,7 @@ contract LendingMarketComplexTest is Test {
         //Configure Borrower
         vm.startPrank(ADMIN);
         borrowerConfig = createBorrowerConfig(loan);
-        borrowerConfig.interestFormula = INIT_BORROWER_INTEREST_FORMULA_COMPOUND;
+        borrowerConfig.interestFormula = BORROWER_CONFIG_INTEREST_FORMULA_COMPOUND;
         creditLine.configureBorrower(BORROWER, borrowerConfig);
         vm.stopPrank();
         //configure liquidityPool
@@ -135,7 +142,7 @@ contract LendingMarketComplexTest is Test {
     }
 
     function configureToken(uint8 decimals) public {
-        token = new ERC20Mock(TOKEN_AMOUNT, decimals);
+        token = new ERC20Mock(TOKEN_AMOUNT);
     }
 
     function configureLiquidityPool() public {
@@ -158,33 +165,38 @@ contract LendingMarketComplexTest is Test {
 
     function createBorrowerConfig(ComplexScenarios.LoanParameters memory loan) public view returns (ICreditLineConfigurable.BorrowerConfig memory) {
         return ICreditLineConfigurable.BorrowerConfig({
+            expiration: BASE_BLOCKTIMESTAMP + BORROWER_CONFIG_DURATION,
+            minBorrowAmount: BORROWER_CONFIG_MIN_BORROW_AMOUNT,
+            maxBorrowAmount: BORROWER_CONFIG_MAX_BORROW_AMOUNT,
             durationInPeriods: loan.durationInPeriods,
-            expiration: BASE_BLOCKTIMESTAMP + INIT_BORROWER_DURATION,
-            minBorrowAmount: INIT_BORROWER_MIN_BORROW_AMOUNT,
-            maxBorrowAmount: INIT_BORROWER_MAX_BORROW_AMOUNT,
             interestRatePrimary: loan.interestRatePrimary,
             interestRateSecondary: loan.interestRateSecondary,
+            addonFixedCostRate: loan.addonFixedCostRate,
+            addonPeriodCostRate: loan.addonPeriodCostRate,
             interestFormula: loan.interestFormula,
-            addonRecipient: loan.addonRecipient,
-            borrowPolicy: INIT_BORROWER_POLICY,
-            autoRepayment: false
+            borrowPolicy: BORROWER_CONFIG_BORROW_POLICY_KEEP,
+            autoRepayment: BORROWER_CONFIG_AUTOREPAYMENT
         });
     }
 
     function createCreditLineConfig(ComplexScenarios.LoanParameters memory loan) public pure returns (ICreditLineConfigurable.CreditLineConfig memory) {
         return ICreditLineConfigurable.CreditLineConfig({
+            holder: LOAN_HOLDER,
             periodInSeconds: loan.periodInSeconds,
-            minDurationInPeriods: INIT_CREDIT_LINE_MIN_DURATION_IN_PERIODS,
-            maxDurationInPeriods: INIT_CREDIT_LINE_MAX_DURATION_IN_PERIODS,
-            minBorrowAmount: INIT_CREDIT_LINE_MIN_BORROW_AMOUNT,
-            maxBorrowAmount: INIT_CREDIT_LINE_MAX_BORROW_AMOUNT,
+            minDurationInPeriods: CREDIT_LINE_CONFIG_MIN_DURATION_IN_PERIODS,
+            maxDurationInPeriods: CREDIT_LINE_CONFIG_MAX_DURATION_IN_PERIODS,
+            minBorrowAmount: CREDIT_LINE_CONFIG_MIN_BORROW_AMOUNT,
+            maxBorrowAmount: CREDIT_LINE_CONFIG_MAX_BORROW_AMOUNT,
+            minInterestRatePrimary: CREDIT_LINE_CONFIG_MIN_INTEREST_RATE_PRIMARY,
+            maxInterestRatePrimary: CREDIT_LINE_CONFIG_MAX_INTEREST_RATE_PRIMARY,
+            minInterestRateSecondary: CREDIT_LINE_CONFIG_MIN_INTEREST_RATE_SECONDARY,
+            maxInterestRateSecondary: CREDIT_LINE_CONFIG_MAX_INTEREST_RATE_SECONDARY,
             interestRateFactor: loan.interestRateFactor,
-            minInterestRatePrimary: INIT_CREDIT_LINE_MIN_INTEREST_RATE_PRIMARY,
-            maxInterestRatePrimary: INIT_CREDIT_LINE_MAX_INTEREST_RATE_PRIMARY,
-            minInterestRateSecondary: INIT_CREDIT_LINE_MIN_INTEREST_RATE_SECONDARY,
-            maxInterestRateSecondary: INIT_CREDIT_LINE_MAX_INTEREST_RATE_SECONDARY,
-            addonPeriodCostRate: loan.addonPeriodCostRate,
-            addonFixedCostRate: loan.addonFixedCostRate
+            addonRecipient: loan.addonRecipient,
+            minAddonFixedCostRate: CREDIT_LINE_CONFIG_MIN_ADDON_FIXED_COST_RATE,
+            maxAddonFixedCostRate: CREDIT_LINE_CONFIG_MAX_ADDON_FIXED_COST_RATE,
+            minAddonPeriodCostRate: CREDIT_LINE_CONFIG_MIN_ADDON_PERIOD_COST_RATE,
+            maxAddonPeriodCostRate: CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_COST_RATE
         });
     }
 
@@ -323,7 +335,7 @@ contract LendingMarketComplexTest is Test {
         configureLendingMarketForComplexTests(loan);
         uint256 loanId = takeLoan(BORROWER, loan.borrowAmount);
         for (uint256 i = 0; i < loan.expectedOutstandingBalances.length; i++) {
-            (uint256 contractBalanceWithDecimals,) = lendingMarket.getLoanBalance(loanId, 0);
+            uint256 contractBalanceWithDecimals = lendingMarket.getLoanPreview(loanId, 0).outstandingBalance;
             (uint256 contractBalance, uint256 expectedBalance) = removeDecimals(loan.tokenDecimals, contractBalanceWithDecimals, loan.expectedOutstandingBalances[i]);
             (uint256 diff, uint256 percent) = getDiff(contractBalance, expectedBalance);
             if (diff == 0) {
