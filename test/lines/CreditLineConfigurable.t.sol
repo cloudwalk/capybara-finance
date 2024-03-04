@@ -8,10 +8,11 @@ import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/I
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
-import { SafeCast } from "src/libraries/SafeCast.sol";
 import { Loan } from "src/libraries/Loan.sol";
 import { Error } from "src/libraries/Error.sol";
 import { Interest } from "src/libraries/Interest.sol";
+import { SafeCast } from "src/libraries/SafeCast.sol";
+
 import { ICreditLineConfigurable } from "src/interfaces/ICreditLineConfigurable.sol";
 import { CreditLineConfigurable } from "src/lines/CreditLineConfigurable.sol";
 
@@ -28,9 +29,7 @@ contract CreditLineConfigurableTest is Test {
     event ConfigureAdmin(address indexed admin, bool adminStatus);
     event TokenConfigured(address creditLine, address indexed token);
     event ConfigureCreditLine(address indexed creditLine, ICreditLineConfigurable.CreditLineConfig config);
-    event ConfigureBorrower(
-        address indexed creditLine, address indexed borrower, ICreditLineConfigurable.BorrowerConfig config
-    );
+    event ConfigureBorrower(address indexed creditLine, address indexed borrower, ICreditLineConfigurable.BorrowerConfig config);
 
     // -------------------------------------------- //
     //  Storage variables                           //
@@ -45,43 +44,41 @@ contract CreditLineConfigurableTest is Test {
     address public constant LENDER_1 = address(bytes20(keccak256("lender_1")));
     address public constant LENDER_2 = address(bytes20(keccak256("lender_2")));
     address public constant ATTACKER = address(bytes20(keccak256("attacker")));
-    uint16 public constant KIND_1 = 1;
-
     address public constant BORROWER_1 = address(bytes20(keccak256("borrower_1")));
     address public constant BORROWER_2 = address(bytes20(keccak256("borrower_2")));
     address public constant BORROWER_3 = address(bytes20(keccak256("borrower_3")));
+    address public constant LOAN_HOLDER = address(bytes20(keccak256("loan_holder")));
+    address public constant ADDON_RECIPIENT = address(bytes20(keccak256("addon_recipient")));
 
-    address private constant ADDON_RECIPIENT = address(bytes20(keccak256("recipient")));
-    address private constant LOAN_HOLDER = address(bytes20(keccak256("loan_holder")));
-
-    uint64 private constant CREDIT_LINE_CONFIG_MIN_BORROW_AMOUNT = 400;
-    uint64 private constant CREDIT_LINE_CONFIG_MAX_BORROW_AMOUNT = 900;
-    uint32 private constant CREDIT_LINE_CONFIG_MIN_INTEREST_RATE_PRIMARY = 3;
-    uint32 private constant CREDIT_LINE_CONFIG_MAX_INTEREST_RATE_PRIMARY = 7;
-    uint32 private constant CREDIT_LINE_CONFIG_MIN_INTEREST_RATE_SECONDARY = 4;
-    uint32 private constant CREDIT_LINE_CONFIG_MAX_INTEREST_RATE_SECONDARY = 8;
-    uint32 private constant CREDIT_LINE_CONFIG_INTEREST_RATE_FACTOR = 1000;
+    uint64 public constant CREDIT_LINE_CONFIG_MIN_BORROW_AMOUNT = 400;
+    uint64 public constant CREDIT_LINE_CONFIG_MAX_BORROW_AMOUNT = 900;
+    uint32 public constant CREDIT_LINE_CONFIG_MIN_INTEREST_RATE_PRIMARY = 3;
+    uint32 public constant CREDIT_LINE_CONFIG_MAX_INTEREST_RATE_PRIMARY = 7;
+    uint32 public constant CREDIT_LINE_CONFIG_MIN_INTEREST_RATE_SECONDARY = 4;
+    uint32 public constant CREDIT_LINE_CONFIG_MAX_INTEREST_RATE_SECONDARY = 8;
+    uint32 public constant CREDIT_LINE_CONFIG_INTEREST_RATE_FACTOR = 1000;
     uint32 public constant CREDIT_LINE_CONFIG_PERIOD_IN_SECONDS = 600;
-    uint32 private constant CREDIT_LINE_CONFIG_MIN_DURATION_IN_PERIODS = 50;
-    uint32 private constant CREDIT_LINE_CONFIG_MAX_DURATION_IN_PERIODS = 200;
-    uint32 private constant CREDIT_LINE_CONFIG_MIN_ADDON_FIXED_COST_RATE = 10;
-    uint32 private constant CREDIT_LINE_CONFIG_MAX_ADDON_FIXED_COST_RATE = 50;
-    uint32 private constant CREDIT_LINE_CONFIG_MIN_ADDON_PERIOD_COST_RATE = 10;
-    uint32 private constant CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_COST_RATE = 50;
+    uint32 public constant CREDIT_LINE_CONFIG_MIN_DURATION_IN_PERIODS = 50;
+    uint32 public constant CREDIT_LINE_CONFIG_MAX_DURATION_IN_PERIODS = 200;
+    uint32 public constant CREDIT_LINE_CONFIG_MIN_ADDON_FIXED_COST_RATE = 10;
+    uint32 public constant CREDIT_LINE_CONFIG_MAX_ADDON_FIXED_COST_RATE = 50;
+    uint32 public constant CREDIT_LINE_CONFIG_MIN_ADDON_PERIOD_COST_RATE = 10;
+    uint32 public constant CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_COST_RATE = 50;
 
-    uint32 private constant BORROWER_CONFIG_ADDON_FIXED_COST_RATE = 15;
-    uint32 private constant BORROWER_CONFIG_ADDON_PERIOD_COST_RATE = 20;
-    uint32 private constant BORROWER_CONFIG_DURATION_IN_PERIODS = 100;
-    uint32 private constant BORROWER_CONFIG_DURATION = 1000;
-    uint64 private constant BORROWER_CONFIG_MIN_BORROW_AMOUNT = 500;
-    uint64 private constant BORROWER_CONFIG_MAX_BORROW_AMOUNT = 800;
-    uint32 private constant BORROWER_CONFIG_INTEREST_RATE_PRIMARY = 5;
-    uint32 private constant BORROWER_CONFIG_INTEREST_RATE_SECONDARY = 6;
-    bool private constant BORROWER_CONFIG_AUTOREPAYMENT = true;
-    Interest.Formula private constant BORROWER_CONFIG_INTEREST_FORMULA = Interest.Formula.Simple;
-    Interest.Formula private constant BORROWER_CONFIG_INTEREST_FORMULA_COMPOUND = Interest.Formula.Compound;
-    ICreditLineConfigurable.BorrowPolicy private constant BORROWER_CONFIG_POLICY =
+    uint32 public constant BORROWER_CONFIG_ADDON_FIXED_COST_RATE = 15;
+    uint32 public constant BORROWER_CONFIG_ADDON_PERIOD_COST_RATE = 20;
+    uint32 public constant BORROWER_CONFIG_DURATION_IN_PERIODS = 100;
+    uint32 public constant BORROWER_CONFIG_DURATION = 1000;
+    uint64 public constant BORROWER_CONFIG_MIN_BORROW_AMOUNT = 500;
+    uint64 public constant BORROWER_CONFIG_MAX_BORROW_AMOUNT = 800;
+    uint32 public constant BORROWER_CONFIG_INTEREST_RATE_PRIMARY = 5;
+    uint32 public constant BORROWER_CONFIG_INTEREST_RATE_SECONDARY = 6;
+    bool public constant BORROWER_CONFIG_AUTOREPAYMENT = true;
+    Interest.Formula public constant BORROWER_CONFIG_INTEREST_FORMULA_COMPOUND = Interest.Formula.Compound;
+    ICreditLineConfigurable.BorrowPolicy public constant BORROWER_CONFIG_BORROW_POLICY_DECREASE =
         ICreditLineConfigurable.BorrowPolicy.Decrease;
+
+    uint16 public constant KIND_1 = 1;
 
     // -------------------------------------------- //
     //  Setup and configuration                     //
@@ -202,7 +199,7 @@ contract CreditLineConfigurableTest is Test {
             addonFixedCostRate: BORROWER_CONFIG_ADDON_FIXED_COST_RATE,
             addonPeriodCostRate: BORROWER_CONFIG_ADDON_PERIOD_COST_RATE,
             interestFormula: BORROWER_CONFIG_INTEREST_FORMULA_COMPOUND,
-            borrowPolicy: BORROWER_CONFIG_POLICY,
+            borrowPolicy: BORROWER_CONFIG_BORROW_POLICY_DECREASE,
             autoRepayment: BORROWER_CONFIG_AUTOREPAYMENT
         });
     }

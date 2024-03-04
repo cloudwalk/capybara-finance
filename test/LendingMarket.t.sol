@@ -14,11 +14,11 @@ import { Interest } from "src/libraries/Interest.sol";
 import { SafeCast } from "src/libraries/SafeCast.sol";
 
 import { ERC20Mock } from "src/mocks/ERC20Mock.sol";
-import { LendingMarket } from "src/LendingMarket.sol";
 import { CreditLineMock } from "src/mocks/CreditLineMock.sol";
 import { LiquidityPoolMock } from "src/mocks/LiquidityPoolMock.sol";
 
 import { ICreditLineConfigurable } from "src/interfaces/ICreditLineConfigurable.sol";
+import { LendingMarket } from "src/LendingMarket.sol";
 
 /// @title LendingMarketTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
@@ -36,32 +36,23 @@ contract LendingMarketTest is Test {
     event OnBeforeLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
     event OnAfterLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
 
+    event SetRegistry(address indexed newRegistry, address indexed oldRegistry);
+    event RegisterCreditLine(address indexed lender, address indexed creditLine);
+    event RegisterLiquidityPool(address indexed lender, address indexed liquidityPool);
+
+    event TakeLoan(uint256 indexed loanId, address indexed borrower, uint256 borrowAmount);
+    event RepayLoan(uint256 indexed loanId,address indexed repayer,address indexed borrower,uint256 repayAmount,uint256 remainingBalance);
+
     event FreezeLoan(uint256 indexed loanId, uint256 freezeDate);
     event UnfreezeLoan(uint256 indexed loanId, uint256 unfreezeDate);
 
-    event RegisterCreditLine(address indexed lender, address indexed creditLine);
-    event RegisterLiquidityPool(address indexed lender, address indexed liquidityPool);
-    event TakeLoan(uint256 indexed loanId, address indexed borrower, uint256 borrowAmount);
-    event RepayLoan(
-        uint256 indexed loanId,
-        address indexed repayer,
-        address indexed borrower,
-        uint256 repayAmount,
-        uint256 remainingBalance
-    );
     event UpdateLoanDuration(uint256 indexed loanId, uint256 indexed newDuration, uint256 indexed oldDuration);
     event UpdateLoanMoratorium(uint256 indexed loanId, uint256 indexed newMoratorium, uint256 indexed oldMoratorium);
-    event UpdateLoanInterestRatePrimary(
-        uint256 indexed loanId, uint256 indexed newInterestRate, uint256 indexed oldInterestRate
-    );
-    event UpdateLoanInterestRateSecondary(
-        uint256 indexed loanId, uint256 indexed newInterestRate, uint256 indexed oldInterestRate
-    );
-    event AssignLiquidityPoolToCreditLine(
-        address indexed creditLine, address indexed newLiquidityPool, address indexed oldLiquidityPool
-    );
+    event UpdateLoanInterestRatePrimary(uint256 indexed loanId, uint256 indexed newInterestRate, uint256 indexed oldInterestRate);
+    event UpdateLoanInterestRateSecondary(uint256 indexed loanId, uint256 indexed newInterestRate, uint256 indexed oldInterestRate);
+
+    event AssignLiquidityPoolToCreditLine(address indexed creditLine, address indexed newLiquidityPool, address indexed oldLiquidityPool);
     event ConfigureLenderAlias(address indexed lender, address indexed account, bool isAlias);
-    event SetRegistry(address indexed newRegistry, address indexed oldRegistry);
 
     // -------------------------------------------- //
     //  Storage variables                           //
@@ -72,58 +63,53 @@ contract LendingMarketTest is Test {
     CreditLineMock public creditLine;
     LiquidityPoolMock public liquidityPool;
 
-    uint256 public constant NONEXISTENT_LOAN_ID = 9_999_999;
-    uint256 public constant INIT_BLOCK_TIMESTAMP = CREDIT_LINE_CONFIG_PERIOD_IN_SECONDS + 1;
-
-    address public constant BORROWER_1 = address(bytes20(keccak256("borrower_1")));
-    address public constant BORROWER_2 = address(bytes20(keccak256("borrower_2")));
-    address public constant BORROWER_3 = address(bytes20(keccak256("borrower_3")));
-
-        address private constant ADDON_RECIPIENT = address(bytes20(keccak256("recipient")));
-
-    address private constant LOAN_HOLDER = address(bytes20(keccak256("loan_holder")));
-
     address public constant OWNER = address(bytes20(keccak256("owner")));
     address public constant LENDER_1 = address(bytes20(keccak256("lender_1")));
     address public constant LENDER_2 = address(bytes20(keccak256("lender_2")));
     address public constant ATTACKER = address(bytes20(keccak256("attacker")));
+    address public constant BORROWER_1 = address(bytes20(keccak256("borrower_1")));
+    address public constant BORROWER_2 = address(bytes20(keccak256("borrower_2")));
+    address public constant BORROWER_3 = address(bytes20(keccak256("borrower_3")));
     address public constant REGISTRY_1 = address(bytes20(keccak256("registry_1")));
     address public constant REGISTRY_2 = address(bytes20(keccak256("registry_2")));
+    address public constant LOAN_HOLDER = address(bytes20(keccak256("loan_holder")));
+    address public constant LENDER_1_ALIAS = address(bytes20(keccak256("lender_1_alias")));
+    address public constant ADDON_RECIPIENT = address(bytes20(keccak256("addon_recipient")));
     address public constant LIQUIDITY_POOL_1 = address(bytes20(keccak256("liquidity_pool_1")));
     address public constant LIQUIDITY_POOL_2 = address(bytes20(keccak256("liquidity_pool_2")));
-    address public constant LENDER_1_ALIAS = address(bytes20(keccak256("lender_1_alias")));
 
-    uint64 private constant CREDIT_LINE_CONFIG_MIN_BORROW_AMOUNT = 400;
-    uint64 private constant CREDIT_LINE_CONFIG_MAX_BORROW_AMOUNT = 900;
-    uint32 private constant CREDIT_LINE_CONFIG_MIN_INTEREST_RATE_PRIMARY = 3;
-    uint32 private constant CREDIT_LINE_CONFIG_MAX_INTEREST_RATE_PRIMARY = 7;
-    uint32 private constant CREDIT_LINE_CONFIG_MIN_INTEREST_RATE_SECONDARY = 4;
-    uint32 private constant CREDIT_LINE_CONFIG_MAX_INTEREST_RATE_SECONDARY = 8;
-    uint32 private constant CREDIT_LINE_CONFIG_INTEREST_RATE_FACTOR = 1000;
-    uint32 public constant CREDIT_LINE_CONFIG_PERIOD_IN_SECONDS = 600;
-    uint32 private constant CREDIT_LINE_CONFIG_MIN_DURATION_IN_PERIODS = 50;
-    uint32 private constant CREDIT_LINE_CONFIG_MAX_DURATION_IN_PERIODS = 200;
-    uint32 private constant CREDIT_LINE_CONFIG_MIN_ADDON_FIXED_COST_RATE = 10;
-    uint32 private constant CREDIT_LINE_CONFIG_MAX_ADDON_FIXED_COST_RATE = 50;
-    uint32 private constant CREDIT_LINE_CONFIG_MIN_ADDON_PERIOD_COST_RATE = 10;
-    uint32 private constant CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_COST_RATE = 50;
-
-    uint32 private constant BORROWER_CONFIG_ADDON_FIXED_COST_RATE = 15;
-    uint32 private constant BORROWER_CONFIG_ADDON_PERIOD_COST_RATE = 20;
-    uint32 private constant BORROWER_CONFIG_DURATION_IN_PERIODS = 100;
-    uint32 private constant BORROWER_CONFIG_DURATION = 1000;
-    uint64 private constant BORROWER_CONFIG_MIN_BORROW_AMOUNT = 500;
-    uint64 private constant BORROWER_CONFIG_MAX_BORROW_AMOUNT = 800;
-    uint32 private constant BORROWER_CONFIG_INTEREST_RATE_PRIMARY = 5;
-    uint32 private constant BORROWER_CONFIG_INTEREST_RATE_SECONDARY = 6;
-    bool private constant BORROWER_CONFIG_AUTOREPAYMENT = true;
-    Interest.Formula private constant BORROWER_CONFIG_INTEREST_FORMULA = Interest.Formula.Simple;
-    Interest.Formula private constant BORROWER_CONFIG_INTEREST_FORMULA_COMPOUND = Interest.Formula.Compound;
-    ICreditLineConfigurable.BorrowPolicy private constant BORROWER_CONFIG_POLICY =
-        ICreditLineConfigurable.BorrowPolicy.Decrease;
-
-    uint64 public constant BORROW_AMOUNT = 100;
     uint64 public constant ADDON_AMOUNT = 100;
+    uint64 public constant BORROW_AMOUNT = 100;
+    uint256 public constant LOAN_ID_NONEXISTENT = 999_999_999;
+    uint256 public constant INIT_BLOCK_TIMESTAMP = CREDIT_LINE_CONFIG_PERIOD_IN_SECONDS + 1;
+
+    uint64 public constant CREDIT_LINE_CONFIG_MIN_BORROW_AMOUNT = 400;
+    uint64 public constant CREDIT_LINE_CONFIG_MAX_BORROW_AMOUNT = 900;
+    uint32 public constant CREDIT_LINE_CONFIG_MIN_INTEREST_RATE_PRIMARY = 3;
+    uint32 public constant CREDIT_LINE_CONFIG_MAX_INTEREST_RATE_PRIMARY = 7;
+    uint32 public constant CREDIT_LINE_CONFIG_MIN_INTEREST_RATE_SECONDARY = 4;
+    uint32 public constant CREDIT_LINE_CONFIG_MAX_INTEREST_RATE_SECONDARY = 8;
+    uint32 public constant CREDIT_LINE_CONFIG_INTEREST_RATE_FACTOR = 1000;
+    uint32 public constant CREDIT_LINE_CONFIG_PERIOD_IN_SECONDS = 600;
+    uint32 public constant CREDIT_LINE_CONFIG_MIN_DURATION_IN_PERIODS = 50;
+    uint32 public constant CREDIT_LINE_CONFIG_MAX_DURATION_IN_PERIODS = 200;
+    uint32 public constant CREDIT_LINE_CONFIG_MIN_ADDON_FIXED_COST_RATE = 10;
+    uint32 public constant CREDIT_LINE_CONFIG_MAX_ADDON_FIXED_COST_RATE = 50;
+    uint32 public constant CREDIT_LINE_CONFIG_MIN_ADDON_PERIOD_COST_RATE = 10;
+    uint32 public constant CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_COST_RATE = 50;
+
+    uint32 public constant BORROWER_CONFIG_ADDON_FIXED_COST_RATE = 15;
+    uint32 public constant BORROWER_CONFIG_ADDON_PERIOD_COST_RATE = 20;
+    uint32 public constant BORROWER_CONFIG_DURATION_IN_PERIODS = 100;
+    uint32 public constant BORROWER_CONFIG_DURATION = 1000;
+    uint64 public constant BORROWER_CONFIG_MIN_BORROW_AMOUNT = 500;
+    uint64 public constant BORROWER_CONFIG_MAX_BORROW_AMOUNT = 800;
+    uint32 public constant BORROWER_CONFIG_INTEREST_RATE_PRIMARY = 5;
+    uint32 public constant BORROWER_CONFIG_INTEREST_RATE_SECONDARY = 6;
+    bool public constant BORROWER_CONFIG_AUTOREPAYMENT = true;
+    Interest.Formula public constant BORROWER_CONFIG_INTEREST_FORMULA_COMPOUND = Interest.Formula.Compound;
+    ICreditLineConfigurable.BorrowPolicy public constant BORROWER_CONFIG_BORROW_POLICY_DECREASE =
+        ICreditLineConfigurable.BorrowPolicy.Decrease;
 
     bool public canOverrideAutoRepayment = false;
     bool public overrideAutoRepayment = false;
@@ -240,7 +226,7 @@ contract LendingMarketTest is Test {
             addonFixedCostRate: BORROWER_CONFIG_ADDON_FIXED_COST_RATE,
             addonPeriodCostRate: BORROWER_CONFIG_ADDON_PERIOD_COST_RATE,
             interestFormula: BORROWER_CONFIG_INTEREST_FORMULA_COMPOUND,
-            borrowPolicy: BORROWER_CONFIG_POLICY,
+            borrowPolicy: BORROWER_CONFIG_BORROW_POLICY_DECREASE,
             autoRepayment: BORROWER_CONFIG_AUTOREPAYMENT
         });
     }
@@ -847,7 +833,7 @@ contract LendingMarketTest is Test {
 
         vm.prank(BORROWER_1);
         vm.expectRevert(LendingMarket.LoanNotExist.selector);
-        market.repayLoan(NONEXISTENT_LOAN_ID, 1);
+        market.repayLoan(LOAN_ID_NONEXISTENT, 1);
     }
 
     function test_repayLoan_Revert_IfLoanIsRepaid() public {
@@ -961,7 +947,7 @@ contract LendingMarketTest is Test {
 
         vm.prank(LENDER_1);
         vm.expectRevert(LendingMarket.LoanNotExist.selector);
-        market.freeze(NONEXISTENT_LOAN_ID);
+        market.freeze(LOAN_ID_NONEXISTENT);
     }
 
     function test_freeze_Revert_IfLoanIsRepaid() public {
@@ -1089,7 +1075,7 @@ contract LendingMarketTest is Test {
     function test_unfreeze_Revert_IfLoanNotExist() public {
         vm.prank(LENDER_1);
         vm.expectRevert(LendingMarket.LoanNotExist.selector);
-        market.unfreeze(NONEXISTENT_LOAN_ID);
+        market.unfreeze(LOAN_ID_NONEXISTENT);
     }
 
     function test_unfreeze_Revert_IfLoanIsRepaid() public {
@@ -1169,7 +1155,7 @@ contract LendingMarketTest is Test {
         vm.prank(LENDER_1);
         uint256 newDurationInPeriods = 2;
         vm.expectRevert(LendingMarket.LoanNotExist.selector);
-        market.updateLoanDuration(NONEXISTENT_LOAN_ID, newDurationInPeriods);
+        market.updateLoanDuration(LOAN_ID_NONEXISTENT, newDurationInPeriods);
     }
 
     function test_updateLoanDuration_Revert_IfRepaidLoan() public {
@@ -1312,7 +1298,7 @@ contract LendingMarketTest is Test {
         vm.prank(LENDER_1);
         uint256 moratoriumInPeriods = 2;
         vm.expectRevert(LendingMarket.LoanNotExist.selector);
-        market.updateLoanMoratorium(NONEXISTENT_LOAN_ID, moratoriumInPeriods);
+        market.updateLoanMoratorium(LOAN_ID_NONEXISTENT, moratoriumInPeriods);
     }
 
     function test_updateLoanMoratorium_Revert_IfRepaidLoan() public {
@@ -1417,7 +1403,7 @@ contract LendingMarketTest is Test {
     function test_updateLoanInterestRatePrimary_Revert_IfLoanNotExist() public {
         vm.prank(LENDER_1);
         vm.expectRevert(LendingMarket.LoanNotExist.selector);
-        market.updateLoanInterestRatePrimary(NONEXISTENT_LOAN_ID, 1);
+        market.updateLoanInterestRatePrimary(LOAN_ID_NONEXISTENT, 1);
     }
 
     function test_updateLoanInterestRatePrimary_Revert_IfLoadIsRepaid() public {
@@ -1503,7 +1489,7 @@ contract LendingMarketTest is Test {
     function test_updateLoanInterestRateSecondary_Revert_IfLoanNotExist() public {
         vm.prank(LENDER_1);
         vm.expectRevert(LendingMarket.LoanNotExist.selector);
-        market.updateLoanInterestRateSecondary(NONEXISTENT_LOAN_ID, 1);
+        market.updateLoanInterestRateSecondary(LOAN_ID_NONEXISTENT, 1);
     }
 
     function test_updateLoanInterestRateSecondary_Revert_IfLoadIsRepaid() public {

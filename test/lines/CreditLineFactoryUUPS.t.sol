@@ -25,8 +25,8 @@ contract CreditLineFactoryUUPSTest is Test {
 
     CreditLineFactoryUUPS public proxy;
 
+    address public constant OWNER = address(bytes20(keccak256("owner")));
     address public constant ATTACKER = address(bytes20(keccak256("attacker")));
-    address public constant REGISTRY = address(bytes20(keccak256("registry")));
 
     // -------------------------------------------- //
     //  Setup and configuration                     //
@@ -34,7 +34,7 @@ contract CreditLineFactoryUUPSTest is Test {
 
     function setUp() public {
         proxy = CreditLineFactoryUUPS(address(new ERC1967Proxy(address(new CreditLineFactoryUUPS()), "")));
-        proxy.initialize(REGISTRY);
+        proxy.initialize(OWNER);
     }
 
     // -------------------------------------------- //
@@ -43,7 +43,7 @@ contract CreditLineFactoryUUPSTest is Test {
 
     function test_upgradeToAndCall() public {
         address newImplemetation = address(new CreditLineFactoryUUPS());
-        vm.prank(REGISTRY);
+        vm.prank(OWNER);
         vm.expectEmit(true, true, true, true, address(proxy));
         emit Upgraded(newImplemetation);
         proxy.upgradeToAndCall(newImplemetation, "");

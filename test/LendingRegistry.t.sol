@@ -9,10 +9,12 @@ import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/O
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
 import { Error } from "src/libraries/Error.sol";
-import { LendingRegistry } from "src/LendingRegistry.sol";
+
 import { LendingMarketMock } from "src/mocks/LendingMarketMock.sol";
 import { CreditLineFactoryMock } from "src/mocks/CreditLineFactoryMock.sol";
 import { LiquidityPoolFactoryMock } from "src/mocks/LiquidityPoolFactoryMock.sol";
+
+import { LendingRegistry } from "src/LendingRegistry.sol";
 
 /// @title LendingRegistryTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
