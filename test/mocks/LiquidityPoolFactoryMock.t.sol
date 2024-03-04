@@ -24,6 +24,12 @@ contract LiquidityPoolFactoryMockTest is Test {
 
     LiquidityPoolFactoryMock public mock;
 
+    address public constant MARKET = address(bytes20(keccak256("market")));
+    address public constant LENDER = address(bytes20(keccak256("lender")));
+    address public constant LIQUIDITY_POOL = address(bytes20(keccak256("liquidity_pool")));
+    uint16 public constant KIND = 1;
+    bytes public constant DATA = "0x123ff";
+
     // -------------------------------------------- //
     //  Setup and configuration                     //
     // -------------------------------------------- //
@@ -37,21 +43,15 @@ contract LiquidityPoolFactoryMockTest is Test {
     // -------------------------------------------- //
 
     function test_createLiquidityPool() public {
-        address market = address(1);
-        address lender = address(2);
-        uint16 kind = 1;
-        bytes memory data = "data";
+        vm.expectEmit(true, true, true, true, address(mock));
+        emit CreateLiquidityPoolCalled(MARKET, LENDER, KIND, DATA);
+        assertEq(mock.createLiquidityPool(MARKET, LENDER, KIND, DATA), address(0));
+
+        mock.mockCreatedLiquidityPoolAddress(LIQUIDITY_POOL);
 
         vm.expectEmit(true, true, true, true, address(mock));
-        emit CreateLiquidityPoolCalled(market, lender, kind, data);
-        assertEq(mock.createLiquidityPool(market, lender, kind, data), address(0));
-
-        address mockedLiquidityPoolAddress = address(3);
-        mock.mockCreatedLiquidityPoolAddress(mockedLiquidityPoolAddress);
-
-        vm.expectEmit(true, true, true, true, address(mock));
-        emit CreateLiquidityPoolCalled(market, lender, kind, data);
-        assertEq(mock.createLiquidityPool(market, lender, kind, data), mockedLiquidityPoolAddress);
+        emit CreateLiquidityPoolCalled(MARKET, LENDER, KIND, DATA);
+        assertEq(mock.createLiquidityPool(MARKET, LENDER, KIND, DATA), LIQUIDITY_POOL);
     }
 
     function test_supportedKinds() public {

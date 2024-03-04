@@ -26,6 +26,13 @@ contract CreditLineFactoryMockTest is Test {
 
     CreditLineFactoryMock public mock;
 
+    address public constant TOKEN = address(bytes20(keccak256("token")));
+    address public constant MARKET = address(bytes20(keccak256("market")));
+    address public constant LENDER = address(bytes20(keccak256("lender")));
+    address public constant CREDIT_LINE = address(bytes20(keccak256("credit_line")));
+    uint16 public constant KIND = 1;
+    bytes public constant DATA = "0x123ff";
+
     // -------------------------------------------- //
     //  Setup and configuration                     //
     // -------------------------------------------- //
@@ -39,22 +46,15 @@ contract CreditLineFactoryMockTest is Test {
     // -------------------------------------------- //
 
     function test_createCreditLine() public {
-        address market = address(1);
-        address lender = address(2);
-        address token = address(3);
-        uint16 kind = 1;
-        bytes memory data = "data";
+        vm.expectEmit(true, true, true, true, address(mock));
+        emit CreateCreditLineCalled(MARKET, LENDER, TOKEN, KIND, DATA);
+        assertEq(mock.createCreditLine(MARKET, LENDER, TOKEN, KIND, DATA), address(0));
+
+        mock.mockCreatedCreditLineAddress(CREDIT_LINE);
 
         vm.expectEmit(true, true, true, true, address(mock));
-        emit CreateCreditLineCalled(market, lender, token, kind, data);
-        assertEq(mock.createCreditLine(market, lender, token, kind, data), address(0));
-
-        address mockedCreditLineAddress = address(4);
-        mock.mockCreatedCreditLineAddress(mockedCreditLineAddress);
-
-        vm.expectEmit(true, true, true, true, address(mock));
-        emit CreateCreditLineCalled(market, lender, token, kind, data);
-        assertEq(mock.createCreditLine(market, lender, token, kind, data), mockedCreditLineAddress);
+        emit CreateCreditLineCalled(MARKET, LENDER, TOKEN, KIND, DATA);
+        assertEq(mock.createCreditLine(MARKET, LENDER, TOKEN, KIND, DATA), CREDIT_LINE);
     }
 
     function test_supportedKinds() public {

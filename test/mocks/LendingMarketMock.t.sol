@@ -30,6 +30,35 @@ contract LendingMarketMockTest is Test {
 
     LendingMarketMock public mock;
 
+    address public constant TOKEN = address(bytes20(keccak256("token")));
+    address public constant LENDER = address(bytes20(keccak256("lender")));
+    address public constant HOLDER = address(bytes20(keccak256("holder")));
+    address public constant BORROWER = address(bytes20(keccak256("borrower")));
+    address public constant CREDIT_LINE = address(bytes20(keccak256("credit_line")));
+    address public constant LIQUIDITY_POOL = address(bytes20(keccak256("liquidity_pool")));
+
+    uint256 public constant LOAN_ID = 1;
+    uint256 public constant BORROW_AMOUNT = 100;
+    uint256 public constant REPAY_AMOUNT = 200;
+
+    uint32 public constant STATE_PERIOD_IN_SECONDS = 100;
+    uint32 public constant STATE_DURATION_IN_PERIODS = 200;
+    uint32 public constant STATE_INTEREST_RATE_FACTOR = 300;
+    uint32 public constant STATE_INTEREST_RATE_PRIMARY = 400;
+    uint32 public constant STATE_INTEREST_RATE_SECONDARY = 500;
+    Interest.Formula public constant STATE_INTEREST_FORMULA = Interest.Formula.Compound;
+    uint32 public constant STATE_START_DATE = 600;
+    uint32 public constant STATE_FREEZE_DATE = 700;
+    uint32 public constant STATE_TRACKED_DATE = 800;
+    uint64 public constant STATE_INITIAL_BORROW_AMOUNT = 900;
+    uint64 public constant STATE_TRACKED_BORROW_AMOUNT = 1000;
+    bool public constant STATE_AUTO_REPAYMENT = true;
+
+    uint256 public constant UPDATE_LOAN_DURATION = 100;
+    uint256 public constant UPDATE_LOAN_MORATORIUM = 200;
+    uint256 public constant UPDATE_LOAN_INTEREST_RATE_PRIMARY = 300;
+    uint256 public constant UPDATE_LOAN_INTEREST_RATE_SECONDARY = 400;
+
     // -------------------------------------------- //
     //  Setup and configuration                     //
     // -------------------------------------------- //
@@ -44,126 +73,130 @@ contract LendingMarketMockTest is Test {
 
     function test_takeLoan() public {
         vm.expectRevert(Error.NotImplemented.selector);
-        mock.takeLoan(address(0x1), 100);
+        mock.takeLoan(CREDIT_LINE, BORROW_AMOUNT);
     }
 
     function test_repayLoan() public {
         vm.prank(address(mock));
         vm.expectEmit(true, true, true, true, address(mock));
-        emit RepayLoanCalled(100, 100);
-        mock.repayLoan(100, 100);
+        emit RepayLoanCalled(LOAN_ID, REPAY_AMOUNT);
+        mock.repayLoan(LOAN_ID, REPAY_AMOUNT);
     }
 
     function test_freeze() public {
         vm.expectRevert(Error.NotImplemented.selector);
-        mock.freeze(1);
+        mock.freeze(LOAN_ID);
     }
 
     function test_unfreeze() public {
         vm.expectRevert(Error.NotImplemented.selector);
-        mock.unfreeze(1);
+        mock.unfreeze(LOAN_ID);
     }
 
     function test_updateLoanDuration() public {
         vm.expectRevert(Error.NotImplemented.selector);
-        mock.updateLoanDuration(1, 100);
+        mock.updateLoanDuration(LOAN_ID, UPDATE_LOAN_DURATION);
     }
 
     function test_updateLoanMoratorium() public {
         vm.expectRevert(Error.NotImplemented.selector);
-        mock.updateLoanMoratorium(1, 100);
+        mock.updateLoanMoratorium(LOAN_ID, UPDATE_LOAN_MORATORIUM);
     }
 
     function test_updateLoanInterestRatePrimary() public {
         vm.expectRevert(Error.NotImplemented.selector);
-        mock.updateLoanInterestRatePrimary(1, 100);
+        mock.updateLoanInterestRatePrimary(LOAN_ID, UPDATE_LOAN_INTEREST_RATE_PRIMARY);
     }
 
     function test_updateLoanInterestRateSecondary() public {
         vm.expectRevert(Error.NotImplemented.selector);
-        mock.updateLoanInterestRateSecondary(1, 100);
+        mock.updateLoanInterestRateSecondary(LOAN_ID, UPDATE_LOAN_INTEREST_RATE_SECONDARY);
     }
 
     function test_registerCreditLine() public {
         vm.expectEmit(true, true, true, true, address(mock));
-        emit RegisterCreditLineCalled(address(0x1), address(0x2));
-        mock.registerCreditLine(address(0x1), address(0x2));
+        emit RegisterCreditLineCalled(LENDER, CREDIT_LINE);
+        mock.registerCreditLine(LENDER, CREDIT_LINE);
     }
 
     function test_registerLiquidityPool() public {
         vm.expectEmit(true, true, true, true, address(mock));
-        emit RegisterLiquidityPoolCalled(address(0x3), address(0x4));
-        mock.registerLiquidityPool(address(0x3), address(0x4));
+        emit RegisterLiquidityPoolCalled(LENDER, LIQUIDITY_POOL);
+        mock.registerLiquidityPool(LENDER, LIQUIDITY_POOL);
     }
 
     function test_getCreditLineLender() public {
         vm.expectRevert(Error.NotImplemented.selector);
-        mock.getCreditLineLender(address(0x1));
+        mock.getCreditLineLender(CREDIT_LINE);
     }
 
     function test_getLiquidityPoolLender() public {
         vm.expectRevert(Error.NotImplemented.selector);
-        mock.getLiquidityPoolLender(address(0x1));
+        mock.getLiquidityPoolLender(LIQUIDITY_POOL);
     }
 
     function test_getLoanState() public {
-        Loan.State memory loan = mock.getLoanState(1);
+        Loan.State memory loan = mock.getLoanState(LOAN_ID);
 
-        assertEq(loan.token, address(0x0));
-        assertEq(loan.borrower, address(0x0));
+        assertEq(loan.token, address(0));
+        assertEq(loan.borrower, address(0));
+        assertEq(loan.holder, address(0));
         assertEq(loan.periodInSeconds, 0);
         assertEq(loan.durationInPeriods, 0);
         assertEq(loan.interestRateFactor, 0);
         assertEq(loan.interestRatePrimary, 0);
         assertEq(loan.interestRateSecondary, 0);
         assertEq(uint256(loan.interestFormula), uint256(Interest.Formula.Simple));
+        assertEq(loan.startDate, 0);
+        assertEq(loan.freezeDate, 0);
+        assertEq(loan.trackedDate, 0);
         assertEq(loan.initialBorrowAmount, 0);
         assertEq(loan.trackedBorrowAmount, 0);
-        assertEq(loan.startDate, 0);
-        assertEq(loan.trackedDate, 0);
-        assertEq(loan.freezeDate, 0);
+        assertEq(loan.autoRepayment, false);
 
         mock.mockLoanState(
             1,
             Loan.State({
-                token: address(0x1),
-                borrower: address(0x2),
-                holder: address(0x3),
-                periodInSeconds: 100,
-                durationInPeriods: 200,
-                interestRateFactor: 300,
-                interestRatePrimary: 400,
-                interestRateSecondary: 500,
-                interestFormula: Interest.Formula.Compound,
-                initialBorrowAmount: 600,
-                trackedBorrowAmount: 700,
-                startDate: 800,
-                trackedDate: 900,
-                freezeDate: 1000,
-                autoRepayment: false
+                token: TOKEN,
+                borrower: BORROWER,
+                holder: HOLDER,
+                periodInSeconds: STATE_PERIOD_IN_SECONDS,
+                durationInPeriods: STATE_DURATION_IN_PERIODS,
+                interestRateFactor: STATE_INTEREST_RATE_FACTOR,
+                interestRatePrimary: STATE_INTEREST_RATE_PRIMARY,
+                interestRateSecondary: STATE_INTEREST_RATE_SECONDARY,
+                interestFormula: STATE_INTEREST_FORMULA,
+                startDate: STATE_START_DATE,
+                freezeDate: STATE_FREEZE_DATE,
+                trackedDate: STATE_TRACKED_DATE,
+                initialBorrowAmount: STATE_INITIAL_BORROW_AMOUNT,
+                trackedBorrowAmount: STATE_TRACKED_BORROW_AMOUNT,
+                autoRepayment: STATE_AUTO_REPAYMENT
             })
         );
 
-        loan = mock.getLoanState(1);
+        loan = mock.getLoanState(LOAN_ID);
 
-        assertEq(loan.token, address(0x1));
-        assertEq(loan.borrower, address(0x2));
-        assertEq(loan.periodInSeconds, 100);
-        assertEq(loan.durationInPeriods, 200);
-        assertEq(loan.interestRateFactor, 300);
-        assertEq(loan.interestRatePrimary, 400);
-        assertEq(loan.interestRateSecondary, 500);
-        assertEq(uint256(loan.interestFormula), uint256(Interest.Formula.Compound));
-        assertEq(loan.initialBorrowAmount, 600);
-        assertEq(loan.trackedBorrowAmount, 700);
-        assertEq(loan.startDate, 800);
-        assertEq(loan.trackedDate, 900);
-        assertEq(loan.freezeDate, 1000);
+        assertEq(loan.token, TOKEN);
+        assertEq(loan.borrower, BORROWER);
+        assertEq(loan.holder, HOLDER);
+        assertEq(loan.periodInSeconds, STATE_PERIOD_IN_SECONDS);
+        assertEq(loan.durationInPeriods, STATE_DURATION_IN_PERIODS);
+        assertEq(loan.interestRateFactor, STATE_INTEREST_RATE_FACTOR);
+        assertEq(loan.interestRatePrimary, STATE_INTEREST_RATE_PRIMARY);
+        assertEq(loan.interestRateSecondary, STATE_INTEREST_RATE_SECONDARY);
+        assertEq(uint256(loan.interestFormula), uint256(STATE_INTEREST_FORMULA));
+        assertEq(loan.startDate, STATE_START_DATE);
+        assertEq(loan.freezeDate, STATE_FREEZE_DATE);
+        assertEq(loan.trackedDate, STATE_TRACKED_DATE);
+        assertEq(loan.initialBorrowAmount, STATE_INITIAL_BORROW_AMOUNT);
+        assertEq(loan.trackedBorrowAmount, STATE_TRACKED_BORROW_AMOUNT);
+        assertEq(loan.autoRepayment, STATE_AUTO_REPAYMENT);
     }
 
     function test_getLoanPreview() public {
         vm.expectRevert(Error.NotImplemented.selector);
-        mock.getLoanPreview(1, 0);
+        mock.getLoanPreview(LOAN_ID, 0);
     }
 
     function test_registry() public {

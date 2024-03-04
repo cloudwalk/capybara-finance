@@ -20,6 +20,24 @@ contract CreditLineMockTest is Test {
 
     CreditLineMock public mock;
 
+    uint256 public constant LOAN_ID = 1;
+    uint256 public constant BORROW_AMOUNT = 100;
+    address public constant BORROWER = address(bytes20(keccak256("borrower")));
+
+    address public constant TERMS_TOKEN = address(bytes20(keccak256("token")));
+    address public constant TERMS_HOLDER = address(bytes20(keccak256("holder")));
+    address public constant TERMS_ADDON_RECIPIENT = address(bytes20(keccak256("addon")));
+
+    uint32 public constant TERMS_PERIOD_IN_SECONDS = 100;
+    uint32 public constant TERMS_DURATION_IN_PERIODS = 200;
+    uint32 public constant TERMS_INTEREST_RATE_FACTOR = 300;
+    uint32 public constant TERMS_INTEREST_RATE_PRIMARY = 400;
+    uint32 public constant TERMS_INTEREST_RATE_SECONDARY = 500;
+    uint32 public constant TERMS_ADDON_AMOUNT = 600;
+
+    Interest.Formula public constant TERMS_INTEREST_FORMULA = Interest.Formula.Compound;
+    bool public constant TERMS_AUTO_REPAYMENT = true;
+
     // -------------------------------------------- //
     //  Setup and configuration                     //
     // -------------------------------------------- //
@@ -33,95 +51,99 @@ contract CreditLineMockTest is Test {
     // -------------------------------------------- //
 
     function test_onBeforeLoanTaken() public {
-        Loan.Terms memory terms = mock.onBeforeLoanTaken(address(0x1), 100, 1);
+        Loan.Terms memory terms = mock.onBeforeLoanTaken(BORROWER, BORROW_AMOUNT, LOAN_ID);
 
-        assertEq(terms.token, address(0x0));
+        assertEq(terms.token, address(0));
+        assertEq(terms.holder, address(0));
         assertEq(terms.periodInSeconds, 0);
         assertEq(terms.durationInPeriods, 0);
         assertEq(terms.interestRateFactor, 0);
         assertEq(terms.interestRatePrimary, 0);
         assertEq(terms.interestRateSecondary, 0);
         assertEq(uint256(terms.interestFormula), uint256(Interest.Formula.Simple));
-        assertEq(terms.addonRecipient, address(0x0));
+        assertEq(terms.addonRecipient, address(0));
         assertEq(terms.autoRepayment, false);
         assertEq(terms.addonAmount, 0);
 
         mock.mockLoanTerms(
-            address(0x1),
-            100,
+            BORROWER,
+            BORROW_AMOUNT,
             Loan.Terms({
-                token: address(0x1),
-                holder: address(0x2),
-                periodInSeconds: 100,
-                durationInPeriods: 200,
-                interestRateFactor: 300,
-                interestRatePrimary: 400,
-                interestRateSecondary: 500,
-                interestFormula: Interest.Formula.Compound,
-                addonRecipient: address(0x2),
-                autoRepayment: true,
-                addonAmount: 600
+                token: TERMS_TOKEN,
+                holder: TERMS_HOLDER,
+                periodInSeconds: TERMS_PERIOD_IN_SECONDS,
+                durationInPeriods: TERMS_DURATION_IN_PERIODS,
+                interestRateFactor: TERMS_INTEREST_RATE_FACTOR,
+                interestRatePrimary: TERMS_INTEREST_RATE_PRIMARY,
+                interestRateSecondary: TERMS_INTEREST_RATE_SECONDARY,
+                interestFormula: TERMS_INTEREST_FORMULA,
+                addonRecipient: TERMS_ADDON_RECIPIENT,
+                autoRepayment: TERMS_AUTO_REPAYMENT,
+                addonAmount: TERMS_ADDON_AMOUNT
             })
         );
 
-        terms = mock.onBeforeLoanTaken(address(0x1), 100, 1);
+        terms = mock.onBeforeLoanTaken(BORROWER, BORROW_AMOUNT, LOAN_ID);
 
-        assertEq(terms.token, address(0x1));
-        assertEq(terms.periodInSeconds, 100);
-        assertEq(terms.durationInPeriods, 200);
-        assertEq(terms.interestRateFactor, 300);
-        assertEq(terms.interestRatePrimary, 400);
-        assertEq(terms.interestRateSecondary, 500);
-        assertEq(uint256(terms.interestFormula), uint256(Interest.Formula.Compound));
-        assertEq(terms.addonRecipient, address(0x2));
-        assertEq(terms.autoRepayment, true);
-        assertEq(terms.addonAmount, 600);
+        assertEq(terms.token, TERMS_TOKEN);
+        assertEq(terms.holder, TERMS_HOLDER);
+        assertEq(terms.periodInSeconds, TERMS_PERIOD_IN_SECONDS);
+        assertEq(terms.durationInPeriods, TERMS_DURATION_IN_PERIODS);
+        assertEq(terms.interestRateFactor, TERMS_INTEREST_RATE_FACTOR);
+        assertEq(terms.interestRatePrimary, TERMS_INTEREST_RATE_PRIMARY);
+        assertEq(terms.interestRateSecondary, TERMS_INTEREST_RATE_SECONDARY);
+        assertEq(uint256(terms.interestFormula), uint256(TERMS_INTEREST_FORMULA));
+        assertEq(terms.addonRecipient, TERMS_ADDON_RECIPIENT);
+        assertEq(terms.autoRepayment, TERMS_AUTO_REPAYMENT);
+        assertEq(terms.addonAmount, TERMS_ADDON_AMOUNT);
     }
 
     function test_determineLoanTerms() public {
-        Loan.Terms memory terms = mock.determineLoanTerms(address(0x1), 100);
+        Loan.Terms memory terms = mock.determineLoanTerms(BORROWER, BORROW_AMOUNT);
 
-        assertEq(terms.token, address(0x0));
+        assertEq(terms.token, address(0));
+        assertEq(terms.holder, address(0));
         assertEq(terms.periodInSeconds, 0);
         assertEq(terms.durationInPeriods, 0);
         assertEq(terms.interestRateFactor, 0);
         assertEq(terms.interestRatePrimary, 0);
         assertEq(terms.interestRateSecondary, 0);
         assertEq(uint256(terms.interestFormula), uint256(Interest.Formula.Simple));
-        assertEq(terms.addonRecipient, address(0x0));
+        assertEq(terms.addonRecipient, address(0));
         assertEq(terms.autoRepayment, false);
         assertEq(terms.addonAmount, 0);
 
         mock.mockLoanTerms(
-            address(0x1),
-            100,
+            BORROWER,
+            BORROW_AMOUNT,
             Loan.Terms({
-                token: address(0x1),
-                holder: address(0x2),
-                periodInSeconds: 100,
-                durationInPeriods: 200,
-                interestRateFactor: 300,
-                interestRatePrimary: 400,
-                interestRateSecondary: 500,
-                interestFormula: Interest.Formula.Compound,
-                addonRecipient: address(0x2),
-                autoRepayment: true,
-                addonAmount: 600
+                token: TERMS_TOKEN,
+                holder: TERMS_HOLDER,
+                periodInSeconds: TERMS_PERIOD_IN_SECONDS,
+                durationInPeriods: TERMS_DURATION_IN_PERIODS,
+                interestRateFactor: TERMS_INTEREST_RATE_FACTOR,
+                interestRatePrimary: TERMS_INTEREST_RATE_PRIMARY,
+                interestRateSecondary: TERMS_INTEREST_RATE_SECONDARY,
+                interestFormula: TERMS_INTEREST_FORMULA,
+                addonRecipient: TERMS_ADDON_RECIPIENT,
+                autoRepayment: TERMS_AUTO_REPAYMENT,
+                addonAmount: TERMS_ADDON_AMOUNT
             })
         );
 
-        terms = mock.determineLoanTerms(address(0x1), 100);
+        terms = mock.determineLoanTerms(BORROWER, BORROW_AMOUNT);
 
-        assertEq(terms.token, address(0x1));
-        assertEq(terms.periodInSeconds, 100);
-        assertEq(terms.durationInPeriods, 200);
-        assertEq(terms.interestRateFactor, 300);
-        assertEq(terms.interestRatePrimary, 400);
-        assertEq(terms.interestRateSecondary, 500);
-        assertEq(terms.autoRepayment, true);
-        assertEq(uint256(terms.interestFormula), uint256(Interest.Formula.Compound));
-        assertEq(terms.addonRecipient, address(0x2));
-        assertEq(terms.addonAmount, 600);
+        assertEq(terms.token, TERMS_TOKEN);
+        assertEq(terms.holder, TERMS_HOLDER);
+        assertEq(terms.periodInSeconds, TERMS_PERIOD_IN_SECONDS);
+        assertEq(terms.durationInPeriods, TERMS_DURATION_IN_PERIODS);
+        assertEq(terms.interestRateFactor, TERMS_INTEREST_RATE_FACTOR);
+        assertEq(terms.interestRatePrimary, TERMS_INTEREST_RATE_PRIMARY);
+        assertEq(terms.interestRateSecondary, TERMS_INTEREST_RATE_SECONDARY);
+        assertEq(uint256(terms.interestFormula), uint256(TERMS_INTEREST_FORMULA));
+        assertEq(terms.addonRecipient, TERMS_ADDON_RECIPIENT);
+        assertEq(terms.autoRepayment, TERMS_AUTO_REPAYMENT);
+        assertEq(terms.addonAmount, TERMS_ADDON_AMOUNT);
     }
 
     function test_market() public {
@@ -135,9 +157,9 @@ contract CreditLineMockTest is Test {
     }
 
     function test_token() public {
-        assertEq(mock.token(), address(0x0));
-        mock.mockTokenAddress(address(0x1));
-        assertEq(mock.token(), address(0x1));
+        assertEq(mock.token(), address(0));
+        mock.mockTokenAddress(TERMS_TOKEN);
+        assertEq(mock.token(), TERMS_TOKEN);
     }
 
     function test_kind() public {

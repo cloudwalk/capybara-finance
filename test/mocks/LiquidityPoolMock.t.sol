@@ -30,6 +30,10 @@ contract LiquidityPoolMockTest is Test {
 
     LiquidityPoolMock public mock;
 
+    uint256 public constant LOAN_ID = 1;
+    uint256 public constant REPAY_AMOUNT = 100;
+    address public constant CREDIT_LINE = address(bytes20(keccak256("credit_line")));
+
     // -------------------------------------------- //
     //  Setup and configuration                     //
     // -------------------------------------------- //
@@ -44,57 +48,57 @@ contract LiquidityPoolMockTest is Test {
 
     function test_onBeforeLoanTaken() public {
         vm.expectEmit(true, true, true, true, address(mock));
-        emit OnBeforeLoanTakenCalled(100, address(0x1));
-        bool result = mock.onBeforeLoanTaken(100, address(0x1));
+        emit OnBeforeLoanTakenCalled(LOAN_ID, CREDIT_LINE);
+        bool result = mock.onBeforeLoanTaken(LOAN_ID, CREDIT_LINE);
         assertEq(result, false);
 
         mock.mockOnBeforeLoanTakenResult(true);
 
         vm.expectEmit(true, true, true, true, address(mock));
-        emit OnBeforeLoanTakenCalled(100, address(0x1));
-        result = mock.onBeforeLoanTaken(100, address(0x1));
+        emit OnBeforeLoanTakenCalled(LOAN_ID, CREDIT_LINE);
+        result = mock.onBeforeLoanTaken(LOAN_ID, CREDIT_LINE);
         assertEq(result, true);
     }
 
     function test_onAfterLoanTaken() public {
         vm.expectEmit(true, true, true, true, address(mock));
-        emit OnAfterLoanTakenCalled(100, address(0x1));
-        bool result = mock.onAfterLoanTaken(100, address(0x1));
+        emit OnAfterLoanTakenCalled(LOAN_ID, CREDIT_LINE);
+        bool result = mock.onAfterLoanTaken(LOAN_ID, CREDIT_LINE);
         assertEq(result, false);
 
         mock.mockOnAfterLoanTakenResult(true);
 
         vm.expectEmit(true, true, true, true, address(mock));
-        emit OnAfterLoanTakenCalled(100, address(0x1));
-        result = mock.onAfterLoanTaken(100, address(0x1));
+        emit OnAfterLoanTakenCalled(LOAN_ID, CREDIT_LINE);
+        result = mock.onAfterLoanTaken(LOAN_ID, CREDIT_LINE);
         assertEq(result, true);
     }
 
     function test_onBeforeLoanPayment() public {
         vm.expectEmit(true, true, true, true, address(mock));
-        emit OnBeforeLoanPaymentCalled(100, 100);
-        bool result = mock.onBeforeLoanPayment(100, 100);
+        emit OnBeforeLoanPaymentCalled(LOAN_ID, REPAY_AMOUNT);
+        bool result = mock.onBeforeLoanPayment(LOAN_ID, REPAY_AMOUNT);
         assertEq(result, false);
 
         mock.mockOnBeforeLoanPaymentResult(true);
 
         vm.expectEmit(true, true, true, true, address(mock));
-        emit OnBeforeLoanPaymentCalled(100, 100);
-        result = mock.onBeforeLoanPayment(100, 100);
+        emit OnBeforeLoanPaymentCalled(LOAN_ID, REPAY_AMOUNT);
+        result = mock.onBeforeLoanPayment(LOAN_ID, REPAY_AMOUNT);
         assertEq(result, true);
     }
 
     function test_onAfterLoanPayment() public {
         vm.expectEmit(true, true, true, true, address(mock));
-        emit OnAfterLoanPaymentCalled(100, 100);
-        bool result = mock.onAfterLoanPayment(100, 100);
+        emit OnAfterLoanPaymentCalled(LOAN_ID, REPAY_AMOUNT);
+        bool result = mock.onAfterLoanPayment(LOAN_ID, REPAY_AMOUNT);
         assertEq(result, false);
 
         mock.mockOnAfterLoanPaymentResult(true);
 
         vm.expectEmit(true, true, true, true, address(mock));
-        emit OnAfterLoanPaymentCalled(100, 100);
-        result = mock.onAfterLoanPayment(100, 100);
+        emit OnAfterLoanPaymentCalled(LOAN_ID, REPAY_AMOUNT);
+        result = mock.onAfterLoanPayment(LOAN_ID, REPAY_AMOUNT);
         assertEq(result, true);
     }
 
