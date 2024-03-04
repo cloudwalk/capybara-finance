@@ -41,17 +41,29 @@ contract LendingMarketTest is Test {
     event RegisterLiquidityPool(address indexed lender, address indexed liquidityPool);
 
     event TakeLoan(uint256 indexed loanId, address indexed borrower, uint256 borrowAmount);
-    event RepayLoan(uint256 indexed loanId,address indexed repayer,address indexed borrower,uint256 repayAmount,uint256 remainingBalance);
+    event RepayLoan(
+        uint256 indexed loanId,
+        address indexed repayer,
+        address indexed borrower,
+        uint256 repayAmount,
+        uint256 remainingBalance
+    );
 
     event FreezeLoan(uint256 indexed loanId, uint256 freezeDate);
     event UnfreezeLoan(uint256 indexed loanId, uint256 unfreezeDate);
 
     event UpdateLoanDuration(uint256 indexed loanId, uint256 indexed newDuration, uint256 indexed oldDuration);
     event UpdateLoanMoratorium(uint256 indexed loanId, uint256 indexed newMoratorium, uint256 indexed oldMoratorium);
-    event UpdateLoanInterestRatePrimary(uint256 indexed loanId, uint256 indexed newInterestRate, uint256 indexed oldInterestRate);
-    event UpdateLoanInterestRateSecondary(uint256 indexed loanId, uint256 indexed newInterestRate, uint256 indexed oldInterestRate);
+    event UpdateLoanInterestRatePrimary(
+        uint256 indexed loanId, uint256 indexed newInterestRate, uint256 indexed oldInterestRate
+    );
+    event UpdateLoanInterestRateSecondary(
+        uint256 indexed loanId, uint256 indexed newInterestRate, uint256 indexed oldInterestRate
+    );
 
-    event AssignLiquidityPoolToCreditLine(address indexed creditLine, address indexed newLiquidityPool, address indexed oldLiquidityPool);
+    event AssignLiquidityPoolToCreditLine(
+        address indexed creditLine, address indexed newLiquidityPool, address indexed oldLiquidityPool
+    );
     event ConfigureLenderAlias(address indexed lender, address indexed account, bool isAlias);
 
     // -------------------------------------------- //
@@ -267,7 +279,6 @@ contract LendingMarketTest is Test {
             maxAddonFixedCostRate: CREDIT_LINE_CONFIG_MAX_ADDON_FIXED_COST_RATE,
             minAddonPeriodCostRate: CREDIT_LINE_CONFIG_MIN_ADDON_PERIOD_COST_RATE,
             maxAddonPeriodCostRate: CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_COST_RATE
-
         });
     }
 

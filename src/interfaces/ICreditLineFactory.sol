@@ -16,7 +16,9 @@ interface ICreditLineFactory {
     /// @param token The address of the credit line token.
     /// @param kind The kind of the created credit line.
     /// @param creditLine The address of the created credit line.
-    event CreateCreditLine(address indexed market, address indexed lender, address indexed token, uint16 kind, address creditLine);
+    event CreateCreditLine(
+        address indexed market, address indexed lender, address indexed token, uint16 kind, address creditLine
+    );
 
     // -------------------------------------------- //
     //  Functions                                   //

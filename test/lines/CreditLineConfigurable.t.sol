@@ -29,7 +29,9 @@ contract CreditLineConfigurableTest is Test {
     event ConfigureAdmin(address indexed admin, bool adminStatus);
     event TokenConfigured(address creditLine, address indexed token);
     event ConfigureCreditLine(address indexed creditLine, ICreditLineConfigurable.CreditLineConfig config);
-    event ConfigureBorrower(address indexed creditLine, address indexed borrower, ICreditLineConfigurable.BorrowerConfig config);
+    event ConfigureBorrower(
+        address indexed creditLine, address indexed borrower, ICreditLineConfigurable.BorrowerConfig config
+    );
 
     // -------------------------------------------- //
     //  Storage variables                           //
@@ -588,9 +590,7 @@ contract CreditLineConfigurableTest is Test {
         creditLine.configureBorrower(BORROWER_1, borrowerConfig);
     }
 
-    function test_configureBorrower_Revert_IfInterestRatePrimaryIsLessThanCreditLineMinInterestRatePrimary()
-        public
-    {
+    function test_configureBorrower_Revert_IfInterestRatePrimaryIsLessThanCreditLineMinInterestRatePrimary() public {
         ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = configureCreditLine();
 
         ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(block.timestamp);
@@ -601,8 +601,9 @@ contract CreditLineConfigurableTest is Test {
         creditLine.configureBorrower(BORROWER_1, borrowerConfig);
     }
 
-    function test_configureBorrower_Revert_IfInterestRatePrimaryIsGreaterThanCreditLineMaxInterestRatePrimary(
-    ) public {
+    function test_configureBorrower_Revert_IfInterestRatePrimaryIsGreaterThanCreditLineMaxInterestRatePrimary()
+        public
+    {
         ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = configureCreditLine();
 
         ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(block.timestamp);
@@ -613,8 +614,9 @@ contract CreditLineConfigurableTest is Test {
         creditLine.configureBorrower(BORROWER_1, borrowerConfig);
     }
 
-    function test_configureBorrower_Revert_IfInterestRateSecondaryIsLessThanCreditLineMinInterestRateSecondary(
-    ) public {
+    function test_configureBorrower_Revert_IfInterestRateSecondaryIsLessThanCreditLineMinInterestRateSecondary()
+        public
+    {
         ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = configureCreditLine();
 
         ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(block.timestamp);
@@ -625,8 +627,9 @@ contract CreditLineConfigurableTest is Test {
         creditLine.configureBorrower(BORROWER_1, borrowerConfig);
     }
 
-    function test_configureBorrower_Revert_IfInterestRateSecondaryIsGreaterThanCreditLineMaxInterestRateSecondary(
-    ) public {
+    function test_configureBorrower_Revert_IfInterestRateSecondaryIsGreaterThanCreditLineMaxInterestRateSecondary()
+        public
+    {
         ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = configureCreditLine();
 
         ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(block.timestamp);
@@ -637,8 +640,7 @@ contract CreditLineConfigurableTest is Test {
         creditLine.configureBorrower(BORROWER_1, borrowerConfig);
     }
 
-    function test_configureBorrower_Revert_IfAddonFixedCostRateIsLessThanCreditLineMinAddonFixedCostRate(
-    ) public {
+    function test_configureBorrower_Revert_IfAddonFixedCostRateIsLessThanCreditLineMinAddonFixedCostRate() public {
         ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = configureCreditLine();
 
         ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(block.timestamp);
@@ -649,8 +651,7 @@ contract CreditLineConfigurableTest is Test {
         creditLine.configureBorrower(BORROWER_1, borrowerConfig);
     }
 
-    function test_configureBorrower_Revert_IfAddonFixedCostRateIsGreaterThanCreditLineMaxAddonFixedCostRate(
-    ) public {
+    function test_configureBorrower_Revert_IfAddonFixedCostRateIsGreaterThanCreditLineMaxAddonFixedCostRate() public {
         ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = configureCreditLine();
 
         ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(block.timestamp);
@@ -661,8 +662,7 @@ contract CreditLineConfigurableTest is Test {
         creditLine.configureBorrower(BORROWER_1, borrowerConfig);
     }
 
-    function test_configureBorrower_Revert_IfAddonPeriodCostRateIsLessThanCreditLineMinAddonPeriodCostRate(
-    ) public {
+    function test_configureBorrower_Revert_IfAddonPeriodCostRateIsLessThanCreditLineMinAddonPeriodCostRate() public {
         ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = configureCreditLine();
 
         ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(block.timestamp);
@@ -673,8 +673,9 @@ contract CreditLineConfigurableTest is Test {
         creditLine.configureBorrower(BORROWER_1, borrowerConfig);
     }
 
-    function test_configureBorrower_Revert_IfAddonPeriodCostRateIsGreaterThanCreditLineMaxAddonPeriodCostRate(
-    ) public {
+    function test_configureBorrower_Revert_IfAddonPeriodCostRateIsGreaterThanCreditLineMaxAddonPeriodCostRate()
+        public
+    {
         ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = configureCreditLine();
 
         ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(block.timestamp);
@@ -992,7 +993,7 @@ contract CreditLineConfigurableTest is Test {
         assertEq(actualAddonAmount, expectedAddonAmount);
 
         Loan.Terms memory terms = creditLine.determineLoanTerms(BORROWER_1, borrowerConfig.minBorrowAmount);
-        assertEq(terms.addonAmount , expectedAddonAmount);
+        assertEq(terms.addonAmount, expectedAddonAmount);
     }
 
     // -------------------------------------------- //
