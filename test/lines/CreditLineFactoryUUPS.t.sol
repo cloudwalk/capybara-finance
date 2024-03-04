@@ -9,12 +9,10 @@ import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/O
 
 import { CreditLineFactoryUUPS } from "src/lines/CreditLineFactoryUUPS.sol";
 
-import { Config } from "test/base/Config.sol";
-
 /// @title CreditLineFactoryUUPSTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice Contains tests for the `CreditLineFactoryUUPS` contract.
-contract CreditLineFactoryUUPSTest is Test, Config {
+contract CreditLineFactoryUUPSTest is Test {
     // -------------------------------------------- //
     //  Events                                      //
     // -------------------------------------------- //
@@ -27,13 +25,16 @@ contract CreditLineFactoryUUPSTest is Test, Config {
 
     CreditLineFactoryUUPS public proxy;
 
+    address public constant ATTACKER = address(bytes20(keccak256("attacker")));
+    address public constant REGISTRY = address(bytes20(keccak256("registry")));
+
     // -------------------------------------------- //
     //  Setup and configuration                     //
     // -------------------------------------------- //
 
     function setUp() public {
         proxy = CreditLineFactoryUUPS(address(new ERC1967Proxy(address(new CreditLineFactoryUUPS()), "")));
-        proxy.initialize(REGISTRY_1);
+        proxy.initialize(REGISTRY);
     }
 
     // -------------------------------------------- //
@@ -42,7 +43,7 @@ contract CreditLineFactoryUUPSTest is Test, Config {
 
     function test_upgradeToAndCall() public {
         address newImplemetation = address(new CreditLineFactoryUUPS());
-        vm.prank(REGISTRY_1);
+        vm.prank(REGISTRY);
         vm.expectEmit(true, true, true, true, address(proxy));
         emit Upgraded(newImplemetation);
         proxy.upgradeToAndCall(newImplemetation, "");

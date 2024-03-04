@@ -14,12 +14,10 @@ import { LendingMarketMock } from "src/mocks/LendingMarketMock.sol";
 import { CreditLineFactoryMock } from "src/mocks/CreditLineFactoryMock.sol";
 import { LiquidityPoolFactoryMock } from "src/mocks/LiquidityPoolFactoryMock.sol";
 
-import { Config } from "test/base/Config.sol";
-
 /// @title LendingRegistryTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice Contains tests for the `LendingRegistry` contract.
-contract LendingRegistryTest is Test, Config {
+contract LendingRegistryTest is Test {
     // -------------------------------------------- //
     //  Events                                      //
     // -------------------------------------------- //
@@ -46,6 +44,18 @@ contract LendingRegistryTest is Test, Config {
     LendingMarketMock public lendingMarket;
     CreditLineFactoryMock public creditLineFactory;
     LiquidityPoolFactoryMock public liquidityPoolFactory;
+
+    address public constant TOKEN = address(bytes20(keccak256("token")));
+    address public constant OWNER = address(bytes20(keccak256("owner")));
+    address public constant ATTACKER = address(bytes20(keccak256("attacker")));
+    address public constant CREDIT_LINE_FACTORY_1 = address(bytes20(keccak256("credit_line_factory_1")));
+    address public constant CREDIT_LINE_FACTORY_2 = address(bytes20(keccak256("credit_line_factory_2")));
+    address public constant LIQUIDITY_POOL_FACTORY_1 = address(bytes20(keccak256("liquidity_pool_factory_1")));
+    address public constant LIQUIDITY_POOL_FACTORY_2 = address(bytes20(keccak256("liquidity_pool_factory_2")));
+    address public constant EXPECTED_CONTRACT_ADDRESS = address(bytes20(keccak256("expected_contract_address"));
+
+    uint16 public constant KIND_1 = 1;
+    bytes public constant DATA = "0x";
 
     // -------------------------------------------- //
     //  Setup and configuration                     //
@@ -225,18 +235,18 @@ contract LendingRegistryTest is Test, Config {
         registry.setCreditLineFactory(address(creditLineFactory));
 
         vm.expectEmit(true, true, true, true, address(creditLineFactory));
-        emit CreateCreditLineCalled(address(lendingMarket), OWNER, TOKEN_1, KIND_1, "0x");
+        emit CreateCreditLineCalled(address(lendingMarket), OWNER, TOKEN, KIND_1, DATA);
 
         vm.expectEmit(true, true, true, true, address(lendingMarket));
         emit RegisterCreditLineCalled(OWNER, EXPECTED_CONTRACT_ADDRESS);
 
-        registry.createCreditLine(KIND_1, TOKEN_1);
+        registry.createCreditLine(KIND_1, TOKEN);
     }
 
     function test_createCreditLine_Revert_IfFactoryNotConfigured() public {
         vm.prank(OWNER);
         vm.expectRevert(LendingRegistry.CreditLineFactoryNotConfigured.selector);
-        registry.createCreditLine(KIND_1, TOKEN_1);
+        registry.createCreditLine(KIND_1, TOKEN);
     }
 
     // -------------------------------------------- //
@@ -250,7 +260,7 @@ contract LendingRegistryTest is Test, Config {
         registry.setLiquidityPoolFactory(address(liquidityPoolFactory));
 
         vm.expectEmit(true, true, true, true, address(liquidityPoolFactory));
-        emit CreateLiquidityPoolCalled(address(lendingMarket), OWNER, KIND_1, "0x");
+        emit CreateLiquidityPoolCalled(address(lendingMarket), OWNER, KIND_1, DATA);
 
         vm.expectEmit(true, true, true, true, address(lendingMarket));
         emit RegisterLiquidityPoolCalled(OWNER, EXPECTED_CONTRACT_ADDRESS);

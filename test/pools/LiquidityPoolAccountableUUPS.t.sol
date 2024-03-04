@@ -9,12 +9,10 @@ import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/O
 
 import { LiquidityPoolAccountableUUPS } from "src/pools/LiquidityPoolAccountableUUPS.sol";
 
-import { Config } from "test/base/Config.sol";
-
 /// @title LiquidityPoolAccountableUUPSTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice Contains tests for the `LiquidityPoolAccountableUUPS` contract.
-contract LiquidityPoolAccountableUUPSTest is Test, Config {
+contract LiquidityPoolAccountableUUPSTest is Test {
     // -------------------------------------------- //
     //  Events                                      //
     // -------------------------------------------- //
@@ -27,13 +25,17 @@ contract LiquidityPoolAccountableUUPSTest is Test, Config {
 
     LiquidityPoolAccountableUUPS public proxy;
 
+    address public constant MARKET = address(bytes20(keccak256("market")));
+    address public constant LENDER = address(bytes20(keccak256("lender")));
+    address public constant ATTACKER = address(bytes20(keccak256("attacker")));
+
     // -------------------------------------------- //
     //  Setup and configuration                     //
     // -------------------------------------------- //
 
     function setUp() public {
         proxy = LiquidityPoolAccountableUUPS(address(new ERC1967Proxy(address(new LiquidityPoolAccountableUUPS()), "")));
-        proxy.initialize(MARKET, LENDER_1);
+        proxy.initialize(MARKET, LENDER);
     }
 
     // -------------------------------------------- //
@@ -42,7 +44,7 @@ contract LiquidityPoolAccountableUUPSTest is Test, Config {
 
     function test_upgradeToAndCall() public {
         address newImplemetation = address(new LiquidityPoolAccountableUUPS());
-        vm.prank(LENDER_1);
+        vm.prank(LENDER);
         vm.expectEmit(true, true, true, true, address(proxy));
         emit Upgraded(newImplemetation);
         proxy.upgradeToAndCall(newImplemetation, "");

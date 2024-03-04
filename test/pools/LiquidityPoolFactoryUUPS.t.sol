@@ -9,12 +9,10 @@ import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/O
 
 import { LiquidityPoolFactoryUUPS } from "src/pools/LiquidityPoolFactoryUUPS.sol";
 
-import { Config } from "test/base/Config.sol";
-
 /// @title LiquidityPoolFactoryUUPSTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice Contains tests for the `LiquidityPoolFactoryUUPS` contract.
-contract LiquidityPoolFactoryUUPSTest is Test, Config {
+contract LiquidityPoolFactoryUUPSTest is Test {
     // -------------------------------------------- //
     //  Events                                      //
     // -------------------------------------------- //
@@ -27,13 +25,16 @@ contract LiquidityPoolFactoryUUPSTest is Test, Config {
 
     LiquidityPoolFactoryUUPS public proxy;
 
+    address public constant ATTACKER = address(bytes20(keccak256("attacker")));
+    address public constant REGISTRY = address(bytes20(keccak256("registry")));
+
     // -------------------------------------------- //
     //  Setup and configuration                     //
     // -------------------------------------------- //
 
     function setUp() public {
         proxy = LiquidityPoolFactoryUUPS(address(new ERC1967Proxy(address(new LiquidityPoolFactoryUUPS()), "")));
-        proxy.initialize(REGISTRY_1);
+        proxy.initialize(REGISTRY);
     }
 
     // -------------------------------------------- //
@@ -42,7 +43,7 @@ contract LiquidityPoolFactoryUUPSTest is Test, Config {
 
     function test_upgradeToAndCall() public {
         address newImplemetation = address(new LiquidityPoolFactoryUUPS());
-        vm.prank(REGISTRY_1);
+        vm.prank(REGISTRY);
         vm.expectEmit(true, true, true, true, address(proxy));
         emit Upgraded(newImplemetation);
         proxy.upgradeToAndCall(newImplemetation, "");
