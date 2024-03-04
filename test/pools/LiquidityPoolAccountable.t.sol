@@ -77,7 +77,7 @@ contract LiquidityPoolAccountableTest is Test {
         vm.stopPrank();
     }
 
-    function getLoanDataBatch() public pure returns (uint256[] memory, uint256[] memory) {
+    function getBatchLoanData() public pure returns (uint256[] memory, uint256[] memory) {
         uint256[] memory loanIds = new uint256[](3);
         loanIds[0] = LOAN_ID_1;
         loanIds[1] = LOAN_ID_2;
@@ -105,7 +105,7 @@ contract LiquidityPoolAccountableTest is Test {
             startDate: 0,
             freezeDate: 0,
             trackedDate: 0,
-            initialBorrowAmount: DEPOSIT_AMOUNT_1,
+            initialBorrowAmount: 0,
             trackedBorrowAmount: 0,
             autoRepayment: false
         });
@@ -369,7 +369,7 @@ contract LiquidityPoolAccountableTest is Test {
     function test_autoRepay() public {
         vm.prank(LENDER);
         liquidityPool.configureAdmin(ADMIN, true);
-        (uint256[] memory loanIds, uint256[] memory amounts) = getLoanDataBatch();
+        (uint256[] memory loanIds, uint256[] memory amounts) = getBatchLoanData();
 
         vm.expectEmit(true, true, true, true, address(liquidityPool));
         emit AutoRepay(loanIds.length);
@@ -384,7 +384,7 @@ contract LiquidityPoolAccountableTest is Test {
     }
 
     function test_deposit_Revert_IfCallerNotAdmin() public {
-        (uint256[] memory loanIds, uint256[] memory amounts) = getLoanDataBatch();
+        (uint256[] memory loanIds, uint256[] memory amounts) = getBatchLoanData();
 
         vm.prank(ATTACKER);
         vm.expectRevert(Error.Unauthorized.selector);
@@ -395,7 +395,7 @@ contract LiquidityPoolAccountableTest is Test {
         vm.prank(LENDER);
         liquidityPool.configureAdmin(ADMIN, true);
 
-        (uint256[] memory loanIds, uint256[] memory amounts) = getLoanDataBatch();
+        (uint256[] memory loanIds, uint256[] memory amounts) = getBatchLoanData();
         uint256[] memory amountsIncorrectLength = new uint256[](2);
         amountsIncorrectLength[0] = amounts[0];
         amountsIncorrectLength[1] = amounts[1];
@@ -435,7 +435,9 @@ contract LiquidityPoolAccountableTest is Test {
 
     function test_onAfterLoanTaken() public {
         configureLender();
-        lendingMarket.mockLoanState(LOAN_ID_1, initLoanState());
+        Loan.State memory loan = initLoanState();
+        loan.initialBorrowAmount = DEPOSIT_AMOUNT_1;
+        lendingMarket.mockLoanState(LOAN_ID_1, loan);
 
         vm.prank(LENDER);
         liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT_1);
@@ -495,7 +497,9 @@ contract LiquidityPoolAccountableTest is Test {
 
     function test_onAfterLoanPayment_CreditLineBalance() public {
         configureLender();
-        lendingMarket.mockLoanState(LOAN_ID_1, initLoanState());
+        Loan.State memory loan = initLoanState();
+        loan.initialBorrowAmount = DEPOSIT_AMOUNT_1;
+        lendingMarket.mockLoanState(LOAN_ID_1, loan);
 
         vm.prank(LENDER);
         liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT_1);
@@ -512,7 +516,9 @@ contract LiquidityPoolAccountableTest is Test {
 
     function test_onAfterLoanPayment_NonCreditLineBalance() public {
         configureLender();
-        lendingMarket.mockLoanState(LOAN_ID_1, initLoanState());
+        Loan.State memory loan = initLoanState();
+        loan.initialBorrowAmount = DEPOSIT_AMOUNT_1;
+        lendingMarket.mockLoanState(LOAN_ID_1, loan);
 
         vm.prank(LENDER);
         liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT_1);
@@ -562,7 +568,9 @@ contract LiquidityPoolAccountableTest is Test {
 
     function test_getCreditLine() public {
         configureLender();
-        lendingMarket.mockLoanState(LOAN_ID_1, initLoanState());
+        Loan.State memory loan = initLoanState();
+        loan.initialBorrowAmount = DEPOSIT_AMOUNT_1;
+        lendingMarket.mockLoanState(LOAN_ID_1, loan);
 
         vm.prank(LENDER);
         liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT_1);
