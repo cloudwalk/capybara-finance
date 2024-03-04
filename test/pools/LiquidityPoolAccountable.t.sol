@@ -16,12 +16,10 @@ import { LendingMarketMock } from "src/mocks/LendingMarketMock.sol";
 import { CreditLineMock } from "src/mocks/CreditLineMock.sol";
 import { ERC20Mock } from "src/mocks/ERC20Mock.sol";
 
-import { Config } from "test/base/Config.sol";
-
 /// @title LiquidityPoolAccountableTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice Contains tests for the `LiquidityPoolAccountable` contract.
-contract LiquidityPoolAccountableTest is Test, Config {
+contract LiquidityPoolAccountableTest is Test {
     // -------------------------------------------- //
     //  Events                                      //
     // -------------------------------------------- //
@@ -52,6 +50,13 @@ contract LiquidityPoolAccountableTest is Test, Config {
     uint64 public constant DEPOSIT_AMOUNT_2 = 200;
     uint64 public constant DEPOSIT_AMOUNT_3 = 300;
     uint256 public constant NONEXISTENT_LOAN_ID = 999_999_999;
+
+    address public constant ADMIN = address(bytes20(keccak256("admin")));
+    address public constant LENDER_1 = address(bytes20(keccak256("lender_1")));
+    address public constant LENDER_2 = address(bytes20(keccak256("lender_2")));
+    address public constant ATTACKER = address(bytes20(keccak256("attacker")));
+
+    uint16 public constant KIND_1 = 1;
 
     // -------------------------------------------- //
     //  Setup and configuration                     //
