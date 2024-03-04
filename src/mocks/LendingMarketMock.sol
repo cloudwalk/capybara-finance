@@ -22,7 +22,7 @@ contract LendingMarketMock is ILendingMarket {
     //  Storage variables                           //
     // -------------------------------------------- //
 
-    mapping(uint256 => Loan.State) _loanState;
+    mapping(uint256 => Loan.State) private _loanStates;
 
     // -------------------------------------------- //
     //  ILendingMarket functions                    //
@@ -97,7 +97,7 @@ contract LendingMarketMock is ILendingMarket {
     }
 
     function getLoanState(uint256 loanId) external view returns (Loan.State memory) {
-        return _loanState[loanId];
+        return _loanStates[loanId];
     }
 
     function getLoanPreview(uint256 loanId, uint256 timestamp) external pure returns (Loan.Preview memory) {
@@ -117,6 +117,6 @@ contract LendingMarketMock is ILendingMarket {
     // -------------------------------------------- //
 
     function mockLoanState(uint256 loanId, Loan.State memory state) external {
-        _loanState[loanId] = state;
+        _loanStates[loanId] = state;
     }
 }

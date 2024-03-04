@@ -19,7 +19,7 @@ contract LiquidityPoolFactoryMock is ILiquidityPoolFactory {
     //  Storage variables                           //
     // -------------------------------------------- //
 
-    address _createdLiquidityPoolAddress;
+    address private _createdLiquidityPoolAddress;
 
     // -------------------------------------------- //
     //  ILiquidityPoolFactory functions             //

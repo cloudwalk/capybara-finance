@@ -23,11 +23,11 @@ contract LiquidityPoolMock is ILiquidityPool {
     //  Storage variables                           //
     // -------------------------------------------- //
 
-    bool _onBeforeLoanTakenResult;
-    bool _onAfterLoanTakenResult;
+    bool private _onBeforeLoanTakenResult;
+    bool private _onAfterLoanTakenResult;
 
-    bool _onBeforeLoanPaymentResult;
-    bool _onAfterLoanPaymentResult;
+    bool private _onBeforeLoanPaymentResult;
+    bool private _onAfterLoanPaymentResult;
 
     // -------------------------------------------- //
     //  ILiquidityPoolFactory functions             //

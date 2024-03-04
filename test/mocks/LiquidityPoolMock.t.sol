@@ -49,6 +49,7 @@ contract LiquidityPoolMockTest is Test {
         assertEq(result, false);
 
         mock.mockOnBeforeLoanTakenResult(true);
+
         vm.expectEmit(true, true, true, true, address(mock));
         emit OnBeforeLoanTakenCalled(100, address(0x1));
         result = mock.onBeforeLoanTaken(100, address(0x1));
@@ -62,6 +63,7 @@ contract LiquidityPoolMockTest is Test {
         assertEq(result, false);
 
         mock.mockOnAfterLoanTakenResult(true);
+
         vm.expectEmit(true, true, true, true, address(mock));
         emit OnAfterLoanTakenCalled(100, address(0x1));
         result = mock.onAfterLoanTaken(100, address(0x1));
@@ -75,6 +77,7 @@ contract LiquidityPoolMockTest is Test {
         assertEq(result, false);
 
         mock.mockOnBeforeLoanPaymentResult(true);
+
         vm.expectEmit(true, true, true, true, address(mock));
         emit OnBeforeLoanPaymentCalled(100, 100);
         result = mock.onBeforeLoanPayment(100, 100);
@@ -88,6 +91,7 @@ contract LiquidityPoolMockTest is Test {
         assertEq(result, false);
 
         mock.mockOnAfterLoanPaymentResult(true);
+
         vm.expectEmit(true, true, true, true, address(mock));
         emit OnAfterLoanPaymentCalled(100, 100);
         result = mock.onAfterLoanPayment(100, 100);

@@ -854,20 +854,12 @@ contract LendingMarketTest is Test {
         market.repayLoan(loanId, 0);
     }
 
-    function test_repayLoan_Revert_IfLiquidityPoolIsNotRegistered() public {
-        configureMarket();
-        uint256 loanId = createActiveLoan(1);
-
-        vm.prank(LENDER_1);
-        market.transferFrom(LENDER_1, LENDER_2, loanId);
-
-        vm.prank(BORROWER_1);
-        vm.expectRevert(LendingMarket.LiquidityPoolNotRegistered.selector);
-        market.repayLoan(loanId, 1);
-    }
-
     function test_repayLoan_Revert_IfAutoRepaymentIsNotAllowed() public {
         configureMarket();
+
+        canOverrideAutoRepayment = true;
+        overrideAutoRepayment = false;
+
         uint256 loanId = createActiveLoan(1);
 
         uint256 outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;

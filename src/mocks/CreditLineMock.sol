@@ -15,8 +15,7 @@ contract CreditLineMock is ICreditLine {
     // -------------------------------------------- //
 
     address private _tokenAddress;
-
-    mapping(address => mapping(uint256 => Loan.Terms)) _loanTerms;
+    mapping(address => mapping(uint256 => Loan.Terms)) private _loanTerms;
 
     // -------------------------------------------- //
     //  ICreditLine functions                       //

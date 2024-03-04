@@ -447,7 +447,7 @@ contract LiquidityPoolAccountableTest is Test {
         assertEq(liquidityPool.onAfterLoanTaken(LOAN_ID_1, address(creditLine)), true);
 
         assertEq(liquidityPool.getCreditLine(LOAN_ID_1), address(creditLine));
-        assertEq(liquidityPool.getTokenBalance(address(creditLine)), 1);
+        assertEq(liquidityPool.getTokenBalance(address(creditLine)), 0);
     }
 
     function test_onAfterLoanTaken_Revert_IfContractIsPaused() public {

@@ -320,10 +320,12 @@ contract LendingMarket is
         }
 
         bool autoRepayment = loan.holder == msg.sender;
-        address payer = autoRepayment ? loan.borrower : msg.sender;
+
         if (autoRepayment && !loan.autoRepayment) {
             revert AutoRepaymentNotAllowed();
         }
+
+        address payer = autoRepayment ? loan.borrower : msg.sender;
 
         outstandingBalance -= repayAmount;
         loan.trackedBorrowAmount = outstandingBalance.toUint64();
