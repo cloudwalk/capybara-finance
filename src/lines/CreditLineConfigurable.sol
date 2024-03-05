@@ -95,24 +95,17 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     ) internal onlyInitializing {
         __Ownable_init_unchained(lender_);
         __Pausable_init_unchained();
-        __CreditLineConfigurable_init_unchained(market_, lender_, token_);
+        __CreditLineConfigurable_init_unchained(market_, token_);
     }
 
     /// @dev Unchained internal initializer of the upgradable contract.
     /// @param market_ The address of the lending market.
-    /// @param lender_ The address of the lender.
     /// @param token_ The address of the token.
     function __CreditLineConfigurable_init_unchained(
         address market_,
-        address lender_,
         address token_
     ) internal onlyInitializing {
         if (market_ == address(0)) {
-            revert Error.ZeroAddress();
-        }
-        if (lender_ == address(0)) {
-            // NOTE: This should never happen since the lender is the contract owner,
-            // and its address is checked to be non-zero by the Ownable contract.
             revert Error.ZeroAddress();
         }
         if (token_ == address(0)) {

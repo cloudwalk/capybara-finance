@@ -89,19 +89,13 @@ contract LiquidityPoolAccountable is
     function __LiquidityPoolAccountable_init(address market_, address lender_) internal onlyInitializing {
         __Ownable_init_unchained(lender_);
         __Pausable_init_unchained();
-        __LiquidityPoolAccountable_init_unchained(market_, lender_);
+        __LiquidityPoolAccountable_init_unchained(market_);
     }
 
     /// @dev Unchained internal initializer of the upgradable contract.
     /// @param market_ The address of the lending market.
-    /// @param lender_ The address of the lender.
-    function __LiquidityPoolAccountable_init_unchained(address market_, address lender_) internal onlyInitializing {
+    function __LiquidityPoolAccountable_init_unchained(address market_) internal onlyInitializing {
         if (market_ == address(0)) {
-            revert Error.ZeroAddress();
-        }
-        if (lender_ == address(0)) {
-            // NOTE: This should never happen since the lender is the contract owner,
-            // and its address is checked to be non-zero by the Ownable contract.
             revert Error.ZeroAddress();
         }
 
