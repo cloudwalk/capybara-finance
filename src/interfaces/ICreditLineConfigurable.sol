@@ -10,26 +10,6 @@ import { ICreditLine } from "./core/ICreditLine.sol";
 /// @notice Defines the configurable credit line contract functions and events.
 interface ICreditLineConfigurable is ICreditLine {
     // -------------------------------------------- //
-    //  Events                                      //
-    // -------------------------------------------- //
-
-    /// @notice Emitted when admin is configured.
-    /// @param admin The address of the admin account.
-    /// @param adminStatus True if the account is an admin.
-    event ConfigureAdmin(address indexed admin, bool adminStatus);
-
-    /// @notice Emitted when the credit line is configured.
-    /// @param creditLine The address of the current credit line.
-    /// @param config The struct containing the credit line configuration.
-    event ConfigureCreditLine(address indexed creditLine, CreditLineConfig config);
-
-    /// @notice Emitted when the borrower is configured.
-    /// @param creditLine The address of the current credit line.
-    /// @param borrower The address of the borrower being configured.
-    /// @param config The struct containing the borrower configuration.
-    event ConfigureBorrower(address indexed creditLine, address indexed borrower, BorrowerConfig config);
-
-    // -------------------------------------------- //
     //  Structs and enums                           //
     // -------------------------------------------- //
 
@@ -84,6 +64,26 @@ interface ICreditLineConfigurable is ICreditLine {
         BorrowPolicy borrowPolicy;        // The borrow policy to be applied to the borrower.
         bool autoRepayment;               // Whether the loan can be repaid automatically.
     }
+
+    // -------------------------------------------- //
+    //  Events                                      //
+    // -------------------------------------------- //
+
+    /// @notice Emitted when admin is configured.
+    /// @param admin The address of the admin account.
+    /// @param adminStatus True if the account is an admin.
+    event ConfigureAdmin(address indexed admin, bool adminStatus);
+
+    /// @notice Emitted when the credit line is configured.
+    /// @param creditLine The address of the current credit line.
+    /// @param config The struct containing the credit line configuration.
+    event ConfigureCreditLine(address indexed creditLine, CreditLineConfig config);
+
+    /// @notice Emitted when the borrower is configured.
+    /// @param creditLine The address of the current credit line.
+    /// @param borrower The address of the borrower being configured.
+    /// @param config The struct containing the borrower configuration.
+    event ConfigureBorrower(address indexed creditLine, address indexed borrower, BorrowerConfig config);
 
     // -------------------------------------------- //
     //  Functions                                   //
