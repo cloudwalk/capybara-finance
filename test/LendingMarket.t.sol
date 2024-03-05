@@ -46,7 +46,7 @@ contract LendingMarketTest is Test {
         address indexed repayer,
         address indexed borrower,
         uint256 repayAmount,
-        uint256 remainingBalance
+        uint256 outstandingBalance
     );
 
     event FreezeLoan(uint256 indexed loanId, uint256 freezeDate);

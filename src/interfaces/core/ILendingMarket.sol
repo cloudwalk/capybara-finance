@@ -33,13 +33,13 @@ interface ILendingMarket {
     /// @param repayer The address of the repayer (borrower or third-party).
     /// @param borrower The address of the borrower of the loan.
     /// @param repayAmount The amount of the repayment.
-    /// @param remainingBalance The remaining balance of the loan.
+    /// @param outstandingBalance The outstanding balance of the loan after the repayment.
     event RepayLoan(
         uint256 indexed loanId,
         address indexed repayer,
         address indexed borrower,
         uint256 repayAmount,
-        uint256 remainingBalance
+        uint256 outstandingBalance
     );
 
     /// @notice Emitted when a loan is frozen.

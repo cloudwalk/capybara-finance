@@ -19,19 +19,20 @@ library InterestMath {
     //  Functions                                   //
     // -------------------------------------------- //
 
-    /// @dev Calculates the outstanding loan balance.
+    /// @dev Calculates the outstanding balance of a loan.
     /// @param originalBalance The balance of the loan at the beginning.
     /// @param numberOfPeriods The number of periods to calculate the outstanding balance.
-    /// @param interestRate The interest rate applied to the loan.
-    /// @param interestRateFactor The interest rate factor.
-    /// @param interestFormula The interest formula.
+    /// @param interestRate The interest rate to use for the calculation (see interestRateFactor).
+    /// @param interestRateFactor The interest rate factor used with the interest rate.
+    /// @param interestFormula The interest formula to use for the calculation.
+    /// @return The outstanding balance of the loan.
     function calculateOutstandingBalance(
         uint256 originalBalance,
         uint256 numberOfPeriods,
         uint256 interestRate,
         uint256 interestRateFactor,
         Interest.Formula interestFormula
-    ) internal pure returns (uint256 remainingBalance) {
+    ) internal pure returns (uint256) {
         if (interestFormula == Interest.Formula.Compound) {
             uint256 outstandingBalance = originalBalance;
             for (uint256 i = 0; i < numberOfPeriods; i++) {
