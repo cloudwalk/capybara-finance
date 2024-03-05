@@ -26,8 +26,8 @@ library Loan {
         Interest.Formula interestFormula; // The formula used for interest calculation on the loan.
         bool autoRepayment;               // The flag that indicates whether the loan can be repaid automatically.
         // Slot 4
-        uint64 trackedBorrowAmount;       // The updated loan amount after the last repayment.
-        uint32 trackedDate;               // The date of the last repayment.
+        uint64 trackedBorrowBalance;      // The borow balance of the loan that is tracked.
+        uint32 trackedDate;               // The date of the loan recent repayment.
         uint32 freezeDate;                // The date when the loan was frozen.
     }
 

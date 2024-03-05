@@ -106,7 +106,7 @@ contract LiquidityPoolAccountableTest is Test {
             freezeDate: 0,
             trackedDate: 0,
             initialBorrowAmount: 0,
-            trackedBorrowAmount: 0,
+            trackedBorrowBalance: 0,
             autoRepayment: false
         });
     }

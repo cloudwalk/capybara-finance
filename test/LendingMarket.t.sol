@@ -654,7 +654,7 @@ contract LendingMarketTest is Test {
         assertEq(loan.trackedDate, preview.periodDate);
         assertEq(loan.freezeDate, 0);
         assertEq(loan.initialBorrowAmount, borrowAmount + terms.addonAmount);
-        assertEq(loan.trackedBorrowAmount, borrowAmount + terms.addonAmount);
+        assertEq(loan.trackedBorrowBalance, borrowAmount + terms.addonAmount);
 
         assertEq(loan.token, terms.token);
         assertEq(loan.autoRepayment, terms.autoRepayment);
@@ -723,7 +723,7 @@ contract LendingMarketTest is Test {
         Loan.State memory loan = market.getLoanState(loanId);
 
         assertEq(market.ownerOf(loanId), LENDER_1);
-        assertEq(loan.trackedBorrowAmount >= 2, true);
+        assertEq(loan.trackedBorrowBalance >= 2, true);
 
         vm.prank(BORROWER_1);
         token.approve(address(market), type(uint256).max);
@@ -836,7 +836,7 @@ contract LendingMarketTest is Test {
 
         vm.startPrank(BORROWER_1);
         vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
-        market.repayLoan(loanId, loan.trackedBorrowAmount);
+        market.repayLoan(loanId, loan.trackedBorrowBalance);
     }
 
     function test_repayLoan_Revert_IfLoanNotExist() public {

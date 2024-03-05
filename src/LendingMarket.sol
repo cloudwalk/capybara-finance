@@ -106,7 +106,7 @@ contract LendingMarket is
         if (_loans[loanId].token == address(0)) {
             revert LoanNotExist();
         }
-        if (_loans[loanId].trackedBorrowAmount == 0) {
+        if (_loans[loanId].trackedBorrowBalance == 0) {
             revert LoanAlreadyRepaid();
         }
         _;
@@ -278,7 +278,7 @@ contract LendingMarket is
             interestRateSecondary: terms.interestRateSecondary,
             interestFormula: terms.interestFormula,
             initialBorrowAmount: totalAmount.toUint64(),
-            trackedBorrowAmount: totalAmount.toUint64(),
+            trackedBorrowBalance: totalAmount.toUint64(),
             trackedDate: startDate.toUint32(),
             freezeDate: 0,
             autoRepayment: terms.autoRepayment
@@ -329,8 +329,8 @@ contract LendingMarket is
         address payer = autoRepayment ? loan.borrower : msg.sender;
 
         outstandingBalance -= repayAmount;
-        loan.trackedBorrowAmount = outstandingBalance.toUint64();
         loan.trackedDate = currentDate.toUint32();
+        loan.trackedBorrowBalance = outstandingBalance.toUint64();
 
         ILiquidityPool(loan.holder).onBeforeLoanPayment(loanId, repayAmount);
         IERC20(loan.token).transferFrom(payer, loan.holder, repayAmount);
@@ -553,7 +553,7 @@ contract LendingMarket is
     /// @param periodDate The period date to calculate the outstanding balance at.
     /// @return The outstanding balance of the loan at the specified period date.
     function _outstandingBalance(Loan.State storage loan, uint256 periodDate) internal view returns (uint256) {
-        uint256 outstandingBalance = loan.trackedBorrowAmount;
+        uint256 outstandingBalance = loan.trackedBorrowBalance;
 
         if (loan.freezeDate != 0) {
             periodDate = loan.freezeDate;
