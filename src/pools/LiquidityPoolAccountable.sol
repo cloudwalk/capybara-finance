@@ -11,9 +11,9 @@ import { Loan } from "../libraries/Loan.sol";
 import { Error } from "../libraries/Error.sol";
 
 import { ICreditLine } from "../interfaces/core/ICreditLine.sol";
+import { ILendingMarket } from "../interfaces/core/ILendingMarket.sol";
 import { ILiquidityPool } from "../interfaces/core/ILiquidityPool.sol";
 import { ILiquidityPoolAccountable } from "../interfaces/ILiquidityPoolAccountable.sol";
-import { ILendingMarket } from "../interfaces/core/ILendingMarket.sol";
 
 /// @title LiquidityPoolAccountable contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
@@ -21,7 +21,6 @@ import { ILendingMarket } from "../interfaces/core/ILendingMarket.sol";
 contract LiquidityPoolAccountable is
     OwnableUpgradeable,
     PausableUpgradeable,
-    ILiquidityPool,
     ILiquidityPoolAccountable
 {
     using SafeERC20 for IERC20;

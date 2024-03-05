@@ -15,7 +15,7 @@ import { ICreditLineConfigurable } from "../interfaces/ICreditLineConfigurable.s
 /// @title CreditLineConfigurable contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice Implementation of the configurable credit line contract.
-contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICreditLine, ICreditLineConfigurable {
+contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICreditLineConfigurable {
     using SafeCast for uint256;
     // -------------------------------------------- //
     //  Storage variables                           //
