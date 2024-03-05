@@ -32,7 +32,7 @@ contract LendingMarketMockTest is Test {
 
     address public constant TOKEN = address(bytes20(keccak256("token")));
     address public constant LENDER = address(bytes20(keccak256("lender")));
-    address public constant HOLDER = address(bytes20(keccak256("holder")));
+    address public constant TREASURY = address(bytes20(keccak256("treasury")));
     address public constant BORROWER = address(bytes20(keccak256("borrower")));
     address public constant CREDIT_LINE = address(bytes20(keccak256("credit_line")));
     address public constant LIQUIDITY_POOL = address(bytes20(keccak256("liquidity_pool")));
@@ -140,7 +140,7 @@ contract LendingMarketMockTest is Test {
 
         assertEq(loan.token, address(0));
         assertEq(loan.borrower, address(0));
-        assertEq(loan.holder, address(0));
+        assertEq(loan.treasury, address(0));
         assertEq(loan.periodInSeconds, 0);
         assertEq(loan.durationInPeriods, 0);
         assertEq(loan.interestRateFactor, 0);
@@ -159,7 +159,7 @@ contract LendingMarketMockTest is Test {
             Loan.State({
                 token: TOKEN,
                 borrower: BORROWER,
-                holder: HOLDER,
+                treasury: TREASURY,
                 periodInSeconds: STATE_PERIOD_IN_SECONDS,
                 durationInPeriods: STATE_DURATION_IN_PERIODS,
                 interestRateFactor: STATE_INTEREST_RATE_FACTOR,
@@ -179,7 +179,7 @@ contract LendingMarketMockTest is Test {
 
         assertEq(loan.token, TOKEN);
         assertEq(loan.borrower, BORROWER);
-        assertEq(loan.holder, HOLDER);
+        assertEq(loan.treasury, TREASURY);
         assertEq(loan.periodInSeconds, STATE_PERIOD_IN_SECONDS);
         assertEq(loan.durationInPeriods, STATE_DURATION_IN_PERIODS);
         assertEq(loan.interestRateFactor, STATE_INTEREST_RATE_FACTOR);

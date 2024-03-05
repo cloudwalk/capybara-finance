@@ -25,7 +25,7 @@ contract CreditLineMockTest is Test {
     address public constant BORROWER = address(bytes20(keccak256("borrower")));
 
     address public constant TERMS_TOKEN = address(bytes20(keccak256("token")));
-    address public constant TERMS_HOLDER = address(bytes20(keccak256("holder")));
+    address public constant TERMS_TREASURY = address(bytes20(keccak256("treasury")));
     address public constant TERMS_ADDON_RECIPIENT = address(bytes20(keccak256("addon")));
 
     uint32 public constant TERMS_PERIOD_IN_SECONDS = 100;
@@ -54,7 +54,7 @@ contract CreditLineMockTest is Test {
         Loan.Terms memory terms = mock.onBeforeLoanTaken(BORROWER, BORROW_AMOUNT, LOAN_ID);
 
         assertEq(terms.token, address(0));
-        assertEq(terms.holder, address(0));
+        assertEq(terms.treasury, address(0));
         assertEq(terms.periodInSeconds, 0);
         assertEq(terms.durationInPeriods, 0);
         assertEq(terms.interestRateFactor, 0);
@@ -70,7 +70,7 @@ contract CreditLineMockTest is Test {
             BORROW_AMOUNT,
             Loan.Terms({
                 token: TERMS_TOKEN,
-                holder: TERMS_HOLDER,
+                treasury: TERMS_TREASURY,
                 periodInSeconds: TERMS_PERIOD_IN_SECONDS,
                 durationInPeriods: TERMS_DURATION_IN_PERIODS,
                 interestRateFactor: TERMS_INTEREST_RATE_FACTOR,
@@ -86,7 +86,7 @@ contract CreditLineMockTest is Test {
         terms = mock.onBeforeLoanTaken(BORROWER, BORROW_AMOUNT, LOAN_ID);
 
         assertEq(terms.token, TERMS_TOKEN);
-        assertEq(terms.holder, TERMS_HOLDER);
+        assertEq(terms.treasury, TERMS_TREASURY);
         assertEq(terms.periodInSeconds, TERMS_PERIOD_IN_SECONDS);
         assertEq(terms.durationInPeriods, TERMS_DURATION_IN_PERIODS);
         assertEq(terms.interestRateFactor, TERMS_INTEREST_RATE_FACTOR);
@@ -102,7 +102,7 @@ contract CreditLineMockTest is Test {
         Loan.Terms memory terms = mock.determineLoanTerms(BORROWER, BORROW_AMOUNT);
 
         assertEq(terms.token, address(0));
-        assertEq(terms.holder, address(0));
+        assertEq(terms.treasury, address(0));
         assertEq(terms.periodInSeconds, 0);
         assertEq(terms.durationInPeriods, 0);
         assertEq(terms.interestRateFactor, 0);
@@ -118,7 +118,7 @@ contract CreditLineMockTest is Test {
             BORROW_AMOUNT,
             Loan.Terms({
                 token: TERMS_TOKEN,
-                holder: TERMS_HOLDER,
+                treasury: TERMS_TREASURY,
                 periodInSeconds: TERMS_PERIOD_IN_SECONDS,
                 durationInPeriods: TERMS_DURATION_IN_PERIODS,
                 interestRateFactor: TERMS_INTEREST_RATE_FACTOR,
@@ -134,7 +134,7 @@ contract CreditLineMockTest is Test {
         terms = mock.determineLoanTerms(BORROWER, BORROW_AMOUNT);
 
         assertEq(terms.token, TERMS_TOKEN);
-        assertEq(terms.holder, TERMS_HOLDER);
+        assertEq(terms.treasury, TERMS_TREASURY);
         assertEq(terms.periodInSeconds, TERMS_PERIOD_IN_SECONDS);
         assertEq(terms.durationInPeriods, TERMS_DURATION_IN_PERIODS);
         assertEq(terms.interestRateFactor, TERMS_INTEREST_RATE_FACTOR);

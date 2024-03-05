@@ -268,7 +268,7 @@ contract LendingMarket is
 
         _loans[id] = Loan.State({
             token: terms.token,
-            holder: terms.holder,
+            treasury: terms.treasury,
             borrower: msg.sender,
             startDate: startDate.toUint32(),
             periodInSeconds: terms.periodInSeconds,
@@ -306,7 +306,7 @@ contract LendingMarket is
 
         Loan.State storage loan = _loans[loanId];
 
-        if (loan.holder.code.length == 0) {
+        if (loan.treasury.code.length == 0) {
             // TBD Add support for EOA liquidity pools.
             revert Error.NotImplemented();
         }
@@ -320,7 +320,7 @@ contract LendingMarket is
             revert Error.InvalidAmount();
         }
 
-        bool autoRepayment = loan.holder == msg.sender;
+        bool autoRepayment = loan.treasury == msg.sender;
 
         if (autoRepayment && !loan.autoRepayment) {
             revert AutoRepaymentNotAllowed();
@@ -332,9 +332,9 @@ contract LendingMarket is
         loan.trackedDate = currentDate.toUint32();
         loan.trackedBorrowBalance = outstandingBalance.toUint64();
 
-        ILiquidityPool(loan.holder).onBeforeLoanPayment(loanId, repayAmount);
-        IERC20(loan.token).transferFrom(payer, loan.holder, repayAmount);
-        ILiquidityPool(loan.holder).onAfterLoanPayment(loanId, repayAmount);
+        ILiquidityPool(loan.treasury).onBeforeLoanPayment(loanId, repayAmount);
+        IERC20(loan.token).transferFrom(payer, loan.treasury, repayAmount);
+        ILiquidityPool(loan.treasury).onAfterLoanPayment(loanId, repayAmount);
 
         emit RepayLoan(loanId, payer, loan.borrower, repayAmount, outstandingBalance);
 

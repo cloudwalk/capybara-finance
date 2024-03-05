@@ -256,7 +256,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         }
 
         terms.token = _token;
-        terms.holder = _config.holder;
+        terms.treasury = _config.treasury;
         terms.addonRecipient = _config.addonRecipient;
         terms.periodInSeconds = _config.periodInSeconds;
         terms.interestRateFactor = _config.interestRateFactor;

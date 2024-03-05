@@ -49,7 +49,7 @@ contract CreditLineConfigurableTest is Test {
     address public constant BORROWER_1 = address(bytes20(keccak256("borrower_1")));
     address public constant BORROWER_2 = address(bytes20(keccak256("borrower_2")));
     address public constant BORROWER_3 = address(bytes20(keccak256("borrower_3")));
-    address public constant LOAN_HOLDER = address(bytes20(keccak256("loan_holder")));
+    address public constant LOAN_TREASURY = address(bytes20(keccak256("loan_treasury")));
     address public constant ADDON_RECIPIENT = address(bytes20(keccak256("addon_recipient")));
 
     uint64 public constant CREDIT_LINE_CONFIG_MIN_BORROW_AMOUNT = 400;
@@ -143,7 +143,7 @@ contract CreditLineConfigurableTest is Test {
         ICreditLineConfigurable.CreditLineConfig memory config2
     ) internal {
         assertTrue(
-            config1.holder == config2.holder &&
+            config1.treasury == config2.treasury &&
             config1.periodInSeconds == config2.periodInSeconds &&
             config1.minDurationInPeriods == config2.minDurationInPeriods &&
             config1.maxDurationInPeriods == config2.maxDurationInPeriods &&
@@ -167,7 +167,7 @@ contract CreditLineConfigurableTest is Test {
         ICreditLineConfigurable.CreditLineConfig memory config2
     ) internal {
         assertFalse(
-            config1.holder == config2.holder &&
+            config1.treasury == config2.treasury &&
             config1.periodInSeconds == config2.periodInSeconds &&
             config1.minDurationInPeriods == config2.minDurationInPeriods &&
             config1.maxDurationInPeriods == config2.maxDurationInPeriods &&
@@ -226,7 +226,7 @@ contract CreditLineConfigurableTest is Test {
 
     function initCreditLineConfig() public pure returns (ICreditLineConfigurable.CreditLineConfig memory) {
         return ICreditLineConfigurable.CreditLineConfig({
-            holder: LOAN_HOLDER,
+            treasury: LOAN_TREASURY,
             periodInSeconds: CREDIT_LINE_CONFIG_PERIOD_IN_SECONDS,
             minDurationInPeriods: CREDIT_LINE_CONFIG_MIN_DURATION_IN_PERIODS,
             maxDurationInPeriods: CREDIT_LINE_CONFIG_MAX_DURATION_IN_PERIODS,
@@ -851,7 +851,7 @@ contract CreditLineConfigurableTest is Test {
 
         assertEq(terms.token, creditLine.token());
 
-        assertEq(terms.holder, creditLineConfig.holder);
+        assertEq(terms.treasury, creditLineConfig.treasury);
         assertEq(terms.periodInSeconds, creditLineConfig.periodInSeconds);
         assertEq(terms.interestRateFactor, creditLineConfig.interestRateFactor);
 

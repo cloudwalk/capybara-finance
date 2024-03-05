@@ -95,7 +95,7 @@ contract LiquidityPoolAccountableTest is Test {
         return Loan.State({
             token: address(token),
             borrower: address(0),
-            holder: address(0),
+            treasury: address(0),
             periodInSeconds: 0,
             durationInPeriods: 0,
             interestRateFactor: 0,

@@ -56,7 +56,7 @@
 
 //     address public constant LENDER = address(bytes20(keccak256("lender")));
 //     address public constant BORROWER = address(bytes20(keccak256("borrower")));
-//     address public constant LOAN_HOLDER = address(bytes20(keccak256("loan_holder")));
+//     address public constant LOAN_TREASURY = address(bytes20(keccak256("loan_treasury")));
 //     address public constant ADDON_RECIPIENT = address(bytes20(keccak256("addon_recipient")));
 
 //     uint64 public constant CREDIT_LINE_CONFIG_MIN_BORROW_AMOUNT = 0;
@@ -180,7 +180,7 @@
 
 //     function createCreditLineConfig(ComplexScenarios.LoanParameters memory loan) public pure returns (ICreditLineConfigurable.CreditLineConfig memory) {
 //         return ICreditLineConfigurable.CreditLineConfig({
-//             holder: LOAN_HOLDER,
+//             treasury: LOAN_TREASURY,
 //             periodInSeconds: loan.periodInSeconds,
 //             minDurationInPeriods: CREDIT_LINE_CONFIG_MIN_DURATION_IN_PERIODS,
 //             maxDurationInPeriods: CREDIT_LINE_CONFIG_MAX_DURATION_IN_PERIODS,

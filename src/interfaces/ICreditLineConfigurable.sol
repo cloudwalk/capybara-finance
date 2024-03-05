@@ -46,7 +46,7 @@ interface ICreditLineConfigurable {
     /// @notice A struct that defines credit line configuration.
     struct CreditLineConfig {
         // Slot 1
-        address holder;                  // The address of the loan holder.
+        address treasury;                  // The address of the loan treasury.
         uint32 periodInSeconds;          // The duration of the loan period determined in seconds.
         uint32 minDurationInPeriods;     // The minimum duration of the loan determined in periods.
         uint32 maxDurationInPeriods;     // The maximum duration of the loan determined in periods.

@@ -84,7 +84,7 @@ contract LendingMarketTest is Test {
     address public constant BORROWER_3 = address(bytes20(keccak256("borrower_3")));
     address public constant REGISTRY_1 = address(bytes20(keccak256("registry_1")));
     address public constant REGISTRY_2 = address(bytes20(keccak256("registry_2")));
-    address public constant LOAN_HOLDER = address(bytes20(keccak256("loan_holder")));
+    address public constant LOAN_TREASURY = address(bytes20(keccak256("loan_treasury")));
     address public constant LENDER_1_ALIAS = address(bytes20(keccak256("lender_1_alias")));
     address public constant ADDON_RECIPIENT = address(bytes20(keccak256("addon_recipient")));
     address public constant LIQUIDITY_POOL_1 = address(bytes20(keccak256("liquidity_pool_1")));
@@ -165,7 +165,7 @@ contract LendingMarketTest is Test {
             terms.autoRepayment = overrideAutoRepayment;
         }
 
-        terms.holder = address(liquidityPool);
+        terms.treasury = address(liquidityPool);
 
         creditLine.mockLoanTerms(BORROWER_1, BORROW_AMOUNT, terms);
 
@@ -263,7 +263,7 @@ contract LendingMarketTest is Test {
 
     function initCreditLineConfig() public pure returns (ICreditLineConfigurable.CreditLineConfig memory) {
         return ICreditLineConfigurable.CreditLineConfig({
-            holder: LOAN_HOLDER,
+            treasury: LOAN_TREASURY,
             periodInSeconds: CREDIT_LINE_CONFIG_PERIOD_IN_SECONDS,
             minDurationInPeriods: CREDIT_LINE_CONFIG_MIN_DURATION_IN_PERIODS,
             maxDurationInPeriods: CREDIT_LINE_CONFIG_MAX_DURATION_IN_PERIODS,
@@ -287,7 +287,7 @@ contract LendingMarketTest is Test {
         ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(0);
         return Loan.Terms({
             token: token,
-            holder: address(0),
+            treasury: address(0),
             periodInSeconds: creditLineConfig.periodInSeconds,
             durationInPeriods: borrowerConfig.durationInPeriods,
             interestRateFactor: creditLineConfig.interestRateFactor,

@@ -20,7 +20,7 @@ library Loan {
         uint64 initialBorrowAmount;       // The initial principal amount of the loan.
         uint32 startDate;                 // The start date of the loan.
         // Slot 3
-        address holder;                   // The address of the loan holder.
+        address treasury;                 // The address of the loan treasury.
         uint32 periodInSeconds;           // The duration of the loan period specified in seconds.
         uint32 durationInPeriods;         // The total duration of the loan determined by the number of periods.
         Interest.Formula interestFormula; // The formula used for interest calculation on the loan.
@@ -39,7 +39,7 @@ library Loan {
         uint32 interestRateSecondary;     // The secondary interest rate to be applied to the loan.
         uint32 interestRateFactor;        // The rate factor used together with interest rate.
         // Slot 2
-        address holder;                   // The address of the loan holder.
+        address treasury;                 // The address of the loan treasury.
         uint32 periodInSeconds;           // The duration of the loan period specified in seconds.
         uint32 durationInPeriods;         // The total duration of the loan determined by the number of periods.
         Interest.Formula interestFormula; // The formula to be used for interest calculation on the loan.
