@@ -1343,7 +1343,7 @@ contract LendingMarketTest is Test {
 
     function getMoratoriumInPeriods(uint256 loanId) private view returns (uint256) {
         Loan.State memory loan = market.getLoanState(loanId);
-        uint256 currentDate = market.calculatePeriodDate(block.timestamp, loan.periodInSeconds, 0, 0);
+        uint256 currentDate = market.calculatePeriodDate(block.timestamp, loan.periodInSeconds);
         return loan.trackedDate > currentDate ? (loan.trackedDate - currentDate) / loan.periodInSeconds : 0;
     }
 
@@ -1593,18 +1593,15 @@ contract LendingMarketTest is Test {
 
         uint256 periodInSeconds = 1 seconds;
         uint256 currentPeriodSeconds = block.timestamp % periodInSeconds;
-        uint256 currentDate = market.calculatePeriodDate(block.timestamp, periodInSeconds, 0, 0);
+        uint256 currentDate = market.calculatePeriodDate(block.timestamp, periodInSeconds);
 
         skip(periodInSeconds - currentPeriodSeconds - 1);
 
-        assertEq(market.calculatePeriodDate(block.timestamp, periodInSeconds, 0, 0), currentDate);
+        assertEq(market.calculatePeriodDate(block.timestamp, periodInSeconds), currentDate);
 
         skip(1);
 
-        assertEq(market.calculatePeriodDate(block.timestamp, periodInSeconds, 0, 0), currentDate + periodInSeconds);
-
-        assertEq(market.calculatePeriodDate(block.timestamp, periodInSeconds, 2, 0), currentDate + periodInSeconds * 3);
-        assertEq(market.calculatePeriodDate(block.timestamp, periodInSeconds, 0, 3), currentDate + periodInSeconds + 3);
+        assertEq(market.calculatePeriodDate(block.timestamp, periodInSeconds), currentDate + periodInSeconds);
     }
 
     function test_calculatePeriodDate_59_Second_Period() public {
@@ -1612,18 +1609,15 @@ contract LendingMarketTest is Test {
 
         uint256 periodInSeconds = 59 seconds;
         uint256 currentPeriodSeconds = block.timestamp % periodInSeconds;
-        uint256 currentDate = market.calculatePeriodDate(block.timestamp, periodInSeconds, 0, 0);
+        uint256 currentDate = market.calculatePeriodDate(block.timestamp, periodInSeconds);
 
         skip(periodInSeconds - currentPeriodSeconds - 1);
 
-        assertEq(market.calculatePeriodDate(block.timestamp, periodInSeconds, 0, 0), currentDate);
+        assertEq(market.calculatePeriodDate(block.timestamp, periodInSeconds), currentDate);
 
         skip(1);
 
-        assertEq(market.calculatePeriodDate(block.timestamp, periodInSeconds, 0, 0), currentDate + periodInSeconds);
-
-        assertEq(market.calculatePeriodDate(block.timestamp, periodInSeconds, 2, 0), currentDate + periodInSeconds * 3);
-        assertEq(market.calculatePeriodDate(block.timestamp, periodInSeconds, 0, 3), currentDate + periodInSeconds + 3);
+        assertEq(market.calculatePeriodDate(block.timestamp, periodInSeconds), currentDate + periodInSeconds);
     }
 
     // -------------------------------------------- //
