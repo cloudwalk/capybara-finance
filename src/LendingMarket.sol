@@ -532,7 +532,7 @@ contract LendingMarket is
         uint256 interestRate,
         uint256 interestRateFactor,
         Interest.Formula interestFormula
-    ) public pure returns (uint256) {
+    ) external pure returns (uint256) {
         return InterestMath.calculateOutstandingBalance(
             originalBalance, numberOfPeriods, interestRate, interestRateFactor, interestFormula
         );
@@ -561,7 +561,7 @@ contract LendingMarket is
             uint256 duePeriod = startPeriod + loan.durationInPeriods * loan.periodInSeconds;
 
             if (currentPeriod < duePeriod) {
-                outstandingBalance = calculateOutstandingBalance(
+                outstandingBalance = InterestMath.calculateOutstandingBalance(
                     outstandingBalance,
                     (currentPeriod - trackedPeriod) / loan.periodInSeconds,
                     loan.interestRatePrimary,
@@ -569,7 +569,7 @@ contract LendingMarket is
                     loan.interestFormula
                 );
             } else if (trackedPeriod >= duePeriod) {
-                outstandingBalance = calculateOutstandingBalance(
+                outstandingBalance = InterestMath.calculateOutstandingBalance(
                     outstandingBalance,
                     (currentPeriod - trackedPeriod) / loan.periodInSeconds,
                     loan.interestRateSecondary,
@@ -577,7 +577,7 @@ contract LendingMarket is
                     loan.interestFormula
                 );
             } else {
-                outstandingBalance = calculateOutstandingBalance(
+                outstandingBalance = InterestMath.calculateOutstandingBalance(
                     outstandingBalance,
                     (duePeriod - trackedPeriod) / loan.periodInSeconds,
                     loan.interestRatePrimary,
@@ -585,7 +585,7 @@ contract LendingMarket is
                     loan.interestFormula
                 );
                 if (currentPeriod > duePeriod) {
-                    outstandingBalance = calculateOutstandingBalance(
+                    outstandingBalance = InterestMath.calculateOutstandingBalance(
                         outstandingBalance,
                         (currentPeriod - duePeriod) / loan.periodInSeconds,
                         loan.interestRateSecondary,
@@ -618,10 +618,12 @@ contract LendingMarket is
         return tokenId;
     }
 
+    /// @dev Calculates the index of the period for the specified timestamp.
     function _periodIndex(uint256 timestamp, uint256 periodInSeconds) internal pure returns (uint256) {
         return (timestamp / periodInSeconds) * periodInSeconds;
     }
 
+    /// @dev Returns the current block timestamp.
     function _blockTimestamp() internal view returns (uint256) {
         return block.timestamp;
     }
