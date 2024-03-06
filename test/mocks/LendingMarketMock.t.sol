@@ -31,15 +31,17 @@ contract LendingMarketMockTest is Test {
     LendingMarketMock public mock;
 
     address public constant TOKEN = address(bytes20(keccak256("token")));
-    address public constant LENDER = address(bytes20(keccak256("lender")));
+    address public constant LENDER_1 = address(bytes20(keccak256("lender_1")));
+    address public constant LENDER_2 = address(bytes20(keccak256("lender_2")));
     address public constant TREASURY = address(bytes20(keccak256("treasury")));
     address public constant BORROWER = address(bytes20(keccak256("borrower")));
     address public constant CREDIT_LINE = address(bytes20(keccak256("credit_line")));
     address public constant LIQUIDITY_POOL = address(bytes20(keccak256("liquidity_pool")));
 
-    uint256 public constant LOAN_ID = 1;
+    uint256 public constant DURATION_IN_PERIODS = 30;
     uint256 public constant BORROW_AMOUNT = 100;
     uint256 public constant REPAY_AMOUNT = 200;
+    uint256 public constant LOAN_ID = 1;
 
     uint32 public constant STATE_PERIOD_IN_SECONDS = 100;
     uint32 public constant STATE_DURATION_IN_PERIODS = 200;
@@ -73,7 +75,7 @@ contract LendingMarketMockTest is Test {
 
     function test_takeLoan() public {
         vm.expectRevert(Error.NotImplemented.selector);
-        mock.takeLoan(CREDIT_LINE, BORROW_AMOUNT);
+        mock.takeLoan(CREDIT_LINE, DURATION_IN_PERIODS, BORROW_AMOUNT);
     }
 
     function test_repayLoan() public {
@@ -115,14 +117,34 @@ contract LendingMarketMockTest is Test {
 
     function test_registerCreditLine() public {
         vm.expectEmit(true, true, true, true, address(mock));
-        emit RegisterCreditLineCalled(LENDER, CREDIT_LINE);
-        mock.registerCreditLine(LENDER, CREDIT_LINE);
+        emit RegisterCreditLineCalled(LENDER_1, CREDIT_LINE);
+        mock.registerCreditLine(LENDER_1, CREDIT_LINE);
     }
 
     function test_registerLiquidityPool() public {
         vm.expectEmit(true, true, true, true, address(mock));
-        emit RegisterLiquidityPoolCalled(LENDER, LIQUIDITY_POOL);
-        mock.registerLiquidityPool(LENDER, LIQUIDITY_POOL);
+        emit RegisterLiquidityPoolCalled(LENDER_1, LIQUIDITY_POOL);
+        mock.registerLiquidityPool(LENDER_1, LIQUIDITY_POOL);
+    }
+
+    function test_updateCreditLineLender() public {
+        vm.expectRevert(Error.NotImplemented.selector);
+        mock.updateCreditLineLender(CREDIT_LINE, LENDER_1);
+    }
+
+    function test_updateLiquidityPoolLender() public {
+        vm.expectRevert(Error.NotImplemented.selector);
+        mock.updateLiquidityPoolLender(LIQUIDITY_POOL, LENDER_1);
+    }
+
+    function test_assignLiquidityPoolToCreditLine() public {
+        vm.expectRevert(Error.NotImplemented.selector);
+        mock.assignLiquidityPoolToCreditLine(CREDIT_LINE, LIQUIDITY_POOL);
+    }
+
+    function test_configureAlias() public {
+        vm.expectRevert(Error.NotImplemented.selector);
+        mock.configureAlias(LENDER_2, true);
     }
 
     function test_getCreditLineLender() public {
@@ -133,6 +155,11 @@ contract LendingMarketMockTest is Test {
     function test_getLiquidityPoolLender() public {
         vm.expectRevert(Error.NotImplemented.selector);
         mock.getLiquidityPoolLender(LIQUIDITY_POOL);
+    }
+
+    function test_getLiquidityPoolByCreditLine() public {
+        vm.expectRevert(Error.NotImplemented.selector);
+        mock.getLiquidityPoolByCreditLine(CREDIT_LINE);
     }
 
     function test_getLoanState() public {
@@ -197,6 +224,11 @@ contract LendingMarketMockTest is Test {
     function test_getLoanPreview() public {
         vm.expectRevert(Error.NotImplemented.selector);
         mock.getLoanPreview(LOAN_ID, 0);
+    }
+
+    function test_hasAlias() public {
+        vm.expectRevert(Error.NotImplemented.selector);
+        mock.hasAlias(LENDER_1, LENDER_2);
     }
 
     function test_registry() public {

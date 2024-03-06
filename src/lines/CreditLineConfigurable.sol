@@ -52,6 +52,9 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     /// @notice Thrown when the borrow policy is unsupported.
     error UnsupportedBorrowPolicy();
 
+    /// @notice Thrown when the loan duration is out of range.
+    error LoanDurationOutOfRange();
+
     // -------------------------------------------- //
     //  Modifiers                                   //
     // -------------------------------------------- //
@@ -206,17 +209,18 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     /// @inheritdoc ICreditLine
     function onBeforeLoanTaken(
         address borrower,
-        uint256 amount,
+        uint256 durationInPeriods,
+        uint256 borrowAmount,
         uint256 loandId
     ) external whenNotPaused onlyMarket returns (Loan.Terms memory terms) {
-        terms = determineLoanTerms(borrower, amount);
+        terms = determineLoanTerms(borrower, durationInPeriods, borrowAmount);
 
         BorrowerConfig storage borrowerConfig = _borrowers[borrower];
 
         if (borrowerConfig.borrowPolicy == BorrowPolicy.Reset) {
             borrowerConfig.maxBorrowAmount = 0;
         } else if (borrowerConfig.borrowPolicy == BorrowPolicy.Decrease) {
-            borrowerConfig.maxBorrowAmount -= amount.toUint64();
+            borrowerConfig.maxBorrowAmount -= borrowAmount.toUint64();
         } else if (borrowerConfig.borrowPolicy == BorrowPolicy.Keep) { } else {
             // NOTE: This should never happen since all possible policies are checked above
             revert UnsupportedBorrowPolicy();
@@ -228,11 +232,11 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     // -------------------------------------------- //
 
     /// @inheritdoc ICreditLine
-    function determineLoanTerms(address borrower, uint256 amount) public view returns (Loan.Terms memory terms) {
+    function determineLoanTerms(address borrower, uint256 durationInPeriods, uint256 borrowAmount) public view returns (Loan.Terms memory terms) {
         if (borrower == address(0)) {
             revert Error.ZeroAddress();
         }
-        if (amount == 0) {
+        if (borrowAmount == 0) {
             revert Error.InvalidAmount();
         }
 
@@ -241,11 +245,17 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         if (block.timestamp > borrowerConfig.expiration) {
             revert BorrowerConfigurationExpired();
         }
-        if (amount > borrowerConfig.maxBorrowAmount) {
+        if (borrowAmount > borrowerConfig.maxBorrowAmount) {
             revert Error.InvalidAmount();
         }
-        if (amount < borrowerConfig.minBorrowAmount) {
+        if (borrowAmount < borrowerConfig.minBorrowAmount) {
             revert Error.InvalidAmount();
+        }
+        if (durationInPeriods < borrowerConfig.minDurationInPeriods) {
+            revert LoanDurationOutOfRange();
+        }
+        if (durationInPeriods > borrowerConfig.maxDurationInPeriods) {
+            revert LoanDurationOutOfRange();
         }
 
         terms.token = _token;
@@ -253,7 +263,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         terms.addonRecipient = _config.addonRecipient;
         terms.periodInSeconds = _config.periodInSeconds;
         terms.interestRateFactor = _config.interestRateFactor;
-        terms.durationInPeriods = borrowerConfig.durationInPeriods;
+        terms.durationInPeriods = durationInPeriods.toUint32();
         terms.interestRatePrimary = borrowerConfig.interestRatePrimary;
         terms.interestRateSecondary = borrowerConfig.interestRateSecondary;
         terms.interestFormula = borrowerConfig.interestFormula;
@@ -261,8 +271,8 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
 
         if (terms.addonRecipient != address(0)) {
             terms.addonAmount = calculateAddonAmount(
-                amount,
-                borrowerConfig.durationInPeriods,
+                borrowAmount,
+                durationInPeriods,
                 borrowerConfig.addonFixedCostRate,
                 borrowerConfig.addonPeriodCostRate
             ).toUint64();
@@ -334,15 +344,6 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         // NOTE: We don't check for expiration here, because
         // it can be used for disabling a borrower by setting it to 0.
 
-        if (config.durationInPeriods == 0) {
-            revert InvalidBorrowerConfiguration();
-        }
-        if (config.durationInPeriods < _config.minDurationInPeriods) {
-            revert InvalidBorrowerConfiguration();
-        }
-        if (config.durationInPeriods > _config.maxDurationInPeriods) {
-            revert InvalidBorrowerConfiguration();
-        }
         if (config.minBorrowAmount > config.maxBorrowAmount) {
             revert InvalidBorrowerConfiguration();
         }
@@ -352,24 +353,38 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         if (config.maxBorrowAmount > _config.maxBorrowAmount) {
             revert InvalidBorrowerConfiguration();
         }
+
+        if (config.minDurationInPeriods > config.maxDurationInPeriods) {
+            revert InvalidBorrowerConfiguration();
+        }
+        if (config.minDurationInPeriods < _config.minDurationInPeriods) {
+            revert InvalidBorrowerConfiguration();
+        }
+        if (config.maxDurationInPeriods > _config.maxDurationInPeriods) {
+            revert InvalidBorrowerConfiguration();
+        }
+
         if (config.interestRatePrimary < _config.minInterestRatePrimary) {
             revert InvalidBorrowerConfiguration();
         }
         if (config.interestRatePrimary > _config.maxInterestRatePrimary) {
             revert InvalidBorrowerConfiguration();
         }
+
         if (config.interestRateSecondary < _config.minInterestRateSecondary) {
             revert InvalidBorrowerConfiguration();
         }
         if (config.interestRateSecondary > _config.maxInterestRateSecondary) {
             revert InvalidBorrowerConfiguration();
         }
+
         if (config.addonFixedCostRate < _config.minAddonFixedCostRate) {
             revert InvalidBorrowerConfiguration();
         }
         if (config.addonFixedCostRate > _config.maxAddonFixedCostRate) {
             revert InvalidBorrowerConfiguration();
         }
+
         if (config.addonPeriodCostRate < _config.minAddonPeriodCostRate) {
             revert InvalidBorrowerConfiguration();
         }

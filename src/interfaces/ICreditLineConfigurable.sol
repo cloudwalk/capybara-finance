@@ -51,10 +51,10 @@ interface ICreditLineConfigurable is ICreditLine {
     /// @notice A struct that defines borrower configuration.
     struct BorrowerConfig {
         // Slot 1
-        uint32 expiration;                // The expiration date of the configuration.
         uint64 minBorrowAmount;           // The minimum amount of tokens the borrower can take as a loan.
         uint64 maxBorrowAmount;           // The maximum amount of tokens the borrower can take as a loan.
-        uint32 durationInPeriods;         // The initial loan duration determined in periods.
+        uint32 minDurationInPeriods;      // The minimum duration of the loan determined in periods.
+        uint32 maxDurationInPeriods;      // The maximum duration of the loan determined in periods.
         uint32 interestRatePrimary;       // The primary interest rate to be applied to the loan.
         uint32 interestRateSecondary;     // The secondary interest rate to be applied to the loan.
         // Slot 2
@@ -63,6 +63,7 @@ interface ICreditLineConfigurable is ICreditLine {
         Interest.Formula interestFormula; // The formula to be used for interest calculation on the loan.
         BorrowPolicy borrowPolicy;        // The borrow policy to be applied to the borrower.
         bool autoRepayment;               // Whether the loan can be repaid automatically.
+        uint32 expiration;                // The expiration date of the configuration.
     }
 
     // -------------------------------------------- //

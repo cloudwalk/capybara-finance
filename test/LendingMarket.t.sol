@@ -84,6 +84,7 @@ contract LendingMarketTest is Test {
     address public constant BORROWER_3 = address(bytes20(keccak256("borrower_3")));
     address public constant REGISTRY_1 = address(bytes20(keccak256("registry_1")));
     address public constant REGISTRY_2 = address(bytes20(keccak256("registry_2")));
+    address public constant CREDIT_LINE = address(bytes20(keccak256("credit_line")));
     address public constant LOAN_TREASURY = address(bytes20(keccak256("loan_treasury")));
     address public constant LENDER_1_ALIAS = address(bytes20(keccak256("lender_1_alias")));
     address public constant ADDON_RECIPIENT = address(bytes20(keccak256("addon_recipient")));
@@ -92,6 +93,7 @@ contract LendingMarketTest is Test {
 
     uint64 public constant ADDON_AMOUNT = 100;
     uint64 public constant BORROW_AMOUNT = 100;
+    uint32 public constant DURATION_IN_PERIODS = 30;
     uint256 public constant LOAN_ID_NONEXISTENT = 999_999_999;
     uint256 public constant INIT_BLOCK_TIMESTAMP = CREDIT_LINE_CONFIG_PERIOD_IN_SECONDS + 1;
 
@@ -112,7 +114,8 @@ contract LendingMarketTest is Test {
 
     uint32 public constant BORROWER_CONFIG_ADDON_FIXED_COST_RATE = 15;
     uint32 public constant BORROWER_CONFIG_ADDON_PERIOD_COST_RATE = 20;
-    uint32 public constant BORROWER_CONFIG_DURATION_IN_PERIODS = 100;
+    uint32 public constant BORROWER_CONFIG_MIN_DURATION_IN_PERIODS = 25;
+    uint32 public constant BORROWER_CONFIG_MAX_DURATION_IN_PERIODS = 35;
     uint32 public constant BORROWER_CONFIG_DURATION = 1000;
     uint64 public constant BORROWER_CONFIG_MIN_BORROW_AMOUNT = 500;
     uint64 public constant BORROWER_CONFIG_MAX_BORROW_AMOUNT = 800;
@@ -177,7 +180,7 @@ contract LendingMarketTest is Test {
         token.mint(address(liquidityPool), borrowAmount + terms.addonAmount);
 
         vm.prank(BORROWER_1);
-        uint256 loanId = market.takeLoan(address(creditLine), borrowAmount);
+        uint256 loanId = market.takeLoan(address(creditLine), terms.durationInPeriods, borrowAmount);
 
         Loan.State memory loan = market.getLoanState(loanId);
         skip(loan.periodInSeconds * skipPeriodsAfterCreated);
@@ -232,7 +235,8 @@ contract LendingMarketTest is Test {
             expiration: (blockTimestamp + BORROWER_CONFIG_DURATION).toUint32(),
             minBorrowAmount: BORROWER_CONFIG_MIN_BORROW_AMOUNT,
             maxBorrowAmount: BORROWER_CONFIG_MAX_BORROW_AMOUNT,
-            durationInPeriods: BORROWER_CONFIG_DURATION_IN_PERIODS,
+            minDurationInPeriods: BORROWER_CONFIG_MIN_DURATION_IN_PERIODS,
+            maxDurationInPeriods: BORROWER_CONFIG_MAX_DURATION_IN_PERIODS,
             interestRatePrimary: BORROWER_CONFIG_INTEREST_RATE_PRIMARY,
             interestRateSecondary: BORROWER_CONFIG_INTEREST_RATE_SECONDARY,
             addonFixedCostRate: BORROWER_CONFIG_ADDON_FIXED_COST_RATE,
@@ -289,7 +293,7 @@ contract LendingMarketTest is Test {
             token: token,
             treasury: address(0),
             periodInSeconds: creditLineConfig.periodInSeconds,
-            durationInPeriods: borrowerConfig.durationInPeriods,
+            durationInPeriods: DURATION_IN_PERIODS,
             interestRateFactor: creditLineConfig.interestRateFactor,
             interestRatePrimary: borrowerConfig.interestRatePrimary,
             interestRateSecondary: borrowerConfig.interestRateSecondary,
@@ -542,6 +546,24 @@ contract LendingMarketTest is Test {
     }
 
     // -------------------------------------------- //
+    //  Test `updateCreditLineLender`               //
+    // -------------------------------------------- //
+
+    function test_updateCreditLineLender() public {
+        vm.expectRevert(Error.NotImplemented.selector);
+        market.updateCreditLineLender(CREDIT_LINE, LENDER_2);
+    }
+
+    // -------------------------------------------- //
+    //  Test `updateLiquidityPoolLender`            //
+    // -------------------------------------------- //
+
+    function test_updateLiquidityPoolLender() public {
+        vm.expectRevert(Error.NotImplemented.selector);
+        market.updateLiquidityPoolLender(LIQUIDITY_POOL_1, LENDER_2);
+    }
+
+    // -------------------------------------------- //
     //  Test `assignLiquidityPoolToCreditLine`      //
     // -------------------------------------------- //
 
@@ -637,7 +659,7 @@ contract LendingMarketTest is Test {
         emit TakeLoan(loanId, BORROWER_1, borrowAmount + terms.addonAmount);
 
         vm.prank(BORROWER_1);
-        assertEq(market.takeLoan(address(creditLine), borrowAmount), loanId);
+        assertEq(market.takeLoan(address(creditLine), terms.durationInPeriods, borrowAmount), loanId);
 
         Loan.State memory loan = market.getLoanState(loanId);
         Loan.Preview memory preview = market.getLoanPreview(loanId, 0);
@@ -668,51 +690,51 @@ contract LendingMarketTest is Test {
 
     function test_takeLoan_Revert_IfContractIsPaused() public {
         configureMarket();
-        (uint256 borrowAmount,) = mockLoanTerms();
+        (uint256 borrowAmount, Loan.Terms memory terms) = mockLoanTerms();
 
         vm.prank(OWNER);
         market.pause();
 
         vm.prank(BORROWER_1);
         vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
-        market.takeLoan(address(creditLine), borrowAmount);
+        market.takeLoan(address(creditLine), terms.durationInPeriods, borrowAmount);
     }
 
     function test_takeLoan_Revert_IfBorrowAmountIsZero() public {
         configureMarket();
-        mockLoanTerms();
+        (, Loan.Terms memory terms) = mockLoanTerms();
 
         vm.prank(BORROWER_1);
         vm.expectRevert(Error.InvalidAmount.selector);
-        market.takeLoan(address(creditLine), 0);
+        market.takeLoan(address(creditLine), terms.durationInPeriods, 0);
     }
 
     function test_takeLoan_Revert_IfCreditLineIsZeroAddress() public {
         configureMarket();
-        (uint256 borrowAmount,) = mockLoanTerms();
+        (uint256 borrowAmount, Loan.Terms memory terms) = mockLoanTerms();
 
         vm.prank(BORROWER_1);
         vm.expectRevert(Error.ZeroAddress.selector);
-        market.takeLoan(address(0), borrowAmount);
+        market.takeLoan(address(0), terms.durationInPeriods, borrowAmount);
     }
 
     function test_takeLoan_Revert_IfCreditLineIsNotRegistered() public {
-        (uint256 borrowAmount,) = mockLoanTerms();
+        (uint256 borrowAmount, Loan.Terms memory terms) = mockLoanTerms();
 
         vm.prank(BORROWER_1);
         vm.expectRevert(LendingMarket.CreditLineNotRegistered.selector);
-        market.takeLoan(address(creditLine), borrowAmount);
+        market.takeLoan(address(creditLine), terms.durationInPeriods, borrowAmount);
     }
 
     function test_takeLoan_Revert_IfLiquidityPoolIsNotRegistered() public {
-        (uint256 borrowAmount,) = mockLoanTerms();
+        (uint256 borrowAmount, Loan.Terms memory terms) = mockLoanTerms();
 
         vm.prank(REGISTRY_1);
         market.registerCreditLine(LENDER_1, address(creditLine));
 
         vm.prank(BORROWER_1);
         vm.expectRevert(LendingMarket.LiquidityPoolNotRegistered.selector);
-        market.takeLoan(address(creditLine), borrowAmount);
+        market.takeLoan(address(creditLine), terms.durationInPeriods, borrowAmount);
     }
 
     // -------------------------------------------- //

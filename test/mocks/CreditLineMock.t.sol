@@ -22,6 +22,7 @@ contract CreditLineMockTest is Test {
 
     uint256 public constant LOAN_ID = 1;
     uint256 public constant BORROW_AMOUNT = 100;
+    uint256 public constant DURATION_IN_PERIODS = 30;
     address public constant BORROWER = address(bytes20(keccak256("borrower")));
 
     address public constant TERMS_TOKEN = address(bytes20(keccak256("token")));
@@ -51,7 +52,7 @@ contract CreditLineMockTest is Test {
     // -------------------------------------------- //
 
     function test_onBeforeLoanTaken() public {
-        Loan.Terms memory terms = mock.onBeforeLoanTaken(BORROWER, BORROW_AMOUNT, LOAN_ID);
+        Loan.Terms memory terms = mock.onBeforeLoanTaken(BORROWER, DURATION_IN_PERIODS, BORROW_AMOUNT, LOAN_ID);
 
         assertEq(terms.token, address(0));
         assertEq(terms.treasury, address(0));
@@ -83,7 +84,7 @@ contract CreditLineMockTest is Test {
             })
         );
 
-        terms = mock.onBeforeLoanTaken(BORROWER, BORROW_AMOUNT, LOAN_ID);
+        terms = mock.onBeforeLoanTaken(BORROWER, DURATION_IN_PERIODS, BORROW_AMOUNT, LOAN_ID);
 
         assertEq(terms.token, TERMS_TOKEN);
         assertEq(terms.treasury, TERMS_TREASURY);
@@ -99,7 +100,7 @@ contract CreditLineMockTest is Test {
     }
 
     function test_determineLoanTerms() public {
-        Loan.Terms memory terms = mock.determineLoanTerms(BORROWER, BORROW_AMOUNT);
+        Loan.Terms memory terms = mock.determineLoanTerms(BORROWER, DURATION_IN_PERIODS, BORROW_AMOUNT);
 
         assertEq(terms.token, address(0));
         assertEq(terms.treasury, address(0));
@@ -131,7 +132,7 @@ contract CreditLineMockTest is Test {
             })
         );
 
-        terms = mock.determineLoanTerms(BORROWER, BORROW_AMOUNT);
+        terms = mock.determineLoanTerms(BORROWER, DURATION_IN_PERIODS, BORROW_AMOUNT);
 
         assertEq(terms.token, TERMS_TOKEN);
         assertEq(terms.treasury, TERMS_TREASURY);

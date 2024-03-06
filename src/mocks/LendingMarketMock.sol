@@ -28,7 +28,7 @@ contract LendingMarketMock is ILendingMarket {
     //  ILendingMarket functions                    //
     // -------------------------------------------- //
 
-    function takeLoan(address creditLine, uint256 borrowAmount) external returns (uint256) {
+    function takeLoan(address creditLine, uint256 durationInPeriods, uint256 borrowAmount) external returns (uint256) {
         revert Error.NotImplemented();
     }
 
