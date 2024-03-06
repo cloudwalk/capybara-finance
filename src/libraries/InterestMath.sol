@@ -126,14 +126,14 @@ library InterestMath {
      * @dev Reverts in case of arithmetic overflow.
      *
      * @param base The signed 64.64 fixed-point base number.
-     * @param power The unsigned 256-bit integer power.
+     * @param exponent The unsigned 256-bit integer power.
      *
      * @return The result as a signed 64.64 fixed-point number.
      */
-    function power(int128 base, uint256 power) internal pure returns (int128) {
+    function power(int128 base, uint256 exponent) internal pure returns (int128) {
         unchecked {
             bool isNegative;
-            if (base < 0 && power & 1 == 1) {
+            if (base < 0 && exponent & 1 == 1) {
                 isNegative = true;
             }
 
@@ -143,28 +143,28 @@ library InterestMath {
 
             if (absoluteBase <= 0x10000000000000000) {
                 absoluteBase <<= 63;
-                while (power != 0) {
-                    if (power & 0x1 != 0) {
+                while (exponent != 0) {
+                    if (exponent & 0x1 != 0) {
                         absoluteResult = (absoluteResult * absoluteBase) >> 127;
                     }
                     absoluteBase = (absoluteBase * absoluteBase) >> 127;
 
-                    if (power & 0x2 != 0) {
+                    if (exponent & 0x2 != 0) {
                         absoluteResult = (absoluteResult * absoluteBase) >> 127;
                     }
                     absoluteBase = (absoluteBase * absoluteBase) >> 127;
 
-                    if (power & 0x4 != 0) {
+                    if (exponent & 0x4 != 0) {
                         absoluteResult = (absoluteResult * absoluteBase) >> 127;
                     }
                     absoluteBase = (absoluteBase * absoluteBase) >> 127;
 
-                    if (power & 0x8 != 0) {
+                    if (exponent & 0x8 != 0) {
                         absoluteResult = (absoluteResult * absoluteBase) >> 127;
                     }
                     absoluteBase = (absoluteBase * absoluteBase) >> 127;
 
-                    power >>= 4;
+                    exponent >>= 4;
                 }
                 absoluteResult >>= 64;
             } else {
@@ -195,12 +195,12 @@ library InterestMath {
                 }
 
                 uint256 resultShift = 0;
-                while (power != 0) {
+                while (exponent != 0) {
                     if (absoluteBaseShift >= 64) {
                         revert MathOperationError();
                     }
 
-                    if (power & 0x1 != 0) {
+                    if (exponent & 0x1 != 0) {
                         absoluteResult = (absoluteResult * absoluteBase) >> 127;
                         resultShift += absoluteBaseShift;
                         if (absoluteResult > 0x100000000000000000000000000000000) {
@@ -215,7 +215,7 @@ library InterestMath {
                         absoluteBaseShift += 1;
                     }
 
-                    power >>= 1;
+                    exponent >>= 1;
                 }
 
                 if (resultShift >= 64) {
