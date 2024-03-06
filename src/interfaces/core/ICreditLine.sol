@@ -30,7 +30,11 @@ interface ICreditLine {
     /// @param durationInPeriods The desired duration of the loan in periods.
     /// @param borrowAmount The desired amount of tokens to borrow.
     /// @return terms The struct containing the terms of the loan.
-    function determineLoanTerms(address borrower, uint256 durationInPeriods, uint256 borrowAmount) external view returns (Loan.Terms memory terms);
+    function determineLoanTerms(
+        address borrower,
+        uint256 durationInPeriods,
+        uint256 borrowAmount
+    ) external view returns (Loan.Terms memory terms);
 
     /// @notice Returns the address of the associated lending market.
     function market() external view returns (address);

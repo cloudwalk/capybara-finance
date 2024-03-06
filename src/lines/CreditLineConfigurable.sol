@@ -104,10 +104,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     /// @dev Unchained internal initializer of the upgradable contract.
     /// @param market_ The address of the lending market.
     /// @param token_ The address of the token.
-    function __CreditLineConfigurable_init_unchained(
-        address market_,
-        address token_
-    ) internal onlyInitializing {
+    function __CreditLineConfigurable_init_unchained(address market_, address token_) internal onlyInitializing {
         if (market_ == address(0)) {
             revert Error.ZeroAddress();
         }
@@ -232,7 +229,11 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     // -------------------------------------------- //
 
     /// @inheritdoc ICreditLine
-    function determineLoanTerms(address borrower, uint256 durationInPeriods, uint256 borrowAmount) public view returns (Loan.Terms memory terms) {
+    function determineLoanTerms(
+        address borrower,
+        uint256 durationInPeriods,
+        uint256 borrowAmount
+    ) public view returns (Loan.Terms memory terms) {
         if (borrower == address(0)) {
             revert Error.ZeroAddress();
         }
@@ -271,10 +272,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
 
         if (terms.addonRecipient != address(0)) {
             terms.addonAmount = calculateAddonAmount(
-                borrowAmount,
-                durationInPeriods,
-                borrowerConfig.addonFixedCostRate,
-                borrowerConfig.addonPeriodCostRate
+                borrowAmount, durationInPeriods, borrowerConfig.addonFixedCostRate, borrowerConfig.addonPeriodCostRate
             ).toUint64();
         }
     }

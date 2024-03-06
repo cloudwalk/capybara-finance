@@ -927,7 +927,6 @@ contract LendingMarketTest is Test {
         Loan.State memory loan = market.getLoanState(loanId);
         assertEq(loan.freezeTimestamp, 0);
 
-
         vm.prank(caller);
         vm.expectEmit(true, true, true, true, address(market));
         emit FreezeLoan(loanId, block.timestamp);

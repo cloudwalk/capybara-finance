@@ -53,12 +53,8 @@ library InterestMath {
         Interest.Formula interestFormula
     ) internal pure returns (uint256 remainingBalance) {
         if (interestFormula == Interest.Formula.Compound) {
-            return _calculateOutstandingBalanceRounded(
-                originalBalance,
-                numberOfPeriods,
-                interestRate,
-                interestRateFactor
-            );
+            return
+                _calculateOutstandingBalanceRounded(originalBalance, numberOfPeriods, interestRate, interestRateFactor);
         } else {
             revert InterestFormulaNotImplemented();
         }

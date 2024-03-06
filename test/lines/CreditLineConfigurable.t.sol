@@ -853,7 +853,8 @@ contract CreditLineConfigurableTest is Test {
         vm.prank(ADMIN);
         creditLine.configureBorrower(BORROWER_1, borrowerConfig);
 
-        Loan.Terms memory terms = creditLine.determineLoanTerms(BORROWER_1, DURATION_IN_PERIODS, borrowerConfig.minBorrowAmount);
+        Loan.Terms memory terms =
+            creditLine.determineLoanTerms(BORROWER_1, DURATION_IN_PERIODS, borrowerConfig.minBorrowAmount);
 
         assertEq(terms.token, creditLine.token());
 
@@ -894,7 +895,8 @@ contract CreditLineConfigurableTest is Test {
         vm.prank(ADMIN);
         creditLine.configureBorrower(BORROWER_1, borrowerConfig);
 
-        Loan.Terms memory terms = creditLine.determineLoanTerms(BORROWER_1, DURATION_IN_PERIODS, borrowerConfig.minBorrowAmount);
+        Loan.Terms memory terms =
+            creditLine.determineLoanTerms(BORROWER_1, DURATION_IN_PERIODS, borrowerConfig.minBorrowAmount);
         assertEq(terms.addonAmount, 0);
     }
 
@@ -910,7 +912,8 @@ contract CreditLineConfigurableTest is Test {
         vm.prank(ADMIN);
         creditLine.configureBorrower(BORROWER_1, borrowerConfig);
 
-        Loan.Terms memory terms = creditLine.determineLoanTerms(BORROWER_1, DURATION_IN_PERIODS, borrowerConfig.minBorrowAmount);
+        Loan.Terms memory terms =
+            creditLine.determineLoanTerms(BORROWER_1, DURATION_IN_PERIODS, borrowerConfig.minBorrowAmount);
         assertEq(terms.addonAmount, 0);
     }
 
@@ -1010,8 +1013,7 @@ contract CreditLineConfigurableTest is Test {
         vm.prank(ADMIN);
         creditLine.configureBorrower(BORROWER_1, borrowerConfig);
 
-        uint256 addonRate =
-            borrowerConfig.addonFixedCostRate + borrowerConfig.addonPeriodCostRate * DURATION_IN_PERIODS;
+        uint256 addonRate = borrowerConfig.addonFixedCostRate + borrowerConfig.addonPeriodCostRate * DURATION_IN_PERIODS;
         uint256 expectedAddonAmount = (borrowerConfig.minBorrowAmount * addonRate) / creditLineConfig.interestRateFactor;
 
         uint256 actualAddonAmount = creditLine.calculateAddonAmount(
@@ -1022,7 +1024,8 @@ contract CreditLineConfigurableTest is Test {
         );
         assertEq(actualAddonAmount, expectedAddonAmount);
 
-        Loan.Terms memory terms = creditLine.determineLoanTerms(BORROWER_1, DURATION_IN_PERIODS, borrowerConfig.minBorrowAmount);
+        Loan.Terms memory terms =
+            creditLine.determineLoanTerms(BORROWER_1, DURATION_IN_PERIODS, borrowerConfig.minBorrowAmount);
         assertEq(terms.addonAmount, expectedAddonAmount);
     }
 

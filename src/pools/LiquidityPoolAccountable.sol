@@ -18,11 +18,7 @@ import { ILiquidityPoolAccountable } from "../interfaces/ILiquidityPoolAccountab
 /// @title LiquidityPoolAccountable contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @notice Implementation of the accountable liquidity pool contract.
-contract LiquidityPoolAccountable is
-    OwnableUpgradeable,
-    PausableUpgradeable,
-    ILiquidityPoolAccountable
-{
+contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, ILiquidityPoolAccountable {
     using SafeERC20 for IERC20;
 
     // -------------------------------------------- //

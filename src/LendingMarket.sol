@@ -243,7 +243,11 @@ contract LendingMarket is
     // -------------------------------------------- //
 
     /// @inheritdoc ILendingMarket
-    function takeLoan(address creditLine, uint256 durationInPeriods, uint256 borrowAmount) external whenNotPaused returns (uint256) {
+    function takeLoan(
+        address creditLine,
+        uint256 durationInPeriods,
+        uint256 borrowAmount
+    ) external whenNotPaused returns (uint256) {
         if (creditLine == address(0)) {
             revert Error.ZeroAddress();
         }
@@ -262,7 +266,8 @@ contract LendingMarket is
         }
 
         uint256 id = _safeMint(lender);
-        Loan.Terms memory terms = ICreditLine(creditLine).onBeforeLoanTaken(msg.sender, durationInPeriods, borrowAmount, id);
+        Loan.Terms memory terms =
+            ICreditLine(creditLine).onBeforeLoanTaken(msg.sender, durationInPeriods, borrowAmount, id);
         uint256 totalAmount = borrowAmount + terms.addonAmount;
 
         _loans[id] = Loan.State({
@@ -513,10 +518,7 @@ contract LendingMarket is
     /// @notice Calculates the period index based on the provided timestamp.
     /// @param timestamp The timestamp to calculate the period index for.
     /// @param periodInSeconds The period duration in seconds.
-    function calculatePeriodIndex(
-        uint256 timestamp,
-        uint256 periodInSeconds
-    ) external pure returns (uint256) {
+    function calculatePeriodIndex(uint256 timestamp, uint256 periodInSeconds) external pure returns (uint256) {
         return _periodIndex(timestamp, periodInSeconds);
     }
 
