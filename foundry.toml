@@ -2,7 +2,7 @@
 src = "src"
 out = "out"
 libs = ["lib", "node_modules", "src/libraries"]
-viaIr = true
+# viaIr = true
 
 [fmt]
 line_length = 120
