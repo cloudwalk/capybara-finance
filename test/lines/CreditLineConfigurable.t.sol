@@ -26,10 +26,10 @@ contract CreditLineConfigurableTest is Test {
     //  Events                                      //
     // -------------------------------------------- //
 
-    event ConfigureAdmin(address indexed admin, bool adminStatus);
+    event AdminConfigured(address indexed admin, bool adminStatus);
     event TokenConfigured(address creditLine, address indexed token);
-    event ConfigureCreditLine(address indexed creditLine, ICreditLineConfigurable.CreditLineConfig config);
-    event ConfigureBorrower(
+    event CreditLineConfigured(address indexed creditLine, ICreditLineConfigurable.CreditLineConfig config);
+    event BorrowerConfigured(
         address indexed creditLine, address indexed borrower, ICreditLineConfigurable.BorrowerConfig config
     );
 
@@ -350,13 +350,13 @@ contract CreditLineConfigurableTest is Test {
         vm.startPrank(LENDER_1);
 
         vm.expectEmit(true, true, true, true, address(creditLine));
-        emit ConfigureAdmin(ADMIN, true);
+        emit AdminConfigured(ADMIN, true);
         creditLine.configureAdmin(ADMIN, true);
 
         assertEq(creditLine.isAdmin(ADMIN), true);
 
         vm.expectEmit(true, true, true, true, address(creditLine));
-        emit ConfigureAdmin(ADMIN, false);
+        emit AdminConfigured(ADMIN, false);
         creditLine.configureAdmin(ADMIN, false);
 
         assertEq(creditLine.isAdmin(ADMIN), false);
@@ -392,7 +392,7 @@ contract CreditLineConfigurableTest is Test {
 
         vm.prank(LENDER_1);
         vm.expectEmit(true, true, true, true, address(creditLine));
-        emit ConfigureCreditLine(address(creditLine), config);
+        emit CreditLineConfigured(address(creditLine), config);
         creditLine.configureCreditLine(config);
 
         assertTrueCreditLineConfig(config, creditLine.creditLineConfiguration());
@@ -491,7 +491,7 @@ contract CreditLineConfigurableTest is Test {
 
         vm.prank(ADMIN);
         vm.expectEmit(true, true, true, true, address(creditLine));
-        emit ConfigureBorrower(address(creditLine), BORROWER_1, config);
+        emit BorrowerConfigured(address(creditLine), BORROWER_1, config);
         creditLine.configureBorrower(BORROWER_1, config);
 
         assertTrueBorrowerConfig(config, creditLine.getBorrowerConfiguration(BORROWER_1));
@@ -704,7 +704,7 @@ contract CreditLineConfigurableTest is Test {
 
         for (uint256 i = 0; i < borrowers.length; i++) {
             vm.expectEmit(true, true, true, true, address(creditLine));
-            emit ConfigureBorrower(address(creditLine), borrowers[i], configs[i]);
+            emit BorrowerConfigured(address(creditLine), borrowers[i], configs[i]);
             assertFalseBorrowerConfig(configs[i], creditLine.getBorrowerConfiguration(borrowers[i]));
         }
 

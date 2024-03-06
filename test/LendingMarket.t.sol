@@ -36,12 +36,12 @@ contract LendingMarketTest is Test {
     event OnBeforeLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
     event OnAfterLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
 
-    event SetRegistry(address indexed newRegistry, address indexed oldRegistry);
-    event RegisterCreditLine(address indexed lender, address indexed creditLine);
-    event RegisterLiquidityPool(address indexed lender, address indexed liquidityPool);
+    event MarketRegistryChanged(address indexed newRegistry, address indexed oldRegistry);
+    event LiquidityPoolRegistered(address indexed lender, address indexed liquidityPool);
+    event CreditLineRegistered(address indexed lender, address indexed creditLine);
 
-    event TakeLoan(uint256 indexed loanId, address indexed borrower, uint256 borrowAmount);
-    event RepayLoan(
+    event LoanTaken(uint256 indexed loanId, address indexed borrower, uint256 borrowAmount);
+    event LoanPaid(
         uint256 indexed loanId,
         address indexed repayer,
         address indexed borrower,
@@ -49,22 +49,22 @@ contract LendingMarketTest is Test {
         uint256 outstandingBalance
     );
 
-    event FreezeLoan(uint256 indexed loanId, uint256 timestamp);
-    event UnfreezeLoan(uint256 indexed loanId, uint256 timestamp);
+    event LoanFrozen(uint256 indexed loanId, uint256 timestamp);
+    event LoanUnfrozen(uint256 indexed loanId, uint256 timestamp);
 
-    event UpdateLoanDuration(uint256 indexed loanId, uint256 indexed newDuration, uint256 indexed oldDuration);
-    event UpdateLoanMoratorium(uint256 indexed loanId, uint256 indexed newMoratorium, uint256 indexed oldMoratorium);
-    event UpdateLoanInterestRatePrimary(
+    event LoanDurationUpdated(uint256 indexed loanId, uint256 indexed newDuration, uint256 indexed oldDuration);
+    event LoanMoratoriumUpdated(uint256 indexed loanId, uint256 indexed newMoratorium, uint256 indexed oldMoratorium);
+    event LoanInterestRatePrimaryUpdated(
         uint256 indexed loanId, uint256 indexed newInterestRate, uint256 indexed oldInterestRate
     );
-    event UpdateLoanInterestRateSecondary(
+    event LoanInterestRateSecondaryUpdated(
         uint256 indexed loanId, uint256 indexed newInterestRate, uint256 indexed oldInterestRate
     );
 
-    event AssignLiquidityPoolToCreditLine(
+    event LiquidityPoolAssignedToCreditLine(
         address indexed creditLine, address indexed newLiquidityPool, address indexed oldLiquidityPool
     );
-    event ConfigureLenderAlias(address indexed lender, address indexed account, bool isAlias);
+    event LenderAliasConfigured(address indexed lender, address indexed account, bool isAlias);
 
     // -------------------------------------------- //
     //  Storage variables                           //
@@ -384,12 +384,12 @@ contract LendingMarketTest is Test {
         vm.startPrank(OWNER);
 
         vm.expectEmit(true, true, true, true, address(market));
-        emit SetRegistry(address(0), REGISTRY_1);
+        emit MarketRegistryChanged(address(0), REGISTRY_1);
         market.setRegistry(address(0));
         assertEq(market.registry(), address(0));
 
         vm.expectEmit(true, true, true, true, address(market));
-        emit SetRegistry(REGISTRY_2, address(0));
+        emit MarketRegistryChanged(REGISTRY_2, address(0));
         market.setRegistry(REGISTRY_2);
         assertEq(market.registry(), REGISTRY_2);
     }
@@ -417,7 +417,7 @@ contract LendingMarketTest is Test {
 
         vm.prank(OWNER);
         vm.expectEmit(true, true, true, true, address(market));
-        emit RegisterCreditLine(LENDER_1, address(creditLine));
+        emit CreditLineRegistered(LENDER_1, address(creditLine));
         market.registerCreditLine(LENDER_1, address(creditLine));
 
         assertEq(market.getCreditLineLender(address(creditLine)), LENDER_1);
@@ -428,7 +428,7 @@ contract LendingMarketTest is Test {
 
         vm.prank(REGISTRY_1);
         vm.expectEmit(true, true, true, true, address(market));
-        emit RegisterCreditLine(LENDER_1, address(creditLine));
+        emit CreditLineRegistered(LENDER_1, address(creditLine));
         market.registerCreditLine(LENDER_1, address(creditLine));
 
         assertEq(market.getCreditLineLender(address(creditLine)), LENDER_1);
@@ -486,7 +486,7 @@ contract LendingMarketTest is Test {
 
         vm.prank(OWNER);
         vm.expectEmit(true, true, true, true, address(market));
-        emit RegisterLiquidityPool(LENDER_1, address(liquidityPool));
+        emit LiquidityPoolRegistered(LENDER_1, address(liquidityPool));
         market.registerLiquidityPool(LENDER_1, address(liquidityPool));
 
         assertEq(market.getLiquidityPoolLender(address(liquidityPool)), LENDER_1);
@@ -497,7 +497,7 @@ contract LendingMarketTest is Test {
 
         vm.prank(REGISTRY_1);
         vm.expectEmit(true, true, true, true, address(market));
-        emit RegisterLiquidityPool(LENDER_1, address(liquidityPool));
+        emit LiquidityPoolRegistered(LENDER_1, address(liquidityPool));
         market.registerLiquidityPool(LENDER_1, address(liquidityPool));
 
         assertEq(market.getLiquidityPoolLender(address(liquidityPool)), LENDER_1);
@@ -578,7 +578,7 @@ contract LendingMarketTest is Test {
 
         vm.prank(LENDER_1);
         vm.expectEmit(true, true, true, true, address(market));
-        emit AssignLiquidityPoolToCreditLine(address(creditLine), address(liquidityPool), address(0));
+        emit LiquidityPoolAssignedToCreditLine(address(creditLine), address(liquidityPool), address(0));
         market.assignLiquidityPoolToCreditLine(address(creditLine), address(liquidityPool));
 
         assertEq(market.getLiquidityPoolByCreditLine(address(creditLine)), address(liquidityPool));
@@ -657,7 +657,7 @@ contract LendingMarketTest is Test {
         vm.expectEmit(true, true, true, true, address(liquidityPool));
         emit OnAfterLoanTakenCalled(loanId, address(creditLine));
         vm.expectEmit(true, true, true, true, address(market));
-        emit TakeLoan(loanId, BORROWER_1, borrowAmount + terms.addonAmount);
+        emit LoanTaken(loanId, BORROWER_1, borrowAmount + terms.addonAmount);
 
         vm.prank(BORROWER_1);
         assertEq(market.takeLoan(address(creditLine), borrowAmount, terms.durationInPeriods), loanId);
@@ -767,7 +767,7 @@ contract LendingMarketTest is Test {
         token.mint(BORROWER_1, outstandingBalance - token.balanceOf(BORROWER_1));
 
         vm.expectEmit(true, true, true, true, address(market));
-        emit RepayLoan(loanId, BORROWER_1, BORROWER_1, repayAmount, outstandingBalance);
+        emit LoanPaid(loanId, BORROWER_1, BORROWER_1, repayAmount, outstandingBalance);
         market.repayLoan(loanId, repayAmount);
 
         uint256 newOutstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
@@ -782,7 +782,7 @@ contract LendingMarketTest is Test {
         token.mint(BORROWER_1, outstandingBalance - token.balanceOf(BORROWER_1));
 
         vm.expectEmit(true, true, true, true, address(market));
-        emit RepayLoan(loanId, BORROWER_1, BORROWER_1, outstandingBalance, 0);
+        emit LoanPaid(loanId, BORROWER_1, BORROWER_1, outstandingBalance, 0);
         market.repayLoan(loanId, outstandingBalance);
 
         newOutstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
@@ -841,7 +841,7 @@ contract LendingMarketTest is Test {
         token.mint(BORROWER_1, outstandingBalance - token.balanceOf(BORROWER_1));
 
         vm.expectEmit(true, true, true, true, address(market));
-        emit RepayLoan(loanId, BORROWER_1, BORROWER_1, outstandingBalance, 0);
+        emit LoanPaid(loanId, BORROWER_1, BORROWER_1, outstandingBalance, 0);
         market.repayLoan(loanId, type(uint256).max);
 
         outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
@@ -929,7 +929,7 @@ contract LendingMarketTest is Test {
 
         vm.prank(caller);
         vm.expectEmit(true, true, true, true, address(market));
-        emit FreezeLoan(loanId, block.timestamp);
+        emit LoanFrozen(loanId, block.timestamp);
         market.freeze(loanId);
 
         loan = market.getLoanState(loanId);
@@ -1032,7 +1032,7 @@ contract LendingMarketTest is Test {
 
         vm.prank(LENDER_1);
         vm.expectEmit(true, true, true, true, address(market));
-        emit UnfreezeLoan(loanId, block.timestamp);
+        emit LoanUnfrozen(loanId, block.timestamp);
         market.unfreeze(loanId);
 
         loan = market.getLoanState(loanId);
@@ -1062,7 +1062,7 @@ contract LendingMarketTest is Test {
 
         vm.prank(LENDER_1);
         vm.expectEmit(true, true, true, true, address(market));
-        emit UnfreezeLoan(loanId, block.timestamp);
+        emit LoanUnfrozen(loanId, block.timestamp);
         market.unfreeze(loanId);
 
         loan = market.getLoanState(loanId);
@@ -1132,7 +1132,7 @@ contract LendingMarketTest is Test {
 
         vm.prank(caller);
         vm.expectEmit(true, true, true, true, address(market));
-        emit UpdateLoanDuration(loanId, newDurationInPeriods, loan.durationInPeriods);
+        emit LoanDurationUpdated(loanId, newDurationInPeriods, loan.durationInPeriods);
         market.updateLoanDuration(loanId, newDurationInPeriods);
 
         loan = market.getLoanState(loanId);
@@ -1236,7 +1236,7 @@ contract LendingMarketTest is Test {
 
         vm.prank(caller);
         vm.expectEmit(true, true, true, true, address(market));
-        emit UpdateLoanMoratorium(loanId, loan.trackedTimestamp, newMoratoriumInPeriods);
+        emit LoanMoratoriumUpdated(loanId, loan.trackedTimestamp, newMoratoriumInPeriods);
         market.updateLoanMoratorium(loanId, newMoratoriumInPeriods);
 
         loan = market.getLoanState(loanId);
@@ -1253,7 +1253,7 @@ contract LendingMarketTest is Test {
 
         vm.prank(caller);
         vm.expectEmit(true, true, true, true, address(market));
-        emit UpdateLoanMoratorium(loanId, loan.trackedTimestamp, increaseInPeriods);
+        emit LoanMoratoriumUpdated(loanId, loan.trackedTimestamp, increaseInPeriods);
         market.updateLoanMoratorium(loanId, newMoratoriumInPeriods);
 
         loan = market.getLoanState(loanId);
@@ -1382,7 +1382,7 @@ contract LendingMarketTest is Test {
 
         vm.prank(caller);
         vm.expectEmit(true, true, true, true, address(market));
-        emit UpdateLoanInterestRatePrimary(loanId, newInterestRatePrimary, oldInterestRatePrimary);
+        emit LoanInterestRatePrimaryUpdated(loanId, newInterestRatePrimary, oldInterestRatePrimary);
         market.updateLoanInterestRatePrimary(loanId, newInterestRatePrimary);
 
         loan = market.getLoanState(loanId);
@@ -1468,7 +1468,7 @@ contract LendingMarketTest is Test {
 
         vm.prank(caller);
         vm.expectEmit(true, true, true, true, address(market));
-        emit UpdateLoanInterestRateSecondary(loanId, newInterestRateSecondary, oldInterestRateSecondary);
+        emit LoanInterestRateSecondaryUpdated(loanId, newInterestRateSecondary, oldInterestRateSecondary);
         market.updateLoanInterestRateSecondary(loanId, newInterestRateSecondary);
 
         loan = market.getLoanState(loanId);
@@ -1550,12 +1550,12 @@ contract LendingMarketTest is Test {
         vm.startPrank(LENDER_1);
 
         vm.expectEmit(true, true, true, true, address(market));
-        emit ConfigureLenderAlias(LENDER_1, LENDER_1_ALIAS, false);
+        emit LenderAliasConfigured(LENDER_1, LENDER_1_ALIAS, false);
         market.configureAlias(LENDER_1_ALIAS, false);
         assertEq(market.hasAlias(LENDER_1, LENDER_1_ALIAS), false);
 
         vm.expectEmit(true, true, true, true, address(market));
-        emit ConfigureLenderAlias(LENDER_1, LENDER_1_ALIAS, true);
+        emit LenderAliasConfigured(LENDER_1, LENDER_1_ALIAS, true);
         market.configureAlias(LENDER_1_ALIAS, true);
         assertEq(market.hasAlias(LENDER_1, LENDER_1_ALIAS), true);
     }

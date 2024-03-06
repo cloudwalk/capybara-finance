@@ -24,11 +24,11 @@ contract LendingRegistryTest is Test {
     //  Events                                      //
     // -------------------------------------------- //
 
-    event SetCreditLineFactory(address newFactory, address oldFactory);
-    event SetLiquidityPoolFactory(address newFactory, address oldFactory);
+    event CreditLineFactoryChanged(address newFactory, address oldFactory);
+    event LiquidityPoolFactoryChanged(address newFactory, address oldFactory);
 
-    event CreateCreditLine(address indexed lender, address creditLine);
-    event CreateLiquidityPool(address indexed lender, address liquidityPool);
+    event CreditLineCreated(address indexed lender, address creditLine);
+    event LiquidityPoolCreated(address indexed lender, address liquidityPool);
 
     event RegisterCreditLineCalled(address indexed lender, address indexed creditLine);
     event RegisterLiquidityPoolCalled(address indexed lender, address indexed liquidityPool);
@@ -160,17 +160,17 @@ contract LendingRegistryTest is Test {
         vm.startPrank(OWNER);
 
         vm.expectEmit(true, true, true, true, address(registry));
-        emit SetCreditLineFactory(CREDIT_LINE_FACTORY_1, address(0));
+        emit CreditLineFactoryChanged(CREDIT_LINE_FACTORY_1, address(0));
         registry.setCreditLineFactory(CREDIT_LINE_FACTORY_1);
         assertEq(registry.creditLineFactory(), CREDIT_LINE_FACTORY_1);
 
         vm.expectEmit(true, true, true, true, address(registry));
-        emit SetCreditLineFactory(CREDIT_LINE_FACTORY_2, CREDIT_LINE_FACTORY_1);
+        emit CreditLineFactoryChanged(CREDIT_LINE_FACTORY_2, CREDIT_LINE_FACTORY_1);
         registry.setCreditLineFactory(CREDIT_LINE_FACTORY_2);
         assertEq(registry.creditLineFactory(), CREDIT_LINE_FACTORY_2);
 
         vm.expectEmit(true, true, true, true, address(registry));
-        emit SetCreditLineFactory(address(0), CREDIT_LINE_FACTORY_2);
+        emit CreditLineFactoryChanged(address(0), CREDIT_LINE_FACTORY_2);
         registry.setCreditLineFactory(address(0));
         assertEq(registry.creditLineFactory(), address(0));
     }
@@ -198,17 +198,17 @@ contract LendingRegistryTest is Test {
         vm.startPrank(OWNER);
 
         vm.expectEmit(true, true, true, true, address(registry));
-        emit SetLiquidityPoolFactory(LIQUIDITY_POOL_FACTORY_1, address(0));
+        emit LiquidityPoolFactoryChanged(LIQUIDITY_POOL_FACTORY_1, address(0));
         registry.setLiquidityPoolFactory(LIQUIDITY_POOL_FACTORY_1);
         assertEq(registry.liquidityPoolFactory(), LIQUIDITY_POOL_FACTORY_1);
 
         vm.expectEmit(true, true, true, true, address(registry));
-        emit SetLiquidityPoolFactory(LIQUIDITY_POOL_FACTORY_2, LIQUIDITY_POOL_FACTORY_1);
+        emit LiquidityPoolFactoryChanged(LIQUIDITY_POOL_FACTORY_2, LIQUIDITY_POOL_FACTORY_1);
         registry.setLiquidityPoolFactory(LIQUIDITY_POOL_FACTORY_2);
         assertEq(registry.liquidityPoolFactory(), LIQUIDITY_POOL_FACTORY_2);
 
         vm.expectEmit(true, true, true, true, address(registry));
-        emit SetLiquidityPoolFactory(address(0), LIQUIDITY_POOL_FACTORY_2);
+        emit LiquidityPoolFactoryChanged(address(0), LIQUIDITY_POOL_FACTORY_2);
         registry.setLiquidityPoolFactory(address(0));
         assertEq(registry.liquidityPoolFactory(), address(0));
     }

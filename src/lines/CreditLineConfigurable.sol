@@ -141,7 +141,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
 
         _admins[admin] = adminStatus;
 
-        emit ConfigureAdmin(admin, adminStatus);
+        emit AdminConfigured(admin, adminStatus);
     }
 
     /// @inheritdoc ICreditLineConfigurable
@@ -173,7 +173,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
 
         _config = config;
 
-        emit ConfigureCreditLine(address(this), config);
+        emit CreditLineConfigured(address(this), config);
     }
 
     // -------------------------------------------- //
@@ -392,6 +392,6 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
 
         _borrowers[borrower] = config;
 
-        emit ConfigureBorrower(address(this), borrower, config);
+        emit BorrowerConfigured(address(this), borrower, config);
     }
 }

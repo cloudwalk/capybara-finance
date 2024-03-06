@@ -18,7 +18,7 @@ contract CreditLineFactoryTest is Test {
     //  Events                                      //
     // -------------------------------------------- //
 
-    event CreateCreditLine(
+    event CreditLineCreated(
         address indexed market, address indexed lender, address indexed token, uint16 kind, address creditLine
     );
 
@@ -80,7 +80,7 @@ contract CreditLineFactoryTest is Test {
     function test_createCreditLine() public {
         vm.prank(REGISTRY_1);
         vm.expectEmit(true, true, true, true, address(factory));
-        emit CreateCreditLine(MARKET, LENDER, TOKEN, KIND_1, EXPECTED_CONTRACT_ADDRESS);
+        emit CreditLineCreated(MARKET, LENDER, TOKEN, KIND_1, EXPECTED_CONTRACT_ADDRESS);
         address creditLine = factory.createCreditLine(MARKET, LENDER, TOKEN, KIND_1, DATA);
 
         assertEq(creditLine, EXPECTED_CONTRACT_ADDRESS);

@@ -18,7 +18,7 @@ contract LiquidityPoolFactoryTest is Test {
     //  Events                                      //
     // -------------------------------------------- //
 
-    event CreateLiquidityPool(
+    event LiquidityPoolCreated(
         address indexed market, address indexed lender, uint16 indexed kind, address liquidityPool
     );
 
@@ -79,7 +79,7 @@ contract LiquidityPoolFactoryTest is Test {
     function test_createLiquidityPool() public {
         vm.prank(REGISTRY_1);
         vm.expectEmit(true, true, true, true, address(factory));
-        emit CreateLiquidityPool(MARKET, LENDER, KIND_1, EXPECTED_CONTRACT_ADDRESS);
+        emit LiquidityPoolCreated(MARKET, LENDER, KIND_1, EXPECTED_CONTRACT_ADDRESS);
         address liquidityPool = factory.createLiquidityPool(MARKET, LENDER, KIND_1, DATA);
 
         assertEq(liquidityPool, EXPECTED_CONTRACT_ADDRESS);

@@ -59,7 +59,7 @@ contract CreditLineFactory is OwnableUpgradeable, ICreditLineFactory {
         CreditLineConfigurable creditLine = new CreditLineConfigurable();
         creditLine.initialize(market, lender, token);
 
-        emit CreateCreditLine(market, lender, token, kind, address(creditLine));
+        emit CreditLineCreated(market, lender, token, kind, address(creditLine));
 
         return address(creditLine);
     }

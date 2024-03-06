@@ -158,7 +158,7 @@ contract LendingMarket is
             revert Error.AlreadyConfigured();
         }
 
-        emit SetRegistry(newRegistry, _registry);
+        emit MarketRegistryChanged(newRegistry, _registry);
 
         _registry = newRegistry;
     }
@@ -179,7 +179,7 @@ contract LendingMarket is
             revert CreditLineAlreadyRegistered();
         }
 
-        emit RegisterCreditLine(lender, creditLine);
+        emit CreditLineRegistered(lender, creditLine);
 
         _creditLineLenders[creditLine] = lender;
     }
@@ -196,7 +196,7 @@ contract LendingMarket is
             revert LiquidityPoolAlreadyRegistered();
         }
 
-        emit RegisterLiquidityPool(lender, liquidityPool);
+        emit LiquidityPoolRegistered(lender, liquidityPool);
 
         _liquidityPoolLenders[liquidityPool] = lender;
     }
@@ -233,7 +233,7 @@ contract LendingMarket is
             revert Error.Unauthorized();
         }
 
-        emit AssignLiquidityPoolToCreditLine(creditLine, liquidityPool, _liquidityPoolByCreditLine[creditLine]);
+        emit LiquidityPoolAssignedToCreditLine(creditLine, liquidityPool, _liquidityPoolByCreditLine[creditLine]);
 
         _liquidityPoolByCreditLine[creditLine] = liquidityPool;
     }
@@ -297,7 +297,7 @@ contract LendingMarket is
 
         ILiquidityPool(liquidityPool).onAfterLoanTaken(id, creditLine);
 
-        emit TakeLoan(id, msg.sender, totalAmount);
+        emit LoanTaken(id, msg.sender, totalAmount);
 
         return id;
     }
@@ -339,7 +339,7 @@ contract LendingMarket is
         IERC20(loan.token).transferFrom(payer, loan.treasury, repayAmount);
         ILiquidityPool(loan.treasury).onAfterLoanPayment(loanId, repayAmount);
 
-        emit RepayLoan(loanId, payer, loan.borrower, repayAmount, outstandingBalance);
+        emit LoanPaid(loanId, payer, loan.borrower, repayAmount, outstandingBalance);
 
         if (outstandingBalance == 0) {
             _safeTransfer(ownerOf(loanId), loan.borrower, loanId, "");
@@ -360,7 +360,7 @@ contract LendingMarket is
 
         loan.freezeTimestamp = _blockTimestamp().toUint32();
 
-        emit FreezeLoan(loanId, _blockTimestamp());
+        emit LoanFrozen(loanId, _blockTimestamp());
     }
 
     /// @inheritdoc ILendingMarket
@@ -382,7 +382,7 @@ contract LendingMarket is
 
         loan.freezeTimestamp = 0;
 
-        emit UnfreezeLoan(loanId, _blockTimestamp());
+        emit LoanUnfrozen(loanId, _blockTimestamp());
     }
 
     /// @inheritdoc ILendingMarket
@@ -396,7 +396,7 @@ contract LendingMarket is
             revert InappropriateLoanDuration();
         }
 
-        emit UpdateLoanDuration(loanId, newDurationInPeriods, loan.durationInPeriods);
+        emit LoanDurationUpdated(loanId, newDurationInPeriods, loan.durationInPeriods);
 
         loan.durationInPeriods = newDurationInPeriods.toUint32();
     }
@@ -415,7 +415,7 @@ contract LendingMarket is
 
         newMoratoriumInPeriods -= currentMoratoriumInPeriods;
 
-        emit UpdateLoanMoratorium(loanId, loan.trackedTimestamp, newMoratoriumInPeriods);
+        emit LoanMoratoriumUpdated(loanId, loan.trackedTimestamp, newMoratoriumInPeriods);
 
         loan.trackedTimestamp += (newMoratoriumInPeriods * loan.periodInSeconds).toUint32();
     }
@@ -431,7 +431,7 @@ contract LendingMarket is
             revert InappropriateInterestRate();
         }
 
-        emit UpdateLoanInterestRatePrimary(loanId, newInterestRate, loan.interestRatePrimary);
+        emit LoanInterestRatePrimaryUpdated(loanId, newInterestRate, loan.interestRatePrimary);
 
         loan.interestRatePrimary = newInterestRate.toUint32();
     }
@@ -447,7 +447,7 @@ contract LendingMarket is
             revert InappropriateInterestRate();
         }
 
-        emit UpdateLoanInterestRateSecondary(loanId, newInterestRate, loan.interestRateSecondary);
+        emit LoanInterestRateSecondaryUpdated(loanId, newInterestRate, loan.interestRateSecondary);
 
         loan.interestRateSecondary = newInterestRate.toUint32();
     }
@@ -461,7 +461,7 @@ contract LendingMarket is
             revert Error.AlreadyConfigured();
         }
 
-        emit ConfigureLenderAlias(msg.sender, account, isAlias);
+        emit LenderAliasConfigured(msg.sender, account, isAlias);
 
         _hasAlias[msg.sender][account] = isAlias;
     }

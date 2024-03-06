@@ -29,15 +29,15 @@ contract LendingRegistry is
     //  Events                                      //
     // -------------------------------------------- //
 
-    /// @notice Emitted when the credit line factory is set.
+    /// @notice Emitted when the credit line factory is changed.
     /// @param newFactory The address of the new credit line factory.
     /// @param oldFactory The address of the old credit line factory.
-    event SetCreditLineFactory(address newFactory, address oldFactory);
+    event CreditLineFactoryChanged(address newFactory, address oldFactory);
 
-    /// @notice Emitted when the liquidity pool factory is set.
+    /// @notice Emitted when the liquidity pool factory is changed.
     /// @param newFactory The address of the new liquidity pool factory.
     /// @param oldFactory The address of the old liquidity pool factory.
-    event SetLiquidityPoolFactory(address newFactory, address oldFactory);
+    event LiquidityPoolFactoryChanged(address newFactory, address oldFactory);
 
     // -------------------------------------------- //
     //  Errors                                      //
@@ -98,7 +98,7 @@ contract LendingRegistry is
             revert Error.AlreadyConfigured();
         }
 
-        emit SetCreditLineFactory(newFactory, _creditLineFactory);
+        emit CreditLineFactoryChanged(newFactory, _creditLineFactory);
 
         _creditLineFactory = newFactory;
     }
@@ -110,7 +110,7 @@ contract LendingRegistry is
             revert Error.AlreadyConfigured();
         }
 
-        emit SetLiquidityPoolFactory(newFactory, _liquidityPoolFactory);
+        emit LiquidityPoolFactoryChanged(newFactory, _liquidityPoolFactory);
 
         _liquidityPoolFactory = newFactory;
     }

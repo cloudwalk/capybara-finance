@@ -26,10 +26,10 @@ contract LiquidityPoolAccountableTest is Test {
     //  Events                                      //
     // -------------------------------------------- //
 
-    event ConfigureAdmin(address indexed admin, bool adminStatus);
-    event Deposit(address indexed creditLine, uint256 amount);
-    event Withdraw(address indexed tokenSource, uint256 amount);
-    event AutoRepay(uint256 numberOfLoans);
+    event AdminConfigured(address indexed admin, bool adminStatus);
+    event DepositMade(address indexed creditLine, uint256 amount);
+    event WithdrawalMade(address indexed tokenSource, uint256 amount);
+    event AutoRepaymentInitiated(uint256 numberOfLoans);
     event RepayLoanCalled(uint256 indexed loanId, uint256 repayAmount);
 
     // -------------------------------------------- //
@@ -205,13 +205,13 @@ contract LiquidityPoolAccountableTest is Test {
         vm.startPrank(LENDER);
 
         vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit ConfigureAdmin(ADMIN, true);
+        emit AdminConfigured(ADMIN, true);
         liquidityPool.configureAdmin(ADMIN, true);
 
         assertEq(liquidityPool.isAdmin(ADMIN), true);
 
         vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit ConfigureAdmin(ADMIN, false);
+        emit AdminConfigured(ADMIN, false);
         liquidityPool.configureAdmin(ADMIN, false);
 
         assertEq(liquidityPool.isAdmin(ADMIN), false);
@@ -249,7 +249,7 @@ contract LiquidityPoolAccountableTest is Test {
 
         vm.prank(LENDER);
         vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit Deposit(address(creditLine), DEPOSIT_AMOUNT_1);
+        emit DepositMade(address(creditLine), DEPOSIT_AMOUNT_1);
         liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT_1);
 
         assertEq(token.balanceOf(address(liquidityPool)), DEPOSIT_AMOUNT_1);
@@ -292,7 +292,7 @@ contract LiquidityPoolAccountableTest is Test {
         assertEq(liquidityPool.getTokenBalance(address(creditLine)), DEPOSIT_AMOUNT_1);
 
         vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit Withdraw(address(creditLine), DEPOSIT_AMOUNT_1 - 1);
+        emit WithdrawalMade(address(creditLine), DEPOSIT_AMOUNT_1 - 1);
         liquidityPool.withdraw(address(creditLine), DEPOSIT_AMOUNT_1 - 1);
 
         assertEq(token.balanceOf(LENDER), DEPOSIT_AMOUNT_1 - 1);
@@ -314,7 +314,7 @@ contract LiquidityPoolAccountableTest is Test {
         assertEq(liquidityPool.getTokenBalance(address(creditLine)), DEPOSIT_AMOUNT_1);
 
         vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit Withdraw(address(token), DEPOSIT_AMOUNT_1 - 1);
+        emit WithdrawalMade(address(token), DEPOSIT_AMOUNT_1 - 1);
         liquidityPool.withdraw(address(token), DEPOSIT_AMOUNT_1 - 1);
 
         assertEq(token.balanceOf(LENDER), DEPOSIT_AMOUNT_1 - 1);
@@ -373,7 +373,7 @@ contract LiquidityPoolAccountableTest is Test {
         (uint256[] memory loanIds, uint256[] memory amounts) = getBatchLoanData();
 
         vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit AutoRepay(loanIds.length);
+        emit AutoRepaymentInitiated(loanIds.length);
 
         for (uint256 i = 0; i < loanIds.length; i++) {
             vm.expectEmit(true, true, true, true, address(lendingMarket));

@@ -58,7 +58,7 @@ contract LiquidityPoolFactory is OwnableUpgradeable, ILiquidityPoolFactory {
         LiquidityPoolAccountable liquidityPool = new LiquidityPoolAccountable();
         liquidityPool.initialize(market, lender);
 
-        emit CreateLiquidityPool(market, lender, kind, address(liquidityPool));
+        emit LiquidityPoolCreated(market, lender, kind, address(liquidityPool));
 
         return address(liquidityPool);
     }
