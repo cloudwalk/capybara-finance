@@ -18,7 +18,7 @@ library Loan {
         // Slot 2
         address borrower;                 // The address of the borrower.
         uint64 initialBorrowAmount;       // The initial principal amount of the loan.
-        uint32 startDate;                 // The start date of the loan.
+        uint32 startTimestamp;            // The timestamp when the loan was created.
         // Slot 3
         address treasury;                 // The address of the loan treasury.
         uint32 periodInSeconds;           // The duration of the loan period specified in seconds.
@@ -27,8 +27,8 @@ library Loan {
         bool autoRepayment;               // The flag that indicates whether the loan can be repaid automatically.
         // Slot 4
         uint64 trackedBorrowBalance;      // The borow balance of the loan that is tracked.
-        uint32 trackedDate;               // The date of the loan recent repayment.
-        uint32 freezeDate;                // The date when the loan was frozen.
+        uint32 trackedTimestamp;          // The timestamp when the loan was last paid.
+        uint32 freezeTimestamp;           // The timestamp when the loan was frozen.
     }
 
     /// @notice A struct that defines the terms of the loan.
@@ -51,7 +51,7 @@ library Loan {
 
     /// @notice A struct that defines the preview of the loan.
     struct Preview {
-        uint256 periodDate;         // The period date that the loan is previewed for.
+        uint256 periodIndex;        // The index of the period that the loan is previewed for.
         uint256 outstandingBalance; // The outstanding balance of the loan at previewed period.
     }
 }

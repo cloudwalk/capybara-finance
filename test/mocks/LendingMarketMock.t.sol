@@ -49,9 +49,9 @@ contract LendingMarketMockTest is Test {
     uint32 public constant STATE_INTEREST_RATE_PRIMARY = 400;
     uint32 public constant STATE_INTEREST_RATE_SECONDARY = 500;
     Interest.Formula public constant STATE_INTEREST_FORMULA = Interest.Formula.Compound;
-    uint32 public constant STATE_START_DATE = 600;
-    uint32 public constant STATE_FREEZE_DATE = 700;
-    uint32 public constant STATE_TRACKED_DATE = 800;
+    uint32 public constant STATE_START_TIMESTAMP = 600;
+    uint32 public constant STATE_FREEZE_TIMESTAMP = 700;
+    uint32 public constant STATE_TRACKED_TIMESTAMP = 800;
     uint64 public constant STATE_INITIAL_BORROW_AMOUNT = 900;
     uint64 public constant STATE_TRACKED_BORROW_BALANCE = 1000;
     bool public constant STATE_AUTO_REPAYMENT = true;
@@ -174,9 +174,9 @@ contract LendingMarketMockTest is Test {
         assertEq(loan.interestRatePrimary, 0);
         assertEq(loan.interestRateSecondary, 0);
         assertEq(uint256(loan.interestFormula), uint256(Interest.Formula.Simple));
-        assertEq(loan.startDate, 0);
-        assertEq(loan.freezeDate, 0);
-        assertEq(loan.trackedDate, 0);
+        assertEq(loan.startTimestamp, 0);
+        assertEq(loan.freezeTimestamp, 0);
+        assertEq(loan.trackedTimestamp, 0);
         assertEq(loan.initialBorrowAmount, 0);
         assertEq(loan.trackedBorrowBalance, 0);
         assertEq(loan.autoRepayment, false);
@@ -193,9 +193,9 @@ contract LendingMarketMockTest is Test {
                 interestRatePrimary: STATE_INTEREST_RATE_PRIMARY,
                 interestRateSecondary: STATE_INTEREST_RATE_SECONDARY,
                 interestFormula: STATE_INTEREST_FORMULA,
-                startDate: STATE_START_DATE,
-                freezeDate: STATE_FREEZE_DATE,
-                trackedDate: STATE_TRACKED_DATE,
+                startTimestamp: STATE_START_TIMESTAMP,
+                freezeTimestamp: STATE_FREEZE_TIMESTAMP,
+                trackedTimestamp: STATE_TRACKED_TIMESTAMP,
                 initialBorrowAmount: STATE_INITIAL_BORROW_AMOUNT,
                 trackedBorrowBalance: STATE_TRACKED_BORROW_BALANCE,
                 autoRepayment: STATE_AUTO_REPAYMENT
@@ -213,9 +213,9 @@ contract LendingMarketMockTest is Test {
         assertEq(loan.interestRatePrimary, STATE_INTEREST_RATE_PRIMARY);
         assertEq(loan.interestRateSecondary, STATE_INTEREST_RATE_SECONDARY);
         assertEq(uint256(loan.interestFormula), uint256(STATE_INTEREST_FORMULA));
-        assertEq(loan.startDate, STATE_START_DATE);
-        assertEq(loan.freezeDate, STATE_FREEZE_DATE);
-        assertEq(loan.trackedDate, STATE_TRACKED_DATE);
+        assertEq(loan.startTimestamp, STATE_START_TIMESTAMP);
+        assertEq(loan.freezeTimestamp, STATE_FREEZE_TIMESTAMP);
+        assertEq(loan.trackedTimestamp, STATE_TRACKED_TIMESTAMP);
         assertEq(loan.initialBorrowAmount, STATE_INITIAL_BORROW_AMOUNT);
         assertEq(loan.trackedBorrowBalance, STATE_TRACKED_BORROW_BALANCE);
         assertEq(loan.autoRepayment, STATE_AUTO_REPAYMENT);

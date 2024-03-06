@@ -103,9 +103,9 @@ contract LiquidityPoolAccountableTest is Test {
             interestRatePrimary: 0,
             interestRateSecondary: 0,
             interestFormula: Interest.Formula.Simple,
-            startDate: 0,
-            freezeDate: 0,
-            trackedDate: 0,
+            startTimestamp: 0,
+            freezeTimestamp: 0,
+            trackedTimestamp: 0,
             initialBorrowAmount: 0,
             trackedBorrowBalance: 0,
             autoRepayment: false
