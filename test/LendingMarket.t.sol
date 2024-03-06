@@ -181,7 +181,7 @@ contract LendingMarketTest is Test {
         token.mint(address(liquidityPool), borrowAmount + terms.addonAmount);
 
         vm.prank(BORROWER_1);
-        uint256 loanId = market.takeLoan(address(creditLine), terms.durationInPeriods, borrowAmount);
+        uint256 loanId = market.takeLoan(address(creditLine), borrowAmount, terms.durationInPeriods);
 
         Loan.State memory loan = market.getLoanState(loanId);
         skip(loan.periodInSeconds * skipPeriodsAfterCreated);
@@ -660,7 +660,7 @@ contract LendingMarketTest is Test {
         emit TakeLoan(loanId, BORROWER_1, borrowAmount + terms.addonAmount);
 
         vm.prank(BORROWER_1);
-        assertEq(market.takeLoan(address(creditLine), terms.durationInPeriods, borrowAmount), loanId);
+        assertEq(market.takeLoan(address(creditLine), borrowAmount, terms.durationInPeriods), loanId);
 
         Loan.State memory loan = market.getLoanState(loanId);
 
@@ -697,7 +697,7 @@ contract LendingMarketTest is Test {
 
         vm.prank(BORROWER_1);
         vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
-        market.takeLoan(address(creditLine), terms.durationInPeriods, borrowAmount);
+        market.takeLoan(address(creditLine), borrowAmount, terms.durationInPeriods);
     }
 
     function test_takeLoan_Revert_IfBorrowAmountIsZero() public {
@@ -706,7 +706,7 @@ contract LendingMarketTest is Test {
 
         vm.prank(BORROWER_1);
         vm.expectRevert(Error.InvalidAmount.selector);
-        market.takeLoan(address(creditLine), terms.durationInPeriods, 0);
+        market.takeLoan(address(creditLine), 0, terms.durationInPeriods);
     }
 
     function test_takeLoan_Revert_IfCreditLineIsZeroAddress() public {
@@ -715,7 +715,7 @@ contract LendingMarketTest is Test {
 
         vm.prank(BORROWER_1);
         vm.expectRevert(Error.ZeroAddress.selector);
-        market.takeLoan(address(0), terms.durationInPeriods, borrowAmount);
+        market.takeLoan(address(0), borrowAmount, terms.durationInPeriods);
     }
 
     function test_takeLoan_Revert_IfCreditLineIsNotRegistered() public {
@@ -723,7 +723,7 @@ contract LendingMarketTest is Test {
 
         vm.prank(BORROWER_1);
         vm.expectRevert(LendingMarket.CreditLineNotRegistered.selector);
-        market.takeLoan(address(creditLine), terms.durationInPeriods, borrowAmount);
+        market.takeLoan(address(creditLine), borrowAmount, terms.durationInPeriods);
     }
 
     function test_takeLoan_Revert_IfLiquidityPoolIsNotRegistered() public {
@@ -734,7 +734,7 @@ contract LendingMarketTest is Test {
 
         vm.prank(BORROWER_1);
         vm.expectRevert(LendingMarket.LiquidityPoolNotRegistered.selector);
-        market.takeLoan(address(creditLine), terms.durationInPeriods, borrowAmount);
+        market.takeLoan(address(creditLine), borrowAmount, terms.durationInPeriods);
     }
 
     // -------------------------------------------- //

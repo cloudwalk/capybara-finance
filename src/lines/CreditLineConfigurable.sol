@@ -206,11 +206,11 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     /// @inheritdoc ICreditLine
     function onBeforeLoanTaken(
         address borrower,
-        uint256 durationInPeriods,
         uint256 borrowAmount,
+        uint256 durationInPeriods,
         uint256 loandId
     ) external whenNotPaused onlyMarket returns (Loan.Terms memory terms) {
-        terms = determineLoanTerms(borrower, durationInPeriods, borrowAmount);
+        terms = determineLoanTerms(borrower, borrowAmount, durationInPeriods);
 
         BorrowerConfig storage borrowerConfig = _borrowers[borrower];
 
@@ -231,8 +231,8 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     /// @inheritdoc ICreditLine
     function determineLoanTerms(
         address borrower,
-        uint256 durationInPeriods,
-        uint256 borrowAmount
+        uint256 borrowAmount,
+        uint256 durationInPeriods
     ) public view returns (Loan.Terms memory terms) {
         if (borrower == address(0)) {
             revert Error.ZeroAddress();

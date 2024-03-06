@@ -245,8 +245,8 @@ contract LendingMarket is
     /// @inheritdoc ILendingMarket
     function takeLoan(
         address creditLine,
-        uint256 durationInPeriods,
-        uint256 borrowAmount
+        uint256 borrowAmount,
+        uint256 durationInPeriods
     ) external whenNotPaused returns (uint256) {
         if (creditLine == address(0)) {
             revert Error.ZeroAddress();
@@ -267,7 +267,7 @@ contract LendingMarket is
 
         uint256 id = _safeMint(lender);
         Loan.Terms memory terms =
-            ICreditLine(creditLine).onBeforeLoanTaken(msg.sender, durationInPeriods, borrowAmount, id);
+            ICreditLine(creditLine).onBeforeLoanTaken(msg.sender, borrowAmount, durationInPeriods, id);
         uint256 totalAmount = borrowAmount + terms.addonAmount;
 
         _loans[id] = Loan.State({

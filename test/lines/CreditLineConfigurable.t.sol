@@ -770,7 +770,7 @@ contract CreditLineConfigurableTest is Test {
         assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, config.maxBorrowAmount);
 
         vm.prank(MARKET);
-        creditLine.onBeforeLoanTaken(BORROWER_1, DURATION_IN_PERIODS, config.minBorrowAmount, 1);
+        creditLine.onBeforeLoanTaken(BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS, 1);
 
         assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, config.maxBorrowAmount);
     }
@@ -787,7 +787,7 @@ contract CreditLineConfigurableTest is Test {
         assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, config.maxBorrowAmount);
 
         vm.prank(MARKET);
-        creditLine.onBeforeLoanTaken(BORROWER_1, DURATION_IN_PERIODS, config.minBorrowAmount, 1);
+        creditLine.onBeforeLoanTaken(BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS, 1);
 
         assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, 0);
     }
@@ -804,7 +804,7 @@ contract CreditLineConfigurableTest is Test {
         assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, config.maxBorrowAmount);
 
         vm.prank(MARKET);
-        creditLine.onBeforeLoanTaken(BORROWER_1, DURATION_IN_PERIODS, config.minBorrowAmount, 1);
+        creditLine.onBeforeLoanTaken(BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS, 1);
 
         assertEq(
             creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount,
@@ -825,7 +825,7 @@ contract CreditLineConfigurableTest is Test {
 
         vm.prank(ATTACKER);
         vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
-        creditLine.onBeforeLoanTaken(BORROWER_1, DURATION_IN_PERIODS, config.minBorrowAmount, 1);
+        creditLine.onBeforeLoanTaken(BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS, 1);
     }
 
     function test_onBeforeLoanTaken_Revert_IfCallerIsNotMarket() public {
@@ -838,7 +838,7 @@ contract CreditLineConfigurableTest is Test {
 
         vm.prank(ATTACKER);
         vm.expectRevert(Error.Unauthorized.selector);
-        creditLine.onBeforeLoanTaken(BORROWER_1, DURATION_IN_PERIODS, config.minBorrowAmount, 1);
+        creditLine.onBeforeLoanTaken(BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS, 1);
     }
 
     // -------------------------------------------- //
@@ -854,7 +854,7 @@ contract CreditLineConfigurableTest is Test {
         creditLine.configureBorrower(BORROWER_1, borrowerConfig);
 
         Loan.Terms memory terms =
-            creditLine.determineLoanTerms(BORROWER_1, DURATION_IN_PERIODS, borrowerConfig.minBorrowAmount);
+            creditLine.determineLoanTerms(BORROWER_1, borrowerConfig.minBorrowAmount, DURATION_IN_PERIODS);
 
         assertEq(terms.token, creditLine.token());
 
@@ -896,7 +896,7 @@ contract CreditLineConfigurableTest is Test {
         creditLine.configureBorrower(BORROWER_1, borrowerConfig);
 
         Loan.Terms memory terms =
-            creditLine.determineLoanTerms(BORROWER_1, DURATION_IN_PERIODS, borrowerConfig.minBorrowAmount);
+            creditLine.determineLoanTerms(BORROWER_1, borrowerConfig.minBorrowAmount, DURATION_IN_PERIODS);
         assertEq(terms.addonAmount, 0);
     }
 
@@ -913,7 +913,7 @@ contract CreditLineConfigurableTest is Test {
         creditLine.configureBorrower(BORROWER_1, borrowerConfig);
 
         Loan.Terms memory terms =
-            creditLine.determineLoanTerms(BORROWER_1, DURATION_IN_PERIODS, borrowerConfig.minBorrowAmount);
+            creditLine.determineLoanTerms(BORROWER_1, borrowerConfig.minBorrowAmount, DURATION_IN_PERIODS);
         assertEq(terms.addonAmount, 0);
     }
 
@@ -926,7 +926,7 @@ contract CreditLineConfigurableTest is Test {
         creditLine.configureBorrower(BORROWER_1, config);
 
         vm.expectRevert(Error.ZeroAddress.selector);
-        creditLine.determineLoanTerms(address(0), DURATION_IN_PERIODS, config.minBorrowAmount);
+        creditLine.determineLoanTerms(address(0), config.minBorrowAmount, DURATION_IN_PERIODS);
     }
 
     function test_determineLoanTerms_Revert_IfBorrowAmountIsZero() public {
@@ -938,7 +938,7 @@ contract CreditLineConfigurableTest is Test {
         creditLine.configureBorrower(BORROWER_1, config);
 
         vm.expectRevert(Error.InvalidAmount.selector);
-        creditLine.determineLoanTerms(BORROWER_1, DURATION_IN_PERIODS, 0);
+        creditLine.determineLoanTerms(BORROWER_1, 0, DURATION_IN_PERIODS);
     }
 
     function test_determineLoanTerms_Revert_IfConfigurationExpired() public {
@@ -951,7 +951,7 @@ contract CreditLineConfigurableTest is Test {
         creditLine.configureBorrower(BORROWER_1, config);
 
         vm.expectRevert(CreditLineConfigurable.BorrowerConfigurationExpired.selector);
-        creditLine.determineLoanTerms(BORROWER_1, DURATION_IN_PERIODS, config.minBorrowAmount);
+        creditLine.determineLoanTerms(BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS);
     }
 
     function test_determineLoanTerms_Revert_IfBorrowAmountIsIsGreaterThanMaxBorrowAmount() public {
@@ -963,7 +963,7 @@ contract CreditLineConfigurableTest is Test {
         creditLine.configureBorrower(BORROWER_1, config);
 
         vm.expectRevert(Error.InvalidAmount.selector);
-        creditLine.determineLoanTerms(BORROWER_1, DURATION_IN_PERIODS, config.maxBorrowAmount + 1);
+        creditLine.determineLoanTerms(BORROWER_1, config.maxBorrowAmount + 1, DURATION_IN_PERIODS);
     }
 
     function test_determineLoanTerms_Revert_IfBorrowAmountIsLessThanMinBorrowAmount() public {
@@ -975,7 +975,7 @@ contract CreditLineConfigurableTest is Test {
         creditLine.configureBorrower(BORROWER_1, config);
 
         vm.expectRevert(Error.InvalidAmount.selector);
-        creditLine.determineLoanTerms(BORROWER_1, DURATION_IN_PERIODS, config.minBorrowAmount - 1);
+        creditLine.determineLoanTerms(BORROWER_1, config.minBorrowAmount - 1, DURATION_IN_PERIODS);
     }
 
     function test_determineLoanTerms_Revert_IfDurationInPeriodsIsIsGreaterThanMaxDurationInPeriods() public {
@@ -987,7 +987,7 @@ contract CreditLineConfigurableTest is Test {
         creditLine.configureBorrower(BORROWER_1, config);
 
         vm.expectRevert(CreditLineConfigurable.LoanDurationOutOfRange.selector);
-        creditLine.determineLoanTerms(BORROWER_1, config.maxDurationInPeriods + 1, config.minBorrowAmount);
+        creditLine.determineLoanTerms(BORROWER_1, config.minBorrowAmount, config.maxDurationInPeriods + 1);
     }
 
     function test_determineLoanTerms_Revert_IfDurationInPeriodsIsLessThanMinDurationInPeriods() public {
@@ -999,7 +999,7 @@ contract CreditLineConfigurableTest is Test {
         creditLine.configureBorrower(BORROWER_1, config);
 
         vm.expectRevert(CreditLineConfigurable.LoanDurationOutOfRange.selector);
-        creditLine.determineLoanTerms(BORROWER_1, config.minDurationInPeriods - 1, config.minBorrowAmount);
+        creditLine.determineLoanTerms(BORROWER_1, config.minBorrowAmount, config.minDurationInPeriods - 1);
     }
 
     // -------------------------------------------- //
@@ -1025,7 +1025,7 @@ contract CreditLineConfigurableTest is Test {
         assertEq(actualAddonAmount, expectedAddonAmount);
 
         Loan.Terms memory terms =
-            creditLine.determineLoanTerms(BORROWER_1, DURATION_IN_PERIODS, borrowerConfig.minBorrowAmount);
+            creditLine.determineLoanTerms(BORROWER_1, borrowerConfig.minBorrowAmount, DURATION_IN_PERIODS);
         assertEq(terms.addonAmount, expectedAddonAmount);
     }
 

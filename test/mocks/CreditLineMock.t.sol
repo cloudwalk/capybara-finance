@@ -84,7 +84,7 @@ contract CreditLineMockTest is Test {
             })
         );
 
-        terms = mock.onBeforeLoanTaken(BORROWER, DURATION_IN_PERIODS, BORROW_AMOUNT, LOAN_ID);
+        terms = mock.onBeforeLoanTaken(BORROWER, BORROW_AMOUNT, DURATION_IN_PERIODS, LOAN_ID);
 
         assertEq(terms.token, TERMS_TOKEN);
         assertEq(terms.treasury, TERMS_TREASURY);
@@ -100,7 +100,7 @@ contract CreditLineMockTest is Test {
     }
 
     function test_determineLoanTerms() public {
-        Loan.Terms memory terms = mock.determineLoanTerms(BORROWER, DURATION_IN_PERIODS, BORROW_AMOUNT);
+        Loan.Terms memory terms = mock.determineLoanTerms(BORROWER, BORROW_AMOUNT, DURATION_IN_PERIODS);
 
         assertEq(terms.token, address(0));
         assertEq(terms.treasury, address(0));
@@ -132,7 +132,7 @@ contract CreditLineMockTest is Test {
             })
         );
 
-        terms = mock.determineLoanTerms(BORROWER, DURATION_IN_PERIODS, BORROW_AMOUNT);
+        terms = mock.determineLoanTerms(BORROWER, BORROW_AMOUNT, DURATION_IN_PERIODS);
 
         assertEq(terms.token, TERMS_TOKEN);
         assertEq(terms.treasury, TERMS_TREASURY);

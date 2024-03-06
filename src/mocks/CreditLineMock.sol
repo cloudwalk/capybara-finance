@@ -23,8 +23,8 @@ contract CreditLineMock is ICreditLine {
 
     function onBeforeLoanTaken(
         address borrower,
-        uint256 durationInPeriods,
         uint256 borrowAmount,
+        uint256 durationInPeriods,
         uint256 loanId
     ) external returns (Loan.Terms memory terms) {
         return _loanTerms[borrower][borrowAmount];
@@ -32,8 +32,8 @@ contract CreditLineMock is ICreditLine {
 
     function determineLoanTerms(
         address borrower,
-        uint256 durationInPeriods,
-        uint256 borrowAmount
+        uint256 borrowAmount,
+        uint256 durationInPeriods
     ) external view returns (Loan.Terms memory terms) {
         return _loanTerms[borrower][borrowAmount];
     }
