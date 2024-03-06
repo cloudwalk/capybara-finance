@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.24;
 
-import {Interest} from "./Interest.sol";
+import { Interest } from "./Interest.sol";
 
 /// @title InterestMath library
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
