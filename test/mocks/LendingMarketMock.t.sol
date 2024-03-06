@@ -75,7 +75,7 @@ contract LendingMarketMockTest is Test {
 
     function test_takeLoan() public {
         vm.expectRevert(Error.NotImplemented.selector);
-        mock.takeLoan(CREDIT_LINE, DURATION_IN_PERIODS, BORROW_AMOUNT);
+        mock.takeLoan(CREDIT_LINE, BORROW_AMOUNT, DURATION_IN_PERIODS);
     }
 
     function test_repayLoan() public {

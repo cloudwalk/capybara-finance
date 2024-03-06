@@ -52,7 +52,7 @@ contract CreditLineMockTest is Test {
     // -------------------------------------------- //
 
     function test_onBeforeLoanTaken() public {
-        Loan.Terms memory terms = mock.onBeforeLoanTaken(BORROWER, DURATION_IN_PERIODS, BORROW_AMOUNT, LOAN_ID);
+        Loan.Terms memory terms = mock.onBeforeLoanTaken(BORROWER, BORROW_AMOUNT, DURATION_IN_PERIODS, LOAN_ID);
 
         assertEq(terms.token, address(0));
         assertEq(terms.treasury, address(0));
