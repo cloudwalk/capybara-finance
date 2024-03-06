@@ -268,7 +268,7 @@ contract LendingMarket is
         uint256 id = _safeMint(lender);
         Loan.Terms memory terms =
             ICreditLine(creditLine).onBeforeLoanTaken(msg.sender, borrowAmount, durationInPeriods, id);
-        uint256 totalAmount = borrowAmount + terms.addonAmount;
+        uint256 totalBorrowAmount = borrowAmount + terms.addonAmount;
 
         _loans[id] = Loan.State({
             token: terms.token,
@@ -281,8 +281,8 @@ contract LendingMarket is
             interestRatePrimary: terms.interestRatePrimary,
             interestRateSecondary: terms.interestRateSecondary,
             interestFormula: terms.interestFormula,
-            initialBorrowAmount: totalAmount.toUint64(),
-            trackedBorrowBalance: totalAmount.toUint64(),
+            initialBorrowAmount: totalBorrowAmount.toUint64(),
+            trackedBorrowBalance: totalBorrowAmount.toUint64(),
             trackedTimestamp: _blockTimestamp().toUint32(),
             freezeTimestamp: 0,
             autoRepayment: terms.autoRepayment
@@ -297,7 +297,7 @@ contract LendingMarket is
 
         ILiquidityPool(liquidityPool).onAfterLoanTaken(id, creditLine);
 
-        emit LoanTaken(id, msg.sender, totalAmount);
+        emit LoanTaken(id, msg.sender, totalBorrowAmount, terms.durationInPeriods);
 
         return id;
     }
@@ -339,7 +339,7 @@ contract LendingMarket is
         IERC20(loan.token).transferFrom(payer, loan.treasury, repayAmount);
         ILiquidityPool(loan.treasury).onAfterLoanPayment(loanId, repayAmount);
 
-        emit LoanPaid(loanId, payer, loan.borrower, repayAmount, outstandingBalance);
+        emit LoanRepaid(loanId, payer, loan.borrower, repayAmount, outstandingBalance);
 
         if (outstandingBalance == 0) {
             _safeTransfer(ownerOf(loanId), loan.borrower, loanId, "");

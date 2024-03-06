@@ -40,8 +40,8 @@ contract LendingMarketTest is Test {
     event LiquidityPoolRegistered(address indexed lender, address indexed liquidityPool);
     event CreditLineRegistered(address indexed lender, address indexed creditLine);
 
-    event LoanTaken(uint256 indexed loanId, address indexed borrower, uint256 borrowAmount);
-    event LoanPaid(
+    event LoanTaken(uint256 indexed loanId, address indexed borrower, uint256 borrowAmount, uint256 durationInPeriods);
+    event LoanRepaid(
         uint256 indexed loanId,
         address indexed repayer,
         address indexed borrower,
@@ -657,7 +657,7 @@ contract LendingMarketTest is Test {
         vm.expectEmit(true, true, true, true, address(liquidityPool));
         emit OnAfterLoanTakenCalled(loanId, address(creditLine));
         vm.expectEmit(true, true, true, true, address(market));
-        emit LoanTaken(loanId, BORROWER_1, borrowAmount + terms.addonAmount);
+        emit LoanTaken(loanId, BORROWER_1, borrowAmount + terms.addonAmount, terms.durationInPeriods);
 
         vm.prank(BORROWER_1);
         assertEq(market.takeLoan(address(creditLine), borrowAmount, terms.durationInPeriods), loanId);
@@ -767,7 +767,7 @@ contract LendingMarketTest is Test {
         token.mint(BORROWER_1, outstandingBalance - token.balanceOf(BORROWER_1));
 
         vm.expectEmit(true, true, true, true, address(market));
-        emit LoanPaid(loanId, BORROWER_1, BORROWER_1, repayAmount, outstandingBalance);
+        emit LoanRepaid(loanId, BORROWER_1, BORROWER_1, repayAmount, outstandingBalance);
         market.repayLoan(loanId, repayAmount);
 
         uint256 newOutstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
@@ -782,7 +782,7 @@ contract LendingMarketTest is Test {
         token.mint(BORROWER_1, outstandingBalance - token.balanceOf(BORROWER_1));
 
         vm.expectEmit(true, true, true, true, address(market));
-        emit LoanPaid(loanId, BORROWER_1, BORROWER_1, outstandingBalance, 0);
+        emit LoanRepaid(loanId, BORROWER_1, BORROWER_1, outstandingBalance, 0);
         market.repayLoan(loanId, outstandingBalance);
 
         newOutstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
@@ -841,7 +841,7 @@ contract LendingMarketTest is Test {
         token.mint(BORROWER_1, outstandingBalance - token.balanceOf(BORROWER_1));
 
         vm.expectEmit(true, true, true, true, address(market));
-        emit LoanPaid(loanId, BORROWER_1, BORROWER_1, outstandingBalance, 0);
+        emit LoanRepaid(loanId, BORROWER_1, BORROWER_1, outstandingBalance, 0);
         market.repayLoan(loanId, type(uint256).max);
 
         outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;

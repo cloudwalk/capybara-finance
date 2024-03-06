@@ -27,12 +27,12 @@ interface ILendingMarket {
     /// @param creditLine The address of the credit line contract.
     event CreditLineRegistered(address indexed lender, address indexed creditLine);
 
-    // DEV Add more fields to the events
     /// @notice Emitted when a loan is taken.
     /// @param loanId The unique identifier of the loan.
     /// @param borrower The address of the borrower of the loan.
     /// @param borrowAmount The initial principal amount of the loan.
-    event LoanTaken(uint256 indexed loanId, address indexed borrower, uint256 borrowAmount);
+    /// @param durationInPeriods The duration of the loan in periods.
+    event LoanTaken(uint256 indexed loanId, address indexed borrower, uint256 borrowAmount, uint256 durationInPeriods);
 
     /// @notice Emitted when a loan is repaid (fully or partially).
     /// @param loanId The unique identifier of the loan.
@@ -40,7 +40,7 @@ interface ILendingMarket {
     /// @param borrower The address of the borrower of the loan.
     /// @param repayAmount The amount of the repayment.
     /// @param outstandingBalance The outstanding balance of the loan after the repayment.
-    event LoanPaid(
+    event LoanRepaid(
         uint256 indexed loanId,
         address indexed repayer,
         address indexed borrower,
