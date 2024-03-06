@@ -267,8 +267,8 @@ contract LendingMarket is
 
         _loans[id] = Loan.State({
             token: terms.token,
-            treasury: terms.treasury,
             borrower: msg.sender,
+            treasury: terms.treasury,
             startDate: blockTimestamp().toUint32(),
             periodInSeconds: terms.periodInSeconds,
             durationInPeriods: terms.durationInPeriods,
@@ -366,10 +366,9 @@ contract LendingMarket is
             revert LoanNotFrozen();
         }
 
-        uint256 currentDate = calculatePeriodDate(blockTimestamp(), loan.periodInSeconds);
-        uint256 frozenDate = calculatePeriodDate(loan.freezeDate, loan.periodInSeconds);
-
-        uint256 frozenPeriods = (currentDate - frozenDate) / loan.periodInSeconds;
+        uint256 currentPeriodIndex = calculatePeriodIndex(blockTimestamp(), loan.periodInSeconds);
+        uint256 frozenPeriodIndex = calculatePeriodIndex(loan.freezeDate, loan.periodInSeconds);
+        uint256 frozenPeriods = (currentPeriodIndex - frozenPeriodIndex) / loan.periodInSeconds;
 
         if (frozenPeriods > 0) {
             loan.trackedDate += (frozenPeriods * loan.periodInSeconds).toUint32();
@@ -496,7 +495,7 @@ contract LendingMarket is
         Loan.State storage loan = _loans[loanId];
 
         preview.outstandingBalance = _outstandingBalance(loan, timestamp);
-        preview.periodDate = calculatePeriodDate(timestamp, loan.periodInSeconds);
+        preview.periodDate = calculatePeriodIndex(timestamp, loan.periodInSeconds);
 
         return preview;
     }
@@ -511,10 +510,10 @@ contract LendingMarket is
         return _registry;
     }
 
-    /// @notice Calculates the period date based on the current timestamp.
-    /// @param timestamp The timestamp to calculate the period date for.
-    /// @param periodInSeconds The duration of the period in seconds.
-    function calculatePeriodDate(
+    /// @notice Calculates the period index based on the provided timestamp.
+    /// @param timestamp The timestamp to calculate the period index for.
+    /// @param periodInSeconds The period duration in seconds.
+    function calculatePeriodIndex(
         uint256 timestamp,
         uint256 periodInSeconds
     ) public pure returns (uint256) {
@@ -554,25 +553,25 @@ contract LendingMarket is
             timestamp = loan.freezeDate;
         }
 
-        uint256 periodDate = calculatePeriodDate(timestamp, loan.periodInSeconds);
-        uint256 startDate = calculatePeriodDate(loan.startDate, loan.periodInSeconds);
-        uint256 trackedDate = calculatePeriodDate(loan.trackedDate, loan.periodInSeconds);
+        uint256 startPeriodIndex = calculatePeriodIndex(loan.startDate, loan.periodInSeconds);
+        uint256 trackedPeriodIndex = calculatePeriodIndex(loan.trackedDate, loan.periodInSeconds);
+        uint256 currentPeriodIndex = calculatePeriodIndex(timestamp, loan.periodInSeconds);
 
-        if (periodDate > trackedDate) {
-            uint256 dueDate = startDate + loan.durationInPeriods * loan.periodInSeconds;
+        if (currentPeriodIndex > trackedPeriodIndex) {
+            uint256 duePeriodIndex = startPeriodIndex + loan.durationInPeriods * loan.periodInSeconds;
 
-            if (periodDate < dueDate) {
+            if (currentPeriodIndex < duePeriodIndex) {
                 outstandingBalance = calculateOutstandingBalance(
                     outstandingBalance,
-                    (periodDate - trackedDate) / loan.periodInSeconds,
+                    (currentPeriodIndex - trackedPeriodIndex) / loan.periodInSeconds,
                     loan.interestRatePrimary,
                     loan.interestRateFactor,
                     loan.interestFormula
                 );
-            } else if (trackedDate >= dueDate) {
+            } else if (trackedPeriodIndex >= duePeriodIndex) {
                 outstandingBalance = calculateOutstandingBalance(
                     outstandingBalance,
-                    (periodDate - trackedDate) / loan.periodInSeconds,
+                    (currentPeriodIndex - trackedPeriodIndex) / loan.periodInSeconds,
                     loan.interestRateSecondary,
                     loan.interestRateFactor,
                     loan.interestFormula
@@ -580,15 +579,15 @@ contract LendingMarket is
             } else {
                 outstandingBalance = calculateOutstandingBalance(
                     outstandingBalance,
-                    (dueDate - trackedDate) / loan.periodInSeconds,
+                    (duePeriodIndex - trackedPeriodIndex) / loan.periodInSeconds,
                     loan.interestRatePrimary,
                     loan.interestRateFactor,
                     loan.interestFormula
                 );
-                if (periodDate > dueDate) {
+                if (currentPeriodIndex > duePeriodIndex) {
                     outstandingBalance = calculateOutstandingBalance(
                         outstandingBalance,
-                        (periodDate - dueDate) / loan.periodInSeconds,
+                        (currentPeriodIndex - duePeriodIndex) / loan.periodInSeconds,
                         loan.interestRateSecondary,
                         loan.interestRateFactor,
                         loan.interestFormula
@@ -605,9 +604,9 @@ contract LendingMarket is
     /// @param timestamp The timestamp to calculate the moratorium periods at.
     /// @return The number of moratorium periods of the loan at the specified timestamp.
     function _moratoriumInPeriods(Loan.State storage loan, uint256 timestamp) internal view returns (uint256) {
-        uint256 currentDate = calculatePeriodDate(timestamp, loan.periodInSeconds);
-        uint256 trackedDate = calculatePeriodDate(loan.trackedDate, loan.periodInSeconds);
-        return trackedDate > currentDate ? (trackedDate - currentDate) / loan.periodInSeconds : 0;
+        uint256 currentPeriodIndex = calculatePeriodIndex(timestamp, loan.periodInSeconds);
+        uint256 trackedPeriodIndex = calculatePeriodIndex(loan.trackedDate, loan.periodInSeconds);
+        return trackedPeriodIndex > currentPeriodIndex ? (trackedPeriodIndex - currentPeriodIndex) / loan.periodInSeconds : 0;
     }
 
     /// @dev Mints a new NFT token.
