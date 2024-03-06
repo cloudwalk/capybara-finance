@@ -26,7 +26,7 @@ contract LiquidityPoolAccountableTest is Test {
     //  Events                                      //
     // -------------------------------------------- //
 
-    event AdminConfigured(address indexed admin, bool adminStatus);
+    event AdminConfigured(address indexed admin, bool isAdmin);
     event DepositMade(address indexed creditLine, uint256 amount);
     event WithdrawalMade(address indexed tokenSource, uint256 amount);
     event AutoRepaymentInitiated(uint256 numberOfLoans);

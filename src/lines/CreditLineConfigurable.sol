@@ -131,17 +131,17 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     }
 
     /// @inheritdoc ICreditLineConfigurable
-    function configureAdmin(address admin, bool adminStatus) external onlyOwner {
+    function configureAdmin(address admin, bool isAdmin) external onlyOwner {
         if (admin == address(0)) {
             revert Error.ZeroAddress();
         }
-        if (_admins[admin] == adminStatus) {
+        if (_admins[admin] == isAdmin) {
             revert Error.AlreadyConfigured();
         }
 
-        _admins[admin] = adminStatus;
+        _admins[admin] = isAdmin;
 
-        emit AdminConfigured(admin, adminStatus);
+        emit AdminConfigured(admin, isAdmin);
     }
 
     /// @inheritdoc ICreditLineConfigurable

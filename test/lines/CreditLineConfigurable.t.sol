@@ -26,7 +26,7 @@ contract CreditLineConfigurableTest is Test {
     //  Events                                      //
     // -------------------------------------------- //
 
-    event AdminConfigured(address indexed admin, bool adminStatus);
+    event AdminConfigured(address indexed admin, bool isAdmin);
     event TokenConfigured(address creditLine, address indexed token);
     event CreditLineConfigured(address indexed creditLine, ICreditLineConfigurable.CreditLineConfig config);
     event BorrowerConfigured(
