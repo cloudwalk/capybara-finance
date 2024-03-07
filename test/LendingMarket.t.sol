@@ -663,6 +663,7 @@ contract LendingMarketTest is Test {
         assertEq(market.takeLoan(address(creditLine), borrowAmount, terms.durationInPeriods), loanId);
 
         Loan.State memory loan = market.getLoanState(loanId);
+        Loan.Preview memory preview = market.getLoanPreview(loanId, 0);
 
         assertEq(market.ownerOf(loanId), LENDER_1);
         assertEq(token.balanceOf(address(liquidityPool)), 0);
@@ -672,8 +673,8 @@ contract LendingMarketTest is Test {
         assertEq(market.totalSupply(), 1);
 
         assertEq(loan.borrower, BORROWER_1);
-        assertEq(loan.startTimestamp, block.timestamp);
-        assertEq(loan.trackedTimestamp, block.timestamp);
+        assertEq(loan.startTimestamp, preview.periodTimestamp);
+        assertEq(loan.trackedTimestamp, preview.periodTimestamp);
         assertEq(loan.freezeTimestamp, 0);
         assertEq(loan.initialBorrowAmount, borrowAmount + terms.addonAmount);
         assertEq(loan.trackedBorrowBalance, borrowAmount + terms.addonAmount);
@@ -927,13 +928,15 @@ contract LendingMarketTest is Test {
         Loan.State memory loan = market.getLoanState(loanId);
         assertEq(loan.freezeTimestamp, 0);
 
+        uint256 currentTimestamp = market.getLoanPreview(loanId, 0).periodTimestamp;
+
         vm.prank(caller);
         vm.expectEmit(true, true, true, true, address(market));
-        emit LoanFrozen(loanId, block.timestamp);
+        emit LoanFrozen(loanId, currentTimestamp);
         market.freeze(loanId);
 
         loan = market.getLoanState(loanId);
-        assertEq(loan.freezeTimestamp, block.timestamp);
+        assertEq(loan.freezeTimestamp, currentTimestamp);
     }
 
     function test_freeze_IfLender() public {
@@ -1026,20 +1029,21 @@ contract LendingMarketTest is Test {
 
         uint256 oldDurationInPeriods = loan.durationInPeriods;
         uint256 oldOutstandingBalance = preview.outstandingBalance;
+        uint256 currentTimestamp = preview.periodTimestamp;
 
-        assertEq(loan.freezeTimestamp, block.timestamp);
-        assertEq(loan.trackedTimestamp, block.timestamp);
+        assertEq(loan.freezeTimestamp, currentTimestamp);
+        assertEq(loan.trackedTimestamp, currentTimestamp);
 
         vm.prank(LENDER_1);
         vm.expectEmit(true, true, true, true, address(market));
-        emit LoanUnfrozen(loanId, block.timestamp);
+        emit LoanUnfrozen(loanId, currentTimestamp);
         market.unfreeze(loanId);
 
         loan = market.getLoanState(loanId);
         preview = market.getLoanPreview(loanId, 0);
 
         assertEq(loan.freezeTimestamp, 0);
-        assertEq(loan.trackedTimestamp, block.timestamp);
+        assertEq(loan.trackedTimestamp, currentTimestamp);
         assertEq(loan.durationInPeriods, oldDurationInPeriods);
         assertEq(preview.outstandingBalance, oldOutstandingBalance);
     }
@@ -1053,23 +1057,24 @@ contract LendingMarketTest is Test {
 
         uint256 oldDurationInPeriods = loan.durationInPeriods;
         uint256 oldOutstandingBalance = preview.outstandingBalance;
+        uint256 currentTimestamp = preview.periodTimestamp;
 
-        assertEq(loan.freezeTimestamp, block.timestamp);
-        assertEq(loan.trackedTimestamp, block.timestamp);
+        assertEq(loan.freezeTimestamp, currentTimestamp);
+        assertEq(loan.trackedTimestamp, currentTimestamp);
 
         uint256 skipPeriods = 2;
         skip(loan.periodInSeconds * skipPeriods);
 
         vm.prank(LENDER_1);
         vm.expectEmit(true, true, true, true, address(market));
-        emit LoanUnfrozen(loanId, block.timestamp);
+        emit LoanUnfrozen(loanId, currentTimestamp + loan.periodInSeconds * skipPeriods);
         market.unfreeze(loanId);
 
         loan = market.getLoanState(loanId);
         preview = market.getLoanPreview(loanId, 0);
 
         assertEq(loan.freezeTimestamp, 0);
-        assertEq(loan.trackedTimestamp, block.timestamp);
+        assertEq(loan.trackedTimestamp, currentTimestamp + loan.periodInSeconds * skipPeriods);
         assertEq(loan.durationInPeriods, oldDurationInPeriods + skipPeriods);
         assertEq(preview.outstandingBalance, oldOutstandingBalance);
     }
