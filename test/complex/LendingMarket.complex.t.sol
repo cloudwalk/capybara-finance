@@ -156,7 +156,7 @@
 
 //     function takeLoan(address borrower, uint256 amount) public returns(uint256) {
 //         vm.prank(borrower);
-//         return lendingMarket.takeLoan(address(creditLine), 250, amount);
+//         return lendingMarket.takeLoan(address(creditLine), amount, 250);
 //     }
 
 //     function createBorrowerConfig(ComplexScenarios.LoanParameters memory loan) public view returns (ICreditLineConfigurable.BorrowerConfig memory) {
@@ -164,8 +164,8 @@
 //             expiration: BASE_BLOCKTIMESTAMP + INIT_BORROWER_DURATION,
 //             minBorrowAmount: INIT_BORROWER_MIN_BORROW_AMOUNT,
 //             maxBorrowAmount: INIT_BORROWER_MAX_BORROW_AMOUNT,
-//             minDurationInPeriods: loan.durationInPeriods,
-//             maxDurationInPeriods: loan.durationInPeriods,
+//             minDurationInPeriods: 0,
+//             maxDurationInPeriods: type(uint32).max,
 //             interestRatePrimary: loan.interestRatePrimary,
 //             interestRateSecondary: loan.interestRateSecondary,
 //             addonFixedCostRate: loan.addonFixedCostRate,
