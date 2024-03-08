@@ -268,14 +268,14 @@ contract LendingMarket is
         uint256 id = _safeMint(lender);
         Loan.Terms memory terms =
             ICreditLine(creditLine).onBeforeLoanTaken(msg.sender, borrowAmount, durationInPeriods, id);
-        uint32 startTimestamp = _periodTimestamp(block.timestamp, terms.periodInSeconds).toUint32();
         uint64 totalBorrowAmount = (borrowAmount + terms.addonAmount).toUint64();
+        uint32 blockTimestamp = block.timestamp.toUint32();
 
         _loans[id] = Loan.State({
             token: terms.token,
             borrower: msg.sender,
             treasury: terms.treasury,
-            startTimestamp: startTimestamp,
+            startTimestamp: blockTimestamp,
             periodInSeconds: terms.periodInSeconds,
             durationInPeriods: terms.durationInPeriods,
             interestRateFactor: terms.interestRateFactor,
@@ -284,7 +284,7 @@ contract LendingMarket is
             interestFormula: terms.interestFormula,
             initialBorrowAmount: totalBorrowAmount,
             trackedBorrowBalance: totalBorrowAmount,
-            trackedTimestamp: startTimestamp,
+            trackedTimestamp: blockTimestamp,
             freezeTimestamp: 0,
             autoRepayment: terms.autoRepayment
         });
@@ -316,8 +316,7 @@ contract LendingMarket is
             revert Error.NotImplemented();
         }
 
-        uint256 currentTimestamp = _periodTimestamp(block.timestamp, loan.periodInSeconds);
-        uint256 outstandingBalance = _outstandingBalance(loan, currentTimestamp);
+        (uint256 outstandingBalance, ) = _outstandingBalance(loan, block.timestamp);
 
         if (repayAmount == type(uint256).max) {
             repayAmount = outstandingBalance;
@@ -334,7 +333,7 @@ contract LendingMarket is
         address payer = autoRepayment ? loan.borrower : msg.sender;
 
         outstandingBalance -= repayAmount;
-        loan.trackedTimestamp = currentTimestamp.toUint32();
+        loan.trackedTimestamp = block.timestamp.toUint32();
         loan.trackedBorrowBalance = outstandingBalance.toUint64();
 
         ILiquidityPool(loan.treasury).onBeforeLoanPayment(loanId, repayAmount);
@@ -360,9 +359,9 @@ contract LendingMarket is
             revert LoanAlreadyFrozen();
         }
 
-        loan.freezeTimestamp = _periodTimestamp(block.timestamp, loan.periodInSeconds).toUint32();
+        loan.freezeTimestamp = block.timestamp.toUint32();
 
-        emit LoanFrozen(loanId, loan.freezeTimestamp);
+        emit LoanFrozen(loanId, block.timestamp);
     }
 
     /// @inheritdoc ILendingMarket
@@ -373,8 +372,10 @@ contract LendingMarket is
             revert LoanNotFrozen();
         }
 
-        uint256 currentTimestamp = _periodTimestamp(block.timestamp, loan.periodInSeconds);
-        uint256 frozenPeriods = (currentTimestamp - loan.freezeTimestamp) / loan.periodInSeconds;
+        uint256 periodTimestamp = _periodTimestamp(block.timestamp, loan.periodInSeconds);
+        uint256 freezeTimestamp = _periodTimestamp(loan.freezeTimestamp, loan.periodInSeconds);
+
+        uint256 frozenPeriods = (periodTimestamp - freezeTimestamp) / loan.periodInSeconds;
 
         if (frozenPeriods > 0) {
             loan.trackedTimestamp += (frozenPeriods * loan.periodInSeconds).toUint32();
@@ -383,7 +384,7 @@ contract LendingMarket is
 
         loan.freezeTimestamp = 0;
 
-        emit LoanUnfrozen(loanId, currentTimestamp);
+        emit LoanUnfrozen(loanId, block.timestamp);
     }
 
     /// @inheritdoc ILendingMarket
@@ -500,8 +501,7 @@ contract LendingMarket is
         Loan.Preview memory preview;
         Loan.State storage loan = _loans[loanId];
 
-        preview.outstandingBalance = _outstandingBalance(loan, timestamp);
-        preview.periodTimestamp = _periodTimestamp(timestamp, loan.periodInSeconds);
+        (preview.outstandingBalance, preview.periodTimestamp) = _outstandingBalance(loan, timestamp);
 
         return preview;
     }
@@ -547,29 +547,33 @@ contract LendingMarket is
 
     /// @dev Calculates the outstanding balance of a loan.
     /// @param loan The loan to calculate the outstanding balance for.
-    /// @param periodTimestamp The period to calculate the outstanding balance at.
+    /// @param timestamp The period to calculate the outstanding balance at.
     /// @return The outstanding balance of the loan at the specified period date.
-    function _outstandingBalance(Loan.State storage loan, uint256 periodTimestamp) internal view returns (uint256) {
+    function _outstandingBalance(Loan.State storage loan, uint256 timestamp) internal view returns (uint256, uint256) {
         uint256 outstandingBalance = loan.trackedBorrowBalance;
 
         if (loan.freezeTimestamp != 0) {
-            periodTimestamp = loan.freezeTimestamp;
+            timestamp = loan.freezeTimestamp;
         }
 
-        if (periodTimestamp > loan.trackedTimestamp) {
-            uint256 dueTimestamp = loan.startTimestamp + loan.durationInPeriods * loan.periodInSeconds;
+        uint256 periodTimestamp = _periodTimestamp(timestamp, loan.periodInSeconds);
+        uint256 trackedTimestamp = _periodTimestamp(loan.trackedTimestamp, loan.periodInSeconds);
+
+        if (periodTimestamp > trackedTimestamp) {
+            uint256 startTimestamp = _periodTimestamp(loan.startTimestamp, loan.periodInSeconds);
+            uint256 dueTimestamp = startTimestamp + loan.durationInPeriods * loan.periodInSeconds;
             if (periodTimestamp < dueTimestamp) {
                 outstandingBalance = InterestMath.calculateOutstandingBalance(
                     outstandingBalance,
-                    (periodTimestamp - loan.trackedTimestamp) / loan.periodInSeconds,
+                    (periodTimestamp - trackedTimestamp) / loan.periodInSeconds,
                     loan.interestRatePrimary,
                     loan.interestRateFactor,
                     loan.interestFormula
                 );
-            } else if (loan.trackedTimestamp >= dueTimestamp) {
+            } else if (trackedTimestamp >= dueTimestamp) {
                 outstandingBalance = InterestMath.calculateOutstandingBalance(
                     outstandingBalance,
-                    (periodTimestamp - loan.trackedTimestamp) / loan.periodInSeconds,
+                    (periodTimestamp - trackedTimestamp) / loan.periodInSeconds,
                     loan.interestRateSecondary,
                     loan.interestRateFactor,
                     loan.interestFormula
@@ -577,7 +581,7 @@ contract LendingMarket is
             } else {
                 outstandingBalance = InterestMath.calculateOutstandingBalance(
                     outstandingBalance,
-                    (dueTimestamp - loan.trackedTimestamp) / loan.periodInSeconds,
+                    (dueTimestamp - trackedTimestamp) / loan.periodInSeconds,
                     loan.interestRatePrimary,
                     loan.interestRateFactor,
                     loan.interestFormula
@@ -594,7 +598,7 @@ contract LendingMarket is
             }
         }
 
-        return outstandingBalance;
+        return (outstandingBalance, periodTimestamp);
     }
 
     /// @dev Calculates the moratorium periods of a loan.
@@ -603,7 +607,9 @@ contract LendingMarket is
     /// @return The number of moratorium periods of the loan at the specified timestamp.
     function _moratoriumInPeriods(Loan.State storage loan, uint256 timestamp) internal view returns (uint256) {
         uint256 periodTimestamp = _periodTimestamp(timestamp, loan.periodInSeconds);
-        return loan.trackedTimestamp > periodTimestamp ? (loan.trackedTimestamp - periodTimestamp) / loan.periodInSeconds : 0;
+        uint256 trackedTimestamp = _periodTimestamp(loan.trackedTimestamp, loan.periodInSeconds);
+
+        return trackedTimestamp > periodTimestamp ? (trackedTimestamp - periodTimestamp) / loan.periodInSeconds : 0;
     }
 
     /// @dev Mints a new NFT token.
