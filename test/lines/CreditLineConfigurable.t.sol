@@ -1014,6 +1014,7 @@ contract CreditLineConfigurableTest is Test {
         creditLine.configureBorrower(BORROWER_1, borrowerConfig);
 
         uint256 addonRate = borrowerConfig.addonFixedCostRate + borrowerConfig.addonPeriodCostRate * DURATION_IN_PERIODS;
+        addonRate = addonRate * creditLineConfig.interestRateFactor / (creditLineConfig.interestRateFactor - addonRate);
         uint256 expectedAddonAmount = (borrowerConfig.minBorrowAmount * addonRate) / creditLineConfig.interestRateFactor;
 
         uint256 actualAddonAmount = creditLine.calculateAddonAmount(

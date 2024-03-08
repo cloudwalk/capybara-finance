@@ -323,7 +323,8 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         uint256 addonFixedCostRate,
         uint256 addonPeriodCostRate
     ) public view returns (uint256) {
-        uint256 addonRate = uint256(addonPeriodCostRate) * durationInPeriods + addonFixedCostRate;
+        uint256 addonRate = addonPeriodCostRate * durationInPeriods + addonFixedCostRate;
+        addonRate = addonRate * _config.interestRateFactor / (_config.interestRateFactor - addonRate);
         return (amount * addonRate) / _config.interestRateFactor;
     }
 
