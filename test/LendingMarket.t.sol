@@ -1368,9 +1368,8 @@ contract LendingMarketTest is Test {
 
     function getMoratoriumInPeriods(uint256 loanId) private view returns (uint256) {
         Loan.State memory loan = market.getLoanState(loanId);
-        uint256 currentPeriod = market.calculatePeriodIndex(block.timestamp, loan.periodInSeconds);
-        uint256 trackedPeriod = market.calculatePeriodIndex(loan.trackedTimestamp, loan.periodInSeconds);
-        return trackedPeriod > currentPeriod ? (trackedPeriod - currentPeriod) / loan.periodInSeconds : 0;
+        uint256 currentTimestamp = market.calculatePeriodTimestamp(block.timestamp, loan.periodInSeconds);
+        return loan.trackedTimestamp > currentTimestamp ? (loan.trackedTimestamp - currentTimestamp) / loan.periodInSeconds : 0;
     }
 
     // -------------------------------------------- //
@@ -1614,36 +1613,36 @@ contract LendingMarketTest is Test {
         assertEq(market.getLiquidityPoolLender(address(liquidityPool)), LENDER_1);
     }
 
-    function test_calculatePeriodIndex_1_Second_Period() public {
+    function test_calculatePeriodTimestamp_1_Second_Period() public {
         skip(10 ** 6 - 1);
 
         uint256 periodInSeconds = 1 seconds;
         uint256 currentPeriodSeconds = block.timestamp % periodInSeconds;
-        uint256 currentPeriod = market.calculatePeriodIndex(block.timestamp, periodInSeconds);
+        uint256 currentPeriod = market.calculatePeriodTimestamp(block.timestamp, periodInSeconds);
 
         skip(periodInSeconds - currentPeriodSeconds - 1);
 
-        assertEq(market.calculatePeriodIndex(block.timestamp, periodInSeconds), currentPeriod);
+        assertEq(market.calculatePeriodTimestamp(block.timestamp, periodInSeconds), currentPeriod);
 
         skip(1);
 
-        assertEq(market.calculatePeriodIndex(block.timestamp, periodInSeconds), currentPeriod + periodInSeconds);
+        assertEq(market.calculatePeriodTimestamp(block.timestamp, periodInSeconds), currentPeriod + periodInSeconds);
     }
 
-    function test_calculatePeriodIndex_59_Second_Period() public {
+    function test_calculatePeriodTimestamp_59_Second_Period() public {
         skip(10 ** 6 - 1);
 
         uint256 periodInSeconds = 59 seconds;
         uint256 currentPeriodSeconds = block.timestamp % periodInSeconds;
-        uint256 currentPeriod = market.calculatePeriodIndex(block.timestamp, periodInSeconds);
+        uint256 currentPeriod = market.calculatePeriodTimestamp(block.timestamp, periodInSeconds);
 
         skip(periodInSeconds - currentPeriodSeconds - 1);
 
-        assertEq(market.calculatePeriodIndex(block.timestamp, periodInSeconds), currentPeriod);
+        assertEq(market.calculatePeriodTimestamp(block.timestamp, periodInSeconds), currentPeriod);
 
         skip(1);
 
-        assertEq(market.calculatePeriodIndex(block.timestamp, periodInSeconds), currentPeriod + periodInSeconds);
+        assertEq(market.calculatePeriodTimestamp(block.timestamp, periodInSeconds), currentPeriod + periodInSeconds);
     }
 
     // -------------------------------------------- //

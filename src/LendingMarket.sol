@@ -268,7 +268,7 @@ contract LendingMarket is
         uint256 id = _safeMint(lender);
         Loan.Terms memory terms =
             ICreditLine(creditLine).onBeforeLoanTaken(msg.sender, borrowAmount, durationInPeriods, id);
-        uint32 startTimestamp = _periodIndex(block.timestamp, terms.periodInSeconds).toUint32();
+        uint32 startTimestamp = _periodTimestamp(block.timestamp, terms.periodInSeconds).toUint32();
         uint64 totalBorrowAmount = (borrowAmount + terms.addonAmount).toUint64();
 
         _loans[id] = Loan.State({
@@ -316,7 +316,7 @@ contract LendingMarket is
             revert Error.NotImplemented();
         }
 
-        uint256 currentTimestamp = _periodIndex(block.timestamp, loan.periodInSeconds);
+        uint256 currentTimestamp = _periodTimestamp(block.timestamp, loan.periodInSeconds);
         uint256 outstandingBalance = _outstandingBalance(loan, currentTimestamp);
 
         if (repayAmount == type(uint256).max) {
@@ -360,7 +360,7 @@ contract LendingMarket is
             revert LoanAlreadyFrozen();
         }
 
-        loan.freezeTimestamp = _periodIndex(block.timestamp, loan.periodInSeconds).toUint32();
+        loan.freezeTimestamp = _periodTimestamp(block.timestamp, loan.periodInSeconds).toUint32();
 
         emit LoanFrozen(loanId, loan.freezeTimestamp);
     }
@@ -373,7 +373,7 @@ contract LendingMarket is
             revert LoanNotFrozen();
         }
 
-        uint256 currentTimestamp = _periodIndex(block.timestamp, loan.periodInSeconds);
+        uint256 currentTimestamp = _periodTimestamp(block.timestamp, loan.periodInSeconds);
         uint256 frozenPeriods = (currentTimestamp - loan.freezeTimestamp) / loan.periodInSeconds;
 
         if (frozenPeriods > 0) {
@@ -501,7 +501,7 @@ contract LendingMarket is
         Loan.State storage loan = _loans[loanId];
 
         preview.outstandingBalance = _outstandingBalance(loan, timestamp);
-        preview.periodTimestamp = _periodIndex(timestamp, loan.periodInSeconds);
+        preview.periodTimestamp = _periodTimestamp(timestamp, loan.periodInSeconds);
 
         return preview;
     }
@@ -519,8 +519,8 @@ contract LendingMarket is
     /// @notice Calculates the period index based on the provided timestamp.
     /// @param timestamp The timestamp to calculate the period index for.
     /// @param periodInSeconds The period duration in seconds.
-    function calculatePeriodIndex(uint256 timestamp, uint256 periodInSeconds) external pure returns (uint256) {
-        return _periodIndex(timestamp, periodInSeconds);
+    function calculatePeriodTimestamp(uint256 timestamp, uint256 periodInSeconds) external pure returns (uint256) {
+        return _periodTimestamp(timestamp, periodInSeconds);
     }
 
     /// @notice Calculates the outstanding balance of a loan.
@@ -602,7 +602,7 @@ contract LendingMarket is
     /// @param timestamp The timestamp to calculate the moratorium periods at.
     /// @return The number of moratorium periods of the loan at the specified timestamp.
     function _moratoriumInPeriods(Loan.State storage loan, uint256 timestamp) internal view returns (uint256) {
-        uint256 periodTimestamp = _periodIndex(timestamp, loan.periodInSeconds);
+        uint256 periodTimestamp = _periodTimestamp(timestamp, loan.periodInSeconds);
         return loan.trackedTimestamp > periodTimestamp ? (loan.trackedTimestamp - periodTimestamp) / loan.periodInSeconds : 0;
     }
 
@@ -616,7 +616,7 @@ contract LendingMarket is
     }
 
     /// @dev Calculates the index of the period for the specified timestamp.
-    function _periodIndex(uint256 timestamp, uint256 periodInSeconds) internal pure returns (uint256) {
+    function _periodTimestamp(uint256 timestamp, uint256 periodInSeconds) internal pure returns (uint256) {
         return (timestamp / periodInSeconds) * periodInSeconds;
     }
 
