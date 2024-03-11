@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.24;
 
-import { Error } from "../libraries/Error.sol";
-import { ILiquidityPoolFactory } from "../interfaces/ILiquidityPoolFactory.sol";
+import { Error } from "../common/libraries/Error.sol";
+import { ILiquidityPoolFactory } from "../common/interfaces/ILiquidityPoolFactory.sol";
 
 /// @title LiquidityPoolFactoryMock contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)

@@ -5,12 +5,12 @@ pragma solidity 0.8.24;
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
-import { Loan } from "../libraries/Loan.sol";
-import { Error } from "../libraries/Error.sol";
-import { SafeCast } from "../libraries/SafeCast.sol";
+import { Loan } from "../common/libraries/Loan.sol";
+import { Error } from "../common/libraries/Error.sol";
+import { SafeCast } from "../common/libraries/SafeCast.sol";
 
-import { ICreditLine } from "../interfaces/core/ICreditLine.sol";
-import { ICreditLineConfigurable } from "../interfaces/ICreditLineConfigurable.sol";
+import { ICreditLine } from "../common/interfaces/core/ICreditLine.sol";
+import { ICreditLineConfigurable } from "../common/interfaces/ICreditLineConfigurable.sol";
 
 /// @title CreditLineConfigurable contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)

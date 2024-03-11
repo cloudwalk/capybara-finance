@@ -9,10 +9,10 @@
 // import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 // import { IERC721Receiver } from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
-// import { Loan } from "src/libraries/Loan.sol";
-// import { Interest } from "src/libraries/Interest.sol";
+// import { Loan } from "src/common/libraries/Loan.sol";
+// import { Interest } from "src/common/libraries/Interest.sol";
 
-// import { ICreditLineConfigurable } from "src/interfaces/ICreditLineConfigurable.sol";
+// import { ICreditLineConfigurable } from "src/common/interfaces/ICreditLineConfigurable.sol";
 // import { ERC20Mock } from "src/mocks/ERC20Mock.sol";
 
 // import { LendingMarket } from "src/LendingMarket.sol";

@@ -4,8 +4,8 @@ pragma solidity 0.8.24;
 
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-import { ICreditLine } from "../interfaces/core/ICreditLine.sol";
-import { ICreditLineFactory } from "../interfaces/ICreditLineFactory.sol";
+import { ICreditLine } from "../common/interfaces/core/ICreditLine.sol";
+import { ICreditLineFactory } from "../common/interfaces/ICreditLineFactory.sol";
 
 import { CreditLineConfigurable } from "./CreditLineConfigurable.sol";
 

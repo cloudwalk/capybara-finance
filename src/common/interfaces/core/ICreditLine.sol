@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.24;
 
-import { Loan } from "../../libraries/Loan.sol";
+import { Loan } from "src/common/libraries/Loan.sol";
 
 /// @title ICreditLine interface
 /// @author CloudWalk Inc. (See https://cloudwalk.io)

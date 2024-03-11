@@ -2,9 +2,9 @@
 
 pragma solidity 0.8.24;
 
-import { Loan } from "../libraries/Loan.sol";
-import { Error } from "../libraries/Error.sol";
-import { ILendingMarket } from "../interfaces/core/ILendingMarket.sol";
+import { Loan } from "../common/libraries/Loan.sol";
+import { Error } from "../common/libraries/Error.sol";
+import { ILendingMarket } from "../common/interfaces/core/ILendingMarket.sol";
 
 /// @title LendingMarketMock contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)

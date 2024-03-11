@@ -7,13 +7,13 @@ import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.s
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
-import { Loan } from "../libraries/Loan.sol";
-import { Error } from "../libraries/Error.sol";
+import { Loan } from "../common/libraries/Loan.sol";
+import { Error } from "../common/libraries/Error.sol";
 
-import { ICreditLine } from "../interfaces/core/ICreditLine.sol";
-import { ILendingMarket } from "../interfaces/core/ILendingMarket.sol";
-import { ILiquidityPool } from "../interfaces/core/ILiquidityPool.sol";
-import { ILiquidityPoolAccountable } from "../interfaces/ILiquidityPoolAccountable.sol";
+import { ICreditLine } from "../common/interfaces/core/ICreditLine.sol";
+import { ILendingMarket } from "../common/interfaces/core/ILendingMarket.sol";
+import { ILiquidityPool } from "../common/interfaces/core/ILiquidityPool.sol";
+import { ILiquidityPoolAccountable } from "../common/interfaces/ILiquidityPoolAccountable.sol";
 
 /// @title LiquidityPoolAccountable contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)

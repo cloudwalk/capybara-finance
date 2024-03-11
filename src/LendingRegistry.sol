@@ -6,12 +6,12 @@ import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/I
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
-import { Error } from "./libraries/Error.sol";
+import { Error } from "src/common/libraries/Error.sol";
 
-import { ILendingMarket } from "./interfaces/core/ILendingMarket.sol";
-import { ILendingRegistry } from "./interfaces/core/ILendingRegistry.sol";
-import { ILiquidityPoolFactory } from "./interfaces/ILiquidityPoolFactory.sol";
-import { ICreditLineFactory } from "./interfaces/ICreditLineFactory.sol";
+import { ILendingMarket } from "src/common/interfaces/core/ILendingMarket.sol";
+import { ILendingRegistry } from "src/common/interfaces/core/ILendingRegistry.sol";
+import { ILiquidityPoolFactory } from "src/common/interfaces/ILiquidityPoolFactory.sol";
+import { ICreditLineFactory } from "src/common/interfaces/ICreditLineFactory.sol";
 
 import { LendingRegistryStorage } from "./LendingRegistryStorage.sol";
 

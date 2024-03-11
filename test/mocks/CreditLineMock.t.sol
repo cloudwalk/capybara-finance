@@ -4,9 +4,9 @@ pragma solidity 0.8.24;
 
 import { Test } from "forge-std/Test.sol";
 
-import { Loan } from "src/libraries/Loan.sol";
-import { Error } from "src/libraries/Error.sol";
-import { Interest } from "src/libraries/Interest.sol";
+import { Loan } from "src/common/libraries/Loan.sol";
+import { Error } from "src/common/libraries/Error.sol";
+import { Interest } from "src/common/libraries/Interest.sol";
 
 import { CreditLineMock } from "src/mocks/CreditLineMock.sol";
 

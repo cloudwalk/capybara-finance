@@ -8,7 +8,7 @@ import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/I
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
-import { Error } from "src/libraries/Error.sol";
+import { Error } from "src/common/libraries/Error.sol";
 
 import { LendingMarketMock } from "src/mocks/LendingMarketMock.sol";
 import { CreditLineFactoryMock } from "src/mocks/CreditLineFactoryMock.sol";

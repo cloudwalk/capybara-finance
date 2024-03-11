@@ -8,9 +8,9 @@ import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/I
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
-import { Loan } from "src/libraries/Loan.sol";
-import { Error } from "src/libraries/Error.sol";
-import { Interest } from "src/libraries/Interest.sol";
+import { Loan } from "src/common/libraries/Loan.sol";
+import { Error } from "src/common/libraries/Error.sol";
+import { Interest } from "src/common/libraries/Interest.sol";
 
 import { ERC20Mock } from "src/mocks/ERC20Mock.sol";
 import { CreditLineMock } from "src/mocks/CreditLineMock.sol";

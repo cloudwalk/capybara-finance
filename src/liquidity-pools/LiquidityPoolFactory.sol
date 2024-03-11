@@ -4,8 +4,8 @@ pragma solidity 0.8.24;
 
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-import { ILiquidityPool } from "../interfaces/core/ILiquidityPool.sol";
-import { ILiquidityPoolFactory } from "../interfaces/ILiquidityPoolFactory.sol";
+import { ILiquidityPool } from "../common/interfaces/core/ILiquidityPool.sol";
+import { ILiquidityPoolFactory } from "../common/interfaces/ILiquidityPoolFactory.sol";
 
 import { LiquidityPoolAccountable } from "./LiquidityPoolAccountable.sol";
 

@@ -11,15 +11,15 @@ import { ERC721Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC
 import { ERC721EnumerableUpgradeable } from
     "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 
-import { Loan } from "./libraries/Loan.sol";
-import { Error } from "./libraries/Error.sol";
-import { Interest } from "./libraries/Interest.sol";
-import { InterestMath } from "./libraries/InterestMath.sol";
-import { SafeCast } from "./libraries/SafeCast.sol";
+import { Loan } from "src/common/libraries/Loan.sol";
+import { Error } from "src/common/libraries/Error.sol";
+import { Interest } from "src/common/libraries/Interest.sol";
+import { InterestMath } from "src/common/libraries/InterestMath.sol";
+import { SafeCast } from "src/common/libraries/SafeCast.sol";
 
-import { ILendingMarket } from "./interfaces/core/ILendingMarket.sol";
-import { ILiquidityPool } from "./interfaces/core/ILiquidityPool.sol";
-import { ICreditLine } from "./interfaces/core/ICreditLine.sol";
+import { ILendingMarket } from "src/common/interfaces/core/ILendingMarket.sol";
+import { ILiquidityPool } from "src/common/interfaces/core/ILiquidityPool.sol";
+import { ICreditLine } from "src/common/interfaces/core/ICreditLine.sol";
 
 import { LendingMarketStorage } from "./LendingMarketStorage.sol";
 

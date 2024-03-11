@@ -8,12 +8,12 @@ import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/I
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
-import { Loan } from "src/libraries/Loan.sol";
-import { Error } from "src/libraries/Error.sol";
-import { Interest } from "src/libraries/Interest.sol";
-import { SafeCast } from "src/libraries/SafeCast.sol";
+import { Loan } from "src/common/libraries/Loan.sol";
+import { Error } from "src/common/libraries/Error.sol";
+import { Interest } from "src/common/libraries/Interest.sol";
+import { SafeCast } from "src/common/libraries/SafeCast.sol";
 
-import { ICreditLineConfigurable } from "src/interfaces/ICreditLineConfigurable.sol";
+import { ICreditLineConfigurable } from "src/common/interfaces/ICreditLineConfigurable.sol";
 import { CreditLineConfigurable } from "src/credit-lines/CreditLineConfigurable.sol";
 
 /// @title CreditLineConfigurableTest contract
