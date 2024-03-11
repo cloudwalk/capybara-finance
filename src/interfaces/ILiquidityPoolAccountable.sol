@@ -20,16 +20,16 @@ interface ILiquidityPoolAccountable is ILiquidityPool {
     /// @notice Emitted when tokens are deposited to the liquidity pool.
     /// @param creditLine The address of the credit line.
     /// @param amount The amount of tokens deposited.
-    event DepositMade(address indexed creditLine, uint256 amount);
+    event Deposit(address indexed creditLine, uint256 amount);
 
     /// @notice Emitted when tokens are withdrawn from the liquidity pool.
     /// @param tokenSource The address of the token source.
     /// @param amount The amount of tokens withdrawn.
-    event WithdrawalMade(address indexed tokenSource, uint256 amount);
+    event Withdrawal(address indexed tokenSource, uint256 amount);
 
     /// @notice Emitted when loan auto repayment was initiated.
     /// @param numberOfLoans The number of loans repaid.
-    event AutoRepaymentInitiated(uint256 numberOfLoans);
+    event AutoRepayment(uint256 numberOfLoans);
 
     // -------------------------------------------- //
     //  Functions                                   //

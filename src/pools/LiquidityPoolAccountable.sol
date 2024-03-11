@@ -141,7 +141,7 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
 
         _creditLineBalances[creditLine] += amount;
         token.safeTransferFrom(msg.sender, address(this), amount);
-        emit DepositMade(creditLine, amount);
+        emit Deposit(creditLine, amount);
     }
 
     /// @inheritdoc ILiquidityPoolAccountable
@@ -161,7 +161,7 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
             }
             _creditLineBalances[tokenSource] -= amount;
             IERC20(ICreditLine(tokenSource).token()).safeTransfer(msg.sender, amount);
-            emit WithdrawalMade(tokenSource, amount);
+            emit Withdrawal(tokenSource, amount);
             return;
         }
 
@@ -174,7 +174,7 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
                 revert InsufficientBalance();
             }
             IERC20(tokenSource).safeTransfer(msg.sender, amount);
-            emit WithdrawalMade(tokenSource, amount);
+            emit Withdrawal(tokenSource, amount);
             return;
         }
 
@@ -188,7 +188,7 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
             revert Error.ArrayLengthMismatch();
         }
 
-        emit AutoRepaymentInitiated(loanIds.length);
+        emit AutoRepayment(loanIds.length);
 
         ILendingMarket market = ILendingMarket(_market);
         for (uint256 i = 0; i < loanIds.length; i++) {

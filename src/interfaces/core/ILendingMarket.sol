@@ -40,7 +40,7 @@ interface ILendingMarket {
     /// @param borrower The address of the borrower of the loan.
     /// @param repayAmount The amount of the repayment.
     /// @param outstandingBalance The outstanding balance of the loan after the repayment.
-    event LoanRepaid(
+    event LoanRepayment(
         uint256 indexed loanId,
         address indexed repayer,
         address indexed borrower,

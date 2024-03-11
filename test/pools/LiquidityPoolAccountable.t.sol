@@ -27,9 +27,9 @@ contract LiquidityPoolAccountableTest is Test {
     // -------------------------------------------- //
 
     event AdminConfigured(address indexed admin, bool isAdmin);
-    event DepositMade(address indexed creditLine, uint256 amount);
-    event WithdrawalMade(address indexed tokenSource, uint256 amount);
-    event AutoRepaymentInitiated(uint256 numberOfLoans);
+    event Deposit(address indexed creditLine, uint256 amount);
+    event Withdrawal(address indexed tokenSource, uint256 amount);
+    event AutoRepayment(uint256 numberOfLoans);
     event RepayLoanCalled(uint256 indexed loanId, uint256 repayAmount);
 
     // -------------------------------------------- //
@@ -249,7 +249,7 @@ contract LiquidityPoolAccountableTest is Test {
 
         vm.prank(LENDER);
         vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit DepositMade(address(creditLine), DEPOSIT_AMOUNT_1);
+        emit Deposit(address(creditLine), DEPOSIT_AMOUNT_1);
         liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT_1);
 
         assertEq(token.balanceOf(address(liquidityPool)), DEPOSIT_AMOUNT_1);
@@ -292,7 +292,7 @@ contract LiquidityPoolAccountableTest is Test {
         assertEq(liquidityPool.getTokenBalance(address(creditLine)), DEPOSIT_AMOUNT_1);
 
         vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit WithdrawalMade(address(creditLine), DEPOSIT_AMOUNT_1 - 1);
+        emit Withdrawal(address(creditLine), DEPOSIT_AMOUNT_1 - 1);
         liquidityPool.withdraw(address(creditLine), DEPOSIT_AMOUNT_1 - 1);
 
         assertEq(token.balanceOf(LENDER), DEPOSIT_AMOUNT_1 - 1);
@@ -314,7 +314,7 @@ contract LiquidityPoolAccountableTest is Test {
         assertEq(liquidityPool.getTokenBalance(address(creditLine)), DEPOSIT_AMOUNT_1);
 
         vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit WithdrawalMade(address(token), DEPOSIT_AMOUNT_1 - 1);
+        emit Withdrawal(address(token), DEPOSIT_AMOUNT_1 - 1);
         liquidityPool.withdraw(address(token), DEPOSIT_AMOUNT_1 - 1);
 
         assertEq(token.balanceOf(LENDER), DEPOSIT_AMOUNT_1 - 1);
@@ -373,7 +373,7 @@ contract LiquidityPoolAccountableTest is Test {
         (uint256[] memory loanIds, uint256[] memory amounts) = getBatchLoanData();
 
         vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit AutoRepaymentInitiated(loanIds.length);
+        emit AutoRepayment(loanIds.length);
 
         for (uint256 i = 0; i < loanIds.length; i++) {
             vm.expectEmit(true, true, true, true, address(lendingMarket));

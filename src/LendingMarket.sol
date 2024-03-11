@@ -340,7 +340,7 @@ contract LendingMarket is
         IERC20(loan.token).transferFrom(payer, loan.treasury, repayAmount);
         ILiquidityPool(loan.treasury).onAfterLoanPayment(loanId, repayAmount);
 
-        emit LoanRepaid(loanId, payer, loan.borrower, repayAmount, outstandingBalance);
+        emit LoanRepayment(loanId, payer, loan.borrower, repayAmount, outstandingBalance);
 
         if (outstandingBalance == 0) {
             _safeTransfer(ownerOf(loanId), loan.borrower, loanId, "");
