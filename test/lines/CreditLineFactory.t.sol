@@ -7,8 +7,8 @@ import { Test } from "forge-std/Test.sol";
 import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-import { CreditLineConfigurable } from "src/lines/CreditLineConfigurable.sol";
-import { CreditLineFactory } from "src/lines/CreditLineFactory.sol";
+import { CreditLineConfigurable } from "src/credit-lines/CreditLineConfigurable.sol";
+import { CreditLineFactory } from "src/credit-lines/CreditLineFactory.sol";
 
 /// @title CreditLineFactoryTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)

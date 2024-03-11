@@ -16,7 +16,7 @@ import { ERC20Mock } from "src/mocks/ERC20Mock.sol";
 import { CreditLineMock } from "src/mocks/CreditLineMock.sol";
 import { LendingMarketMock } from "src/mocks/LendingMarketMock.sol";
 
-import { LiquidityPoolAccountable } from "src/pools/LiquidityPoolAccountable.sol";
+import { LiquidityPoolAccountable } from "src/liquidity-pools/LiquidityPoolAccountable.sol";
 
 /// @title LiquidityPoolAccountableTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)

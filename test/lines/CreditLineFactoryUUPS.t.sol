@@ -7,7 +7,7 @@ import { Test } from "forge-std/Test.sol";
 import { ERC1967Proxy } from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-import { CreditLineFactoryUUPS } from "src/lines/CreditLineFactoryUUPS.sol";
+import { CreditLineFactoryUUPS } from "src/credit-lines/CreditLineFactoryUUPS.sol";
 
 /// @title CreditLineFactoryUUPSTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)

@@ -18,10 +18,10 @@
 // import { LendingMarket } from "src/LendingMarket.sol";
 // import { LendingRegistry } from "src/LendingRegistry.sol";
 
-// import { CreditLineConfigurable } from "src/lines/CreditLineConfigurable.sol";
-// import { CreditLineFactory } from "src/lines/CreditLineFactory.sol";
-// import { LiquidityPoolAccountable } from "src/pools/LiquidityPoolAccountable.sol";
-// import { LiquidityPoolFactory } from "src/pools/LiquidityPoolFactory.sol";
+// import { CreditLineConfigurable } from "src/credit-lines/CreditLineConfigurable.sol";
+// import { CreditLineFactory } from "src/credit-lines/CreditLineFactory.sol";
+// import { LiquidityPoolAccountable } from "src/liquidity-pools/LiquidityPoolAccountable.sol";
+// import { LiquidityPoolFactory } from "src/liquidity-pools/LiquidityPoolFactory.sol";
 // import { ComplexScenarios } from "./ComplexScenarios.sol";
 
 // /// @title LendingMarketTest contract

@@ -14,7 +14,7 @@ import { Interest } from "src/libraries/Interest.sol";
 import { SafeCast } from "src/libraries/SafeCast.sol";
 
 import { ICreditLineConfigurable } from "src/interfaces/ICreditLineConfigurable.sol";
-import { CreditLineConfigurable } from "src/lines/CreditLineConfigurable.sol";
+import { CreditLineConfigurable } from "src/credit-lines/CreditLineConfigurable.sol";
 
 /// @title CreditLineConfigurableTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)

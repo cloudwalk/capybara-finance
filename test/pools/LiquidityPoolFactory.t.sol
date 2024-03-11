@@ -7,8 +7,8 @@ import { Test } from "forge-std/Test.sol";
 import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-import { LiquidityPoolAccountable } from "src/pools/LiquidityPoolAccountable.sol";
-import { LiquidityPoolFactory } from "src/pools/LiquidityPoolFactory.sol";
+import { LiquidityPoolAccountable } from "src/liquidity-pools/LiquidityPoolAccountable.sol";
+import { LiquidityPoolFactory } from "src/liquidity-pools/LiquidityPoolFactory.sol";
 
 /// @title LiquidityPoolFactoryTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
