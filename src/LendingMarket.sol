@@ -661,4 +661,56 @@ contract LendingMarket is
     {
         return super.supportsInterface(interfaceId);
     }
+
+    event LoanMigrated(uint256 loanId);
+
+    function migrateLoans(
+        Loan.State[] memory state,
+        address creditLine
+    ) external whenNotPaused onlyOwner {
+        if (creditLine == address(0)) {
+            revert Error.ZeroAddress();
+        }
+
+        address lender = _creditLineLenders[creditLine];
+        address liquidityPool = _liquidityPoolByCreditLine[creditLine];
+
+        if (lender == address(0)) {
+            revert CreditLineNotRegistered();
+        }
+        if (liquidityPool == address(0)) {
+            revert LiquidityPoolNotRegistered();
+        }
+
+        uint256 len = state.length;
+        for(uint256 i; i < len; i++) {
+            Loan.State memory loan = state[i];
+
+            uint256 id = _safeMint(lender);
+
+            _loans[id] = Loan.State({
+                token: loan.token,
+                borrower: loan.borrower,
+                treasury: loan.treasury,
+                startTimestamp: loan.startTimestamp,
+                periodInSeconds: loan.periodInSeconds,
+                durationInPeriods: loan.durationInPeriods,
+                interestRateFactor: loan.interestRateFactor,
+                interestRatePrimary: loan.interestRatePrimary,
+                interestRateSecondary: loan.interestRateSecondary,
+                interestFormula: loan.interestFormula,
+                initialBorrowAmount: loan.initialBorrowAmount,
+                trackedBorrowBalance: loan.trackedBorrowBalance,
+                trackedTimestamp: loan.trackedTimestamp,
+                freezeTimestamp: loan.freezeTimestamp,
+                autoRepayment: loan.autoRepayment
+            });
+
+            ILiquidityPool(liquidityPool).migrateLoan(id, creditLine);
+            ICreditLine(creditLine).migrateLoan(id);
+
+            emit LoanTaken(id, loan.borrower, loan.trackedBorrowBalance, loan.durationInPeriods);
+            emit LoanMigrated(id);
+        }
+    }
 }

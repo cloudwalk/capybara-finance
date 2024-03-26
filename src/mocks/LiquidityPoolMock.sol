@@ -84,4 +84,8 @@ contract LiquidityPoolMock is ILiquidityPool {
     function mockOnAfterLoanPaymentResult(bool result) external {
         _onAfterLoanPaymentResult = result;
     }
+
+    function migrateLoan(uint256 loanId, address creditLine) external {
+
+    }
 }

@@ -65,4 +65,8 @@ contract CreditLineMock is ICreditLine {
     function mockLoanTerms(address borrower, uint256 amount, Loan.Terms memory terms) external {
         _loanTerms[borrower][amount] = terms;
     }
+
+    function migrateLoan(uint256 loanId) external {
+
+    }
 }
