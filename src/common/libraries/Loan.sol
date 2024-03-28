@@ -26,8 +26,8 @@ library Loan {
         Interest.Formula interestFormula; // The formula used for interest calculation on the loan.
         bool autoRepayment;               // The flag that indicates whether the loan can be repaid automatically.
         // Slot 4
-        uint64 trackedBorrowBalance;      // The borow balance of the loan that is tracked.
-        uint32 trackedTimestamp;          // The timestamp when the loan was last paid.
+        uint64 trackedBorrowBalance;      // The borrow balance of the loan that is tracked.
+        uint32 trackedTimestamp;          // The timestamp when the loan was last paid or its balance was updated.
         uint32 freezeTimestamp;           // The timestamp when the loan was frozen.
     }
 
@@ -45,13 +45,13 @@ library Loan {
         Interest.Formula interestFormula; // The formula to be used for interest calculation on the loan.
         bool autoRepayment;               // The flag that indicates whether the loan can be repaid automatically.
         // Slot 3
-        address addonRecipient;           // The address of the recipient of addon payments and fees.
-        uint64 addonAmount;               // The amount of addon payments and fees.
+        address addonRecipient;           // The address of the recipient for the loan addon (extra charges and fees).
+        uint64 addonAmount;               // The amount of the loan addon (extra charges and fees).
     }
 
     /// @notice A struct that defines the preview of the loan.
     struct Preview {
-        uint256 periodTimestamp;    // The timestamp of the previewed period.
+        uint256 periodTimestamp;    // The beginning timestamp of the loan period that matches the preview timestamp.
         uint256 outstandingBalance; // The outstanding balance of the loan at previewed period.
     }
 }

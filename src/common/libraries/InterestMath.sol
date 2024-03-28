@@ -19,13 +19,13 @@ library InterestMath {
     //  Functions                                   //
     // -------------------------------------------- //
 
-    /// @dev Calculates the outstanding balance of a loan.
+    /// @dev Calculates the outstanding balance of a loan after passing the given number of periods.
     /// @param originalBalance The balance of the loan at the beginning.
     /// @param numberOfPeriods The number of periods to calculate the outstanding balance.
-    /// @param interestRate The interest rate to use for the calculation (see interestRateFactor).
+    /// @param interestRate The interest rate to use for the calculation in units of `interestRateFactor`.
     /// @param interestRateFactor The interest rate factor used with the interest rate.
-    /// @param interestFormula The interest formula to use for the calculation.
-    /// @return The outstanding balance of the loan.
+    /// @param interestFormula The interest formula kind to use for the calculation.
+    /// @return The outstanding balance of the loan after passing the given number of periods.
     function calculateOutstandingBalance(
         uint256 originalBalance,
         uint256 numberOfPeriods,

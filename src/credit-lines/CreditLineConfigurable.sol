@@ -272,7 +272,10 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
 
         if (terms.addonRecipient != address(0)) {
             terms.addonAmount = calculateAddonAmount(
-                borrowAmount, durationInPeriods, borrowerConfig.addonFixedCostRate, borrowerConfig.addonPeriodCostRate
+                borrowAmount,
+                durationInPeriods,
+                borrowerConfig.addonFixedCostRate,
+                borrowerConfig.addonPeriodCostRate
             ).toUint64();
         }
     }
@@ -312,20 +315,27 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         return 1;
     }
 
-    /// @notice Calculates the addon payment amount.
+    /// @notice Calculates the amount of a loan addon (extra charges and fees).
     /// @param amount The initial principal amount of the loan.
     /// @param durationInPeriods The duration of the loan in periods.
-    /// @param addonFixedCostRate The fixed cost rate of the loan addon payment.
-    /// @param addonPeriodCostRate The period cost rate of the loan addon payment.
+    /// @param addonFixedCostRate The fixed rate of the loan addon.
+    /// @param addonPeriodCostRate The rate per period of the loan addon.
     function calculateAddonAmount(
         uint256 amount,
         uint256 durationInPeriods,
         uint256 addonFixedCostRate,
         uint256 addonPeriodCostRate
     ) public view returns (uint256) {
+        /*
+         * The initial formula for calculating the addon payment amount is:
+         * E = (A + E) * r (1)
+         * where `A` -- the borrow amount, `E` -- addon, `r` -- the result addon rate (e.g. `1 %` => `0.01`),
+         * Formula (1) can be rewritten as:
+         * E = A * r / (1 - r) = A * (R / F) / (1 - R / F) = A * R (F - R) (2)
+         * where `R` -- the addon rate in units of the rate factor, `F` -- the interest rate factor.
+         */
         uint256 addonRate = addonPeriodCostRate * durationInPeriods + addonFixedCostRate;
-        addonRate = addonRate * _config.interestRateFactor / (_config.interestRateFactor - addonRate);
-        return (amount * addonRate) / _config.interestRateFactor;
+        return (amount * addonRate) / (_config.interestRateFactor - addonRate);
     }
 
     // -------------------------------------------- //

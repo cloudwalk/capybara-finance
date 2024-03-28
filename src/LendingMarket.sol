@@ -516,8 +516,8 @@ contract LendingMarket is
         return _registry;
     }
 
-    /// @notice Calculates the period index based on the provided timestamp.
-    /// @param timestamp The timestamp to calculate the period index for.
+    /// @notice Calculates the beginning timestamp of the loan period that matches the specified timestamp.
+    /// @param timestamp The timestamp to calculate the period beginning timestamp for.
     /// @param periodInSeconds The period duration in seconds.
     function calculatePeriodTimestamp(uint256 timestamp, uint256 periodInSeconds) external pure returns (uint256) {
         return _periodTimestamp(timestamp, periodInSeconds);
@@ -537,7 +537,11 @@ contract LendingMarket is
         Interest.Formula interestFormula
     ) external pure returns (uint256) {
         return InterestMath.calculateOutstandingBalance(
-            originalBalance, numberOfPeriods, interestRate, interestRateFactor, interestFormula
+            originalBalance,
+            numberOfPeriods,
+            interestRate,
+            interestRateFactor,
+            interestFormula
         );
     }
 
@@ -547,16 +551,20 @@ contract LendingMarket is
 
     /// @dev Calculates the outstanding balance of a loan.
     /// @param loan The loan to calculate the outstanding balance for.
-    /// @param timestamp The period to calculate the outstanding balance at.
-    /// @return The outstanding balance of the loan at the specified period date.
-    function _outstandingBalance(Loan.State storage loan, uint256 timestamp) internal view returns (uint256, uint256) {
-        uint256 outstandingBalance = loan.trackedBorrowBalance;
+    /// @param timestamp The timestamp to calculate the outstanding balance at.
+    /// @return outstandingBalance The outstanding balance of the loan at the specified timestamp.
+    /// @return periodTimestamp The timestamp of the corresponding loan period beginning.
+    function _outstandingBalance(
+        Loan.State storage loan,
+        uint256 timestamp
+    ) internal view returns (uint256 outstandingBalance, uint256 periodTimestamp) {
+        outstandingBalance = loan.trackedBorrowBalance;
 
         if (loan.freezeTimestamp != 0) {
             timestamp = loan.freezeTimestamp;
         }
 
-        uint256 periodTimestamp = _periodTimestamp(timestamp, loan.periodInSeconds);
+        periodTimestamp = _periodTimestamp(timestamp, loan.periodInSeconds);
         uint256 trackedTimestamp = _periodTimestamp(loan.trackedTimestamp, loan.periodInSeconds);
 
         if (periodTimestamp > trackedTimestamp) {
@@ -597,8 +605,6 @@ contract LendingMarket is
                 }
             }
         }
-
-        return (outstandingBalance, periodTimestamp);
     }
 
     /// @dev Calculates the moratorium periods of a loan.
@@ -621,7 +627,7 @@ contract LendingMarket is
         return tokenId;
     }
 
-    /// @dev Calculates the index of the period for the specified timestamp.
+    /// @dev Calculates the beginning timestamp of the loan period that matches the specified timestamp.
     function _periodTimestamp(uint256 timestamp, uint256 periodInSeconds) internal pure returns (uint256) {
         return (timestamp / periodInSeconds) * periodInSeconds;
     }
