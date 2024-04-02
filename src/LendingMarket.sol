@@ -372,10 +372,10 @@ contract LendingMarket is
             revert LoanNotFrozen();
         }
 
-        uint256 periodTimestamp = _periodTimestamp(_blockTimestamp(loanId), loan.periodInSeconds);
-        uint256 freezeTimestamp = _periodTimestamp(loan.freezeTimestamp, loan.periodInSeconds);
-
-        uint256 frozenPeriods = (periodTimestamp - freezeTimestamp) / loan.periodInSeconds;
+        uint256 currentTimestamp = _blockTimestamp(loanId);
+        uint256 currentPeriod = _periodIndex(currentTimestamp, loan.periodInSeconds);
+        uint256 freezePeriod = _periodIndex(loan.freezeTimestamp, loan.periodInSeconds);
+        uint256 frozenPeriods = currentPeriod - freezePeriod;
 
         if (frozenPeriods > 0) {
             loan.trackedTimestamp += (frozenPeriods * loan.periodInSeconds).toUint32();
@@ -384,7 +384,7 @@ contract LendingMarket is
 
         loan.freezeTimestamp = 0;
 
-        emit LoanUnfrozen(loanId, _blockTimestamp(loanId));
+        emit LoanUnfrozen(loanId, currentTimestamp);
     }
 
     /// @inheritdoc ILendingMarket
@@ -501,7 +501,7 @@ contract LendingMarket is
         Loan.Preview memory preview;
         Loan.State storage loan = _loans[loanId];
 
-        (preview.outstandingBalance, preview.periodTimestamp) = _outstandingBalance(loan, timestamp);
+        (preview.outstandingBalance, preview.period) = _outstandingBalance(loan, timestamp);
 
         return preview;
     }
@@ -516,11 +516,11 @@ contract LendingMarket is
         return _registry;
     }
 
-    /// @notice Calculates the beginning timestamp of the loan period that matches the specified timestamp.
-    /// @param timestamp The timestamp to calculate the period beginning timestamp for.
+    /// @notice Calculates the period index that corresponds the specified timestamp.
+    /// @param timestamp The timestamp to calculate the period index.
     /// @param periodInSeconds The period duration in seconds.
-    function calculatePeriodTimestamp(uint256 timestamp, uint256 periodInSeconds) external pure returns (uint256) {
-        return _periodTimestamp(timestamp, periodInSeconds);
+    function calculatePeriodIndex(uint256 timestamp, uint256 periodInSeconds) external pure returns (uint256) {
+        return _periodIndex(timestamp, periodInSeconds);
     }
 
     /// @notice Calculates the outstanding balance of a loan.
@@ -566,35 +566,35 @@ contract LendingMarket is
     /// @param loan The loan to calculate the outstanding balance for.
     /// @param timestamp The timestamp to calculate the outstanding balance at.
     /// @return outstandingBalance The outstanding balance of the loan at the specified timestamp.
-    /// @return periodTimestamp The timestamp of the corresponding loan period beginning.
+    /// @return givenPeriod The period index that corresponds the provided timestamp.
     function _outstandingBalance(
         Loan.State storage loan,
         uint256 timestamp
-    ) internal view returns (uint256 outstandingBalance, uint256 periodTimestamp) {
+    ) internal view returns (uint256 outstandingBalance, uint256 givenPeriod) {
         outstandingBalance = loan.trackedBorrowBalance;
 
         if (loan.freezeTimestamp != 0) {
             timestamp = loan.freezeTimestamp;
         }
 
-        periodTimestamp = _periodTimestamp(timestamp, loan.periodInSeconds);
-        uint256 trackedTimestamp = _periodTimestamp(loan.trackedTimestamp, loan.periodInSeconds);
+        givenPeriod = _periodIndex(timestamp, loan.periodInSeconds);
+        uint256 trackedPeriod = _periodIndex(loan.trackedTimestamp, loan.periodInSeconds);
 
-        if (periodTimestamp > trackedTimestamp) {
-            uint256 startTimestamp = _periodTimestamp(loan.startTimestamp, loan.periodInSeconds);
-            uint256 dueTimestamp = startTimestamp + loan.durationInPeriods * loan.periodInSeconds;
-            if (periodTimestamp < dueTimestamp) {
+        if (givenPeriod > trackedPeriod) {
+            uint256 startPeriod = _periodIndex(loan.startTimestamp, loan.periodInSeconds);
+            uint256 duePeriod = startPeriod + loan.durationInPeriods;
+            if (givenPeriod < duePeriod) {
                 outstandingBalance = InterestMath.calculateOutstandingBalance(
                     outstandingBalance,
-                    (periodTimestamp - trackedTimestamp) / loan.periodInSeconds,
+                    givenPeriod - trackedPeriod,
                     loan.interestRatePrimary,
                     loan.interestRateFactor,
                     loan.interestFormula
                 );
-            } else if (trackedTimestamp >= dueTimestamp) {
+            } else if (trackedPeriod >= duePeriod) {
                 outstandingBalance = InterestMath.calculateOutstandingBalance(
                     outstandingBalance,
-                    (periodTimestamp - trackedTimestamp) / loan.periodInSeconds,
+                    givenPeriod - trackedPeriod,
                     loan.interestRateSecondary,
                     loan.interestRateFactor,
                     loan.interestFormula
@@ -602,15 +602,15 @@ contract LendingMarket is
             } else {
                 outstandingBalance = InterestMath.calculateOutstandingBalance(
                     outstandingBalance,
-                    (dueTimestamp - trackedTimestamp) / loan.periodInSeconds,
+                    duePeriod - trackedPeriod,
                     loan.interestRatePrimary,
                     loan.interestRateFactor,
                     loan.interestFormula
                 );
-                if (periodTimestamp > dueTimestamp) {
+                if (givenPeriod > duePeriod) {
                     outstandingBalance = InterestMath.calculateOutstandingBalance(
                         outstandingBalance,
-                        (periodTimestamp - dueTimestamp) / loan.periodInSeconds,
+                        givenPeriod - duePeriod,
                         loan.interestRateSecondary,
                         loan.interestRateFactor,
                         loan.interestFormula
@@ -629,9 +629,9 @@ contract LendingMarket is
         return tokenId;
     }
 
-    /// @dev Calculates the beginning timestamp of the loan period that matches the specified timestamp.
-    function _periodTimestamp(uint256 timestamp, uint256 periodInSeconds) internal pure returns (uint256) {
-        return (timestamp / periodInSeconds) * periodInSeconds;
+    /// @dev Calculates the period index that corresponds the specified timestamp.
+    function _periodIndex(uint256 timestamp, uint256 periodInSeconds) internal pure returns (uint256) {
+        return (timestamp / periodInSeconds);
     }
 
     /// @dev Returns the current block timestamp.

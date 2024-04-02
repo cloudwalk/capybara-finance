@@ -1026,7 +1026,7 @@ contract LendingMarketTest is Test {
 
         uint256 oldDurationInPeriods = loan.durationInPeriods;
         uint256 oldOutstandingBalance = preview.outstandingBalance;
-        uint256 currentTimestamp = preview.periodTimestamp;
+        uint256 currentTimestamp = preview.period * loan.durationInPeriods;
 
         // assertEq(loan.freezeTimestamp, currentTimestamp);
         // assertEq(loan.trackedTimestamp, currentTimestamp);
@@ -1571,36 +1571,19 @@ contract LendingMarketTest is Test {
         assertEq(market.getLiquidityPoolLender(address(liquidityPool)), LENDER_1);
     }
 
-    function test_calculatePeriodTimestamp_1_Second_Period() public {
-        skip(10 ** 6 - 1);
-
+    function test_calculatePeriodIndex() public {
+        uint256 timestamp = 10 ** 6 - 1;
         uint256 periodInSeconds = 1 seconds;
-        uint256 currentPeriodSeconds = block.timestamp % periodInSeconds;
-        uint256 currentPeriod = market.calculatePeriodTimestamp(block.timestamp, periodInSeconds);
+        uint256 expectedCurrentPeriod = timestamp / periodInSeconds;
 
-        skip(periodInSeconds - currentPeriodSeconds - 1);
+        assertEq(market.calculatePeriodIndex(timestamp, periodInSeconds), expectedCurrentPeriod);
 
-        assertEq(market.calculatePeriodTimestamp(block.timestamp, periodInSeconds), currentPeriod);
-
-        skip(1);
-
-        assertEq(market.calculatePeriodTimestamp(block.timestamp, periodInSeconds), currentPeriod + periodInSeconds);
-    }
-
-    function test_calculatePeriodTimestamp_59_Second_Period() public {
-        skip(10 ** 6 - 1);
-
-        uint256 periodInSeconds = 59 seconds;
-        uint256 currentPeriodSeconds = block.timestamp % periodInSeconds;
-        uint256 currentPeriod = market.calculatePeriodTimestamp(block.timestamp, periodInSeconds);
-
-        skip(periodInSeconds - currentPeriodSeconds - 1);
-
-        assertEq(market.calculatePeriodTimestamp(block.timestamp, periodInSeconds), currentPeriod);
-
-        skip(1);
-
-        assertEq(market.calculatePeriodTimestamp(block.timestamp, periodInSeconds), currentPeriod + periodInSeconds);
+        periodInSeconds = 19 seconds;
+        for(uint256 i = 0; i <= periodInSeconds; ++i) {
+            expectedCurrentPeriod = timestamp / periodInSeconds;
+            assertEq(market.calculatePeriodIndex(timestamp, periodInSeconds), expectedCurrentPeriod);
+            timestamp += 1;
+        }
     }
 
     // -------------------------------------------- //
