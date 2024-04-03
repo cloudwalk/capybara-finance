@@ -367,7 +367,7 @@ contract LendingMarket is
 
         loan.freezeTimestamp = _blockTimestamp(loanId).toUint32();
 
-        emit LoanFrozen(loanId, _blockTimestamp(loanId));
+        emit LoanFrozen(loanId);
     }
 
     /// @inheritdoc ILendingMarket
@@ -378,8 +378,7 @@ contract LendingMarket is
             revert LoanNotFrozen();
         }
 
-        uint256 currentTimestamp = _blockTimestamp(loanId);
-        uint256 currentPeriodIndex = _periodIndex(currentTimestamp, loan.periodInSeconds);
+        uint256 currentPeriodIndex = _periodIndex(_blockTimestamp(loanId), loan.periodInSeconds);
         uint256 freezePeriodIndex = _periodIndex(loan.freezeTimestamp, loan.periodInSeconds);
         uint256 frozenPeriods = currentPeriodIndex - freezePeriodIndex;
 
@@ -390,7 +389,7 @@ contract LendingMarket is
 
         loan.freezeTimestamp = 0;
 
-        emit LoanUnfrozen(loanId, currentTimestamp);
+        emit LoanUnfrozen(loanId);
     }
 
     /// @inheritdoc ILendingMarket

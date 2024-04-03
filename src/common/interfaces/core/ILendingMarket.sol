@@ -50,13 +50,11 @@ interface ILendingMarket {
 
     /// @notice Emitted when a loan is frozen.
     /// @param loanId The unique identifier of the loan.
-    /// @param timestamp The timestamp when the loan was frozen.
-    event LoanFrozen(uint256 indexed loanId, uint256 timestamp);
+    event LoanFrozen(uint256 indexed loanId);
 
     /// @notice Emitted when a loan is unfrozen.
     /// @param loanId The unique identifier of the loan.
-    /// @param timestamp The timestamp when the loan was unfrozen.
-    event LoanUnfrozen(uint256 indexed loanId, uint256 timestamp);
+    event LoanUnfrozen(uint256 indexed loanId);
 
     /// @notice Emitted when the duration of the loan is updated.
     /// @param loanId The unique identifier of the loan.

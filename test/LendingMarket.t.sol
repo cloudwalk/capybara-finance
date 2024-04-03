@@ -49,8 +49,8 @@ contract LendingMarketTest is Test {
         uint256 outstandingBalance
     );
 
-    event LoanFrozen(uint256 indexed loanId, uint256 timestamp);
-    event LoanUnfrozen(uint256 indexed loanId, uint256 timestamp);
+    event LoanFrozen(uint256 indexed loanId);
+    event LoanUnfrozen(uint256 indexed loanId);
 
     event LoanDurationUpdated(uint256 indexed loanId, uint256 indexed newDuration, uint256 indexed oldDuration);
     event LoanMoratoriumUpdated(
@@ -928,7 +928,7 @@ contract LendingMarketTest is Test {
 
         vm.prank(caller);
         vm.expectEmit(true, true, true, true, address(market));
-        emit LoanFrozen(loanId, block.timestamp);
+        emit LoanFrozen(loanId);
         market.freeze(loanId);
 
         loan = market.getLoanState(loanId);
@@ -1032,7 +1032,7 @@ contract LendingMarketTest is Test {
 
         vm.prank(LENDER_1);
         vm.expectEmit(true, true, true, true, address(market));
-        emit LoanUnfrozen(loanId, block.timestamp);
+        emit LoanUnfrozen(loanId);
         market.unfreeze(loanId);
 
         loan = market.getLoanState(loanId);
@@ -1062,7 +1062,7 @@ contract LendingMarketTest is Test {
 
         vm.prank(LENDER_1);
         vm.expectEmit(true, true, true, true, address(market));
-        emit LoanUnfrozen(loanId, block.timestamp);
+        emit LoanUnfrozen(loanId);
         market.unfreeze(loanId);
 
         loan = market.getLoanState(loanId);
