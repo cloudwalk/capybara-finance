@@ -51,7 +51,7 @@ library Loan {
 
     /// @notice A struct that defines the preview of the loan.
     struct Preview {
-        uint256 period;             // The period index that matches the preview timestamp.
+        uint256 periodIndex;        // The period index that matches the preview timestamp.
         uint256 outstandingBalance; // The outstanding balance of the loan at the previewed period.
     }
 }

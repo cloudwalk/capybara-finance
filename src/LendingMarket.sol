@@ -379,9 +379,9 @@ contract LendingMarket is
         }
 
         uint256 currentTimestamp = _blockTimestamp(loanId);
-        uint256 currentPeriod = _periodIndex(currentTimestamp, loan.periodInSeconds);
-        uint256 freezePeriod = _periodIndex(loan.freezeTimestamp, loan.periodInSeconds);
-        uint256 frozenPeriods = currentPeriod - freezePeriod;
+        uint256 currentPeriodIndex = _periodIndex(currentTimestamp, loan.periodInSeconds);
+        uint256 freezePeriodIndex = _periodIndex(loan.freezeTimestamp, loan.periodInSeconds);
+        uint256 frozenPeriods = currentPeriodIndex - freezePeriodIndex;
 
         if (frozenPeriods > 0) {
             loan.trackedTimestamp += (frozenPeriods * loan.periodInSeconds).toUint32();
@@ -507,7 +507,7 @@ contract LendingMarket is
         Loan.Preview memory preview;
         Loan.State storage loan = _loans[loanId];
 
-        (preview.outstandingBalance, preview.period) = _outstandingBalance(loan, timestamp);
+        (preview.outstandingBalance, preview.periodIndex) = _outstandingBalance(loan, timestamp);
 
         return preview;
     }
@@ -559,35 +559,35 @@ contract LendingMarket is
     /// @param loan The loan to calculate the outstanding balance for.
     /// @param timestamp The timestamp to calculate the outstanding balance at.
     /// @return outstandingBalance The outstanding balance of the loan at the specified timestamp.
-    /// @return givenPeriod The period index that corresponds the provided timestamp.
+    /// @return periodIndex The period index that corresponds the provided timestamp.
     function _outstandingBalance(
         Loan.State storage loan,
         uint256 timestamp
-    ) internal view returns (uint256 outstandingBalance, uint256 givenPeriod) {
+    ) internal view returns (uint256 outstandingBalance, uint256 periodIndex) {
         outstandingBalance = loan.trackedBorrowBalance;
 
         if (loan.freezeTimestamp != 0) {
             timestamp = loan.freezeTimestamp;
         }
 
-        givenPeriod = _periodIndex(timestamp, loan.periodInSeconds);
-        uint256 trackedPeriod = _periodIndex(loan.trackedTimestamp, loan.periodInSeconds);
+        periodIndex = _periodIndex(timestamp, loan.periodInSeconds);
+        uint256 trackedPeriodIndex = _periodIndex(loan.trackedTimestamp, loan.periodInSeconds);
 
-        if (givenPeriod > trackedPeriod) {
-            uint256 startPeriod = _periodIndex(loan.startTimestamp, loan.periodInSeconds);
-            uint256 duePeriod = startPeriod + loan.durationInPeriods;
-            if (givenPeriod < duePeriod) {
+        if (periodIndex > trackedPeriodIndex) {
+            uint256 startPeriodIndex = _periodIndex(loan.startTimestamp, loan.periodInSeconds);
+            uint256 duePeriodIndex = startPeriodIndex + loan.durationInPeriods;
+            if (periodIndex < duePeriodIndex) {
                 outstandingBalance = InterestMath.calculateOutstandingBalance(
                     outstandingBalance,
-                    givenPeriod - trackedPeriod,
+                    periodIndex - trackedPeriodIndex,
                     loan.interestRatePrimary,
                     loan.interestRateFactor,
                     loan.interestFormula
                 );
-            } else if (trackedPeriod >= duePeriod) {
+            } else if (trackedPeriodIndex >= duePeriodIndex) {
                 outstandingBalance = InterestMath.calculateOutstandingBalance(
                     outstandingBalance,
-                    givenPeriod - trackedPeriod,
+                    periodIndex - trackedPeriodIndex,
                     loan.interestRateSecondary,
                     loan.interestRateFactor,
                     loan.interestFormula
@@ -595,15 +595,15 @@ contract LendingMarket is
             } else {
                 outstandingBalance = InterestMath.calculateOutstandingBalance(
                     outstandingBalance,
-                    duePeriod - trackedPeriod,
+                    duePeriodIndex - trackedPeriodIndex,
                     loan.interestRatePrimary,
                     loan.interestRateFactor,
                     loan.interestFormula
                 );
-                if (givenPeriod > duePeriod) {
+                if (periodIndex > duePeriodIndex) {
                     outstandingBalance = InterestMath.calculateOutstandingBalance(
                         outstandingBalance,
-                        givenPeriod - duePeriod,
+                        periodIndex - duePeriodIndex,
                         loan.interestRateSecondary,
                         loan.interestRateFactor,
                         loan.interestFormula
