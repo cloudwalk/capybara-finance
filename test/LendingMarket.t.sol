@@ -202,7 +202,6 @@ contract LendingMarketTest is Test {
 
     function createRepaidLoan(uint256 skipPeriodsBeforeRepayment) private returns (uint256) {
         uint256 loanId = createActiveLoan(skipPeriodsBeforeRepayment);
-        Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
         assertEq(outstandingBalance != 0, true);
@@ -289,11 +288,11 @@ contract LendingMarketTest is Test {
         });
     }
 
-    function initLoanTerms(address token) internal returns (Loan.Terms memory) {
+    function initLoanTerms(address token_) internal pure returns (Loan.Terms memory) {
         ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = initCreditLineConfig();
         ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(0);
         return Loan.Terms({
-            token: token,
+            token: token_,
             treasury: address(0),
             periodInSeconds: creditLineConfig.periodInSeconds,
             durationInPeriods: DURATION_IN_PERIODS,
@@ -831,7 +830,6 @@ contract LendingMarketTest is Test {
     function test_repayLoan_IRepaymentAmountIsUint256Max() public {
         configureMarket();
         uint256 loanId = createActiveLoan(1);
-        Loan.State memory loan = market.getLoanState(loanId);
 
         vm.startPrank(BORROWER_1);
 
@@ -908,7 +906,6 @@ contract LendingMarketTest is Test {
     function test_repayLoan_Revert_IfRepayAmountIsGreaterThanBorrowAmount() public {
         configureMarket();
         uint256 loanId = createActiveLoan(1);
-        Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
         token.mint(BORROWER_1, outstandingBalance - token.balanceOf(BORROWER_1) + 1);
@@ -1028,7 +1025,7 @@ contract LendingMarketTest is Test {
 
         uint256 oldDurationInPeriods = loan.durationInPeriods;
         uint256 oldOutstandingBalance = preview.outstandingBalance;
-        uint256 currentTimestamp = preview.period * loan.durationInPeriods;
+        // uint256 currentTimestamp = preview.period * loan.durationInPeriods;
 
         // assertEq(loan.freezeTimestamp, currentTimestamp);
         // assertEq(loan.trackedTimestamp, currentTimestamp);

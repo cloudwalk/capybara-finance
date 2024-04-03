@@ -92,7 +92,7 @@ contract LiquidityPoolAccountableTest is Test {
         return (loanIds, amounts);
     }
 
-    function initLoanState() public returns (Loan.State memory) {
+    function initLoanState() public view returns (Loan.State memory) {
         return Loan.State({
             token: address(token),
             borrower: address(0),

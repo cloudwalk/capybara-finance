@@ -190,9 +190,9 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
 
         emit AutoRepayment(loanIds.length);
 
-        ILendingMarket market = ILendingMarket(_market);
+        ILendingMarket lendingMarket = ILendingMarket(_market);
         for (uint256 i = 0; i < loanIds.length; i++) {
-            market.repayLoan(loanIds[i], amounts[i]);
+            lendingMarket.repayLoan(loanIds[i], amounts[i]);
         }
     }
 
@@ -201,7 +201,12 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
     // -------------------------------------------- //
 
     /// @inheritdoc ILiquidityPool
-    function onBeforeLoanTaken(uint256 loanId, address creditLine) external whenNotPaused onlyMarket returns (bool) {
+    function onBeforeLoanTaken(
+        uint256 loanId,
+        address creditLine
+    ) external whenNotPaused onlyMarket view returns (bool) {
+        loanId; // To prevent compiler warning about unused variable
+        creditLine; // To prevent compiler warning about unused variable
         return true;
     }
 
@@ -214,7 +219,9 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
     }
 
     /// @inheritdoc ILiquidityPool
-    function onBeforeLoanPayment(uint256 loanId, uint256 amount) external whenNotPaused onlyMarket returns (bool) {
+    function onBeforeLoanPayment(uint256 loanId, uint256 amount) external whenNotPaused onlyMarket view returns (bool) {
+        loanId; // To prevent compiler warning about unused variable
+        amount; // To prevent compiler warning about unused variable
         return true;
     }
 

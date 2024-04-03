@@ -52,6 +52,8 @@ contract CreditLineFactory is OwnableUpgradeable, ICreditLineFactory {
         uint16 kind,
         bytes calldata data
     ) external onlyOwner returns (address) {
+        data; // To prevent compiler warning about unused variable
+
         if (kind != 1) {
             revert UnsupportedKind();
         }

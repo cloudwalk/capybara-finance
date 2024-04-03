@@ -202,13 +202,19 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ILendingMarket
-    function updateCreditLineLender(address creditLine, address newLender) external {
+    function updateCreditLineLender(address creditLine, address newLender) external pure {
+        creditLine; // To prevent compiler warning about unused variable
+        newLender; // To prevent compiler warning about unused variable
+
         // TBD Check if updating the lender associated with the credit line
         // can have any unexpected side effects during the loan lifecycle.
         revert Error.NotImplemented();
     }
 
-    function updateLiquidityPoolLender(address liquidityPool, address newLender) external {
+    function updateLiquidityPoolLender(address liquidityPool, address newLender) external pure {
+        liquidityPool; // To prevent compiler warning about unused variable
+        newLender; // To prevent compiler warning about unused variable
+
         // TBD Check if updating the lender associated with the liquidity pool
         // can have any unexpected side effects during the loan lifecycle.
         revert Error.NotImplemented();
@@ -634,6 +640,7 @@ contract LendingMarket is
 
     /// @dev Returns the current block timestamp.
     function _blockTimestamp(uint256 loanId) virtual internal view returns (uint256) {
+        loanId; // To prevent compiler warning about unused variable
         return block.timestamp;
     }
 

@@ -208,8 +208,10 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         address borrower,
         uint256 borrowAmount,
         uint256 durationInPeriods,
-        uint256 loandId
+        uint256 loanId
     ) external whenNotPaused onlyMarket returns (Loan.Terms memory terms) {
+        loanId; // To prevent compiler warning about unused variable
+
         terms = determineLoanTerms(borrower, borrowAmount, durationInPeriods);
 
         BorrowerConfig storage borrowerConfig = _borrowers[borrower];
@@ -218,7 +220,9 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
             borrowerConfig.maxBorrowAmount = 0;
         } else if (borrowerConfig.borrowPolicy == BorrowPolicy.Decrease) {
             borrowerConfig.maxBorrowAmount -= borrowAmount.toUint64();
-        } else if (borrowerConfig.borrowPolicy == BorrowPolicy.Keep) { } else {
+        } else if (borrowerConfig.borrowPolicy == BorrowPolicy.Keep) {
+            // Do nothing
+        } else {
             // NOTE: This should never happen since all possible policies are checked above
             revert UnsupportedBorrowPolicy();
         }
