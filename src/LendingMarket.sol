@@ -667,7 +667,7 @@ contract LendingMarket is
     function migrateLoans(
         Loan.State[] memory state,
         address creditLine
-    ) external whenNotPaused onlyOwner {
+    ) external whenNotPaused {
         if (creditLine == address(0)) {
             revert Error.ZeroAddress();
         }
