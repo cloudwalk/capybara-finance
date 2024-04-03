@@ -1,54 +1,24 @@
 import { HardhatUserConfig } from "hardhat/config";
+import "@nomicfoundation/hardhat-foundry";
 import "@nomicfoundation/hardhat-toolbox";
-import "@openzeppelin/hardhat-upgrades";
-import "hardhat-contract-sizer";
-import "hardhat-gas-reporter";
-import dotenv from "dotenv";
-
-dotenv.config();
 
 const config: HardhatUserConfig = {
   solidity: {
-    version: process.env.SOLIDITY_VERSION ?? "",
+    version: "0.8.24",
     settings: {
       optimizer: {
-        enabled: process.env.OPTIMIZER_ENABLED === "true",
-        runs: Number(process.env.OPTIMIZER_RUNS)
-      }
-    }
+        enabled: true,
+        runs: 1000,
+      },
+    },
   },
   networks: {
     hardhat: {
       accounts: {
-        mnemonic: process.env.HARDHAT_MNEMONIC
-      }
-    },
-    ganache: {
-      url: process.env.GANACHE_RPC,
-      accounts: {
-        mnemonic: process.env.GANACHE_MNEMONIC
-      }
-    },
-    cw_testnet: {
-      url: process.env.CW_TESTNET_RPC,
-      accounts: process.env.CW_TESTNET_PK
-        ? [process.env.CW_TESTNET_PK]
-        : {
-          mnemonic: process.env.CW_TESTNET_MNEMONIC || ""
-        }
-    },
-    cw_mainnet: {
-      url: process.env.CW_MAINNET_RPC,
-      accounts: process.env.CW_MAINNET_PK
-        ? [process.env.CW_MAINNET_PK]
-        : {
-          mnemonic: process.env.CW_MAINNET_MNEMONIC || ""
-        }
+        mnemonic: "test test test test test test test test test test test junk",
+      },
     }
   },
-  gasReporter: {
-    enabled: process.env.GAS_REPORTER_ENABLED === "true"
-  }
 };
 
 export default config;
