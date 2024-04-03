@@ -48,7 +48,7 @@ contract LendingMarketMock is ILendingMarket {
         revert Error.NotImplemented();
     }
 
-    function updateLoanMoratorium(uint256 loanId, uint256 newMoratoriumExpirationTimestamp) external {
+    function updateLoanMoratorium(uint256 loanId, uint256 newMoratoriumInPeriods) external {
         revert Error.NotImplemented();
     }
 

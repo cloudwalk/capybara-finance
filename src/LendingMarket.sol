@@ -406,20 +406,20 @@ contract LendingMarket is
     /// @inheritdoc ILendingMarket
     function updateLoanMoratorium(
         uint256 loanId,
-        uint256 newMoratoriumExpirationTimestamp
+        uint256 newMoratoriumInPeriods
     ) external whenNotPaused onlyOngoingLoan(loanId) onlyLenderOrAlias(loanId) {
         Loan.State storage loan = _loans[loanId];
 
-        uint256 currentTimestamp = _blockTimestamp(loanId);
-        if (newMoratoriumExpirationTimestamp < currentTimestamp) {
+        uint256 currentMoratoriumInPeriods = _moratoriumInPeriods(loan, _blockTimestamp(loanId));
+        if (newMoratoriumInPeriods <= currentMoratoriumInPeriods) {
             revert InappropriateLoanMoratorium();
         }
 
-        (uint256 newTrackedBorrowBalance,) = _outstandingBalance(loan, currentTimestamp);
-        loan.trackedBorrowBalance = newTrackedBorrowBalance.toUint64();
-        loan.trackedTimestamp = newMoratoriumExpirationTimestamp.toUint32();
+        newMoratoriumInPeriods -= currentMoratoriumInPeriods;
 
-        emit LoanMoratoriumUpdated(loanId, newMoratoriumExpirationTimestamp);
+        emit LoanMoratoriumUpdated(loanId, loan.trackedTimestamp, newMoratoriumInPeriods);
+
+        loan.trackedTimestamp += (newMoratoriumInPeriods * loan.periodInSeconds).toUint32();
     }
 
     /// @inheritdoc ILendingMarket
@@ -545,19 +545,6 @@ contract LendingMarket is
         );
     }
 
-    /// @notice Calculates the remaining duration of the moratorium for a loan at the current timestamp.
-    /// @param loanId The unique identifier of the loan to check.
-    /// @return The remaining duration of the moratorium in seconds or zero if there is no moratorium.
-    function calculateMoratoriumDuration(uint256 loanId) external view returns (uint256) {
-        uint256 trackedTimestamp = _loans[loanId].trackedTimestamp;
-        uint256 currentTimestamp = _blockTimestamp(loanId);
-        if (trackedTimestamp > currentTimestamp) {
-            return trackedTimestamp - currentTimestamp;
-        } else {
-            return 0;
-        }
-    }
-
     // -------------------------------------------- //
     //  Internal functions                          //
     // -------------------------------------------- //
@@ -618,6 +605,17 @@ contract LendingMarket is
                 }
             }
         }
+    }
+
+    /// @dev Calculates the moratorium periods of a loan.
+    /// @param loan The loan to calculate the moratorium periods for.
+    /// @param timestamp The timestamp to calculate the moratorium periods at.
+    /// @return The number of moratorium periods of the loan at the specified timestamp.
+    function _moratoriumInPeriods(Loan.State storage loan, uint256 timestamp) internal view returns (uint256) {
+        uint256 periodIndex = _periodIndex(timestamp, loan.periodInSeconds);
+        uint256 trackedPeriodIndex = _periodIndex(loan.trackedTimestamp, loan.periodInSeconds);
+
+        return trackedPeriodIndex > periodIndex ? trackedPeriodIndex - periodIndex : 0;
     }
 
     /// @dev Mints a new NFT token.
