@@ -77,14 +77,12 @@ interface ICreditLineConfigurable is ICreditLine {
 
     /// @notice Emitted when the credit line is configured.
     /// @param creditLine The address of the current credit line.
-    /// @param config The struct containing the credit line configuration.
-    event CreditLineConfigured(address indexed creditLine, CreditLineConfig config);
+    event CreditLineConfigured(address indexed creditLine);
 
     /// @notice Emitted when the borrower is configured.
     /// @param creditLine The address of the current credit line.
     /// @param borrower The address of the borrower being configured.
-    /// @param config The struct containing the borrower configuration.
-    event BorrowerConfigured(address indexed creditLine, address indexed borrower, BorrowerConfig config);
+    event BorrowerConfigured(address indexed creditLine, address indexed borrower);
 
     // -------------------------------------------- //
     //  Functions                                   //

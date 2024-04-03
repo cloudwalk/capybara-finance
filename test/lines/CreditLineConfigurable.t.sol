@@ -28,10 +28,8 @@ contract CreditLineConfigurableTest is Test {
 
     event AdminConfigured(address indexed admin, bool isAdmin);
     event TokenConfigured(address creditLine, address indexed token);
-    event CreditLineConfigured(address indexed creditLine, ICreditLineConfigurable.CreditLineConfig config);
-    event BorrowerConfigured(
-        address indexed creditLine, address indexed borrower, ICreditLineConfigurable.BorrowerConfig config
-    );
+    event CreditLineConfigured(address indexed creditLine);
+    event BorrowerConfigured(address indexed creditLine, address indexed borrower);
 
     // -------------------------------------------- //
     //  Storage variables                           //
@@ -392,7 +390,7 @@ contract CreditLineConfigurableTest is Test {
 
         vm.prank(LENDER_1);
         vm.expectEmit(true, true, true, true, address(creditLine));
-        emit CreditLineConfigured(address(creditLine), config);
+        emit CreditLineConfigured(address(creditLine));
         creditLine.configureCreditLine(config);
 
         assertTrueCreditLineConfig(config, creditLine.creditLineConfiguration());
@@ -491,7 +489,7 @@ contract CreditLineConfigurableTest is Test {
 
         vm.prank(ADMIN);
         vm.expectEmit(true, true, true, true, address(creditLine));
-        emit BorrowerConfigured(address(creditLine), BORROWER_1, config);
+        emit BorrowerConfigured(address(creditLine), BORROWER_1);
         creditLine.configureBorrower(BORROWER_1, config);
 
         assertTrueBorrowerConfig(config, creditLine.getBorrowerConfiguration(BORROWER_1));
@@ -704,7 +702,7 @@ contract CreditLineConfigurableTest is Test {
 
         for (uint256 i = 0; i < borrowers.length; i++) {
             vm.expectEmit(true, true, true, true, address(creditLine));
-            emit BorrowerConfigured(address(creditLine), borrowers[i], configs[i]);
+            emit BorrowerConfigured(address(creditLine), borrowers[i]);
             assertFalseBorrowerConfig(configs[i], creditLine.getBorrowerConfiguration(borrowers[i]));
         }
 

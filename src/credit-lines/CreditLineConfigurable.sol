@@ -173,7 +173,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
 
         _config = config;
 
-        emit CreditLineConfigured(address(this), config);
+        emit CreditLineConfigured(address(this));
     }
 
     // -------------------------------------------- //
@@ -407,6 +407,6 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
 
         _borrowers[borrower] = config;
 
-        emit BorrowerConfigured(address(this), borrower, config);
+        emit BorrowerConfigured(address(this), borrower);
     }
 }
