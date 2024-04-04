@@ -7,7 +7,7 @@ import { LiquidityPoolFactory } from "./LiquidityPoolFactory.sol";
 
 /// @title LiquidityPoolFactoryUUPS contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Upgradeable version of the liquidity pool factory contract.
+/// @dev Upgradeable version of the liquidity pool factory contract.
 contract LiquidityPoolFactoryUUPS is LiquidityPoolFactory, UUPSUpgradeable {
     /// @dev Constructor that prohibits the initialization of the implementation of the upgradable contract.
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -16,5 +16,5 @@ contract LiquidityPoolFactoryUUPS is LiquidityPoolFactory, UUPSUpgradeable {
     }
 
     /// @inheritdoc UUPSUpgradeable
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner { }
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 }
