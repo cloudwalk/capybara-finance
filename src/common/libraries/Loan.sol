@@ -45,8 +45,8 @@ library Loan {
         Interest.Formula interestFormula; // The formula to be used for interest calculation on the loan.
         bool autoRepayment;               // The flag that indicates whether the loan can be repaid automatically.
         // Slot 3
-        address addonRecipient;           // The address of the loan add-on recipient (extra charges or fees).
-        uint64 addonAmount;               // The amount of the loan add-on (extra charges or fees).
+        address addonRecipient;           // The address of the loan addon recipient (extra charges or fees).
+        uint64 addonAmount;               // The amount of the loan addon (extra charges or fees).
     }
 
     /// @dev A struct that defines the preview of the loan.
