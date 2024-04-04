@@ -10,28 +10,32 @@ import { CreditLineFactoryMock } from "src/mocks/CreditLineFactoryMock.sol";
 
 /// @title CreditLineFactoryMockTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Contains tests for the `CreditLineFactoryMock` contract.
+/// @dev Contains tests for the `CreditLineFactoryMock` contract.
 contract CreditLineFactoryMockTest is Test {
     // -------------------------------------------- //
     //  Events                                      //
     // -------------------------------------------- //
 
     event CreateCreditLineCalled(
-        address indexed market, address indexed lender, address indexed token, uint16 kind, bytes data
+        address indexed market,
+        address indexed lender,
+        address indexed token,
+        uint16 kind,
+        bytes data
     );
 
     // -------------------------------------------- //
     //  Storage variables                           //
     // -------------------------------------------- //
 
-    CreditLineFactoryMock public mock;
+    CreditLineFactoryMock private mock;
 
-    address public constant TOKEN = address(bytes20(keccak256("token")));
-    address public constant MARKET = address(bytes20(keccak256("market")));
-    address public constant LENDER = address(bytes20(keccak256("lender")));
-    address public constant CREDIT_LINE = address(bytes20(keccak256("credit_line")));
-    uint16 public constant KIND = 1;
-    bytes public constant DATA = "0x123ff";
+    address private constant TOKEN = address(bytes20(keccak256("token")));
+    address private constant MARKET = address(bytes20(keccak256("market")));
+    address private constant LENDER = address(bytes20(keccak256("lender")));
+    address private constant CREDIT_LINE = address(bytes20(keccak256("credit_line")));
+    uint16 private constant KIND = 1;
+    bytes private constant DATA = "0x123ff";
 
     // -------------------------------------------- //
     //  Setup and configuration                     //
