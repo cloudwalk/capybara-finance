@@ -13,11 +13,11 @@ interface ILiquidityPoolAccountable is ILiquidityPool {
     // -------------------------------------------- //
 
     /// @dev Emitted when an account is configured as an admin.
-    /// @param admin The address of the admin account.
-    /// @param isAdmin True if the account is an admin.
+    /// @param account The address of the admin account.
+    /// @param adminStatus True if the account is an admin.
     event AdminConfigured(
-        address indexed admin,
-        bool isAdmin
+        address indexed account,
+        bool adminStatus
     );
 
     /// @dev Emitted when tokens are deposited to the liquidity pool.
@@ -45,9 +45,9 @@ interface ILiquidityPoolAccountable is ILiquidityPool {
     // -------------------------------------------- //
 
     /// @dev Configures the admin status for an account.
-    /// @param admin The address of the account to configure as an admin.
-    /// @param isAdmin True whether the account is an admin.
-    function configureAdmin(address admin, bool isAdmin) external;
+    /// @param account The address of the account to configure as an admin.
+    /// @param adminStatus True whether the account is an admin.
+    function configureAdmin(address account, bool adminStatus) external;
 
     /// @dev Deposits tokens to the liquidity pool.
     /// @param creditLine The address of the credit line.

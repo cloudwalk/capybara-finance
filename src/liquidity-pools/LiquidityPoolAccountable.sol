@@ -112,17 +112,17 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
     }
 
     /// @inheritdoc ILiquidityPoolAccountable
-    function configureAdmin(address admin, bool isAdmin) external onlyOwner {
-        if (admin == address(0)) {
+    function configureAdmin(address account, bool adminStatus) external onlyOwner {
+        if (account == address(0)) {
             revert Error.ZeroAddress();
         }
-        if (_admins[admin] == isAdmin) {
+        if (_admins[account] == adminStatus) {
             revert Error.AlreadyConfigured();
         }
 
-        _admins[admin] = isAdmin;
+        _admins[account] = adminStatus;
 
-        emit AdminConfigured(admin, isAdmin);
+        emit AdminConfigured(account, adminStatus);
     }
 
     /// @inheritdoc ILiquidityPoolAccountable

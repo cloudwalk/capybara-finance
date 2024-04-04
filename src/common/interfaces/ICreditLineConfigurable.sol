@@ -73,9 +73,9 @@ interface ICreditLineConfigurable is ICreditLine {
     // -------------------------------------------- //
 
     /// @dev Emitted when an admin is configured.
-    /// @param admin The address of the admin account.
-    /// @param isAdmin True if the account is an admin.
-    event AdminConfigured(address indexed admin, bool isAdmin);
+    /// @param account The address of the admin account.
+    /// @param adminStatus True if the account is an admin.
+    event AdminConfigured(address indexed account, bool adminStatus);
 
     /// @dev Emitted when the credit line is configured.
     /// @param creditLine The address of the current credit line.
@@ -91,9 +91,9 @@ interface ICreditLineConfigurable is ICreditLine {
     // -------------------------------------------- //
 
     /// @dev Configures an account as an admin.
-    /// @param admin The address of the account to configure as an admin.
-    /// @param isAdmin True whether the account is an admin.
-    function configureAdmin(address admin, bool isAdmin) external;
+    /// @param account The address of the account to configure as an admin.
+    /// @param adminStatus True whether the account is an admin.
+    function configureAdmin(address account, bool adminStatus) external;
 
     /// @dev Updates the credit line configuration.
     /// @param config The structure containing the credit line configuration.
