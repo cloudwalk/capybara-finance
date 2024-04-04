@@ -11,7 +11,7 @@ import { CreditLineFactoryUUPS } from "src/credit-lines/CreditLineFactoryUUPS.so
 
 /// @title CreditLineFactoryUUPSTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Contains tests for the `CreditLineFactoryUUPS` contract.
+/// @dev Contains tests for the `CreditLineFactoryUUPS` contract.
 contract CreditLineFactoryUUPSTest is Test {
     // -------------------------------------------- //
     //  Events                                      //
@@ -23,10 +23,10 @@ contract CreditLineFactoryUUPSTest is Test {
     //  Storage variables                           //
     // -------------------------------------------- //
 
-    CreditLineFactoryUUPS public proxy;
+    CreditLineFactoryUUPS private proxy;
 
-    address public constant OWNER = address(bytes20(keccak256("owner")));
-    address public constant ATTACKER = address(bytes20(keccak256("attacker")));
+    address private constant OWNER = address(bytes20(keccak256("owner")));
+    address private constant ATTACKER = address(bytes20(keccak256("attacker")));
 
     // -------------------------------------------- //
     //  Setup and configuration                     //
