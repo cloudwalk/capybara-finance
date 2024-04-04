@@ -6,14 +6,13 @@ import { LendingMarketUUPS } from "../LendingMarketUUPS.sol";
 
 /// @title LendingMarketHarnessUUPS contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Upgradeable version of the lending market contract for testing purposes.
+/// @dev Upgradeable version of the lending market contract with special functions for testing purposes.
 contract LendingMarketHarnessUUPS is LendingMarketUUPS {
-
     mapping(address => bool) _isHarnessAdmin;
 
     mapping(uint256 => uint256) _loanIdToTimestamp;
 
-    modifier onlyHarnessAdmin {
+    modifier onlyHarnessAdmin() {
         require(_isHarnessAdmin[msg.sender], "Caller is not a harness admin");
         _;
     }
