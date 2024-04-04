@@ -25,59 +25,58 @@
 // import { ComplexScenarios } from "./ComplexScenarios.sol";
 
 // /// @title LendingMarketTest contract
-// /// @notice Contains complex tests for the LendingMarket contract
+// /// @dev Contains complex tests for the LendingMarket contract
 // /// @author CloudWalk Inc. (See https://cloudwalk.io)
 // contract LendingMarketComplexTest is Test {
-//     ERC20Mock public token;
-//     LendingRegistry public registry;
-//     LendingMarket public lendingMarket;
-//     CreditLineConfigurable public creditLine;
-//     LiquidityPoolAccountable public liquidityPool;
-//     ComplexScenarios public scenarios;
+//     ERC20Mock private token;
+//     LendingRegistry private registry;
+//     LendingMarket private lendingMarket;
+//     CreditLineConfigurable private creditLine;
+//     LiquidityPoolAccountable private liquidityPool;
+//     ComplexScenarios private scenarios;
 
-//     address public borrower;
-//     CreditLineConfigurable.CreditLineConfig public creditLineConfig;
-//     CreditLineConfigurable.BorrowerConfig public borrowerConfig;
+//     address private borrower;
+//     CreditLineConfigurable.CreditLineConfig private creditLineConfig;
+//     CreditLineConfigurable.BorrowerConfig private borrowerConfig;
 
-//     string public constant NAME = "TEST";
-//     string public constant SYMBOL = "TST";
+//     string private constant NAME = "TEST";
+//     string private constant SYMBOL = "TST";
 
-//     address public constant ADMIN = address(bytes20(keccak256("admin")));
-//     address public constant TOKEN = address(bytes20(keccak256("token")));
-//     address public constant OWNER = address(bytes20(keccak256("owner")));
+//     address private constant ADMIN = address(bytes20(keccak256("admin")));
+//     address private constant TOKEN = address(bytes20(keccak256("token")));
+//     address private constant OWNER = address(bytes20(keccak256("owner")));
 
-//     uint256 public constant TOKEN_AMOUNT = 1000000000000000000000000;
-//     uint256 public constant CREDITLINE_DEPOSIT_AMOUNT = 100000000000000000;
-//     uint256 public constant BORROWER_SUPPLY_AMOUNT = 1000000000000000;
-//     uint256 public constant PERMISSIBLE_PERCENT_ERROR = 1;
+//     uint256 private constant TOKEN_AMOUNT = 1000000000000000000000000;
+//     uint256 private constant CREDITLINE_DEPOSIT_AMOUNT = 100000000000000000;
+//     uint256 private constant BORROWER_SUPPLY_AMOUNT = 1000000000000000;
+//     uint256 private constant PERMISSIBLE_PERCENT_ERROR = 1;
 
-//     uint32 public constant BASE_BLOCKTIMESTAMP = 1337;
-//     uint256 public constant ZERO_VALUE = 0;
+//     uint32 private constant BASE_BLOCKTIMESTAMP = 1337;
+//     uint256 private constant ZERO_VALUE = 0;
 
-//     address public constant BORROWER = address(bytes20(keccak256("borrower")));
-//     address public constant LENDER = address(bytes20(keccak256("lender")));
-//     address public constant ADDON_RECIPIENT = address(bytes20(keccak256("addon_recipient")));
+//     address private constant BORROWER = address(bytes20(keccak256("borrower")));
+//     address private constant LENDER = address(bytes20(keccak256("lender")));
+//     address private constant ADDON_RECIPIENT = address(bytes20(keccak256("addon_recipient")));
 
-//     uint64 public constant INIT_CREDIT_LINE_MIN_BORROW_AMOUNT = 0;
-//     uint64 public constant INIT_CREDIT_LINE_MAX_BORROW_AMOUNT = type(uint64).max;
-//     uint32 public constant INIT_CREDIT_LINE_MIN_INTEREST_RATE_PRIMARY = 0;
-//     uint32 public constant INIT_CREDIT_LINE_MAX_INTEREST_RATE_PRIMARY = type(uint32).max;
-//     uint32 public constant INIT_CREDIT_LINE_MIN_INTEREST_RATE_SECONDARY = 0;
-//     uint32 public constant INIT_CREDIT_LINE_MAX_INTEREST_RATE_SECONDARY = type(uint32).max;
-//     uint32 public constant INIT_CREDIT_LINE_MIN_DURATION_IN_PERIODS = 0;
-//     uint32 public constant INIT_CREDIT_LINE_MAX_DURATION_IN_PERIODS = type(uint32).max;
-//     uint32 public constant INIT_CREDIT_LINE_MIN_ADDON_FIXED_COST_RATE = 0;
-//     uint32 public constant INIT_CREDIT_LINE_MAX_ADDON_FIXED_COST_RATE = type(uint32).max;
-//     uint32 public constant INIT_CREDIT_LINE_MIN_ADDON_PERIOD_COST_RATE = 0;
-//     uint32 public constant INIT_CREDIT_LINE_MAX_ADDON_PERIOD_COST_RATE = type(uint32).max;
+//     uint64 private constant INIT_CREDIT_LINE_MIN_BORROW_AMOUNT = 0;
+//     uint64 private constant INIT_CREDIT_LINE_MAX_BORROW_AMOUNT = type(uint64).max;
+//     uint32 private constant INIT_CREDIT_LINE_MIN_INTEREST_RATE_PRIMARY = 0;
+//     uint32 private constant INIT_CREDIT_LINE_MAX_INTEREST_RATE_PRIMARY = type(uint32).max;
+//     uint32 private constant INIT_CREDIT_LINE_MIN_INTEREST_RATE_SECONDARY = 0;
+//     uint32 private constant INIT_CREDIT_LINE_MAX_INTEREST_RATE_SECONDARY = type(uint32).max;
+//     uint32 private constant INIT_CREDIT_LINE_MIN_DURATION_IN_PERIODS = 0;
+//     uint32 private constant INIT_CREDIT_LINE_MAX_DURATION_IN_PERIODS = type(uint32).max;
+//     uint32 private constant INIT_CREDIT_LINE_MIN_ADDON_FIXED_RATE = 0;
+//     uint32 private constant INIT_CREDIT_LINE_MAX_ADDON_FIXED_RATE = type(uint32).max;
+//     uint32 private constant INIT_CREDIT_LINE_MIN_ADDON_PERIOD_RATE = 0;
+//     uint32 private constant INIT_CREDIT_LINE_MAX_ADDON_PERIOD_RATE = type(uint32).max;
 
-//     uint32 public constant INIT_BORROWER_DURATION = 1000;
-//     uint64 public constant INIT_BORROWER_MIN_BORROW_AMOUNT = 0;
-//     uint64 public constant INIT_BORROWER_MAX_BORROW_AMOUNT = type(uint64).max;
-//     ICreditLineConfigurable.BorrowPolicy public constant INIT_BORROWER_POLICY =
-//     ICreditLineConfigurable.BorrowPolicy.Keep;
-//     Interest.Formula public constant INIT_BORROWER_INTEREST_FORMULA_COMPOUND =
-//     Interest.Formula.Compound;
+//     uint32 private constant INIT_BORROWER_DURATION = 1000;
+//     uint64 private constant INIT_BORROWER_MIN_BORROW_AMOUNT = 0;
+//     uint64 private constant INIT_BORROWER_MAX_BORROW_AMOUNT = type(uint64).max;
+//     ICreditLineConfigurable.BorrowPolicy private constant INIT_BORROWER_POLICY =
+//         ICreditLineConfigurable.BorrowPolicy.Keep;
+//     Interest.Formula private constant INIT_BORROWER_INTEREST_FORMULA_COMPOUND = Interest.Formula.Compound;
 
 //     /************************************************
 //      *  Setup and configuration
@@ -96,14 +95,14 @@
 //         vm.stopPrank();
 //     }
 
-//     function configureRegistry() public {
+//     function configureRegistry() private {
 //         registry = new LendingRegistry();
 //         registry.initialize(address(lendingMarket));
 //         registry.transferOwnership(OWNER);
 //         lendingMarket.setRegistry(address(registry));
 //     }
 
-//     function configureLendingMarketForComplexTests(ComplexScenarios.LoanParameters memory loan) public {
+//     function configureLendingMarketForComplexTests(ComplexScenarios.LoanParameters memory loan) private {
 //         vm.warp(BASE_BLOCKTIMESTAMP);
 //         //create token
 //         vm.prank(OWNER);
@@ -138,11 +137,11 @@
 //         token.approve(address(lendingMarket), type(uint256).max);
 //     }
 
-//     function configureToken(uint8 decimals) public {
+//     function configureToken(uint8 decimals) private {
 //         token = new ERC20Mock(TOKEN_AMOUNT, decimals);
 //     }
 
-//     function configureLiquidityPool() public {
+//     function configureLiquidityPool() private {
 //         vm.startPrank(OWNER);
 //         liquidityPool.initialize(address(lendingMarket), LENDER);
 //         lendingMarket.registerLiquidityPool(LENDER, address(liquidityPool));
@@ -154,12 +153,14 @@
 //         vm.stopPrank();
 //     }
 
-//     function takeLoan(address borrower, uint256 amount) public returns(uint256) {
-//         vm.prank(borrower);
+//     function takeLoan(address borrower_, uint256 amount) private returns (uint256) {
+//         vm.prank(borrower_);
 //         return lendingMarket.takeLoan(address(creditLine), amount, 250);
 //     }
 
-//     function createBorrowerConfig(ComplexScenarios.LoanParameters memory loan) public view returns (ICreditLineConfigurable.BorrowerConfig memory) {
+//     function createBorrowerConfig(
+//         ComplexScenarios.LoanParameters memory loan
+//     ) private pure returns (ICreditLineConfigurable.BorrowerConfig memory) {
 //         return ICreditLineConfigurable.BorrowerConfig({
 //             expiration: BASE_BLOCKTIMESTAMP + INIT_BORROWER_DURATION,
 //             minBorrowAmount: INIT_BORROWER_MIN_BORROW_AMOUNT,
@@ -168,34 +169,36 @@
 //             maxDurationInPeriods: type(uint32).max,
 //             interestRatePrimary: loan.interestRatePrimary,
 //             interestRateSecondary: loan.interestRateSecondary,
-//             addonFixedCostRate: loan.addonFixedCostRate,
-//             addonPeriodCostRate: loan.addonPeriodCostRate,
+//             addonFixedRate: loan.addonFixedRate,
+//             addonPeriodRate: loan.addonPeriodRate,
 //             interestFormula: loan.interestFormula,
 //             borrowPolicy: INIT_BORROWER_POLICY,
 //             autoRepayment: false
 //         });
 //     }
 
-//      function createCreditLineConfig(ComplexScenarios.LoanParameters memory loan) public returns (ICreditLineConfigurable.CreditLineConfig memory) {
-//          return ICreditLineConfigurable.CreditLineConfig({
-//              treasury: address(liquidityPool),
-//              periodInSeconds: loan.periodInSeconds,
-//              minDurationInPeriods: INIT_CREDIT_LINE_MIN_DURATION_IN_PERIODS,
-//              maxDurationInPeriods: INIT_CREDIT_LINE_MAX_DURATION_IN_PERIODS,
-//              minBorrowAmount: INIT_CREDIT_LINE_MIN_BORROW_AMOUNT,
-//              maxBorrowAmount: INIT_CREDIT_LINE_MAX_BORROW_AMOUNT,
-//              minInterestRatePrimary: INIT_CREDIT_LINE_MIN_INTEREST_RATE_PRIMARY,
-//              maxInterestRatePrimary: INIT_CREDIT_LINE_MAX_INTEREST_RATE_PRIMARY,
-//              minInterestRateSecondary: INIT_CREDIT_LINE_MIN_INTEREST_RATE_SECONDARY,
-//              maxInterestRateSecondary: INIT_CREDIT_LINE_MAX_INTEREST_RATE_SECONDARY,
-//              interestRateFactor: loan.interestRateFactor,
-//              addonRecipient: loan.addonRecipient,
-//              minAddonFixedCostRate: INIT_CREDIT_LINE_MIN_ADDON_FIXED_COST_RATE,
-//              maxAddonFixedCostRate: INIT_CREDIT_LINE_MAX_ADDON_FIXED_COST_RATE,
-//              minAddonPeriodCostRate: INIT_CREDIT_LINE_MIN_ADDON_PERIOD_COST_RATE,
-//              maxAddonPeriodCostRate: INIT_CREDIT_LINE_MAX_ADDON_PERIOD_COST_RATE
-//          });
-//      }
+//     function createCreditLineConfig(
+//         ComplexScenarios.LoanParameters memory loan
+//     ) private view returns (ICreditLineConfigurable.CreditLineConfig memory) {
+//         return ICreditLineConfigurable.CreditLineConfig({
+//             treasury: address(liquidityPool),
+//             periodInSeconds: loan.periodInSeconds,
+//             minDurationInPeriods: INIT_CREDIT_LINE_MIN_DURATION_IN_PERIODS,
+//             maxDurationInPeriods: INIT_CREDIT_LINE_MAX_DURATION_IN_PERIODS,
+//             minBorrowAmount: INIT_CREDIT_LINE_MIN_BORROW_AMOUNT,
+//             maxBorrowAmount: INIT_CREDIT_LINE_MAX_BORROW_AMOUNT,
+//             minInterestRatePrimary: INIT_CREDIT_LINE_MIN_INTEREST_RATE_PRIMARY,
+//             maxInterestRatePrimary: INIT_CREDIT_LINE_MAX_INTEREST_RATE_PRIMARY,
+//             minInterestRateSecondary: INIT_CREDIT_LINE_MIN_INTEREST_RATE_SECONDARY,
+//             maxInterestRateSecondary: INIT_CREDIT_LINE_MAX_INTEREST_RATE_SECONDARY,
+//             interestRateFactor: loan.interestRateFactor,
+//             addonRecipient: loan.addonRecipient,
+//             minAddonFixedRate: INIT_CREDIT_LINE_MIN_ADDON_FIXED_RATE,
+//             maxAddonFixedRate: INIT_CREDIT_LINE_MAX_ADDON_FIXED_RATE,
+//             minAddonPeriodRate: INIT_CREDIT_LINE_MIN_ADDON_PERIOD_RATE,
+//             maxAddonPeriodRate: INIT_CREDIT_LINE_MAX_ADDON_PERIOD_RATE
+//         });
+//     }
 
 //     function test_repayLoan_Case1() public {
 //         ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_1();
@@ -281,14 +284,17 @@
 //         ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_17();
 //         takeLoanAndVerifyCalculations(loan);
 //     }
+ 
 //     function test_repayLoan_Case18() public {
 //         ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_18();
 //         takeLoanAndVerifyCalculations(loan);
 //     }
+ 
 //     function test_repayLoan_Case19() public {
 //         ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_19();
 //         takeLoanAndVerifyCalculations(loan);
 //     }
+// 
 //     function test_repayLoan_Case20() public {
 //         ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_20();
 //         takeLoanAndVerifyCalculations(loan);
@@ -308,34 +314,43 @@
 //         ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_23();
 //         takeLoanAndVerifyCalculations(loan);
 //     }
+ 
 //     function test_repayLoan_Case24() public {
 //         ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_24();
 //         takeLoanAndVerifyCalculations(loan);
 //     }
+ 
 //     function test_repayLoan_Case25() public {
 //         ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_25();
 //         takeLoanAndVerifyCalculations(loan);
 //     }
+ 
 //     function test_repayLoan_Case26() public {
 //         ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_26();
 //         takeLoanAndVerifyCalculations(loan);
 //     }
+ 
 //     function test_repayLoan_Case27() public {
 //         ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_27();
 //         takeLoanAndVerifyCalculations(loan);
 //     }
+ 
 //     function test_repayLoan_Case28() public {
 //         ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_28();
 //         takeLoanAndVerifyCalculations(loan);
 //     }
-//     function takeLoanAndVerifyCalculations(ComplexScenarios.LoanParameters memory loan) public {
+ 
+//     function takeLoanAndVerifyCalculations(ComplexScenarios.LoanParameters memory loan) private {
 //         configureLendingMarketForComplexTests(loan);
 //         uint256 loanId = takeLoan(BORROWER, loan.borrowAmount);
-//         CreditLineConfigurable.CreditLineConfig memory cfg = creditLine.creditLineConfiguration();
 //         for (uint256 i = 0; i < loan.expectedOutstandingBalances.length; i++) {
 //             Loan.Preview memory loanPreview = lendingMarket.getLoanPreview(loanId, 0);
 //             uint256 contractBalanceWithDecimals = loanPreview.outstandingBalance;
-//             (uint256 contractBalance, uint256 expectedBalance) = removeDecimals(loan.tokenDecimals, contractBalanceWithDecimals, loan.expectedOutstandingBalances[i]);
+//             (uint256 contractBalance, uint256 expectedBalance) = removeDecimals(
+//                 loan.tokenDecimals,
+//                 contractBalanceWithDecimals,
+//                 loan.expectedOutstandingBalances[i]
+//             );
 //             (uint256 diff, uint256 percent) = getDiff(contractBalance, expectedBalance);
 //             if (diff == 0) {
 //                 assertEq(contractBalance, expectedBalance);
@@ -350,13 +365,18 @@
 //         }
 //     }
 
-//     function removeDecimals(uint256 tokenDecimals, uint256 contractValue, uint256 expectedValue) public returns (uint256, uint256) {
-//         uint256 roundedContractValue = contractValue / 10 ** (tokenDecimals - 2);
-//         uint256 roundedExpectedValue = expectedValue / 10 ** (tokenDecimals - 2);
+//     function removeDecimals(
+//         uint256 tokenDecimals,
+//         uint256 contractValue,
+//         uint256 expectedValue
+//     ) private pure returns (uint256, uint256) {
+//         tokenDecimals; // To prevent compiler warning about unused variable
+//         uint256 roundedContractValue = contractValue; // 10 ** (tokenDecimals - 2);
+//         uint256 roundedExpectedValue = expectedValue; // 10 ** (tokenDecimals - 2);
 //         return (roundedContractValue, roundedExpectedValue);
 //     }
 
-//     function getDiff(uint256 contractValue, uint256 expectedValue) public pure returns (uint256, uint256) {
+//     function getDiff(uint256 contractValue, uint256 expectedValue) private pure returns (uint256, uint256) {
 //         uint256 diff = contractValue > expectedValue ? contractValue - expectedValue : expectedValue - contractValue;
 //         uint256 percent;
 
