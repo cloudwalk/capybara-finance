@@ -7,24 +7,26 @@ import { ICreditLine } from "./core/ICreditLine.sol";
 
 /// @title ICreditLineConfigurable interface
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Defines the configurable credit line contract functions and events.
+/// @dev Defines the configurable credit line contract functions and events.
 interface ICreditLineConfigurable is ICreditLine {
     // -------------------------------------------- //
     //  Structs and enums                           //
     // -------------------------------------------- //
 
-    /// @notice An enum that defines the available borrow policies.
+    /// @dev An enum that defines the available borrow policies.
+    ///
     /// The possible values:
-    /// - Reset ---- Reset borrow allowance after the first loan taken.
-    /// - Decrease - Decrease borrow allowance after each loan taken.
-    /// - Keep ----- Do not change anything about borrow allowance.
+    ///
+    /// - Reset ---- Reset the borrow allowance after the first loan taken.
+    /// - Decrease - Decrease the borrow allowance after each loan taken.
+    /// - Keep ----- Do not change anything about the borrow allowance.
     enum BorrowPolicy {
         Reset,    // 0
         Decrease, // 1
         Keep      // 2
     }
 
-    /// @notice A struct that defines credit line configuration.
+    /// @dev A struct that defines credit line configuration.
     struct CreditLineConfig {
         // Slot 1
         address treasury;                // The address of the loan treasury.
@@ -40,15 +42,15 @@ interface ICreditLineConfigurable is ICreditLine {
         uint32 maxInterestRateSecondary; // The maximum secondary interest rate to be applied to the loan.
         // Slot 3
         uint32 interestRateFactor;       // The interest rate factor used for interest calculation.
-        address addonRecipient;          // The address of addon payments recipient.
-        uint32 minAddonFixedCostRate;    // The minimum addon fixed cost rate to be applied to the loan.
-        uint32 maxAddonFixedCostRate;    // The maximum addon fixed cost rate to be applied to the loan.
+        address addonRecipient;          // The address of the loan addon recipient (extra charges or fees).
+        uint32 minAddonFixedRate;        // The minimum fixed rate for the loan addon calculation.
+        uint32 maxAddonFixedRate;        // The maximum fixed rate for the loan addon calculation.
         // Slot 4
-        uint32 minAddonPeriodCostRate;   // The minimum addon period cost rate to be applied to the loan.
-        uint32 maxAddonPeriodCostRate;   // The minimum addon period cost rate to be applied to the loan.
+        uint32 minAddonPeriodRate;       // The minimum period rate for the loan addon calculation.
+        uint32 maxAddonPeriodRate;       // The maximum period rate for the loan addon calculation.
     }
 
-    /// @notice A struct that defines borrower configuration.
+    /// @dev A struct that defines borrower configuration.
     struct BorrowerConfig {
         // Slot 1
         uint64 minBorrowAmount;           // The minimum amount of tokens the borrower can take as a loan.
@@ -58,8 +60,8 @@ interface ICreditLineConfigurable is ICreditLine {
         uint32 interestRatePrimary;       // The primary interest rate to be applied to the loan.
         uint32 interestRateSecondary;     // The secondary interest rate to be applied to the loan.
         // Slot 2
-        uint32 addonFixedCostRate;        // The fixed cost rate to be used for addon payment calculation.
-        uint32 addonPeriodCostRate;       // The period cost rate to be used for addon payment calculation.
+        uint32 addonFixedRate;            // The fixed rate for the loan addon calculation (extra charges or fees).
+        uint32 addonPeriodRate;           // The period rate for the loan addon calculation (extra charges or fees).
         Interest.Formula interestFormula; // The formula to be used for interest calculation on the loan.
         BorrowPolicy borrowPolicy;        // The borrow policy to be applied to the borrower.
         bool autoRepayment;               // Whether the loan can be repaid automatically.
@@ -70,55 +72,53 @@ interface ICreditLineConfigurable is ICreditLine {
     //  Events                                      //
     // -------------------------------------------- //
 
-    /// @notice Emitted when admin is configured.
+    /// @dev Emitted when an admin is configured.
     /// @param admin The address of the admin account.
     /// @param isAdmin True if the account is an admin.
     event AdminConfigured(address indexed admin, bool isAdmin);
 
-    /// @notice Emitted when the credit line is configured.
+    /// @dev Emitted when the credit line is configured.
     /// @param creditLine The address of the current credit line.
-    /// @param config The struct containing the credit line configuration.
-    event CreditLineConfigured(address indexed creditLine, CreditLineConfig config);
+    event CreditLineConfigured(address indexed creditLine);
 
-    /// @notice Emitted when the borrower is configured.
+    /// @dev Emitted when a borrower is configured.
     /// @param creditLine The address of the current credit line.
     /// @param borrower The address of the borrower being configured.
-    /// @param config The struct containing the borrower configuration.
-    event BorrowerConfigured(address indexed creditLine, address indexed borrower, BorrowerConfig config);
+    event BorrowerConfigured(address indexed creditLine, address indexed borrower);
 
     // -------------------------------------------- //
     //  Functions                                   //
     // -------------------------------------------- //
 
-    /// @notice Configures an admin status.
-    /// @param admin The address of the admin to configure.
+    /// @dev Configures an account as an admin.
+    /// @param admin The address of the account to configure as an admin.
     /// @param isAdmin True whether the account is an admin.
     function configureAdmin(address admin, bool isAdmin) external;
 
-    /// @notice Updates the credit line configuration.
-    /// @param config The struct containing the credit line configuration.
+    /// @dev Updates the credit line configuration.
+    /// @param config The structure containing the credit line configuration.
     function configureCreditLine(CreditLineConfig memory config) external;
 
-    /// @notice Configures a specific borrower.
+    /// @dev Configures a specific borrower.
     /// @param borrower The address of the borrower to configure.
     /// @param config The struct containing the borrower configuration.
     function configureBorrower(address borrower, BorrowerConfig memory config) external;
 
-    /// @notice Configures multiple borrowers at once.
+    /// @dev Configures multiple borrowers at once.
     /// @param borrowers The addresses of the borrowers to configure.
-    /// @param configs The structs containing the borrower configurations.
+    /// @param configs The array containing the borrower configurations.
     function configureBorrowers(address[] memory borrowers, BorrowerConfig[] memory configs) external;
 
-    /// @notice Retrieves the borrower configuration.
+    /// @dev Retrieves the configuration of a borrower.
     /// @param borrower The address of the borrower to check.
-    /// @return The struct containing the borrower configuration.
+    /// @return The structure containing the borrower configuration.
     function getBorrowerConfiguration(address borrower) external view returns (BorrowerConfig memory);
 
-    /// @notice Retrieves the credit line configuration.
-    /// @return The struct containing the credit line configuration.
+    /// @dev Retrieves the credit line configuration.
+    /// @return The structure containing the credit line configuration.
     function creditLineConfiguration() external view returns (CreditLineConfig memory);
 
-    /// @notice Checks whether the account is an admin.
+    /// @dev Checks whether an account is an admin.
     /// @param account The address of the account to check.
     /// @return True if the account is configured as an admin.
     function isAdmin(address account) external view returns (bool);
