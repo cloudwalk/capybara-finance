@@ -6,9 +6,9 @@ import { Interest } from "./Interest.sol";
 
 /// @title Loan library
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Defines the common types used for loan management.
+/// @dev Defines the common types used for loan management.
 library Loan {
-    /// @notice A struct that defines the state of the loan.
+    /// @dev A struct that defines the state of the loan.
     struct State {
         // Slot 1
         address token;                    // The address of the token used in the loan.
@@ -31,7 +31,7 @@ library Loan {
         uint32 freezeTimestamp;           // The timestamp when the loan was frozen.
     }
 
-    /// @notice A struct that defines the terms of the loan.
+    /// @dev A struct that defines the terms of the loan.
     struct Terms {
         // Slot 1
         address token;                    // The address of the token to be used in the loan.
@@ -49,7 +49,7 @@ library Loan {
         uint64 addonAmount;               // The amount of the loan addon (extra charges and fees).
     }
 
-    /// @notice A struct that defines the preview of the loan.
+    /// @dev A struct that defines the preview of the loan.
     struct Preview {
         uint256 periodIndex;        // The period index that matches the preview timestamp.
         uint256 outstandingBalance; // The outstanding balance of the loan at the previewed period.

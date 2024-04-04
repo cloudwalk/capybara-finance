@@ -14,7 +14,7 @@ import { ICreditLineConfigurable } from "../common/interfaces/ICreditLineConfigu
 
 /// @title CreditLineConfigurable contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Implementation of the configurable credit line contract.
+/// @dev Implementation of the configurable credit line contract.
 contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICreditLineConfigurable {
     using SafeCast for uint256;
     // -------------------------------------------- //
@@ -40,26 +40,26 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     //  Errors                                      //
     // -------------------------------------------- //
 
-    /// @notice Thrown when the credit line configuration is invalid.
+    /// @dev Thrown when the credit line configuration is invalid.
     error InvalidCreditLineConfiguration();
 
-    /// @notice Thrown when the borrower configuration is invalid.
+    /// @dev Thrown when the borrower configuration is invalid.
     error InvalidBorrowerConfiguration();
 
-    /// @notice Thrown when the borrower configuration has expired.
+    /// @dev Thrown when the borrower configuration has expired.
     error BorrowerConfigurationExpired();
 
-    /// @notice Thrown when the borrow policy is unsupported.
+    /// @dev Thrown when the borrow policy is unsupported.
     error UnsupportedBorrowPolicy();
 
-    /// @notice Thrown when the loan duration is out of range.
+    /// @dev Thrown when the loan duration is out of range.
     error LoanDurationOutOfRange();
 
     // -------------------------------------------- //
     //  Modifiers                                   //
     // -------------------------------------------- //
 
-    /// @notice Throws if called by any account other than the lending market.
+    /// @dev Throws if called by any account other than the lending market.
     modifier onlyMarket() {
         if (msg.sender != _market) {
             revert Error.Unauthorized();
@@ -67,7 +67,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         _;
     }
 
-    /// @notice Throws if called by any account other than the admin.
+    /// @dev Throws if called by any account other than the admin.
     modifier onlyAdmin() {
         if (!_admins[msg.sender]) {
             revert Error.Unauthorized();

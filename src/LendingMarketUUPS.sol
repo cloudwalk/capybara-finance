@@ -7,7 +7,7 @@ import { LendingMarket } from "./LendingMarket.sol";
 
 /// @title LendingMarketUUPS contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Upgradeable version of the lending market contract.
+/// @dev Upgradeable version of the lending market contract.
 contract LendingMarketUUPS is LendingMarket, UUPSUpgradeable {
     /// @dev Constructor that prohibits the initialization of the implementation of the upgradable contract.
     /// @custom:oz-upgrades-unsafe-allow constructor

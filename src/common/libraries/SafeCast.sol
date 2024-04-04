@@ -4,7 +4,7 @@ pragma solidity ^0.8.24;
 
 /// @title SafeCast library
 /// @author OpenZeppelin (version 5.0.0)
-/// @notice Defines safe casting functions from uint256 to other sizes.
+/// @dev Defines safe casting functions from uint256 to other sizes.
 library SafeCast {
     /**
      * @dev Value doesn't fit in an uint of `bits` size.

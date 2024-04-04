@@ -4,21 +4,21 @@ pragma solidity 0.8.24;
 
 /// @title Error library
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Defines common error types used across the contracts.
+/// @dev Defines common error types used across the contracts.
 library Error {
-    /// @notice Thrown when the caller is not authorized.
+    /// @dev Thrown when the caller is not authorized.
     error Unauthorized();
 
-    /// @notice Thrown when the specified address is zero.
+    /// @dev Thrown when the specified address is zero.
     error ZeroAddress();
 
-    /// @notice Thrown when the specified amount is invalid.
+    /// @dev Thrown when the specified amount is invalid.
     error InvalidAmount();
 
-    /// @notice Thrown when the configuration is already applied.
+    /// @dev Thrown when the configuration is already applied.
     error AlreadyConfigured();
 
-    /// @notice Thrown when array lengths do not match each other.
+    /// @dev Thrown when array lengths do not match each other.
     error ArrayLengthMismatch();
 
     /// @notice Thrown when the called function is not implemented.

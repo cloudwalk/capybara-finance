@@ -6,7 +6,7 @@ import { Interest } from "./Interest.sol";
 
 /// @title InterestMath library
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Defines interest calculation functions
+/// @dev Defines interest calculation functions
 library InterestMath {
     // -------------------------------------------- //
     //  Constants                                   //
@@ -26,20 +26,20 @@ library InterestMath {
     //  Errors                                      //
     // -------------------------------------------- //
 
-    /// @notice Thrown when the specified interest formula is not implemented
+    /// @dev Thrown when the specified interest formula is not implemented
     error InterestFormulaNotImplemented();
 
-    /// @notice Thrown when the zero amount was passed as a denominator
+    /// @dev Thrown when the zero amount was passed as a denominator
     error ZeroDenominator();
 
-    /// @notice Thrown when an overflow or underflow occurs during mathematical operations
+    /// @dev Thrown when an overflow or underflow occurs during mathematical operations
     error MathOperationError();
 
     // -------------------------------------------- //
     //  Functions                                   //
     // -------------------------------------------- //
 
-    /// @notice Calculates the outstanding balance of a loan
+    /// @dev Calculates the outstanding balance of a loan
     /// @param originalBalance The original balance of the loan
     /// @param numberOfPeriods The number of periods since the loan was taken
     /// @param interestRate The interest rate applied to the loan

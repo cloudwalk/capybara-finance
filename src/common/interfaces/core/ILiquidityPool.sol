@@ -4,18 +4,18 @@ pragma solidity 0.8.24;
 
 /// @title ILiquidityPool interface
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Defines the liquidity pool contract functions and events.
+/// @dev Defines the liquidity pool contract functions and events.
 interface ILiquidityPool {
     // -------------------------------------------- //
     //  Functions                                   //
     // -------------------------------------------- //
 
-    /// @notice A hook that is triggered by the market before a loan is taken.
+    /// @dev A hook that is triggered by the market before a loan is taken.
     /// @param loanId The unique identifier of the loan being taken.
     /// @param creditLine The address of the credit line.
     function onBeforeLoanTaken(uint256 loanId, address creditLine) external returns (bool);
 
-    /// @notice A hook that is triggered by the market after a loan is taken.
+    /// @dev A hook that is triggered by the market after a loan is taken.
     /// @param loanId The unique identifier of the loan being taken.
     /// @param creditLine The address of the credit line.
     function onAfterLoanTaken(uint256 loanId, address creditLine) external returns (bool);

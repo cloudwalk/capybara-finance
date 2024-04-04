@@ -4,13 +4,13 @@ pragma solidity 0.8.24;
 
 /// @title ICreditLineFactory interface
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Defines the credit line factory contract functions and events.
+/// @dev Defines the credit line factory contract functions and events.
 interface ICreditLineFactory {
     // -------------------------------------------- //
     //  Events                                      //
     // -------------------------------------------- //
 
-    /// @notice Emitted when a new credit line is created.
+    /// @dev Emitted when a new credit line is created.
     /// @param market The address of the lending market.
     /// @param lender The address of the credit line lender.
     /// @param token The address of the credit line token.
@@ -28,7 +28,7 @@ interface ICreditLineFactory {
     //  Functions                                   //
     // -------------------------------------------- //
 
-    /// @notice Creates a new credit line.
+    /// @dev Creates a new credit line.
     /// @param market The address of the lending market.
     /// @param lender The address of the credit line lender.
     /// @param token The address of the credit line token.
@@ -43,6 +43,6 @@ interface ICreditLineFactory {
         bytes calldata data
     ) external returns (address);
 
-    /// @notice Returns the list of supported credit line kinds.
+    /// @dev Returns the list of supported credit line kinds.
     function supportedKinds() external view returns (uint16[] memory);
 }

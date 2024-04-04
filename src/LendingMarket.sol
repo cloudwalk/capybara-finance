@@ -25,7 +25,7 @@ import { LendingMarketStorage } from "./LendingMarketStorage.sol";
 
 /// @title LendingMarket contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Implementation of the lending market contract.
+/// @dev Implementation of the lending market contract.
 contract LendingMarket is
     LendingMarketStorage,
     Initializable,
@@ -42,31 +42,31 @@ contract LendingMarket is
     //  Errors                                      //
     // -------------------------------------------- //
 
-    /// @notice Thrown when the loan does not exist.
+    /// @dev Thrown when the loan does not exist.
     error LoanNotExist();
 
-    /// @notice Thrown when the loan is not frozen.
+    /// @dev Thrown when the loan is not frozen.
     error LoanNotFrozen();
 
-    /// @notice Thrown when the loan is already repaid.
+    /// @dev Thrown when the loan is already repaid.
     error LoanAlreadyRepaid();
 
-    /// @notice Thrown when the loan is already frozen.
+    /// @dev Thrown when the loan is already frozen.
     error LoanAlreadyFrozen();
 
-    /// @notice Thrown when the credit line is not registered.
+    /// @dev Thrown when the credit line is not registered.
     error CreditLineNotRegistered();
 
-    /// @notice Thrown when the liquidity pool is not registered.
+    /// @dev Thrown when the liquidity pool is not registered.
     error LiquidityPoolNotRegistered();
 
-    /// @notice Thrown when the credit line is already registered.
+    /// @dev Thrown when the credit line is already registered.
     error CreditLineAlreadyRegistered();
 
-    /// @notice Thrown when the liquidity pool is already registered.
+    /// @dev Thrown when the liquidity pool is already registered.
     error LiquidityPoolAlreadyRegistered();
 
-    /// @notice Thrown when provided interest rate is inappropriate.
+    /// @dev Thrown when provided interest rate is inappropriate.
     error InappropriateInterestRate();
 
     /// @notice Thrown when provided loan duration is inappropriate.

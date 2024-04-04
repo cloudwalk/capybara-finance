@@ -7,7 +7,7 @@ import { LendingRegistry } from "./LendingRegistry.sol";
 
 /// @title LendingRegistryUUPS contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Upgradeable version of the lending market contract.
+/// @dev Upgradeable version of the lending market contract.
 contract LendingRegistryUUPS is LendingRegistry, UUPSUpgradeable {
     /// @dev Constructor that prohibits the initialization of the implementation of the upgradable contract.
     /// @custom:oz-upgrades-unsafe-allow constructor

@@ -4,9 +4,9 @@ pragma solidity 0.8.24;
 
 /// @title Interest library
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Defines the common types used for interest calculation.
+/// @dev Defines the common types used for interest calculation.
 library Interest {
-    /// @notice An enum that defines the available interest formulas.
+    /// @dev An enum that defines the available interest formulas.
     ///
     /// The possible values:
     /// - Simple --- Simple interest rate is linear and is only calculated on the initial principal amount.

@@ -17,7 +17,7 @@ import { ILiquidityPoolAccountable } from "../common/interfaces/ILiquidityPoolAc
 
 /// @title LiquidityPoolAccountable contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Implementation of the accountable liquidity pool contract.
+/// @dev Implementation of the accountable liquidity pool contract.
 contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, ILiquidityPoolAccountable {
     using SafeERC20 for IERC20;
 
@@ -41,17 +41,17 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
     //  Errors                                      //
     // -------------------------------------------- //
 
-    /// @notice Thrown when the token source balance is zero.
+    /// @dev Thrown when the token source balance is zero.
     error ZeroBalance();
 
-    /// @notice Thrown when the token source balance is insufficient.
+    /// @dev Thrown when the token source balance is insufficient.
     error InsufficientBalance();
 
     // -------------------------------------------- //
     //  Modifiers                                   //
     // -------------------------------------------- //
 
-    /// @notice Throws if called by any account other than the lending market.
+    /// @dev Throws if called by any account other than the lending market.
     modifier onlyMarket() {
         if (msg.sender != _market) {
             revert Error.Unauthorized();
@@ -59,7 +59,7 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
         _;
     }
 
-    /// @notice Throws if called by any account other than the admin.
+    /// @dev Throws if called by any account other than the admin.
     modifier onlyAdmin() {
         if (!_admins[msg.sender]) {
             revert Error.Unauthorized();
@@ -71,7 +71,7 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
     //  Initializers                                //
     // -------------------------------------------- //
 
-    /// @notice Initializer of the upgradable contract.
+    /// @dev Initializer of the upgradable contract.
     /// @param market_ The address of the lending market.
     /// @param lender_ The address of the lender.
     function initialize(address market_, address lender_) external initializer {

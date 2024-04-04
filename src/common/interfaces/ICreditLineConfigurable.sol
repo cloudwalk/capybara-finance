@@ -7,13 +7,13 @@ import { ICreditLine } from "./core/ICreditLine.sol";
 
 /// @title ICreditLineConfigurable interface
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Defines the configurable credit line contract functions and events.
+/// @dev Defines the configurable credit line contract functions and events.
 interface ICreditLineConfigurable is ICreditLine {
     // -------------------------------------------- //
     //  Structs and enums                           //
     // -------------------------------------------- //
 
-    /// @notice An enum that defines the available borrow policies.
+    /// @dev An enum that defines the available borrow policies.
     /// The possible values:
     /// - Reset ---- Reset borrow allowance after the first loan taken.
     /// - Decrease - Decrease borrow allowance after each loan taken.
@@ -24,7 +24,7 @@ interface ICreditLineConfigurable is ICreditLine {
         Keep      // 2
     }
 
-    /// @notice A struct that defines credit line configuration.
+    /// @dev A struct that defines credit line configuration.
     struct CreditLineConfig {
         // Slot 1
         address treasury;                // The address of the loan treasury.
@@ -48,7 +48,7 @@ interface ICreditLineConfigurable is ICreditLine {
         uint32 maxAddonPeriodRate;       // The maximum rate per loan period for the loan addon.
     }
 
-    /// @notice A struct that defines borrower configuration.
+    /// @dev A struct that defines borrower configuration.
     struct BorrowerConfig {
         // Slot 1
         uint64 minBorrowAmount;           // The minimum amount of tokens the borrower can take as a loan.

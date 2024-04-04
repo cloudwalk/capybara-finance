@@ -11,20 +11,20 @@ import { LiquidityPoolAccountable } from "./LiquidityPoolAccountable.sol";
 
 /// @title LiquidityPoolFactory contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Implementation of the liquidity pool factory contract.
+/// @dev Implementation of the liquidity pool factory contract.
 contract LiquidityPoolFactory is OwnableUpgradeable, ILiquidityPoolFactory {
     // -------------------------------------------- //
     //  Errors                                      //
     // -------------------------------------------- //
 
-    /// @notice Thrown when the requested liquidity pool kind is not supported.
+    /// @dev Thrown when the requested liquidity pool kind is not supported.
     error UnsupportedKind();
 
     // -------------------------------------------- //
     //  Initializers                                //
     // -------------------------------------------- //
 
-    /// @notice Initializer of the upgradable contract.
+    /// @dev Initializer of the upgradable contract.
     /// @param registry_ The address of the lending market registry.
     function initialize(address registry_) external initializer {
         __LiquidityPoolFactory_init(registry_);

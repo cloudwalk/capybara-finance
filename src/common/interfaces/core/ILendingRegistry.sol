@@ -4,13 +4,13 @@ pragma solidity 0.8.24;
 
 /// @title ILendingRegistry interface
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Defines the lending registry contract functions and events.
+/// @dev Defines the lending registry contract functions and events.
 interface ILendingRegistry {
     // -------------------------------------------- //
     //  Functions                                   //
     // -------------------------------------------- //
 
-    /// @notice Creates a new credit line.
+    /// @dev Creates a new credit line.
     /// @param kind The kind of the credit line to create.
     /// @param token The address of the credit line token.
     function createCreditLine(uint16 kind, address token) external;

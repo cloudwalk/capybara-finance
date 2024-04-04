@@ -7,7 +7,7 @@ import { ILiquidityPoolFactory } from "../common/interfaces/ILiquidityPoolFactor
 
 /// @title LiquidityPoolFactoryMock contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Mock of the `LiquidityPoolFactory` contract used for testing.
+/// @dev Mock of the `LiquidityPoolFactory` contract used for testing.
 contract LiquidityPoolFactoryMock is ILiquidityPoolFactory {
     // -------------------------------------------- //
     //  Events                                      //

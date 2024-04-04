@@ -6,13 +6,13 @@ import { Loan } from "../../libraries/Loan.sol";
 
 /// @title ILendingMarket interface
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Defines the lending market contract functions and events.
+/// @dev Defines the lending market contract functions and events.
 interface ILendingMarket {
     // -------------------------------------------- //
     //  Events                                      //
     // -------------------------------------------- //
 
-    /// @notice Emitted when the lending markt registry is changed.
+    /// @dev Emitted when the lending markt registry is changed.
     /// @param newRegistry The address of the new registry.
     /// @param oldRegistry The address of the old registry.
     event MarketRegistryChanged(

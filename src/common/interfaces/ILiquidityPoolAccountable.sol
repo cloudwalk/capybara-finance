@@ -6,13 +6,13 @@ import "./core/ILiquidityPool.sol";
 
 /// @title ILiquidityPoolAccountable interface
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Defines the accountable liquidity pool contract functions and events.
+/// @dev Defines the accountable liquidity pool contract functions and events.
 interface ILiquidityPoolAccountable is ILiquidityPool {
     // -------------------------------------------- //
     //  Events                                      //
     // -------------------------------------------- //
 
-    /// @notice Emitted when admin is configured.
+    /// @dev Emitted when admin is configured.
     /// @param admin The address of the admin account.
     /// @param isAdmin True if the account is an admin.
     event AdminConfigured(
@@ -20,7 +20,7 @@ interface ILiquidityPoolAccountable is ILiquidityPool {
         bool isAdmin
     );
 
-    /// @notice Emitted when tokens are deposited to the liquidity pool.
+    /// @dev Emitted when tokens are deposited to the liquidity pool.
     /// @param creditLine The address of the credit line.
     /// @param amount The amount of tokens deposited.
     event Deposit(
@@ -28,7 +28,7 @@ interface ILiquidityPoolAccountable is ILiquidityPool {
         uint256 amount
     );
 
-    /// @notice Emitted when tokens are withdrawn from the liquidity pool.
+    /// @dev Emitted when tokens are withdrawn from the liquidity pool.
     /// @param tokenSource The address of the token source.
     /// @param amount The amount of tokens withdrawn.
     event Withdrawal(
@@ -36,7 +36,7 @@ interface ILiquidityPoolAccountable is ILiquidityPool {
         uint256 amount
     );
 
-    /// @notice Emitted when loan auto repayment was initiated.
+    /// @dev Emitted when loan auto repayment was initiated.
     /// @param numberOfLoans The number of loans repaid.
     event AutoRepayment(uint256 numberOfLoans);
 
@@ -44,7 +44,7 @@ interface ILiquidityPoolAccountable is ILiquidityPool {
     //  Functions                                   //
     // -------------------------------------------- //
 
-    /// @notice Configures an admin status.
+    /// @dev Configures an admin status.
     /// @param admin The address of the admin to configure.
     /// @param isAdmin True whether the account is an admin.
     function configureAdmin(address admin, bool isAdmin) external;

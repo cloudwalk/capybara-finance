@@ -6,13 +6,13 @@ import { Loan } from "src/common/libraries/Loan.sol";
 
 /// @title ICreditLine interface
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Defines the credit line contract functions and events.
+/// @dev Defines the credit line contract functions and events.
 interface ICreditLine {
     // -------------------------------------------- //
     //  Functions                                   //
     // -------------------------------------------- //
 
-    /// @notice A hook that is triggered by the market before a loan is taken.
+    /// @dev A hook that is triggered by the market before a loan is taken.
     /// @param borrower The address of the borrower.
     /// @param borrowAmount The desired amount of tokens to borrow.
     /// @param durationInPeriods The desired duration of the loan in periods.
