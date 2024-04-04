@@ -6,7 +6,7 @@ import { Loan } from "src/common/libraries/Loan.sol";
 
 /// @title LendingMarketStorage contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Defines the storage layout for the lending market contract.
+/// @dev Defines the storage layout for the lending market contract.
 abstract contract LendingMarketStorage {
     // -------------------------------------------- //
     //  Storage variables                           //
