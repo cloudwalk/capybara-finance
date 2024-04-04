@@ -4,26 +4,29 @@ pragma solidity 0.8.24;
 
 /// @title ILiquidityPoolFactory interface
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Defines the liquidity pool factory contract functions and events.
+/// @dev Defines the liquidity pool factory contract functions and events.
 interface ILiquidityPoolFactory {
     // -------------------------------------------- //
     //  Events                                      //
     // -------------------------------------------- //
 
-    /// @notice Emitted when a new liquidity pool is created.
+    /// @dev Emitted when a new liquidity pool is created.
     /// @param market The address of the lending market.
     /// @param lender The address of the liquidity pool lender.
     /// @param kind The kind of the created liquidity pool.
     /// @param liquidityPool The address of the created liquidity pool.
     event LiquidityPoolCreated(
-        address indexed market, address indexed lender, uint16 indexed kind, address liquidityPool
+        address indexed market,
+        address indexed lender,
+        uint16 indexed kind,
+        address liquidityPool
     );
 
     // -------------------------------------------- //
     //  Functions                                   //
     // -------------------------------------------- //
 
-    /// @notice Creates a new liquidity pool.
+    /// @dev Creates a new liquidity pool.
     /// @param market The address of the lending market.
     /// @param lender The address of the liquidity pool lender.
     /// @param kind The kind of liquidity pool to create.
@@ -36,6 +39,6 @@ interface ILiquidityPoolFactory {
         bytes calldata data
     ) external returns (address);
 
-    /// @notice Returns the list of supported liquidity pool kinds.
+    /// @dev Returns the list of supported liquidity pool kinds.
     function supportedKinds() external view returns (uint16[] memory);
 }
