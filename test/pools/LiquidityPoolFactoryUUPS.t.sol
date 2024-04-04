@@ -11,7 +11,7 @@ import { LiquidityPoolFactoryUUPS } from "src/liquidity-pools/LiquidityPoolFacto
 
 /// @title LiquidityPoolFactoryUUPSTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Contains tests for the `LiquidityPoolFactoryUUPS` contract.
+/// @dev Contains tests for the `LiquidityPoolFactoryUUPS` contract.
 contract LiquidityPoolFactoryUUPSTest is Test {
     // -------------------------------------------- //
     //  Events                                      //
@@ -23,10 +23,10 @@ contract LiquidityPoolFactoryUUPSTest is Test {
     //  Storage variables                           //
     // -------------------------------------------- //
 
-    LiquidityPoolFactoryUUPS public proxy;
+    LiquidityPoolFactoryUUPS private proxy;
 
-    address public constant OWNER = address(bytes20(keccak256("owner")));
-    address public constant ATTACKER = address(bytes20(keccak256("attacker")));
+    address private constant OWNER = address(bytes20(keccak256("owner")));
+    address private constant ATTACKER = address(bytes20(keccak256("attacker")));
 
     // -------------------------------------------- //
     //  Setup and configuration                     //
