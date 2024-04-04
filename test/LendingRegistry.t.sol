@@ -42,22 +42,22 @@ contract LendingRegistryTest is Test {
     //  Storage variables                           //
     // -------------------------------------------- //
 
-    LendingRegistry public registry;
-    LendingMarketMock public lendingMarket;
-    CreditLineFactoryMock public creditLineFactory;
-    LiquidityPoolFactoryMock public liquidityPoolFactory;
+    LendingRegistry private registry;
+    LendingMarketMock private lendingMarket;
+    CreditLineFactoryMock private creditLineFactory;
+    LiquidityPoolFactoryMock private liquidityPoolFactory;
 
-    address public constant TOKEN = address(bytes20(keccak256("token")));
-    address public constant OWNER = address(bytes20(keccak256("owner")));
-    address public constant ATTACKER = address(bytes20(keccak256("attacker")));
-    address public constant CREDIT_LINE_FACTORY_1 = address(bytes20(keccak256("credit_line_factory_1")));
-    address public constant CREDIT_LINE_FACTORY_2 = address(bytes20(keccak256("credit_line_factory_2")));
-    address public constant LIQUIDITY_POOL_FACTORY_1 = address(bytes20(keccak256("liquidity_pool_factory_1")));
-    address public constant LIQUIDITY_POOL_FACTORY_2 = address(bytes20(keccak256("liquidity_pool_factory_2")));
-    address public constant EXPECTED_CONTRACT_ADDRESS = address(bytes20(keccak256("expected_contract_address")));
+    address private constant TOKEN = address(bytes20(keccak256("token")));
+    address private constant OWNER = address(bytes20(keccak256("owner")));
+    address private constant ATTACKER = address(bytes20(keccak256("attacker")));
+    address private constant CREDIT_LINE_FACTORY_1 = address(bytes20(keccak256("credit_line_factory_1")));
+    address private constant CREDIT_LINE_FACTORY_2 = address(bytes20(keccak256("credit_line_factory_2")));
+    address private constant LIQUIDITY_POOL_FACTORY_1 = address(bytes20(keccak256("liquidity_pool_factory_1")));
+    address private constant LIQUIDITY_POOL_FACTORY_2 = address(bytes20(keccak256("liquidity_pool_factory_2")));
+    address private constant EXPECTED_CONTRACT_ADDRESS = address(bytes20(keccak256("expected_contract_address")));
 
-    uint16 public constant KIND_1 = 1;
-    bytes public constant DATA = "0x";
+    uint16 private constant KIND_1 = 1;
+    bytes private constant DATA = "0x";
 
     // -------------------------------------------- //
     //  Setup and configuration                     //

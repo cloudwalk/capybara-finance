@@ -23,12 +23,12 @@ contract CreditLineConfigurableUUPSTest is Test {
     //  Storage variables                           //
     // -------------------------------------------- //
 
-    CreditLineConfigurableUUPS public proxy;
+    CreditLineConfigurableUUPS private proxy;
 
-    address public constant TOKEN = address(bytes20(keccak256("token")));
-    address public constant MARKET = address(bytes20(keccak256("market")));
-    address public constant LENDER = address(bytes20(keccak256("lender")));
-    address public constant ATTACKER = address(bytes20(keccak256("attacker")));
+    address private constant TOKEN = address(bytes20(keccak256("token")));
+    address private constant MARKET = address(bytes20(keccak256("market")));
+    address private constant LENDER = address(bytes20(keccak256("lender")));
+    address private constant ATTACKER = address(bytes20(keccak256("attacker")));
 
     // -------------------------------------------- //
     //  Setup and configuration                     //

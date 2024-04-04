@@ -35,7 +35,7 @@
      LiquidityPoolAccountable private liquidityPool;
      ComplexScenarios private scenarios;
 
-     address public borrower;
+     address private borrower;
      CreditLineConfigurable.CreditLineConfig private creditLineConfig;
      CreditLineConfigurable.BorrowerConfig private borrowerConfig;
 
@@ -96,14 +96,14 @@
          vm.stopPrank();
      }
 
-     function configureRegistry() public {
+     function configureRegistry() private {
          registry = new LendingRegistry();
          registry.initialize(address(lendingMarket));
          registry.transferOwnership(OWNER);
          lendingMarket.setRegistry(address(registry));
      }
 
-     function configureLendingMarketForComplexTests(ComplexScenarios.LoanParameters memory loan) public {
+     function configureLendingMarketForComplexTests(ComplexScenarios.LoanParameters memory loan) private {
          vm.warp(BASE_BLOCKTIMESTAMP);
          //create token
          vm.prank(OWNER);
@@ -138,11 +138,11 @@
          token.approve(address(lendingMarket), type(uint256).max);
      }
 
-     function configureToken(uint8 decimals) public {
+     function configureToken(uint8 decimals) private {
          token = new ERC20Mock(TOKEN_AMOUNT, decimals);
      }
 
-     function configureLiquidityPool() public {
+     function configureLiquidityPool() private {
          vm.startPrank(OWNER);
          liquidityPool.initialize(address(lendingMarket), LENDER);
          lendingMarket.registerLiquidityPool(LENDER, address(liquidityPool));
@@ -154,12 +154,14 @@
          vm.stopPrank();
      }
 
-     function takeLoan(address borrower_, uint256 amount) public returns(uint256) {
+     function takeLoan(address borrower_, uint256 amount) private returns(uint256) {
          vm.prank(borrower_);
          return lendingMarket.takeLoan(address(creditLine), amount, 250);
      }
 
-     function createBorrowerConfig(ComplexScenarios.LoanParameters memory loan) public pure returns (ICreditLineConfigurable.BorrowerConfig memory) {
+     function createBorrowerConfig(
+         ComplexScenarios.LoanParameters memory loan
+     ) private pure returns (ICreditLineConfigurable.BorrowerConfig memory) {
          return ICreditLineConfigurable.BorrowerConfig({
              expiration: BASE_BLOCKTIMESTAMP + INIT_BORROWER_DURATION,
              minBorrowAmount: INIT_BORROWER_MIN_BORROW_AMOUNT,
@@ -176,7 +178,9 @@
          });
      }
 
-      function createCreditLineConfig(ComplexScenarios.LoanParameters memory loan) public view returns (ICreditLineConfigurable.CreditLineConfig memory) {
+      function createCreditLineConfig(
+          ComplexScenarios.LoanParameters memory loan
+      ) private view returns (ICreditLineConfigurable.CreditLineConfig memory) {
           return ICreditLineConfigurable.CreditLineConfig({
               treasury: address(liquidityPool),
               periodInSeconds: loan.periodInSeconds,
@@ -328,7 +332,7 @@
          ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_28();
          takeLoanAndVerifyCalculations(loan);
      }
-     function takeLoanAndVerifyCalculations(ComplexScenarios.LoanParameters memory loan) public {
+     function takeLoanAndVerifyCalculations(ComplexScenarios.LoanParameters memory loan) private {
          configureLendingMarketForComplexTests(loan);
          uint256 loanId = takeLoan(BORROWER, loan.borrowAmount);
          for (uint256 i = 0; i < loan.expectedOutstandingBalances.length; i++) {
@@ -349,14 +353,18 @@
          }
      }
 
-     function removeDecimals(uint256 tokenDecimals, uint256 contractValue, uint256 expectedValue) public pure returns (uint256, uint256) {
+     function removeDecimals(
+         uint256 tokenDecimals,
+         uint256 contractValue,
+         uint256 expectedValue
+     ) private pure returns (uint256, uint256) {
          tokenDecimals; // To prevent compiler warning about unused variable
          uint256 roundedContractValue = contractValue; // / 10 ** (tokenDecimals - 2);
          uint256 roundedExpectedValue = expectedValue; // / 10 ** (tokenDecimals - 2);
          return (roundedContractValue, roundedExpectedValue);
      }
 
-     function getDiff(uint256 contractValue, uint256 expectedValue) public pure returns (uint256, uint256) {
+     function getDiff(uint256 contractValue, uint256 expectedValue) private pure returns (uint256, uint256) {
          uint256 diff = contractValue > expectedValue ? contractValue - expectedValue : expectedValue - contractValue;
          uint256 percent;
 

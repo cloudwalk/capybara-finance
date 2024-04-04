@@ -36,27 +36,27 @@ contract LiquidityPoolAccountableTest is Test {
     //  Storage variables                           //
     // -------------------------------------------- //
 
-    ERC20Mock public token;
-    CreditLineMock public creditLine;
-    LendingMarketMock public lendingMarket;
-    LiquidityPoolAccountable public liquidityPool;
+    ERC20Mock private token;
+    CreditLineMock private creditLine;
+    LendingMarketMock private lendingMarket;
+    LiquidityPoolAccountable private liquidityPool;
 
-    address public constant ADMIN = address(bytes20(keccak256("admin")));
-    address public constant LENDER = address(bytes20(keccak256("lender")));
-    address public constant ATTACKER = address(bytes20(keccak256("attacker")));
-    address public constant TOKEN_SOURCE_NONEXISTENT = address(bytes20(keccak256("token_source_nonexistent")));
+    address private constant ADMIN = address(bytes20(keccak256("admin")));
+    address private constant LENDER = address(bytes20(keccak256("lender")));
+    address private constant ATTACKER = address(bytes20(keccak256("attacker")));
+    address private constant TOKEN_SOURCE_NONEXISTENT = address(bytes20(keccak256("token_source_nonexistent")));
 
-    uint256 public constant LOAN_ID_1 = 1;
-    uint256 public constant LOAN_ID_2 = 2;
-    uint256 public constant LOAN_ID_3 = 3;
-    uint256 public constant LOAN_ID_NONEXISTENT = 999_999_999;
+    uint256 private constant LOAN_ID_1 = 1;
+    uint256 private constant LOAN_ID_2 = 2;
+    uint256 private constant LOAN_ID_3 = 3;
+    uint256 private constant LOAN_ID_NONEXISTENT = 999_999_999;
 
-    uint64 public constant DEPOSIT_AMOUNT_1 = 100;
-    uint64 public constant DEPOSIT_AMOUNT_2 = 200;
-    uint64 public constant DEPOSIT_AMOUNT_3 = 300;
+    uint64 private constant DEPOSIT_AMOUNT_1 = 100;
+    uint64 private constant DEPOSIT_AMOUNT_2 = 200;
+    uint64 private constant DEPOSIT_AMOUNT_3 = 300;
 
-    uint16 public constant KIND_1 = 1;
-    uint8 public constant DECIMALS = 6;
+    uint16 private constant KIND_1 = 1;
+    uint8 private constant DECIMALS = 6;
 
     // -------------------------------------------- //
     //  Setup and configuration                     //
@@ -71,14 +71,14 @@ contract LiquidityPoolAccountableTest is Test {
         liquidityPool.initialize(address(lendingMarket), LENDER);
     }
 
-    function configureLender() public {
+    function configureLender() private {
         vm.startPrank(LENDER);
         token.mint(LENDER, DEPOSIT_AMOUNT_1);
         token.approve(address(liquidityPool), DEPOSIT_AMOUNT_1);
         vm.stopPrank();
     }
 
-    function getBatchLoanData() public pure returns (uint256[] memory, uint256[] memory) {
+    function getBatchLoanData() private pure returns (uint256[] memory, uint256[] memory) {
         uint256[] memory loanIds = new uint256[](3);
         loanIds[0] = LOAN_ID_1;
         loanIds[1] = LOAN_ID_2;
@@ -92,7 +92,7 @@ contract LiquidityPoolAccountableTest is Test {
         return (loanIds, amounts);
     }
 
-    function initLoanState() public view returns (Loan.State memory) {
+    function initLoanState() private view returns (Loan.State memory) {
         return Loan.State({
             token: address(token),
             borrower: address(0),

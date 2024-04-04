@@ -24,14 +24,14 @@ contract CreditLineFactoryMockTest is Test {
     //  Storage variables                           //
     // -------------------------------------------- //
 
-    CreditLineFactoryMock public mock;
+    CreditLineFactoryMock private mock;
 
-    address public constant TOKEN = address(bytes20(keccak256("token")));
-    address public constant MARKET = address(bytes20(keccak256("market")));
-    address public constant LENDER = address(bytes20(keccak256("lender")));
-    address public constant CREDIT_LINE = address(bytes20(keccak256("credit_line")));
-    uint16 public constant KIND = 1;
-    bytes public constant DATA = "0x123ff";
+    address private constant TOKEN = address(bytes20(keccak256("token")));
+    address private constant MARKET = address(bytes20(keccak256("market")));
+    address private constant LENDER = address(bytes20(keccak256("lender")));
+    address private constant CREDIT_LINE = address(bytes20(keccak256("credit_line")));
+    uint16 private constant KIND = 1;
+    bytes private constant DATA = "0x123ff";
 
     // -------------------------------------------- //
     //  Setup and configuration                     //

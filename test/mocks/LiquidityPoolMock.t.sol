@@ -28,11 +28,11 @@ contract LiquidityPoolMockTest is Test {
     //  Storage variables                           //
     // -------------------------------------------- //
 
-    LiquidityPoolMock public mock;
+    LiquidityPoolMock private mock;
 
-    uint256 public constant LOAN_ID = 1;
-    uint256 public constant REPAY_AMOUNT = 100;
-    address public constant CREDIT_LINE = address(bytes20(keccak256("credit_line")));
+    uint256 private constant LOAN_ID = 1;
+    uint256 private constant REPAY_AMOUNT = 100;
+    address private constant CREDIT_LINE = address(bytes20(keccak256("credit_line")));
 
     // -------------------------------------------- //
     //  Setup and configuration                     //

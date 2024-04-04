@@ -28,38 +28,38 @@ contract LendingMarketMockTest is Test {
     //  Storage variables                           //
     // -------------------------------------------- //
 
-    LendingMarketMock public mock;
+    LendingMarketMock private mock;
 
-    address public constant TOKEN = address(bytes20(keccak256("token")));
-    address public constant LENDER_1 = address(bytes20(keccak256("lender_1")));
-    address public constant LENDER_2 = address(bytes20(keccak256("lender_2")));
-    address public constant TREASURY = address(bytes20(keccak256("treasury")));
-    address public constant BORROWER = address(bytes20(keccak256("borrower")));
-    address public constant CREDIT_LINE = address(bytes20(keccak256("credit_line")));
-    address public constant LIQUIDITY_POOL = address(bytes20(keccak256("liquidity_pool")));
+    address private constant TOKEN = address(bytes20(keccak256("token")));
+    address private constant LENDER_1 = address(bytes20(keccak256("lender_1")));
+    address private constant LENDER_2 = address(bytes20(keccak256("lender_2")));
+    address private constant TREASURY = address(bytes20(keccak256("treasury")));
+    address private constant BORROWER = address(bytes20(keccak256("borrower")));
+    address private constant CREDIT_LINE = address(bytes20(keccak256("credit_line")));
+    address private constant LIQUIDITY_POOL = address(bytes20(keccak256("liquidity_pool")));
 
-    uint256 public constant DURATION_IN_PERIODS = 30;
-    uint256 public constant BORROW_AMOUNT = 100;
-    uint256 public constant REPAY_AMOUNT = 200;
-    uint256 public constant LOAN_ID = 1;
+    uint256 private constant DURATION_IN_PERIODS = 30;
+    uint256 private constant BORROW_AMOUNT = 100;
+    uint256 private constant REPAY_AMOUNT = 200;
+    uint256 private constant LOAN_ID = 1;
 
-    uint32 public constant STATE_PERIOD_IN_SECONDS = 100;
-    uint32 public constant STATE_DURATION_IN_PERIODS = 200;
-    uint32 public constant STATE_INTEREST_RATE_FACTOR = 300;
-    uint32 public constant STATE_INTEREST_RATE_PRIMARY = 400;
-    uint32 public constant STATE_INTEREST_RATE_SECONDARY = 500;
-    Interest.Formula public constant STATE_INTEREST_FORMULA = Interest.Formula.Compound;
-    uint32 public constant STATE_START_TIMESTAMP = 600;
-    uint32 public constant STATE_FREEZE_TIMESTAMP = 700;
-    uint32 public constant STATE_TRACKED_TIMESTAMP = 800;
-    uint64 public constant STATE_INITIAL_BORROW_AMOUNT = 900;
-    uint64 public constant STATE_TRACKED_BORROW_BALANCE = 1000;
-    bool public constant STATE_AUTO_REPAYMENT = true;
+    uint32 private constant STATE_PERIOD_IN_SECONDS = 100;
+    uint32 private constant STATE_DURATION_IN_PERIODS = 200;
+    uint32 private constant STATE_INTEREST_RATE_FACTOR = 300;
+    uint32 private constant STATE_INTEREST_RATE_PRIMARY = 400;
+    uint32 private constant STATE_INTEREST_RATE_SECONDARY = 500;
+    Interest.Formula private constant STATE_INTEREST_FORMULA = Interest.Formula.Compound;
+    uint32 private constant STATE_START_TIMESTAMP = 600;
+    uint32 private constant STATE_FREEZE_TIMESTAMP = 700;
+    uint32 private constant STATE_TRACKED_TIMESTAMP = 800;
+    uint64 private constant STATE_INITIAL_BORROW_AMOUNT = 900;
+    uint64 private constant STATE_TRACKED_BORROW_BALANCE = 1000;
+    bool private constant STATE_AUTO_REPAYMENT = true;
 
-    uint256 public constant UPDATE_LOAN_DURATION = 100;
-    uint256 public constant UPDATE_LOAN_MORATORIUM = 200;
-    uint256 public constant UPDATE_LOAN_INTEREST_RATE_PRIMARY = 300;
-    uint256 public constant UPDATE_LOAN_INTEREST_RATE_SECONDARY = 400;
+    uint256 private constant UPDATE_LOAN_DURATION = 100;
+    uint256 private constant UPDATE_LOAN_MORATORIUM = 200;
+    uint256 private constant UPDATE_LOAN_INTEREST_RATE_PRIMARY = 300;
+    uint256 private constant UPDATE_LOAN_INTEREST_RATE_SECONDARY = 400;
 
     // -------------------------------------------- //
     //  Setup and configuration                     //

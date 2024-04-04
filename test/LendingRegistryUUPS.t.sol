@@ -23,11 +23,11 @@ contract LendingRegistryUUPSTest is Test {
     //  Storage variables                           //
     // -------------------------------------------- //
 
-    LendingRegistryUUPS public proxy;
+    LendingRegistryUUPS private proxy;
 
-    address public constant OWNER = address(bytes20(keccak256("owner")));
-    address public constant MARKET = address(bytes20(keccak256("market")));
-    address public constant ATTACKER = address(bytes20(keccak256("attacker")));
+    address private constant OWNER = address(bytes20(keccak256("owner")));
+    address private constant MARKET = address(bytes20(keccak256("market")));
+    address private constant ATTACKER = address(bytes20(keccak256("attacker")));
 
     // -------------------------------------------- //
     //  Setup and configuration                     //
