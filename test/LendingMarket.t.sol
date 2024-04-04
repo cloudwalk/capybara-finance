@@ -22,7 +22,7 @@ import { LendingMarket } from "src/LendingMarket.sol";
 
 /// @title LendingMarketTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Contains tests for the `LendingMarket` contract.
+/// @dev Contains tests for the `LendingMarket` contract.
 contract LendingMarketTest is Test {
     using SafeCast for uint256;
 
@@ -49,20 +49,30 @@ contract LendingMarketTest is Test {
         uint256 outstandingBalance
     );
 
-    event LoanFrozen(uint256 indexed loanId, uint256 timestamp);
-    event LoanUnfrozen(uint256 indexed loanId, uint256 timestamp);
+    event LoanFrozen(uint256 indexed loanId);
+    event LoanUnfrozen(uint256 indexed loanId);
 
     event LoanDurationUpdated(uint256 indexed loanId, uint256 indexed newDuration, uint256 indexed oldDuration);
-    event LoanMoratoriumUpdated(uint256 indexed loanId, uint256 indexed newMoratorium, uint256 indexed oldMoratorium);
+    event LoanMoratoriumUpdated(
+        uint256 indexed loanId,
+        uint256 indexed fromTimestamp,
+        uint256 indexed moratoriumPeriods
+    );
     event LoanInterestRatePrimaryUpdated(
-        uint256 indexed loanId, uint256 indexed newInterestRate, uint256 indexed oldInterestRate
+        uint256 indexed loanId,
+        uint256 indexed newInterestRate,
+        uint256 indexed oldInterestRate
     );
     event LoanInterestRateSecondaryUpdated(
-        uint256 indexed loanId, uint256 indexed newInterestRate, uint256 indexed oldInterestRate
+        uint256 indexed loanId,
+        uint256 indexed newInterestRate,
+        uint256 indexed oldInterestRate
     );
 
     event LiquidityPoolAssignedToCreditLine(
-        address indexed creditLine, address indexed newLiquidityPool, address indexed oldLiquidityPool
+        address indexed creditLine,
+        address indexed newLiquidityPool,
+        address indexed oldLiquidityPool
     );
     event LenderAliasConfigured(address indexed lender, address indexed account, bool isAlias);
 
@@ -70,65 +80,65 @@ contract LendingMarketTest is Test {
     //  Storage variables                           //
     // -------------------------------------------- //
 
-    ERC20Mock public token;
-    LendingMarket public market;
-    CreditLineMock public creditLine;
-    LiquidityPoolMock public liquidityPool;
+    ERC20Mock private token;
+    LendingMarket private market;
+    CreditLineMock private creditLine;
+    LiquidityPoolMock private liquidityPool;
 
-    address public constant OWNER = address(bytes20(keccak256("owner")));
-    address public constant LENDER_1 = address(bytes20(keccak256("lender_1")));
-    address public constant LENDER_2 = address(bytes20(keccak256("lender_2")));
-    address public constant ATTACKER = address(bytes20(keccak256("attacker")));
-    address public constant BORROWER_1 = address(bytes20(keccak256("borrower_1")));
-    address public constant BORROWER_2 = address(bytes20(keccak256("borrower_2")));
-    address public constant BORROWER_3 = address(bytes20(keccak256("borrower_3")));
-    address public constant REGISTRY_1 = address(bytes20(keccak256("registry_1")));
-    address public constant REGISTRY_2 = address(bytes20(keccak256("registry_2")));
-    address public constant CREDIT_LINE = address(bytes20(keccak256("credit_line")));
-    address public constant LOAN_TREASURY = address(bytes20(keccak256("loan_treasury")));
-    address public constant LENDER_1_ALIAS = address(bytes20(keccak256("lender_1_alias")));
-    address public constant ADDON_RECIPIENT = address(bytes20(keccak256("addon_recipient")));
-    address public constant LIQUIDITY_POOL_1 = address(bytes20(keccak256("liquidity_pool_1")));
-    address public constant LIQUIDITY_POOL_2 = address(bytes20(keccak256("liquidity_pool_2")));
+    address private constant OWNER = address(bytes20(keccak256("owner")));
+    address private constant LENDER_1 = address(bytes20(keccak256("lender_1")));
+    address private constant LENDER_2 = address(bytes20(keccak256("lender_2")));
+    address private constant ATTACKER = address(bytes20(keccak256("attacker")));
+    address private constant BORROWER_1 = address(bytes20(keccak256("borrower_1")));
+    address private constant BORROWER_2 = address(bytes20(keccak256("borrower_2")));
+    address private constant BORROWER_3 = address(bytes20(keccak256("borrower_3")));
+    address private constant REGISTRY_1 = address(bytes20(keccak256("registry_1")));
+    address private constant REGISTRY_2 = address(bytes20(keccak256("registry_2")));
+    address private constant CREDIT_LINE = address(bytes20(keccak256("credit_line")));
+    address private constant LOAN_TREASURY = address(bytes20(keccak256("loan_treasury")));
+    address private constant LENDER_1_ALIAS = address(bytes20(keccak256("lender_1_alias")));
+    address private constant ADDON_RECIPIENT = address(bytes20(keccak256("addon_recipient")));
+    address private constant LIQUIDITY_POOL_1 = address(bytes20(keccak256("liquidity_pool_1")));
+    address private constant LIQUIDITY_POOL_2 = address(bytes20(keccak256("liquidity_pool_2")));
 
-    uint64 public constant ADDON_AMOUNT = 100;
-    uint64 public constant BORROW_AMOUNT = 100;
-    uint32 public constant DURATION_IN_PERIODS = 30;
-    uint256 public constant LOAN_ID_NONEXISTENT = 999_999_999;
-    uint256 public constant INIT_BLOCK_TIMESTAMP = CREDIT_LINE_CONFIG_PERIOD_IN_SECONDS + 1;
+    uint64 private constant ADDON_AMOUNT = 100;
+    uint64 private constant BORROW_AMOUNT = 100;
+    uint32 private constant DURATION_IN_PERIODS = 30;
+    uint256 private constant LOAN_ID_NONEXISTENT = 999_999_999;
+    uint256 private constant INIT_BLOCK_TIMESTAMP = CREDIT_LINE_CONFIG_PERIOD_IN_SECONDS + 1;
 
-    uint64 public constant CREDIT_LINE_CONFIG_MIN_BORROW_AMOUNT = 400;
-    uint64 public constant CREDIT_LINE_CONFIG_MAX_BORROW_AMOUNT = 900;
-    uint32 public constant CREDIT_LINE_CONFIG_MIN_INTEREST_RATE_PRIMARY = 3;
-    uint32 public constant CREDIT_LINE_CONFIG_MAX_INTEREST_RATE_PRIMARY = 7;
-    uint32 public constant CREDIT_LINE_CONFIG_MIN_INTEREST_RATE_SECONDARY = 4;
-    uint32 public constant CREDIT_LINE_CONFIG_MAX_INTEREST_RATE_SECONDARY = 8;
-    uint32 public constant CREDIT_LINE_CONFIG_INTEREST_RATE_FACTOR = 1000;
-    uint32 public constant CREDIT_LINE_CONFIG_PERIOD_IN_SECONDS = 600;
-    uint32 public constant CREDIT_LINE_CONFIG_MIN_DURATION_IN_PERIODS = 50;
-    uint32 public constant CREDIT_LINE_CONFIG_MAX_DURATION_IN_PERIODS = 200;
-    uint32 public constant CREDIT_LINE_CONFIG_MIN_ADDON_FIXED_COST_RATE = 10;
-    uint32 public constant CREDIT_LINE_CONFIG_MAX_ADDON_FIXED_COST_RATE = 50;
-    uint32 public constant CREDIT_LINE_CONFIG_MIN_ADDON_PERIOD_COST_RATE = 10;
-    uint32 public constant CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_COST_RATE = 50;
+    uint64 private constant CREDIT_LINE_CONFIG_MIN_BORROW_AMOUNT = 400;
+    uint64 private constant CREDIT_LINE_CONFIG_MAX_BORROW_AMOUNT = 900;
+    uint32 private constant CREDIT_LINE_CONFIG_MIN_INTEREST_RATE_PRIMARY = 3;
+    uint32 private constant CREDIT_LINE_CONFIG_MAX_INTEREST_RATE_PRIMARY = 7;
+    uint32 private constant CREDIT_LINE_CONFIG_MIN_INTEREST_RATE_SECONDARY = 4;
+    uint32 private constant CREDIT_LINE_CONFIG_MAX_INTEREST_RATE_SECONDARY = 8;
+    uint32 private constant CREDIT_LINE_CONFIG_INTEREST_RATE_FACTOR = 1000;
+    uint32 private constant CREDIT_LINE_CONFIG_PERIOD_IN_SECONDS = 600;
+    uint32 private constant CREDIT_LINE_CONFIG_MIN_DURATION_IN_PERIODS = 50;
+    uint32 private constant CREDIT_LINE_CONFIG_MAX_DURATION_IN_PERIODS = 200;
+    uint32 private constant CREDIT_LINE_CONFIG_MIN_ADDON_FIXED_RATE = 10;
+    uint32 private constant CREDIT_LINE_CONFIG_MAX_ADDON_FIXED_RATE = 50;
+    uint32 private constant CREDIT_LINE_CONFIG_MIN_ADDON_PERIOD_RATE = 10;
+    uint32 private constant CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_RATE = 50;
 
-    uint32 public constant BORROWER_CONFIG_ADDON_FIXED_COST_RATE = 15;
-    uint32 public constant BORROWER_CONFIG_ADDON_PERIOD_COST_RATE = 20;
-    uint32 public constant BORROWER_CONFIG_MIN_DURATION_IN_PERIODS = 25;
-    uint32 public constant BORROWER_CONFIG_MAX_DURATION_IN_PERIODS = 35;
-    uint32 public constant BORROWER_CONFIG_DURATION = 1000;
-    uint64 public constant BORROWER_CONFIG_MIN_BORROW_AMOUNT = 500;
-    uint64 public constant BORROWER_CONFIG_MAX_BORROW_AMOUNT = 800;
-    uint32 public constant BORROWER_CONFIG_INTEREST_RATE_PRIMARY = 5;
-    uint32 public constant BORROWER_CONFIG_INTEREST_RATE_SECONDARY = 6;
-    bool public constant BORROWER_CONFIG_AUTOREPAYMENT = true;
-    Interest.Formula public constant BORROWER_CONFIG_INTEREST_FORMULA_COMPOUND = Interest.Formula.Compound;
-    ICreditLineConfigurable.BorrowPolicy public constant BORROWER_CONFIG_BORROW_POLICY_DECREASE =
+    uint32 private constant BORROWER_CONFIG_ADDON_FIXED_RATE = 15;
+    uint32 private constant BORROWER_CONFIG_ADDON_PERIOD_RATE = 20;
+    uint32 private constant BORROWER_CONFIG_MIN_DURATION_IN_PERIODS = 25;
+    uint32 private constant BORROWER_CONFIG_MAX_DURATION_IN_PERIODS = 35;
+    uint32 private constant BORROWER_CONFIG_DURATION = 1000;
+    uint64 private constant BORROWER_CONFIG_MIN_BORROW_AMOUNT = 500;
+    uint64 private constant BORROWER_CONFIG_MAX_BORROW_AMOUNT = 800;
+    uint32 private constant BORROWER_CONFIG_INTEREST_RATE_PRIMARY = 5;
+    uint32 private constant BORROWER_CONFIG_INTEREST_RATE_SECONDARY = 6;
+    bool private constant BORROWER_CONFIG_AUTOREPAYMENT = true;
+    Interest.Formula private constant BORROWER_CONFIG_INTEREST_FORMULA_COMPOUND = Interest.Formula.Compound;
+    ICreditLineConfigurable.BorrowPolicy private constant BORROWER_CONFIG_BORROW_POLICY_DECREASE =
         ICreditLineConfigurable.BorrowPolicy.Decrease;
 
-    bool public canOverrideAutoRepayment = false;
-    bool public overrideAutoRepayment = false;
-    uint8 public constant DECIMALS = 6;
+    bool private canOverrideAutoRepayment = false;
+    bool private overrideAutoRepayment = false;
+    uint8 private constant DECIMALS = 6;
 
     // -------------------------------------------- //
     //  Setup and configuration                     //
@@ -200,7 +210,6 @@ contract LendingMarketTest is Test {
 
     function createRepaidLoan(uint256 skipPeriodsBeforeRepayment) private returns (uint256) {
         uint256 loanId = createActiveLoan(skipPeriodsBeforeRepayment);
-        Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
         assertEq(outstandingBalance != 0, true);
@@ -227,11 +236,9 @@ contract LendingMarketTest is Test {
         return loanId;
     }
 
-    function initBorrowerConfig(uint256 blockTimestamp)
-        public
-        pure
-        returns (ICreditLineConfigurable.BorrowerConfig memory)
-    {
+    function initBorrowerConfig(
+        uint256 blockTimestamp
+    ) private pure returns (ICreditLineConfigurable.BorrowerConfig memory) {
         return ICreditLineConfigurable.BorrowerConfig({
             expiration: (blockTimestamp + BORROWER_CONFIG_DURATION).toUint32(),
             minBorrowAmount: BORROWER_CONFIG_MIN_BORROW_AMOUNT,
@@ -240,19 +247,17 @@ contract LendingMarketTest is Test {
             maxDurationInPeriods: BORROWER_CONFIG_MAX_DURATION_IN_PERIODS,
             interestRatePrimary: BORROWER_CONFIG_INTEREST_RATE_PRIMARY,
             interestRateSecondary: BORROWER_CONFIG_INTEREST_RATE_SECONDARY,
-            addonFixedCostRate: BORROWER_CONFIG_ADDON_FIXED_COST_RATE,
-            addonPeriodCostRate: BORROWER_CONFIG_ADDON_PERIOD_COST_RATE,
+            addonFixedRate: BORROWER_CONFIG_ADDON_FIXED_RATE,
+            addonPeriodRate: BORROWER_CONFIG_ADDON_PERIOD_RATE,
             interestFormula: BORROWER_CONFIG_INTEREST_FORMULA_COMPOUND,
             borrowPolicy: BORROWER_CONFIG_BORROW_POLICY_DECREASE,
             autoRepayment: BORROWER_CONFIG_AUTOREPAYMENT
         });
     }
 
-    function initBorrowerConfigs(uint256 blockTimestamp)
-        public
-        pure
-        returns (address[] memory, ICreditLineConfigurable.BorrowerConfig[] memory)
-    {
+    function initBorrowerConfigs(
+        uint256 blockTimestamp
+    ) private pure returns (address[] memory, ICreditLineConfigurable.BorrowerConfig[] memory) {
         address[] memory borrowers = new address[](3);
         borrowers[0] = BORROWER_1;
         borrowers[1] = BORROWER_2;
@@ -266,7 +271,7 @@ contract LendingMarketTest is Test {
         return (borrowers, configs);
     }
 
-    function initCreditLineConfig() public pure returns (ICreditLineConfigurable.CreditLineConfig memory) {
+    function initCreditLineConfig() private pure returns (ICreditLineConfigurable.CreditLineConfig memory) {
         return ICreditLineConfigurable.CreditLineConfig({
             treasury: LOAN_TREASURY,
             periodInSeconds: CREDIT_LINE_CONFIG_PERIOD_IN_SECONDS,
@@ -280,18 +285,18 @@ contract LendingMarketTest is Test {
             maxInterestRateSecondary: CREDIT_LINE_CONFIG_MAX_INTEREST_RATE_SECONDARY,
             interestRateFactor: CREDIT_LINE_CONFIG_INTEREST_RATE_FACTOR,
             addonRecipient: ADDON_RECIPIENT,
-            minAddonFixedCostRate: CREDIT_LINE_CONFIG_MIN_ADDON_FIXED_COST_RATE,
-            maxAddonFixedCostRate: CREDIT_LINE_CONFIG_MAX_ADDON_FIXED_COST_RATE,
-            minAddonPeriodCostRate: CREDIT_LINE_CONFIG_MIN_ADDON_PERIOD_COST_RATE,
-            maxAddonPeriodCostRate: CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_COST_RATE
+            minAddonFixedRate: CREDIT_LINE_CONFIG_MIN_ADDON_FIXED_RATE,
+            maxAddonFixedRate: CREDIT_LINE_CONFIG_MAX_ADDON_FIXED_RATE,
+            minAddonPeriodRate: CREDIT_LINE_CONFIG_MIN_ADDON_PERIOD_RATE,
+            maxAddonPeriodRate: CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_RATE
         });
     }
 
-    function initLoanTerms(address token) internal returns (Loan.Terms memory) {
+    function initLoanTerms(address token_) internal pure returns (Loan.Terms memory) {
         ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = initCreditLineConfig();
         ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(0);
         return Loan.Terms({
-            token: token,
+            token: token_,
             treasury: address(0),
             periodInSeconds: creditLineConfig.periodInSeconds,
             durationInPeriods: DURATION_IN_PERIODS,
@@ -829,7 +834,6 @@ contract LendingMarketTest is Test {
     function test_repayLoan_IRepaymentAmountIsUint256Max() public {
         configureMarket();
         uint256 loanId = createActiveLoan(1);
-        Loan.State memory loan = market.getLoanState(loanId);
 
         vm.startPrank(BORROWER_1);
 
@@ -906,7 +910,6 @@ contract LendingMarketTest is Test {
     function test_repayLoan_Revert_IfRepayAmountIsGreaterThanBorrowAmount() public {
         configureMarket();
         uint256 loanId = createActiveLoan(1);
-        Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
         token.mint(BORROWER_1, outstandingBalance - token.balanceOf(BORROWER_1) + 1);
@@ -929,7 +932,7 @@ contract LendingMarketTest is Test {
 
         vm.prank(caller);
         vm.expectEmit(true, true, true, true, address(market));
-        emit LoanFrozen(loanId, block.timestamp);
+        emit LoanFrozen(loanId);
         market.freeze(loanId);
 
         loan = market.getLoanState(loanId);
@@ -1026,14 +1029,14 @@ contract LendingMarketTest is Test {
 
         uint256 oldDurationInPeriods = loan.durationInPeriods;
         uint256 oldOutstandingBalance = preview.outstandingBalance;
-        uint256 currentTimestamp = preview.periodTimestamp;
+        // uint256 currentTimestamp = preview.period * loan.durationInPeriods;
 
         // assertEq(loan.freezeTimestamp, currentTimestamp);
         // assertEq(loan.trackedTimestamp, currentTimestamp);
 
         vm.prank(LENDER_1);
         vm.expectEmit(true, true, true, true, address(market));
-        emit LoanUnfrozen(loanId, block.timestamp);
+        emit LoanUnfrozen(loanId);
         market.unfreeze(loanId);
 
         loan = market.getLoanState(loanId);
@@ -1063,7 +1066,7 @@ contract LendingMarketTest is Test {
 
         vm.prank(LENDER_1);
         vm.expectEmit(true, true, true, true, address(market));
-        emit LoanUnfrozen(loanId, block.timestamp);
+        emit LoanUnfrozen(loanId);
         market.unfreeze(loanId);
 
         loan = market.getLoanState(loanId);
@@ -1364,8 +1367,11 @@ contract LendingMarketTest is Test {
 
     function getMoratoriumInPeriods(uint256 loanId) private view returns (uint256) {
         Loan.State memory loan = market.getLoanState(loanId);
-        uint256 currentTimestamp = market.calculatePeriodTimestamp(block.timestamp, loan.periodInSeconds);
-        return loan.trackedTimestamp > currentTimestamp ? (loan.trackedTimestamp - currentTimestamp) / loan.periodInSeconds : 0;
+        uint256 currentTimestamp =
+            market.calculatePeriodIndex(block.timestamp, loan.periodInSeconds) * loan.periodInSeconds;
+        return loan.trackedTimestamp > currentTimestamp
+            ? (loan.trackedTimestamp - currentTimestamp) / loan.periodInSeconds
+            : 0;
     }
 
     // -------------------------------------------- //
@@ -1609,36 +1615,19 @@ contract LendingMarketTest is Test {
         assertEq(market.getLiquidityPoolLender(address(liquidityPool)), LENDER_1);
     }
 
-    function test_calculatePeriodTimestamp_1_Second_Period() public {
-        skip(10 ** 6 - 1);
-
+    function test_calculatePeriodIndex() public {
+        uint256 timestamp = 10 ** 6 - 1;
         uint256 periodInSeconds = 1 seconds;
-        uint256 currentPeriodSeconds = block.timestamp % periodInSeconds;
-        uint256 currentPeriod = market.calculatePeriodTimestamp(block.timestamp, periodInSeconds);
+        uint256 expectedCurrentPeriod = timestamp / periodInSeconds;
 
-        skip(periodInSeconds - currentPeriodSeconds - 1);
+        assertEq(market.calculatePeriodIndex(timestamp, periodInSeconds), expectedCurrentPeriod);
 
-        assertEq(market.calculatePeriodTimestamp(block.timestamp, periodInSeconds), currentPeriod);
-
-        skip(1);
-
-        assertEq(market.calculatePeriodTimestamp(block.timestamp, periodInSeconds), currentPeriod + periodInSeconds);
-    }
-
-    function test_calculatePeriodTimestamp_59_Second_Period() public {
-        skip(10 ** 6 - 1);
-
-        uint256 periodInSeconds = 59 seconds;
-        uint256 currentPeriodSeconds = block.timestamp % periodInSeconds;
-        uint256 currentPeriod = market.calculatePeriodTimestamp(block.timestamp, periodInSeconds);
-
-        skip(periodInSeconds - currentPeriodSeconds - 1);
-
-        assertEq(market.calculatePeriodTimestamp(block.timestamp, periodInSeconds), currentPeriod);
-
-        skip(1);
-
-        assertEq(market.calculatePeriodTimestamp(block.timestamp, periodInSeconds), currentPeriod + periodInSeconds);
+        periodInSeconds = 19 seconds;
+        for (uint256 i = 0; i <= periodInSeconds; ++i) {
+            expectedCurrentPeriod = timestamp / periodInSeconds;
+            assertEq(market.calculatePeriodIndex(timestamp, periodInSeconds), expectedCurrentPeriod);
+            timestamp += 1;
+        }
     }
 
     // -------------------------------------------- //
