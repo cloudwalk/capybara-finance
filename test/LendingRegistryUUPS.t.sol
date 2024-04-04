@@ -11,7 +11,7 @@ import { LendingRegistryUUPS } from "src/LendingRegistryUUPS.sol";
 
 /// @title LendingRegistryUUPSTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Contains tests for the `LendingRegistryUUPS` contract.
+/// @dev Contains tests for the `LendingRegistryUUPS` contract.
 contract LendingRegistryUUPSTest is Test {
     // -------------------------------------------- //
     //  Events                                      //
@@ -23,11 +23,11 @@ contract LendingRegistryUUPSTest is Test {
     //  Storage variables                           //
     // -------------------------------------------- //
 
-    LendingRegistryUUPS public proxy;
+    LendingRegistryUUPS private proxy;
 
-    address public constant OWNER = address(bytes20(keccak256("owner")));
-    address public constant MARKET = address(bytes20(keccak256("market")));
-    address public constant ATTACKER = address(bytes20(keccak256("attacker")));
+    address private constant OWNER = address(bytes20(keccak256("owner")));
+    address private constant MARKET = address(bytes20(keccak256("market")));
+    address private constant ATTACKER = address(bytes20(keccak256("attacker")));
 
     // -------------------------------------------- //
     //  Setup and configuration                     //
