@@ -75,7 +75,10 @@ interface ICreditLineConfigurable is ICreditLine {
     /// @dev Emitted when an admin is configured.
     /// @param account The address of the admin account.
     /// @param adminStatus True if the account is an admin.
-    event AdminConfigured(address indexed account, bool adminStatus);
+    event AdminConfigured(
+        address indexed account, 
+        bool adminStatus
+    );
 
     /// @dev Emitted when the credit line is configured.
     /// @param creditLine The address of the current credit line.
@@ -84,8 +87,11 @@ interface ICreditLineConfigurable is ICreditLine {
     /// @dev Emitted when a borrower is configured.
     /// @param creditLine The address of the current credit line.
     /// @param borrower The address of the borrower being configured.
-    event BorrowerConfigured(address indexed creditLine, address indexed borrower);
-
+    event BorrowerConfigured(
+        address indexed creditLine, 
+        address indexed borrower
+    );
+    
     // -------------------------------------------- //
     //  Functions                                   //
     // -------------------------------------------- //
