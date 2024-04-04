@@ -17,7 +17,7 @@ import { LendingRegistryStorage } from "./LendingRegistryStorage.sol";
 
 /// @title LendingRegistry contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Implementation of the lending registry contract.
+/// @dev Implementation of the lending registry contract.
 contract LendingRegistry is
     LendingRegistryStorage,
     Initializable,
@@ -29,12 +29,12 @@ contract LendingRegistry is
     //  Events                                      //
     // -------------------------------------------- //
 
-    /// @notice Emitted when the credit line factory is changed.
+    /// @dev Emitted when the credit line factory is changed.
     /// @param newFactory The address of the new credit line factory.
     /// @param oldFactory The address of the old credit line factory.
     event CreditLineFactoryChanged(address newFactory, address oldFactory);
 
-    /// @notice Emitted when the liquidity pool factory is changed.
+    /// @dev Emitted when the liquidity pool factory is changed.
     /// @param newFactory The address of the new liquidity pool factory.
     /// @param oldFactory The address of the old liquidity pool factory.
     event LiquidityPoolFactoryChanged(address newFactory, address oldFactory);
@@ -43,17 +43,17 @@ contract LendingRegistry is
     //  Errors                                      //
     // -------------------------------------------- //
 
-    /// @notice Thrown when the credit line factory is not configured.
+    /// @dev Thrown when the credit line factory is not configured.
     error CreditLineFactoryNotConfigured();
 
-    /// @notice Thrown when the liquidity pool factory is not configured.
+    /// @dev Thrown when the liquidity pool factory is not configured.
     error LiquidityPoolFactoryNotConfigured();
 
     // -------------------------------------------- //
     //  Initializers                                //
     // -------------------------------------------- //
 
-    /// @notice Initializer of the upgradable contract.
+    /// @dev Initializer of the upgradable contract.
     /// @param market_ The address of the lending market.
     function initialize(address market_) external initializer {
         __LendingRegistry_init(market_);
@@ -81,17 +81,17 @@ contract LendingRegistry is
     //  Owner functions                             //
     // -------------------------------------------- //
 
-    /// @notice Pauses the contract.
+    /// @dev Pauses the contract.
     function pause() external onlyOwner {
         _pause();
     }
 
-    /// @notice Unpauses the contract.
+    /// @dev Unpauses the contract.
     function unpause() external onlyOwner {
         _unpause();
     }
 
-    /// @notice Sets the credit line factory.
+    /// @dev Sets the credit line factory.
     /// @param newFactory The address of the new credit line factory.
     function setCreditLineFactory(address newFactory) external onlyOwner {
         if (_creditLineFactory == newFactory) {
@@ -103,7 +103,7 @@ contract LendingRegistry is
         _creditLineFactory = newFactory;
     }
 
-    /// @notice Sets the liquidity pool factory.
+    /// @dev Sets the liquidity pool factory.
     /// @param newFactory The address of the new liquidity pool factory.
     function setLiquidityPoolFactory(address newFactory) external onlyOwner {
         if (_liquidityPoolFactory == newFactory) {
@@ -125,8 +125,13 @@ contract LendingRegistry is
             revert CreditLineFactoryNotConfigured();
         }
 
-        address creditLine =
-            ICreditLineFactory(_creditLineFactory).createCreditLine(_market, msg.sender, token, kind, "0x");
+        address creditLine = ICreditLineFactory(_creditLineFactory).createCreditLine(
+            _market,
+            msg.sender,
+            token,
+            kind,
+            "0x" // data
+        );
 
         ILendingMarket(_market).registerCreditLine(msg.sender, creditLine);
     }
@@ -137,8 +142,12 @@ contract LendingRegistry is
             revert LiquidityPoolFactoryNotConfigured();
         }
 
-        address liquidityPool =
-            ILiquidityPoolFactory(_liquidityPoolFactory).createLiquidityPool(_market, msg.sender, kind, "0x");
+        address liquidityPool = ILiquidityPoolFactory(_liquidityPoolFactory).createLiquidityPool(
+            _market,
+            msg.sender,
+            kind,
+            "0x" // data
+        );
 
         ILendingMarket(_market).registerLiquidityPool(msg.sender, liquidityPool);
     }
