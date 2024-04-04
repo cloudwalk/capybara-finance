@@ -10,7 +10,7 @@ import { LiquidityPoolFactoryMock } from "src/mocks/LiquidityPoolFactoryMock.sol
 
 /// @title LiquidityPoolFactoryMockTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Contains tests for the `LiquidityPoolFactoryMock` contract.
+/// @dev Contains tests for the `LiquidityPoolFactoryMock` contract.
 contract LiquidityPoolFactoryMockTest is Test {
     // -------------------------------------------- //
     //  Events                                      //
@@ -22,13 +22,13 @@ contract LiquidityPoolFactoryMockTest is Test {
     //  Storage variables                           //
     // -------------------------------------------- //
 
-    LiquidityPoolFactoryMock public mock;
+    LiquidityPoolFactoryMock private mock;
 
-    address public constant MARKET = address(bytes20(keccak256("market")));
-    address public constant LENDER = address(bytes20(keccak256("lender")));
-    address public constant LIQUIDITY_POOL = address(bytes20(keccak256("liquidity_pool")));
-    uint16 public constant KIND = 1;
-    bytes public constant DATA = "0x123ff";
+    address private constant MARKET = address(bytes20(keccak256("market")));
+    address private constant LENDER = address(bytes20(keccak256("lender")));
+    address private constant LIQUIDITY_POOL = address(bytes20(keccak256("liquidity_pool")));
+    uint16 private constant KIND = 1;
+    bytes private constant DATA = "0x123ff";
 
     // -------------------------------------------- //
     //  Setup and configuration                     //
