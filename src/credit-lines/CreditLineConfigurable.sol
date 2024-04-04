@@ -14,7 +14,7 @@ import { ICreditLineConfigurable } from "../common/interfaces/ICreditLineConfigu
 
 /// @title CreditLineConfigurable contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Implementation of the configurable credit line contract.
+/// @dev Implementation of the configurable credit line contract.
 contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICreditLineConfigurable {
     using SafeCast for uint256;
     // -------------------------------------------- //
@@ -40,26 +40,26 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     //  Errors                                      //
     // -------------------------------------------- //
 
-    /// @notice Thrown when the credit line configuration is invalid.
+    /// @dev Thrown when the credit line configuration is invalid.
     error InvalidCreditLineConfiguration();
 
-    /// @notice Thrown when the borrower configuration is invalid.
+    /// @dev Thrown when the borrower configuration is invalid.
     error InvalidBorrowerConfiguration();
 
-    /// @notice Thrown when the borrower configuration has expired.
+    /// @dev Thrown when the borrower configuration has expired.
     error BorrowerConfigurationExpired();
 
-    /// @notice Thrown when the borrow policy is unsupported.
+    /// @dev Thrown when the borrow policy is unsupported.
     error UnsupportedBorrowPolicy();
 
-    /// @notice Thrown when the loan duration is out of range.
+    /// @dev Thrown when the loan duration is out of range.
     error LoanDurationOutOfRange();
 
     // -------------------------------------------- //
     //  Modifiers                                   //
     // -------------------------------------------- //
 
-    /// @notice Throws if called by any account other than the lending market.
+    /// @dev Throws if called by any account other than the lending market.
     modifier onlyMarket() {
         if (msg.sender != _market) {
             revert Error.Unauthorized();
@@ -67,7 +67,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         _;
     }
 
-    /// @notice Throws if called by any account other than the admin.
+    /// @dev Throws if called by any account other than the admin.
     modifier onlyAdmin() {
         if (!_admins[msg.sender]) {
             revert Error.Unauthorized();
@@ -83,7 +83,11 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     /// @param market_ The address of the lending market.
     /// @param lender_ The address of the lender.
     /// @param token_ The address of the token.
-    function initialize(address market_, address lender_, address token_) external initializer {
+    function initialize(
+        address market_,
+        address lender_,
+        address token_
+    ) external initializer {
         __CreditLineConfigurable_init(market_, lender_, token_);
     }
 
@@ -164,16 +168,16 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         if (config.minInterestRateSecondary > config.maxInterestRateSecondary) {
             revert InvalidCreditLineConfiguration();
         }
-        if (config.minAddonFixedCostRate > config.maxAddonFixedCostRate) {
+        if (config.minAddonFixedRate > config.maxAddonFixedRate) {
             revert InvalidCreditLineConfiguration();
         }
-        if (config.minAddonPeriodCostRate > config.maxAddonPeriodCostRate) {
+        if (config.minAddonPeriodRate > config.maxAddonPeriodRate) {
             revert InvalidCreditLineConfiguration();
         }
 
         _config = config;
 
-        emit CreditLineConfigured(address(this), config);
+        emit CreditLineConfigured(address(this));
     }
 
     // -------------------------------------------- //
@@ -208,8 +212,10 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         address borrower,
         uint256 borrowAmount,
         uint256 durationInPeriods,
-        uint256 loandId
+        uint256 loanId
     ) external whenNotPaused onlyMarket returns (Loan.Terms memory terms) {
+        loanId; // To prevent compiler warning about unused variable
+
         terms = determineLoanTerms(borrower, borrowAmount, durationInPeriods);
 
         BorrowerConfig storage borrowerConfig = _borrowers[borrower];
@@ -218,7 +224,9 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
             borrowerConfig.maxBorrowAmount = 0;
         } else if (borrowerConfig.borrowPolicy == BorrowPolicy.Decrease) {
             borrowerConfig.maxBorrowAmount -= borrowAmount.toUint64();
-        } else if (borrowerConfig.borrowPolicy == BorrowPolicy.Keep) { } else {
+        } else if (borrowerConfig.borrowPolicy == BorrowPolicy.Keep) {
+            // Do nothing
+        } else {
             // NOTE: This should never happen since all possible policies are checked above
             revert UnsupportedBorrowPolicy();
         }
@@ -272,7 +280,10 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
 
         if (terms.addonRecipient != address(0)) {
             terms.addonAmount = calculateAddonAmount(
-                borrowAmount, durationInPeriods, borrowerConfig.addonFixedCostRate, borrowerConfig.addonPeriodCostRate
+                borrowAmount,
+                durationInPeriods,
+                borrowerConfig.addonFixedRate,
+                borrowerConfig.addonPeriodRate
             ).toUint64();
         }
     }
@@ -312,27 +323,34 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         return 1;
     }
 
-    /// @notice Calculates the addon payment amount.
+    /// @dev Calculates the amount of a loan addon (extra charges or fees).
     /// @param amount The initial principal amount of the loan.
     /// @param durationInPeriods The duration of the loan in periods.
-    /// @param addonFixedCostRate The fixed cost rate of the loan addon payment.
-    /// @param addonPeriodCostRate The period cost rate of the loan addon payment.
+    /// @param addonFixedRate The fixed rate of the loan addon (extra charges or fees).
+    /// @param addonPeriodRate The rate per period of the loan addon (extra charges or fees).
     function calculateAddonAmount(
         uint256 amount,
         uint256 durationInPeriods,
-        uint256 addonFixedCostRate,
-        uint256 addonPeriodCostRate
+        uint256 addonFixedRate,
+        uint256 addonPeriodRate
     ) public view returns (uint256) {
-        uint256 addonRate = addonPeriodCostRate * durationInPeriods + addonFixedCostRate;
-        addonRate = addonRate * _config.interestRateFactor / (_config.interestRateFactor - addonRate);
-        return (amount * addonRate) / _config.interestRateFactor;
+        /*
+         * The initial formula for calculating the amount of the loan addon (extra charges or fees) is:
+         * E = (A + E) * r (1)
+         * where `A` -- the borrow amount, `E` -- addon, `r` -- the result addon rate (e.g. `1 %` => `0.01`),
+         * Formula (1) can be rewritten as:
+         * E = A * r / (1 - r) = A * (R / F) / (1 - R / F) = A * R (F - R) (2)
+         * where `R` -- the addon rate in units of the rate factor, `F` -- the interest rate factor.
+         */
+        uint256 addonRate = addonPeriodRate * durationInPeriods + addonFixedRate;
+        return (amount * addonRate) / (_config.interestRateFactor - addonRate);
     }
 
     // -------------------------------------------- //
     //  Internal functions                          //
     // -------------------------------------------- //
 
-    /// @dev Updates the borrower configuration.
+    /// @dev Updates the configuration of a borrower.
     /// @param borrower The address of the borrower to configure.
     /// @param config The new borrower configuration to be applied.
     function _configureBorrower(address borrower, BorrowerConfig memory config) internal {
@@ -377,23 +395,23 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
             revert InvalidBorrowerConfiguration();
         }
 
-        if (config.addonFixedCostRate < _config.minAddonFixedCostRate) {
+        if (config.addonFixedRate < _config.minAddonFixedRate) {
             revert InvalidBorrowerConfiguration();
         }
-        if (config.addonFixedCostRate > _config.maxAddonFixedCostRate) {
+        if (config.addonFixedRate > _config.maxAddonFixedRate) {
             revert InvalidBorrowerConfiguration();
         }
 
-        if (config.addonPeriodCostRate < _config.minAddonPeriodCostRate) {
+        if (config.addonPeriodRate < _config.minAddonPeriodRate) {
             revert InvalidBorrowerConfiguration();
         }
-        if (config.addonPeriodCostRate > _config.maxAddonPeriodCostRate) {
+        if (config.addonPeriodRate > _config.maxAddonPeriodRate) {
             revert InvalidBorrowerConfiguration();
         }
 
         _borrowers[borrower] = config;
 
-        emit BorrowerConfigured(address(this), borrower, config);
+        emit BorrowerConfigured(address(this), borrower);
     }
 
     function migrateLoan(uint256 loanId) external {
