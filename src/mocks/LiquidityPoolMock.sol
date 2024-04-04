@@ -7,7 +7,7 @@ import { ILiquidityPool } from "../common/interfaces/core/ILiquidityPool.sol";
 
 /// @title LiquidityPoolMock contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Mock of the `LiquidityPool` contract used for testing.
+/// @dev Mock of the `LiquidityPool` contract used for testing.
 contract LiquidityPoolMock is ILiquidityPool {
     // -------------------------------------------- //
     //  Events                                      //
@@ -86,6 +86,5 @@ contract LiquidityPoolMock is ILiquidityPool {
     }
 
     function migrateLoan(uint256 loanId, address creditLine) external {
-
     }
 }

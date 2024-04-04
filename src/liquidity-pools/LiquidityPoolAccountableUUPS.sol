@@ -7,7 +7,7 @@ import { LiquidityPoolAccountable } from "./LiquidityPoolAccountable.sol";
 
 /// @title LiquidityPoolAccountableUUPS contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Upgradeable version of the accountable liquidity pool contract.
+/// @dev Upgradeable version of the accountable liquidity pool contract.
 contract LiquidityPoolAccountableUUPS is LiquidityPoolAccountable, UUPSUpgradeable {
     /// @dev Constructor that prohibits the initialization of the implementation of the upgradable contract.
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -16,5 +16,5 @@ contract LiquidityPoolAccountableUUPS is LiquidityPoolAccountable, UUPSUpgradeab
     }
 
     /// @inheritdoc UUPSUpgradeable
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner { }
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 }
