@@ -6,18 +6,18 @@ import { Interest } from "./Interest.sol";
 
 /// @title Loan library
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Defines the common types used for loan management.
+/// @dev Defines the common types used for loan management.
 library Loan {
-    /// @notice A struct that defines the state of the loan.
+    /// @dev A struct that defines the stored state of a loan.
     struct State {
         // Slot 1
-        address token;                    // The address of the token used in the loan.
-        uint32 interestRateFactor;        // The rate factor used together with interest rate.
+        address token;                    // The address of the token used for the loan.
+        uint32 interestRateFactor;        // The rate factor used together with interest rates.
         uint32 interestRatePrimary;       // The primary interest rate that is applied to the loan.
         uint32 interestRateSecondary;     // The secondary interest rate that is applied to the loan.
         // Slot 2
         address borrower;                 // The address of the borrower.
-        uint64 initialBorrowAmount;       // The initial principal amount of the loan.
+        uint64 initialBorrowAmount;       // The initial total amount of the loan, including the addon.
         uint32 startTimestamp;            // The timestamp when the loan was created.
         // Slot 3
         address treasury;                 // The address of the loan treasury.
@@ -26,15 +26,15 @@ library Loan {
         Interest.Formula interestFormula; // The formula used for interest calculation on the loan.
         bool autoRepayment;               // The flag that indicates whether the loan can be repaid automatically.
         // Slot 4
-        uint64 trackedBorrowBalance;      // The borow balance of the loan that is tracked.
-        uint32 trackedTimestamp;          // The timestamp when the loan was last paid.
-        uint32 freezeTimestamp;           // The timestamp when the loan was frozen.
+        uint64 trackedBorrowBalance;      // The borrow balance of the loan that is tracked over its lifetime.
+        uint32 trackedTimestamp;          // The timestamp when the loan was last paid or its balance was updated.
+        uint32 freezeTimestamp;           // The timestamp when the loan was frozen. Zero value for unfrozen loans.
     }
 
-    /// @notice A struct that defines the terms of the loan.
+    /// @dev A struct that defines the terms of the loan.
     struct Terms {
         // Slot 1
-        address token;                    // The address of the token to be used in the loan.
+        address token;                    // The address of the token to be used for the loan.
         uint32 interestRatePrimary;       // The primary interest rate to be applied to the loan.
         uint32 interestRateSecondary;     // The secondary interest rate to be applied to the loan.
         uint32 interestRateFactor;        // The rate factor used together with interest rate.
@@ -45,13 +45,13 @@ library Loan {
         Interest.Formula interestFormula; // The formula to be used for interest calculation on the loan.
         bool autoRepayment;               // The flag that indicates whether the loan can be repaid automatically.
         // Slot 3
-        address addonRecipient;           // The address of the recipient of addon payments and fees.
-        uint64 addonAmount;               // The amount of addon payments and fees.
+        address addonRecipient;           // The address of the loan add-on recipient (extra charges or fees).
+        uint64 addonAmount;               // The amount of the loan add-on (extra charges or fees).
     }
 
-    /// @notice A struct that defines the preview of the loan.
+    /// @dev A struct that defines the preview of the loan.
     struct Preview {
-        uint256 periodTimestamp;    // The timestamp of the previewed period.
-        uint256 outstandingBalance; // The outstanding balance of the loan at previewed period.
+        uint256 periodIndex;        // The period index that matches the preview timestamp.
+        uint256 outstandingBalance; // The outstanding balance of the loan at the previewed period.
     }
 }
