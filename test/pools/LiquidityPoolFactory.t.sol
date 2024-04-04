@@ -12,32 +12,35 @@ import { LiquidityPoolFactory } from "src/liquidity-pools/LiquidityPoolFactory.s
 
 /// @title LiquidityPoolFactoryTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Contains tests for the `LiquidityPoolFactory` contract.
+/// @dev Contains tests for the `LiquidityPoolFactory` contract.
 contract LiquidityPoolFactoryTest is Test {
     // -------------------------------------------- //
     //  Events                                      //
     // -------------------------------------------- //
 
     event LiquidityPoolCreated(
-        address indexed market, address indexed lender, uint16 indexed kind, address liquidityPool
+        address indexed market,
+        address indexed lender,
+        uint16 indexed kind,
+        address liquidityPool
     );
 
     // -------------------------------------------- //
     //  Storage variables                           //
     // -------------------------------------------- //
 
-    LiquidityPoolFactory public factory;
+    LiquidityPoolFactory private factory;
 
-    address public constant MARKET = address(bytes20(keccak256("market")));
-    address public constant LENDER = address(bytes20(keccak256("lender")));
-    address public constant ATTACKER = address(bytes20(keccak256("attacker")));
-    address public constant REGISTRY_1 = address(bytes20(keccak256("registry_1")));
-    address public constant REGISTRY_2 = address(bytes20(keccak256("registry_2")));
-    address public constant EXPECTED_CONTRACT_ADDRESS = 0x104fBc016F4bb334D775a19E8A6510109AC63E00;
+    address private constant MARKET = address(bytes20(keccak256("market")));
+    address private constant LENDER = address(bytes20(keccak256("lender")));
+    address private constant ATTACKER = address(bytes20(keccak256("attacker")));
+    address private constant REGISTRY_1 = address(bytes20(keccak256("registry_1")));
+    address private constant REGISTRY_2 = address(bytes20(keccak256("registry_2")));
+    address private constant EXPECTED_CONTRACT_ADDRESS = 0x104fBc016F4bb334D775a19E8A6510109AC63E00;
 
-    uint16 public constant KIND_1 = 1;
-    uint16 public constant KIND_2 = 2;
-    bytes public constant DATA = "0x123ff";
+    uint16 private constant KIND_1 = 1;
+    uint16 private constant KIND_2 = 2;
+    bytes private constant DATA = "0x123ff";
 
     // -------------------------------------------- //
     //  Setup and configuration                     //
