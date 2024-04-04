@@ -79,8 +79,8 @@ library InterestMath {
          // Where division operator `/` and power operator `^` take into account the fractional part and
          // the `round()` function returns an integer rounded according to standard mathematical rules.
         int128 onePlusRateValue = divide(interestRateFactor + interestRate, interestRateFactor);
-        int128 powValue = power(onePlusRateValue, numberOfPeriods);
-        uint256 unroundedResult = uint256(uint128(multiply(powValue, int128(int256(originalBalance << 64)))));
+        int128 powValue = _power(onePlusRateValue, numberOfPeriods);
+        uint256 unroundedResult = uint256(uint128(_multiply(powValue, int128(int256(originalBalance << 64)))));
         uint256 result = unroundedResult >> 64;
         if ((unroundedResult - (result << 64)) >= (1 << 63)) {
             result += 1;
@@ -88,14 +88,14 @@ library InterestMath {
         return result;
     }
     
-     /// @dev Calculates the division of unsigned 256-bit integer `numerator`
-     /// by non-zero unsigned 256-bit integer `denominator` with rounding towards zero.
-     ///
-     /// Reverts if `denominator` is zero or in case of arithmetic overflow.
-     ///
-     /// @param numerator The unsigned 256-bit integer numerator.
-     /// @param denominator The non-zero unsigned 256-bit integer denominator.
-     /// @return The result as a 64.64-bit fixed-point number.
+    /// @dev Calculates the division of unsigned 256-bit integer `numerator`
+    /// by non-zero unsigned 256-bit integer `denominator` with rounding towards zero.
+    ///
+    /// Reverts if `denominator` is zero or in case of arithmetic overflow.
+    ///
+    /// @param numerator The unsigned 256-bit integer numerator.
+    /// @param denominator The non-zero unsigned 256-bit integer denominator.
+    /// @return The result as a 64.64-bit fixed-point number.
     function divide(uint256 numerator, uint256 denominator) internal pure returns (int128) {
         if (denominator == 0) {
             revert ZeroDenominator();
@@ -108,16 +108,15 @@ library InterestMath {
             return int128(remainder);
         }
     }
-
     
-     /// @dev Calculates the raising a signed 64.64 fixed-point number to the power of an unsigned 256-bit integer.
-     ///
-     /// Reverts in case of arithmetic overflow.
-     ///
-     /// @param base The signed 64.64 fixed-point base number.
-     /// @param exponent The unsigned 256-bit integer power.
-     /// @return The result as a signed 64.64 fixed-point number.
-    function power(int128 base, uint256 exponent) internal pure returns (int128) {
+    /// @dev Calculates the raising a signed 64.64 fixed-point number to the power of an unsigned 256-bit integer.
+    ///
+    /// Reverts in case of arithmetic overflow.
+    ///
+    /// @param base The signed 64.64 fixed-point base number.
+    /// @param exponent The unsigned 256-bit integer power.
+    /// @return The result as a signed 64.64 fixed-point number.
+    function _power(int128 base, uint256 exponent) internal pure returns (int128) {
         unchecked {
             bool isNegative;
             if (base < 0 && exponent & 1 == 1) {
@@ -218,14 +217,14 @@ library InterestMath {
         }
     }
 
-     /// @dev Calculates the multiplication of two signed 64.64 fixed-point numbers with rounding down.
-     ///
-     /// Reverts in case of arithmetic overflow.
-     ///
-     /// @param multiplicand The first signed 64.64-bit fixed-point number.
-     /// @param multiplier The second signed 64.64-bit fixed-point number.
-     /// @return The result as a signed 64.64-bit fixed-point number.
-    function multiply(int128 multiplicand, int128 multiplier) internal pure returns (int128) {
+    /// @dev Calculates the multiplication of two signed 64.64 fixed-point numbers with rounding down.
+    ///
+    /// Reverts in case of arithmetic overflow.
+    ///
+    /// @param multiplicand The first signed 64.64-bit fixed-point number.
+    /// @param multiplier The second signed 64.64-bit fixed-point number.
+    /// @return The result as a signed 64.64-bit fixed-point number.
+    function _multiply(int128 multiplicand, int128 multiplier) internal pure returns (int128) {
         unchecked {
             int256 product = (int256(multiplicand) * multiplier) >> 64;
             if (product < MIN_64x64_VALUE || product > MAX_64x64_VALUE) {
@@ -235,14 +234,14 @@ library InterestMath {
         }
     }
 
-     /// @dev Calculates the division of unsigned 256-bit integer `numerator`
-     /// by non-zero unsigned 256-bit integer `denominator` with rounding towards zero.
-     ///
-     /// Reverts if `denominator` is zero or in case of arithmetic overflow.
-     ///
-     /// @param numerator The unsigned 256-bit integer numerator.
-     /// @param denominator The non-zero unsigned 256-bit integer denominator.
-     /// @return The result as an unsigned 64.64-bit fixed-point number.
+    /// @dev Calculates the division of unsigned 256-bit integer `numerator`
+    /// by non-zero unsigned 256-bit integer `denominator` with rounding towards zero.
+    ///
+    /// Reverts if `denominator` is zero or in case of arithmetic overflow.
+    ///
+    /// @param numerator The unsigned 256-bit integer numerator.
+    /// @param denominator The non-zero unsigned 256-bit integer denominator.
+    /// @return The result as an unsigned 64.64-bit fixed-point number.
     function _divide(uint256 numerator, uint256 denominator) internal pure returns (uint128) {
         unchecked {
             if (denominator == 0) {
