@@ -15,24 +15,38 @@ interface ILendingMarket {
     /// @notice Emitted when the lending markt registry is changed.
     /// @param newRegistry The address of the new registry.
     /// @param oldRegistry The address of the old registry.
-    event MarketRegistryChanged(address indexed newRegistry, address indexed oldRegistry);
+    event MarketRegistryChanged(
+        address indexed newRegistry,
+        address indexed oldRegistry
+    );
 
     /// @notice Emitted when a liquidity pool is registered.
     /// @param lender The address of the liquidity pool lender.
     /// @param liquidityPool The address of the liquidity pool contract.
-    event LiquidityPoolRegistered(address indexed lender, address indexed liquidityPool);
+    event LiquidityPoolRegistered(
+        address indexed lender,
+        address indexed liquidityPool
+    );
 
     /// @notice Emitted when a credit line is registered.
     /// @param lender The address of the credit line lender.
     /// @param creditLine The address of the credit line contract.
-    event CreditLineRegistered(address indexed lender, address indexed creditLine);
+    event CreditLineRegistered(
+        address indexed lender,
+        address indexed creditLine
+    );
 
     /// @notice Emitted when a loan is taken.
     /// @param loanId The unique identifier of the loan.
     /// @param borrower The address of the borrower of the loan.
     /// @param borrowAmount The initial principal amount of the loan.
     /// @param durationInPeriods The duration of the loan in periods.
-    event LoanTaken(uint256 indexed loanId, address indexed borrower, uint256 borrowAmount, uint256 durationInPeriods);
+    event LoanTaken(
+        uint256 indexed loanId,
+        address indexed borrower,
+        uint256 borrowAmount,
+        uint256 durationInPeriods
+    );
 
     /// @notice Emitted when a loan is repaid (fully or partially).
     /// @param loanId The unique identifier of the loan.
@@ -60,14 +74,20 @@ interface ILendingMarket {
     /// @param loanId The unique identifier of the loan.
     /// @param newDuration The new duration of the loan in periods.
     /// @param oldDuration The old duration of the loan in periods.
-    event LoanDurationUpdated(uint256 indexed loanId, uint256 indexed newDuration, uint256 indexed oldDuration);
+    event LoanDurationUpdated(
+        uint256 indexed loanId,
+        uint256 indexed newDuration,
+        uint256 indexed oldDuration
+    );
 
     /// @notice Emitted when the moratorium of the loan is updated.
     /// @param loanId The unique identifier of the loan.
     /// @param fromTimestamp The start timestamp of the moratorium period.
     /// @param moratoriumPeriods The number of periods of the moratorium.
     event LoanMoratoriumUpdated(
-        uint256 indexed loanId, uint256 indexed fromTimestamp, uint256 indexed moratoriumPeriods
+        uint256 indexed loanId,
+        uint256 indexed fromTimestamp,
+        uint256 indexed moratoriumPeriods
     );
 
     /// @notice Emitted when the primary interest rate of the loan is updated.
@@ -75,7 +95,9 @@ interface ILendingMarket {
     /// @param newInterestRate The new primary interest rate of the loan.
     /// @param oldInterestRate The old primary interest rate of the loan.
     event LoanInterestRatePrimaryUpdated(
-        uint256 indexed loanId, uint256 indexed newInterestRate, uint256 indexed oldInterestRate
+        uint256 indexed loanId,
+        uint256 indexed newInterestRate,
+        uint256 indexed oldInterestRate
     );
 
     /// @notice Emitted when the secondary interest rate of the loan is updated.
@@ -83,21 +105,29 @@ interface ILendingMarket {
     /// @param newInterestRate The new secondary interest rate of the loan.
     /// @param oldInterestRate The old secondary interest rate of the loan.
     event LoanInterestRateSecondaryUpdated(
-        uint256 indexed loanId, uint256 indexed newInterestRate, uint256 indexed oldInterestRate
+        uint256 indexed loanId,
+        uint256 indexed newInterestRate,
+        uint256 indexed oldInterestRate
     );
 
     /// @notice Emitted when a lender alias is configured.
     /// @param lender The address of the lender account.
     /// @param account The address of the alias account.
     /// @param isAlias True if the account is configured as an alias, otherwise false.
-    event LenderAliasConfigured(address indexed lender, address indexed account, bool isAlias);
+    event LenderAliasConfigured(
+        address indexed lender,
+        address indexed account,
+        bool isAlias
+    );
 
     /// @notice Emitted when a liquidity pool is assigned to a credit line.
     /// @param creditLine The address of the credit line.
     /// @param newLiquidityPool The address of the new liquidity pool.
     /// @param oldLiquidityPool The address of the old liquidity pool.
     event LiquidityPoolAssignedToCreditLine(
-        address indexed creditLine, address indexed newLiquidityPool, address indexed oldLiquidityPool
+        address indexed creditLine,
+        address indexed newLiquidityPool,
+        address indexed oldLiquidityPool
     );
 
     // -------------------------------------------- //
@@ -109,7 +139,11 @@ interface ILendingMarket {
     /// @param borrowAmount The desired amount of tokens to borrow.
     /// @param durationInPeriods The desired duration of the loan in periods.
     /// @return The unique identifier of the loan.
-    function takeLoan(address creditLine, uint256 borrowAmount, uint256 durationInPeriods) external returns (uint256);
+    function takeLoan(
+        address creditLine,
+        uint256 borrowAmount,
+        uint256 durationInPeriods
+    ) external returns (uint256);
 
     /// @notice Repays a loan.
     /// @param loanId The unique identifier of the loan to repay.

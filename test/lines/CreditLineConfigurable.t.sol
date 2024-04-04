@@ -601,9 +601,7 @@ contract CreditLineConfigurableTest is Test {
         creditLine.configureBorrower(BORROWER_1, borrowerConfig);
     }
 
-    function test_configureBorrower_Revert_IfInterestRatePrimaryIsGreaterThanCreditLineMaxInterestRatePrimary()
-        public
-    {
+    function test_configureBorrower_Revert_IfInterestRatePrimaryIsGreaterThanCreditLineMaxInterestRatePrimary() public {
         ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = configureCreditLine();
 
         ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(block.timestamp);
@@ -841,8 +839,11 @@ contract CreditLineConfigurableTest is Test {
         vm.prank(ADMIN);
         creditLine.configureBorrower(BORROWER_1, borrowerConfig);
 
-        Loan.Terms memory terms =
-            creditLine.determineLoanTerms(BORROWER_1, borrowerConfig.minBorrowAmount, DURATION_IN_PERIODS);
+        Loan.Terms memory terms = creditLine.determineLoanTerms(
+            BORROWER_1,
+            borrowerConfig.minBorrowAmount,
+            DURATION_IN_PERIODS
+        );
 
         assertEq(terms.token, creditLine.token());
 
@@ -883,8 +884,11 @@ contract CreditLineConfigurableTest is Test {
         vm.prank(ADMIN);
         creditLine.configureBorrower(BORROWER_1, borrowerConfig);
 
-        Loan.Terms memory terms =
-            creditLine.determineLoanTerms(BORROWER_1, borrowerConfig.minBorrowAmount, DURATION_IN_PERIODS);
+        Loan.Terms memory terms = creditLine.determineLoanTerms(
+            BORROWER_1,
+            borrowerConfig.minBorrowAmount,
+            DURATION_IN_PERIODS
+        );
         assertEq(terms.addonAmount, 0);
     }
 
@@ -900,8 +904,11 @@ contract CreditLineConfigurableTest is Test {
         vm.prank(ADMIN);
         creditLine.configureBorrower(BORROWER_1, borrowerConfig);
 
-        Loan.Terms memory terms =
-            creditLine.determineLoanTerms(BORROWER_1, borrowerConfig.minBorrowAmount, DURATION_IN_PERIODS);
+        Loan.Terms memory terms = creditLine.determineLoanTerms(
+            BORROWER_1,
+            borrowerConfig.minBorrowAmount,
+            DURATION_IN_PERIODS
+        );
         assertEq(terms.addonAmount, 0);
     }
 
@@ -1013,8 +1020,11 @@ contract CreditLineConfigurableTest is Test {
         );
         assertEq(actualAddonAmount, expectedAddonAmount);
 
-        Loan.Terms memory terms =
-            creditLine.determineLoanTerms(BORROWER_1, borrowerConfig.minBorrowAmount, DURATION_IN_PERIODS);
+        Loan.Terms memory terms = creditLine.determineLoanTerms(
+            BORROWER_1,
+            borrowerConfig.minBorrowAmount,
+            DURATION_IN_PERIODS
+        );
         assertEq(terms.addonAmount, expectedAddonAmount);
     }
 

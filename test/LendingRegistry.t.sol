@@ -34,7 +34,11 @@ contract LendingRegistryTest is Test {
     event RegisterLiquidityPoolCalled(address indexed lender, address indexed liquidityPool);
 
     event CreateCreditLineCalled(
-        address indexed market, address indexed lender, address indexed token, uint16 kind, bytes data
+        address indexed market,
+        address indexed lender,
+        address indexed token,
+        uint16 kind,
+        bytes data
     );
     event CreateLiquidityPoolCalled(address indexed market, address indexed lender, uint16 indexed kind, bytes data);
 

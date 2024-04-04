@@ -2,11 +2,11 @@
 
 pragma solidity 0.8.24;
 
-import {Test} from "forge-std/Test.sol";
+import { Test } from "forge-std/Test.sol";
 
-import {Loan} from "src/common/libraries/Loan.sol";
-import {Error} from "src/common/libraries/Error.sol";
-import {Interest} from "src/common/libraries/Interest.sol";
+import { Loan } from "src/common/libraries/Loan.sol";
+import { Error } from "src/common/libraries/Error.sol";
+import { Interest } from "src/common/libraries/Interest.sol";
 
 contract ComplexScenarios is Test {
     struct LoanParameters {
@@ -35,10 +35,8 @@ contract ComplexScenarios is Test {
 
     // Scenario 2: Instant full repayment
     // Borrow amount is 1000, interest rates are 10% and 20%
-    uint256[] private REPAYMENTS_CASE_2 =
-        [1000000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    uint256[] private EXPECTED_OUTSTANDING_BALANCES_CASE_2 =
-        [1000000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    uint256[] private REPAYMENTS_CASE_2 = [1000000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    uint256[] private EXPECTED_OUTSTANDING_BALANCES_CASE_2 = [1000000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
     // Scenario 3: Partial repayment each 50 periods until full repayment, both primary & secondary interest rate used
     // Borrow amount is 1000, interest rates are 10% and 20%

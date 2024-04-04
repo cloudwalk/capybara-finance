@@ -135,7 +135,7 @@ contract LendingMarket is
     }
 
     /// @dev Unchained internal initializer of the upgradable contract.
-    function __LendingMarket_init_unchained() internal onlyInitializing { }
+    function __LendingMarket_init_unchained() internal onlyInitializing {}
 
     // -------------------------------------------- //
     //  Owner functions                             //
@@ -272,8 +272,12 @@ contract LendingMarket is
         }
 
         uint256 id = _safeMint(lender);
-        Loan.Terms memory terms =
-            ICreditLine(creditLine).onBeforeLoanTaken(msg.sender, borrowAmount, durationInPeriods, id);
+        Loan.Terms memory terms = ICreditLine(creditLine).onBeforeLoanTaken(
+            msg.sender,
+            borrowAmount,
+            durationInPeriods,
+            id
+        );
         uint64 totalBorrowAmount = (borrowAmount + terms.addonAmount).toUint64();
         uint32 blockTimestamp = _blockTimestamp(id).toUint32();
 
@@ -541,13 +545,14 @@ contract LendingMarket is
         uint256 interestRateFactor,
         Interest.Formula interestFormula
     ) external pure returns (uint256) {
-        return InterestMath.calculateOutstandingBalance(
-            originalBalance,
-            numberOfPeriods,
-            interestRate,
-            interestRateFactor,
-            interestFormula
-        );
+        return
+            InterestMath.calculateOutstandingBalance(
+                originalBalance,
+                numberOfPeriods,
+                interestRate,
+                interestRateFactor,
+                interestFormula
+            );
     }
 
     // -------------------------------------------- //
@@ -638,7 +643,7 @@ contract LendingMarket is
     }
 
     /// @dev Returns the current block timestamp.
-    function _blockTimestamp(uint256 loanId) virtual internal view returns (uint256) {
+    function _blockTimestamp(uint256 loanId) internal view virtual returns (uint256) {
         loanId; // To prevent compiler warning about unused variable
         return block.timestamp;
     }
@@ -665,12 +670,9 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ERC721Upgradeable
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        override (ERC721Upgradeable, ERC721EnumerableUpgradeable)
-        returns (bool)
-    {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view override (ERC721Upgradeable, ERC721EnumerableUpgradeable) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 }

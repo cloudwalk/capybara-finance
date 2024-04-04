@@ -54,17 +54,25 @@ contract LendingMarketTest is Test {
 
     event LoanDurationUpdated(uint256 indexed loanId, uint256 indexed newDuration, uint256 indexed oldDuration);
     event LoanMoratoriumUpdated(
-        uint256 indexed loanId, uint256 indexed fromTimestamp, uint256 indexed moratoriumPeriods
+        uint256 indexed loanId,
+        uint256 indexed fromTimestamp,
+        uint256 indexed moratoriumPeriods
     );
     event LoanInterestRatePrimaryUpdated(
-        uint256 indexed loanId, uint256 indexed newInterestRate, uint256 indexed oldInterestRate
+        uint256 indexed loanId,
+        uint256 indexed newInterestRate,
+        uint256 indexed oldInterestRate
     );
     event LoanInterestRateSecondaryUpdated(
-        uint256 indexed loanId, uint256 indexed newInterestRate, uint256 indexed oldInterestRate
+        uint256 indexed loanId,
+        uint256 indexed newInterestRate,
+        uint256 indexed oldInterestRate
     );
 
     event LiquidityPoolAssignedToCreditLine(
-        address indexed creditLine, address indexed newLiquidityPool, address indexed oldLiquidityPool
+        address indexed creditLine,
+        address indexed newLiquidityPool,
+        address indexed oldLiquidityPool
     );
     event LenderAliasConfigured(address indexed lender, address indexed account, bool isAlias);
 
@@ -1615,7 +1623,7 @@ contract LendingMarketTest is Test {
         assertEq(market.calculatePeriodIndex(timestamp, periodInSeconds), expectedCurrentPeriod);
 
         periodInSeconds = 19 seconds;
-        for(uint256 i = 0; i <= periodInSeconds; ++i) {
+        for (uint256 i = 0; i <= periodInSeconds; ++i) {
             expectedCurrentPeriod = timestamp / periodInSeconds;
             assertEq(market.calculatePeriodIndex(timestamp, periodInSeconds), expectedCurrentPeriod);
             timestamp += 1;

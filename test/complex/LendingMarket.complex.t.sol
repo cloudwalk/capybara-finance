@@ -4,25 +4,25 @@ pragma solidity 0.8.24;
 
 import "forge-std/Test.sol";
 
-import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
-import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
+import { IERC721Receiver } from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
-import {Loan} from "src/common/libraries/Loan.sol";
-import {Interest} from "src/common/libraries/Interest.sol";
+import { Loan } from "src/common/libraries/Loan.sol";
+import { Interest } from "src/common/libraries/Interest.sol";
 
-import {ICreditLineConfigurable} from "src/common/interfaces/ICreditLineConfigurable.sol";
-import {ERC20Mock} from "src/mocks/ERC20Mock.sol";
+import { ICreditLineConfigurable } from "src/common/interfaces/ICreditLineConfigurable.sol";
+import { ERC20Mock } from "src/mocks/ERC20Mock.sol";
 
-import {LendingMarket} from "src/LendingMarket.sol";
-import {LendingRegistry} from "src/LendingRegistry.sol";
+import { LendingMarket } from "src/LendingMarket.sol";
+import { LendingRegistry } from "src/LendingRegistry.sol";
 
-import {CreditLineConfigurable} from "src/credit-lines/CreditLineConfigurable.sol";
-import {CreditLineFactory} from "src/credit-lines/CreditLineFactory.sol";
-import {LiquidityPoolAccountable} from "src/liquidity-pools/LiquidityPoolAccountable.sol";
-import {LiquidityPoolFactory} from "src/liquidity-pools/LiquidityPoolFactory.sol";
-import {ComplexScenarios} from "./ComplexScenarios.sol";
+import { CreditLineConfigurable } from "src/credit-lines/CreditLineConfigurable.sol";
+import { CreditLineFactory } from "src/credit-lines/CreditLineFactory.sol";
+import { LiquidityPoolAccountable } from "src/liquidity-pools/LiquidityPoolAccountable.sol";
+import { LiquidityPoolFactory } from "src/liquidity-pools/LiquidityPoolFactory.sol";
+import { ComplexScenarios } from "./ComplexScenarios.sol";
 
 /// @title LendingMarketTest contract
 /// @notice Contains complex tests for the LendingMarket contract
@@ -75,9 +75,8 @@ contract LendingMarketComplexTest is Test {
     uint64 private constant INIT_BORROWER_MIN_BORROW_AMOUNT = 0;
     uint64 private constant INIT_BORROWER_MAX_BORROW_AMOUNT = type(uint64).max;
     ICreditLineConfigurable.BorrowPolicy private constant INIT_BORROWER_POLICY =
-    ICreditLineConfigurable.BorrowPolicy.Keep;
-    Interest.Formula private constant INIT_BORROWER_INTEREST_FORMULA_COMPOUND =
-    Interest.Formula.Compound;
+        ICreditLineConfigurable.BorrowPolicy.Keep;
+    Interest.Formula private constant INIT_BORROWER_INTEREST_FORMULA_COMPOUND = Interest.Formula.Compound;
 
     /************************************************
      *  Setup and configuration
@@ -347,7 +346,11 @@ contract LendingMarketComplexTest is Test {
         for (uint256 i = 0; i < loan.expectedOutstandingBalances.length; i++) {
             Loan.Preview memory loanPreview = lendingMarket.getLoanPreview(loanId, 0);
             uint256 contractBalanceWithDecimals = loanPreview.outstandingBalance;
-            (uint256 contractBalance, uint256 expectedBalance) = removeDecimals(loan.tokenDecimals, contractBalanceWithDecimals, loan.expectedOutstandingBalances[i]);
+            (uint256 contractBalance, uint256 expectedBalance) = removeDecimals(
+                loan.tokenDecimals,
+                contractBalanceWithDecimals,
+                loan.expectedOutstandingBalances[i]
+            );
             (uint256 diff, uint256 percent) = getDiff(contractBalance, expectedBalance);
             if (diff == 0) {
                 assertEq(contractBalance, expectedBalance);

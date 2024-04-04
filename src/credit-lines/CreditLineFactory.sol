@@ -38,7 +38,7 @@ contract CreditLineFactory is OwnableUpgradeable, ICreditLineFactory {
     }
 
     /// @dev Unchained internal initializer of the upgradable contract.
-    function __CreditLineFactory_init_unchained() internal onlyInitializing { }
+    function __CreditLineFactory_init_unchained() internal onlyInitializing {}
 
     // -------------------------------------------- //
     //  Functions                                   //

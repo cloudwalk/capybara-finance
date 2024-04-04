@@ -68,7 +68,7 @@ library InterestMath {
     ) private pure returns (uint256) {
         uint256 outstandingBalance = originalBalance;
         for (uint256 i = 0; i < numberOfPeriods; i++) {
-            outstandingBalance += outstandingBalance * interestRate / interestRateFactor;
+            outstandingBalance += (outstandingBalance * interestRate) / interestRateFactor;
         }
         return outstandingBalance;
     }

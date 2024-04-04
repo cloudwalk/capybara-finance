@@ -125,8 +125,13 @@ contract LendingRegistry is
             revert CreditLineFactoryNotConfigured();
         }
 
-        address creditLine =
-            ICreditLineFactory(_creditLineFactory).createCreditLine(_market, msg.sender, token, kind, "0x");
+        address creditLine = ICreditLineFactory(_creditLineFactory).createCreditLine(
+            _market,
+            msg.sender,
+            token,
+            kind,
+            "0x" // data
+        );
 
         ILendingMarket(_market).registerCreditLine(msg.sender, creditLine);
     }
@@ -137,8 +142,12 @@ contract LendingRegistry is
             revert LiquidityPoolFactoryNotConfigured();
         }
 
-        address liquidityPool =
-            ILiquidityPoolFactory(_liquidityPoolFactory).createLiquidityPool(_market, msg.sender, kind, "0x");
+        address liquidityPool = ILiquidityPoolFactory(_liquidityPoolFactory).createLiquidityPool(
+            _market,
+            msg.sender,
+            kind,
+            "0x" // data
+        );
 
         ILendingMarket(_market).registerLiquidityPool(msg.sender, liquidityPool);
     }
