@@ -334,14 +334,12 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         uint256 addonFixedRate,
         uint256 addonPeriodRate
     ) public view returns (uint256) {
-        /*
-         * The initial formula for calculating the amount of the loan addon (extra charges or fees) is:
-         * E = (A + E) * r (1)
-         * where `A` -- the borrow amount, `E` -- addon, `r` -- the result addon rate (e.g. `1 %` => `0.01`),
-         * Formula (1) can be rewritten as:
-         * E = A * r / (1 - r) = A * (R / F) / (1 - R / F) = A * R (F - R) (2)
-         * where `R` -- the addon rate in units of the rate factor, `F` -- the interest rate factor.
-         */
+        /// The initial formula for calculating the amount of the loan addon (extra charges or fees) is:
+        /// E = (A + E) * r (1)
+        /// where `A` -- the borrow amount, `E` -- addon, `r` -- the result addon rate (e.g. `1 %` => `0.01`),
+        /// Formula (1) can be rewritten as:
+        /// E = A * r / (1 - r) = A * (R / F) / (1 - R / F) = A * R (F - R) (2)
+        /// where `R` -- the addon rate in units of the rate factor, `F` -- the interest rate factor.
         uint256 addonRate = addonPeriodRate * durationInPeriods + addonFixedRate;
         return (amount * addonRate) / (_config.interestRateFactor - addonRate);
     }

@@ -78,9 +78,9 @@
          ICreditLineConfigurable.BorrowPolicy.Keep;
      Interest.Formula private constant INIT_BORROWER_INTEREST_FORMULA_COMPOUND = Interest.Formula.Compound;
 
-     /************************************************
-      *  Setup and configuration
-      ***********************************************/
+     // -------------------------------------------- //
+     //  Setup and configuration                     //
+     // -------------------------------------------- //
 
      function setUp() public {
          vm.startPrank(OWNER);
