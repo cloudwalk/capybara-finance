@@ -8,7 +8,7 @@ import { ICreditLine } from "../common/interfaces/core/ICreditLine.sol";
 
 /// @title CreditLineMock contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Mock of the `CreditLine` contract used for testing.
+/// @dev Mock of the `CreditLine` contract used for testing.
 contract CreditLineMock is ICreditLine {
     // -------------------------------------------- //
     //  Storage variables                           //
@@ -26,7 +26,9 @@ contract CreditLineMock is ICreditLine {
         uint256 borrowAmount,
         uint256 durationInPeriods,
         uint256 loanId
-    ) external returns (Loan.Terms memory terms) {
+    ) external view returns (Loan.Terms memory terms) {
+        durationInPeriods; // To prevent compiler warning about unused variable
+        loanId; // To prevent compiler warning about unused variable
         return _loanTerms[borrower][borrowAmount];
     }
 
@@ -35,14 +37,15 @@ contract CreditLineMock is ICreditLine {
         uint256 borrowAmount,
         uint256 durationInPeriods
     ) external view returns (Loan.Terms memory terms) {
+        durationInPeriods; // To prevent compiler warning about unused variable
         return _loanTerms[borrower][borrowAmount];
     }
 
-    function market() external view returns (address) {
+    function market() external pure returns (address) {
         revert Error.NotImplemented();
     }
 
-    function lender() external view returns (address) {
+    function lender() external pure returns (address) {
         revert Error.NotImplemented();
     }
 
@@ -50,7 +53,7 @@ contract CreditLineMock is ICreditLine {
         return _tokenAddress;
     }
 
-    function kind() external view returns (uint16) {
+    function kind() external pure returns (uint16) {
         revert Error.NotImplemented();
     }
 
