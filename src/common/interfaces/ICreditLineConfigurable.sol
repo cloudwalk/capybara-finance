@@ -14,10 +14,12 @@ interface ICreditLineConfigurable is ICreditLine {
     // -------------------------------------------- //
 
     /// @dev An enum that defines the available borrow policies.
+    ///
     /// The possible values:
-    /// - Reset ---- Reset borrow allowance after the first loan taken.
-    /// - Decrease - Decrease borrow allowance after each loan taken.
-    /// - Keep ----- Do not change anything about borrow allowance.
+    ///
+    /// - Reset ---- Reset the borrow allowance after the first loan taken.
+    /// - Decrease - Decrease the borrow allowance after each loan taken.
+    /// - Keep ----- Do not change anything about the borrow allowance.
     enum BorrowPolicy {
         Reset,    // 0
         Decrease, // 1
@@ -70,7 +72,7 @@ interface ICreditLineConfigurable is ICreditLine {
     //  Events                                      //
     // -------------------------------------------- //
 
-    /// @notice Emitted when admin is configured.
+    /// @notice Emitted when an admin is configured.
     /// @param admin The address of the admin account.
     /// @param isAdmin True if the account is an admin.
     event AdminConfigured(address indexed admin, bool isAdmin);
@@ -79,7 +81,7 @@ interface ICreditLineConfigurable is ICreditLine {
     /// @param creditLine The address of the current credit line.
     event CreditLineConfigured(address indexed creditLine);
 
-    /// @notice Emitted when the borrower is configured.
+    /// @notice Emitted when a borrower is configured.
     /// @param creditLine The address of the current credit line.
     /// @param borrower The address of the borrower being configured.
     event BorrowerConfigured(address indexed creditLine, address indexed borrower);
@@ -88,13 +90,13 @@ interface ICreditLineConfigurable is ICreditLine {
     //  Functions                                   //
     // -------------------------------------------- //
 
-    /// @notice Configures an admin status.
-    /// @param admin The address of the admin to configure.
+    /// @notice Configures an account as an admin.
+    /// @param admin The address of the account to configure as an admin.
     /// @param isAdmin True whether the account is an admin.
     function configureAdmin(address admin, bool isAdmin) external;
 
     /// @notice Updates the credit line configuration.
-    /// @param config The struct containing the credit line configuration.
+    /// @param config The structure containing the credit line configuration.
     function configureCreditLine(CreditLineConfig memory config) external;
 
     /// @notice Configures a specific borrower.
@@ -104,19 +106,19 @@ interface ICreditLineConfigurable is ICreditLine {
 
     /// @notice Configures multiple borrowers at once.
     /// @param borrowers The addresses of the borrowers to configure.
-    /// @param configs The structs containing the borrower configurations.
+    /// @param configs The array containing the borrower configurations.
     function configureBorrowers(address[] memory borrowers, BorrowerConfig[] memory configs) external;
 
-    /// @notice Retrieves the borrower configuration.
+    /// @notice Retrieves the configuration of a borrower.
     /// @param borrower The address of the borrower to check.
-    /// @return The struct containing the borrower configuration.
+    /// @return The structure containing the borrower configuration.
     function getBorrowerConfiguration(address borrower) external view returns (BorrowerConfig memory);
 
     /// @notice Retrieves the credit line configuration.
-    /// @return The struct containing the credit line configuration.
+    /// @return The structure containing the credit line configuration.
     function creditLineConfiguration() external view returns (CreditLineConfig memory);
 
-    /// @notice Checks whether the account is an admin.
+    /// @notice Checks whether an account is an admin.
     /// @param account The address of the account to check.
     /// @return True if the account is configured as an admin.
     function isAdmin(address account) external view returns (bool);

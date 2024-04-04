@@ -12,7 +12,7 @@ interface ICreditLine {
     //  Functions                                   //
     // -------------------------------------------- //
 
-    /// @dev A hook that is triggered by the market before a loan is taken.
+    /// @dev A hook that is triggered by the associated market before a loan is taken.
     /// @param borrower The address of the borrower.
     /// @param borrowAmount The desired amount of tokens to borrow.
     /// @param durationInPeriods The desired duration of the loan in periods.
@@ -25,7 +25,7 @@ interface ICreditLine {
         uint256 loanId
     ) external returns (Loan.Terms memory terms);
 
-    /// @notice Retrieves the loan terms for the provided borrower and the amount.
+    /// @notice Retrieves the loan terms for the provided borrower, amount, loan duration.
     /// @param borrower The address of the borrower.
     /// @param borrowAmount The desired amount of tokens to borrow.
     /// @param durationInPeriods The desired duration of the loan in periods.

@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @dev Mock of the `ERC20` token contract used for testing.
 contract ERC20Mock is ERC20 {
-    /// @dev Contract constructor
+    /// @dev Contract constructor.
     constructor(uint256 amount, uint8 decimals) ERC20("NAME", "SYMBOL") {
         _mint(msg.sender, amount * 10 ** decimals);
     }

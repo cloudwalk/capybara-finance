@@ -6,45 +6,41 @@ import { Interest } from "./Interest.sol";
 
 /// @title InterestMath library
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @dev Defines interest calculation functions
+/// @dev Defines interest calculation functions.
 library InterestMath {
     // -------------------------------------------- //
     //  Constants                                   //
     // -------------------------------------------- //
 
-    /*
-     * Minimum value that a signed 64.64 bit fixed point number may contain.
-     */
+    /// @dev Minimum value that a signed 64.64 bit fixed point number may contain.
     int128 private constant MIN_64x64_VALUE = -0x80000000000000000000000000000000;
 
-    /*
-     * Maximum value that a signed 64.64 bit fixed point number may contain.
-     */
+    /// @dev Maximum value that a signed 64.64 bit fixed point number may contain.
     int128 private constant MAX_64x64_VALUE = 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
 
     // -------------------------------------------- //
     //  Errors                                      //
     // -------------------------------------------- //
 
-    /// @dev Thrown when the specified interest formula is not implemented
+    /// @dev Thrown when the specified interest formula is not implemented.
     error InterestFormulaNotImplemented();
 
-    /// @dev Thrown when the zero amount was passed as a denominator
+    /// @dev Thrown when the zero amount was passed as a denominator.
     error ZeroDenominator();
 
-    /// @dev Thrown when an overflow or underflow occurs during mathematical operations
+    /// @dev Thrown when an overflow or underflow occurs during mathematical operations.
     error MathOperationError();
 
     // -------------------------------------------- //
     //  Functions                                   //
     // -------------------------------------------- //
 
-    /// @dev Calculates the outstanding balance of a loan
-    /// @param originalBalance The original balance of the loan
-    /// @param numberOfPeriods The number of periods since the loan was taken
-    /// @param interestRate The interest rate applied to the loan
-    /// @param interestRateFactor The interest rate factor
-    /// @param interestFormula The interest formula
+    /// @dev Calculates the outstanding balance of a loan.
+    /// @param originalBalance The original balance of the loan.
+    /// @param numberOfPeriods The number of periods since the loan was taken.
+    /// @param interestRate The interest rate applied to the loan.
+    /// @param interestRateFactor The interest rate factor.
+    /// @param interestFormula The interest formula.
     function calculateOutstandingBalance(
         uint256 originalBalance,
         uint256 numberOfPeriods,
@@ -97,11 +93,11 @@ library InterestMath {
     /**
      * @dev Calculates the division of unsigned 256-bit integer `numerator`
      *      by non-zero unsigned 256-bit integer `denominator` with rounding towards zero.
-     * @dev Reverts if `denominator` is zero or in case of arithmetic overflow.
+     *
+     * Reverts if `denominator` is zero or in case of arithmetic overflow.
      *
      * @param numerator The unsigned 256-bit integer numerator.
      * @param denominator The non-zero unsigned 256-bit integer denominator.
-     *
      * @return The result as a 64.64-bit fixed-point number.
      */
     function divide(uint256 numerator, uint256 denominator) internal pure returns (int128) {
@@ -119,11 +115,11 @@ library InterestMath {
 
     /**
      * @dev Calculates the raising a signed 64.64 fixed-point number to the power of an unsigned 256-bit integer.
-     * @dev Reverts in case of arithmetic overflow.
+     *
+     * Reverts in case of arithmetic overflow.
      *
      * @param base The signed 64.64 fixed-point base number.
      * @param exponent The unsigned 256-bit integer power.
-     *
      * @return The result as a signed 64.64 fixed-point number.
      */
     function power(int128 base, uint256 exponent) internal pure returns (int128) {
@@ -229,11 +225,11 @@ library InterestMath {
 
     /**
      * @dev Calculates the multiplication of two signed 64.64 fixed-point numbers with rounding down.
-     * @dev Reverts in case of arithmetic overflow.
+     *
+     * Reverts in case of arithmetic overflow.
      *
      * @param multiplicand The first signed 64.64-bit fixed-point number.
      * @param multiplier The second signed 64.64-bit fixed-point number.
-     *
      * @return The result as a signed 64.64-bit fixed-point number.
      */
     function multiply(int128 multiplicand, int128 multiplier) internal pure returns (int128) {
@@ -249,11 +245,11 @@ library InterestMath {
     /**
      * @dev Calculates the division of unsigned 256-bit integer `numerator`
      *      by non-zero unsigned 256-bit integer `denominator` with rounding towards zero.
-     * @dev Reverts if `denominator` is zero or in case of arithmetic overflow.
+     *
+     * Reverts if `denominator` is zero or in case of arithmetic overflow.
      *
      * @param numerator The unsigned 256-bit integer numerator.
      * @param denominator The non-zero unsigned 256-bit integer denominator.
-     *
      * @return The result as an unsigned 64.64-bit fixed-point number.
      */
     function _divide(uint256 numerator, uint256 denominator) internal pure returns (uint128) {

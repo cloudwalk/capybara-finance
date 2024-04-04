@@ -8,16 +8,16 @@ import { Interest } from "./Interest.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @dev Defines the common types used for loan management.
 library Loan {
-    /// @dev A struct that defines the state of the loan.
+    /// @dev A struct that defines the state of a loan.
     struct State {
         // Slot 1
-        address token;                    // The address of the token used in the loan.
-        uint32 interestRateFactor;        // The rate factor used together with interest rate.
+        address token;                    // The address of the token used for the loan.
+        uint32 interestRateFactor;        // The rate factor used together with interest rates.
         uint32 interestRatePrimary;       // The primary interest rate that is applied to the loan.
         uint32 interestRateSecondary;     // The secondary interest rate that is applied to the loan.
         // Slot 2
         address borrower;                 // The address of the borrower.
-        uint64 initialBorrowAmount;       // The initial principal amount of the loan.
+        uint64 initialBorrowAmount;       // The initial total amount of the loan, including the addon.
         uint32 startTimestamp;            // The timestamp when the loan was created.
         // Slot 3
         address treasury;                 // The address of the loan treasury.
@@ -34,7 +34,7 @@ library Loan {
     /// @dev A struct that defines the terms of the loan.
     struct Terms {
         // Slot 1
-        address token;                    // The address of the token to be used in the loan.
+        address token;                    // The address of the token to be used for the loan.
         uint32 interestRatePrimary;       // The primary interest rate to be applied to the loan.
         uint32 interestRateSecondary;     // The secondary interest rate to be applied to the loan.
         uint32 interestRateFactor;        // The rate factor used together with interest rate.

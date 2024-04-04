@@ -350,7 +350,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     //  Internal functions                          //
     // -------------------------------------------- //
 
-    /// @dev Updates the borrower configuration.
+    /// @dev Updates the configuration of a borrower.
     /// @param borrower The address of the borrower to configure.
     /// @param config The new borrower configuration to be applied.
     function _configureBorrower(address borrower, BorrowerConfig memory config) internal {

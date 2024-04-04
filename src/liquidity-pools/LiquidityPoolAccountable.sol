@@ -28,13 +28,13 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
     /// @dev The address of the lending market.
     address internal _market;
 
-    /// @dev The mapping of account to admin status.
+    /// @dev The mapping of an account to its admin status.
     mapping(address => bool) internal _admins;
 
-    /// @dev The mapping of loan identifier to credit line.
+    /// @dev The mapping of a loan identifier to a credit line.
     mapping(uint256 => address) internal _creditLines;
 
-    /// @dev Mapping of credit line to its token balance.
+    /// @dev Mapping of a credit line to its token balance.
     mapping(address => uint256) internal _creditLineBalances;
 
     // -------------------------------------------- //

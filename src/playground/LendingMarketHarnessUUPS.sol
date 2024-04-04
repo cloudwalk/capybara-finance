@@ -6,7 +6,7 @@ import { LendingMarketUUPS } from "../LendingMarketUUPS.sol";
 
 /// @title LendingMarketHarnessUUPS contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @dev Upgradeable version of the lending market contract for testing purposes.
+/// @dev Upgradeable version of the lending market contract with special functions for testing purposes.
 contract LendingMarketHarnessUUPS is LendingMarketUUPS {
     mapping(address => bool) _isHarnessAdmin;
 
