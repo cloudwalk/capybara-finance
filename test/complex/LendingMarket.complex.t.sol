@@ -351,8 +351,8 @@
 //     }
 
 //     function removeDecimals(uint256 tokenDecimals, uint256 contractValue, uint256 expectedValue) public returns (uint256, uint256) {
-//         uint256 roundedContractValue = contractValue / 10 ** (tokenDecimals - 2);
-//         uint256 roundedExpectedValue = expectedValue / 10 ** (tokenDecimals - 2);
+//         uint256 roundedContractValue = contractValue; // / 10 ** (tokenDecimals - 2);
+//         uint256 roundedExpectedValue = expectedValue; // / 10 ** (tokenDecimals - 2);
 //         return (roundedContractValue, roundedExpectedValue);
 //     }
 
