@@ -528,8 +528,6 @@ contract LendingMarket is
     /// @dev Calculates the period index that corresponds the specified timestamp.
     /// @param timestamp The timestamp to calculate the period index.
     /// @param periodInSeconds The period duration in seconds.
-    function calculatePeriodTimestamp(uint256 timestamp, uint256 periodInSeconds) external pure returns (uint256) {
-        return _periodTimestamp(timestamp, periodInSeconds);
     function calculatePeriodIndex(uint256 timestamp, uint256 periodInSeconds) external pure returns (uint256) {
         return _periodIndex(timestamp, periodInSeconds);
     }
