@@ -17,8 +17,8 @@
 //         uint32 periodInSeconds;
 //         uint32 durationInPeriods;
 //         uint32 interestRateFactor;
-//         uint32 addonPeriodCostRate;
-//         uint32 addonFixedCostRate;
+//         uint32 addonPeriodRate;
+//         uint32 addonFixedRate;
 //         uint256 borrowAmount;
 //         uint8 tokenDecimals;
 //         uint256 step;
@@ -231,8 +231,8 @@
 //             periodInSeconds : 86400, // one day
 //             durationInPeriods : 250,
 //             interestRateFactor : 1000000000,
-//             addonPeriodCostRate : 0,
-//             addonFixedCostRate : 0,
+//             addonPeriodRate : 0,
+//             addonFixedRate : 0,
 //             borrowAmount : 1000 * 10 ** 6,
 //             tokenDecimals : 6,
 //             step : 50,
@@ -250,8 +250,8 @@
 //             periodInSeconds : 86400, // one day
 //             durationInPeriods : 250,
 //             interestRateFactor : 1000000000,
-//             addonPeriodCostRate : 0,
-//             addonFixedCostRate : 0,
+//             addonPeriodRate : 0,
+//             addonFixedRate : 0,
 //             borrowAmount : 1000 * 10 ** 6,
 //             tokenDecimals : 6,
 //             step : 50,
@@ -269,8 +269,8 @@
 //             periodInSeconds : 86400, // one day
 //             durationInPeriods : 250,
 //             interestRateFactor : 1000000000,
-//             addonPeriodCostRate : 0,
-//             addonFixedCostRate : 0,
+//             addonPeriodRate : 0,
+//             addonFixedRate : 0,
 //             borrowAmount : 1000 * 10 ** 6,
 //             tokenDecimals : 6,
 //             step : 50,
@@ -288,8 +288,8 @@
 //             periodInSeconds : 86400, // one day
 //             durationInPeriods : 250,
 //             interestRateFactor : 1000000000,
-//             addonPeriodCostRate : 0,
-//             addonFixedCostRate : 0,
+//             addonPeriodRate : 0,
+//             addonFixedRate : 0,
 //             borrowAmount : 1000 * 10 ** 6,
 //             tokenDecimals : 6,
 //             step : 50,
@@ -307,8 +307,8 @@
 //             periodInSeconds : 86400, // one day
 //             durationInPeriods : 250,
 //             interestRateFactor : 1000000000,
-//             addonPeriodCostRate : 0,
-//             addonFixedCostRate : 0,
+//             addonPeriodRate : 0,
+//             addonFixedRate : 0,
 //             borrowAmount : 1000 * 10 ** 6,
 //             tokenDecimals : 6,
 //             step : 50,
@@ -326,8 +326,8 @@
 //             periodInSeconds : 86400, // one day
 //             durationInPeriods : 250,
 //             interestRateFactor : 1000000000,
-//             addonPeriodCostRate : 0,
-//             addonFixedCostRate : 0,
+//             addonPeriodRate : 0,
+//             addonFixedRate : 0,
 //             borrowAmount : 1000 * 10 ** 6,
 //             tokenDecimals : 6,
 //             step : 50,
@@ -345,8 +345,8 @@
 //             periodInSeconds : 86400, // one day
 //             durationInPeriods : 250,
 //             interestRateFactor : 1000000000,
-//             addonPeriodCostRate : 0,
-//             addonFixedCostRate : 0,
+//             addonPeriodRate : 0,
+//             addonFixedRate : 0,
 //             borrowAmount : 1000 * 10 ** 6,
 //             tokenDecimals : 6,
 //             step : 50,
@@ -364,8 +364,8 @@
 //             periodInSeconds : 86400, // one day
 //             durationInPeriods : 250,
 //             interestRateFactor : 1000000000,
-//             addonPeriodCostRate : 0,
-//             addonFixedCostRate : 0,
+//             addonPeriodRate : 0,
+//             addonFixedRate : 0,
 //             borrowAmount : 1000000 * 10 ** 6,
 //             tokenDecimals : 6,
 //             step : 50,
@@ -383,8 +383,8 @@
 //             periodInSeconds : 86400, // one day
 //             durationInPeriods : 250,
 //             interestRateFactor : 1000000000,
-//             addonPeriodCostRate : 0,
-//             addonFixedCostRate : 0,
+//             addonPeriodRate : 0,
+//             addonFixedRate : 0,
 //             borrowAmount : 1000000 * 10 ** 6,
 //             tokenDecimals : 6,
 //             step : 50,
@@ -402,8 +402,8 @@
 //             periodInSeconds : 86400, // one day
 //             durationInPeriods : 250,
 //             interestRateFactor : 1000000000,
-//             addonPeriodCostRate : 0,
-//             addonFixedCostRate : 0,
+//             addonPeriodRate : 0,
+//             addonFixedRate : 0,
 //             borrowAmount : 1000000 * 10 ** 6,
 //             tokenDecimals : 6,
 //             step : 50,
@@ -421,8 +421,8 @@
 //             periodInSeconds : 86400, // one day
 //             durationInPeriods : 250,
 //             interestRateFactor : 1000000000,
-//             addonPeriodCostRate : 0,
-//             addonFixedCostRate : 0,
+//             addonPeriodRate : 0,
+//             addonFixedRate : 0,
 //             borrowAmount : 1000000 * 10 ** 6,
 //             tokenDecimals : 6,
 //             step : 50,
@@ -440,8 +440,8 @@
 //             periodInSeconds : 86400, // one day
 //             durationInPeriods : 250,
 //             interestRateFactor : 1000000000,
-//             addonPeriodCostRate : 0,
-//             addonFixedCostRate : 0,
+//             addonPeriodRate : 0,
+//             addonFixedRate : 0,
 //             borrowAmount : 1000000 * 10 ** 6,
 //             tokenDecimals : 6,
 //             step : 50,
@@ -459,8 +459,8 @@
 //             periodInSeconds : 86400, // one day
 //             durationInPeriods : 250,
 //             interestRateFactor : 1000000000,
-//             addonPeriodCostRate : 0,
-//             addonFixedCostRate : 0,
+//             addonPeriodRate : 0,
+//             addonFixedRate : 0,
 //             borrowAmount : 1000000 * 10 ** 6,
 //             tokenDecimals : 6,
 //             step : 50,
@@ -478,8 +478,8 @@
 //             periodInSeconds : 86400, // one day
 //             durationInPeriods : 250,
 //             interestRateFactor : 1000000000,
-//             addonPeriodCostRate : 0,
-//             addonFixedCostRate : 0,
+//             addonPeriodRate : 0,
+//             addonFixedRate : 0,
 //             borrowAmount : 1000000 * 10 ** 6,
 //             tokenDecimals : 6,
 //             step : 50,
@@ -497,8 +497,8 @@
 //             periodInSeconds : 86400, // one day
 //             durationInPeriods : 250,
 //             interestRateFactor : 1000000000,
-//             addonPeriodCostRate : 0,
-//             addonFixedCostRate : 0,
+//             addonPeriodRate : 0,
+//             addonFixedRate : 0,
 //             borrowAmount : 1000 * 10 ** 6,
 //             tokenDecimals : 6,
 //             step : 50,
@@ -516,8 +516,8 @@
 //             periodInSeconds : 86400, // one day
 //             durationInPeriods : 250,
 //             interestRateFactor : 1000000000,
-//             addonPeriodCostRate : 0,
-//             addonFixedCostRate : 0,
+//             addonPeriodRate : 0,
+//             addonFixedRate : 0,
 //             borrowAmount : 1000 * 10 ** 6,
 //             tokenDecimals : 6,
 //             step : 50,
@@ -535,8 +535,8 @@
 //             periodInSeconds : 86400, // one day
 //             durationInPeriods : 250,
 //             interestRateFactor : 1000000000,
-//             addonPeriodCostRate : 0,
-//             addonFixedCostRate : 0,
+//             addonPeriodRate : 0,
+//             addonFixedRate : 0,
 //             borrowAmount : 1000 * 10 ** 6,
 //             tokenDecimals : 6,
 //             step : 50,
@@ -554,8 +554,8 @@
 //             periodInSeconds : 86400, // one day
 //             durationInPeriods : 250,
 //             interestRateFactor : 1000000000,
-//             addonPeriodCostRate : 0,
-//             addonFixedCostRate : 0,
+//             addonPeriodRate : 0,
+//             addonFixedRate : 0,
 //             borrowAmount : 1000 * 10 ** 6,
 //             tokenDecimals : 6,
 //             step : 50,
@@ -573,8 +573,8 @@
 //             periodInSeconds : 86400, // one day
 //             durationInPeriods : 250,
 //             interestRateFactor : 1000000000,
-//             addonPeriodCostRate : 0,
-//             addonFixedCostRate : 0,
+//             addonPeriodRate : 0,
+//             addonFixedRate : 0,
 //             borrowAmount : 1000 * 10 ** 6,
 //             tokenDecimals : 6,
 //             step : 50,
@@ -592,8 +592,8 @@
 //             periodInSeconds : 86400, // one day
 //             durationInPeriods : 250,
 //             interestRateFactor : 1000000000,
-//             addonPeriodCostRate : 0,
-//             addonFixedCostRate : 0,
+//             addonPeriodRate : 0,
+//             addonFixedRate : 0,
 //             borrowAmount : 1000 * 10 ** 6,
 //             tokenDecimals : 6,
 //             step : 50,
@@ -611,8 +611,8 @@
 //             periodInSeconds : 86400, // one day
 //             durationInPeriods : 250,
 //             interestRateFactor : 1000000000,
-//             addonPeriodCostRate : 0,
-//             addonFixedCostRate : 0,
+//             addonPeriodRate : 0,
+//             addonFixedRate : 0,
 //             borrowAmount : 1000 * 10 ** 6,
 //             tokenDecimals : 6,
 //             step : 50,
@@ -630,8 +630,8 @@
 //             periodInSeconds : 86400, // one day
 //             durationInPeriods : 250,
 //             interestRateFactor : 1000000000,
-//             addonPeriodCostRate : 0,
-//             addonFixedCostRate : 0,
+//             addonPeriodRate : 0,
+//             addonFixedRate : 0,
 //             borrowAmount : 1000000 * 10 ** 6,
 //             tokenDecimals : 6,
 //             step : 50,
@@ -649,8 +649,8 @@
 //             periodInSeconds : 86400, // one day
 //             durationInPeriods : 250,
 //             interestRateFactor : 1000000000,
-//             addonPeriodCostRate : 0,
-//             addonFixedCostRate : 0,
+//             addonPeriodRate : 0,
+//             addonFixedRate : 0,
 //             borrowAmount : 1000000 * 10 ** 6,
 //             tokenDecimals : 6,
 //             step : 50,
@@ -668,8 +668,8 @@
 //             periodInSeconds : 86400, // one day
 //             durationInPeriods : 250,
 //             interestRateFactor : 1000000000,
-//             addonPeriodCostRate : 0,
-//             addonFixedCostRate : 0,
+//             addonPeriodRate : 0,
+//             addonFixedRate : 0,
 //             borrowAmount : 1000000 * 10 ** 6,
 //             tokenDecimals : 6,
 //             step : 50,
@@ -687,8 +687,8 @@
 //             periodInSeconds : 86400, // one day
 //             durationInPeriods : 250,
 //             interestRateFactor : 1000000000,
-//             addonPeriodCostRate : 0,
-//             addonFixedCostRate : 0,
+//             addonPeriodRate : 0,
+//             addonFixedRate : 0,
 //             borrowAmount : 1000000 * 10 ** 6,
 //             tokenDecimals : 6,
 //             step : 50,
@@ -706,8 +706,8 @@
 //             periodInSeconds : 86400, // one day
 //             durationInPeriods : 250,
 //             interestRateFactor : 1000000000,
-//             addonPeriodCostRate : 0,
-//             addonFixedCostRate : 0,
+//             addonPeriodRate : 0,
+//             addonFixedRate : 0,
 //             borrowAmount : 1000000 * 10 ** 6,
 //             tokenDecimals : 6,
 //             step : 50,
@@ -725,8 +725,8 @@
 //             periodInSeconds : 86400, // one day
 //             durationInPeriods : 250,
 //             interestRateFactor : 1000000000,
-//             addonPeriodCostRate : 0,
-//             addonFixedCostRate : 0,
+//             addonPeriodRate : 0,
+//             addonFixedRate : 0,
 //             borrowAmount : 1000000 * 10 ** 6,
 //             tokenDecimals : 6,
 //             step : 50,
@@ -744,8 +744,8 @@
 //             periodInSeconds : 86400, // one day
 //             durationInPeriods : 250,
 //             interestRateFactor : 1000000000,
-//             addonPeriodCostRate : 0,
-//             addonFixedCostRate : 0,
+//             addonPeriodRate : 0,
+//             addonFixedRate : 0,
 //             borrowAmount : 1000000 * 10 ** 6,
 //             tokenDecimals : 6,
 //             step : 50,

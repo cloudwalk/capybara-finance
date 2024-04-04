@@ -66,10 +66,10 @@
 //     uint32 public constant INIT_CREDIT_LINE_MAX_INTEREST_RATE_SECONDARY = type(uint32).max;
 //     uint32 public constant INIT_CREDIT_LINE_MIN_DURATION_IN_PERIODS = 0;
 //     uint32 public constant INIT_CREDIT_LINE_MAX_DURATION_IN_PERIODS = type(uint32).max;
-//     uint32 public constant INIT_CREDIT_LINE_MIN_ADDON_FIXED_COST_RATE = 0;
-//     uint32 public constant INIT_CREDIT_LINE_MAX_ADDON_FIXED_COST_RATE = type(uint32).max;
-//     uint32 public constant INIT_CREDIT_LINE_MIN_ADDON_PERIOD_COST_RATE = 0;
-//     uint32 public constant INIT_CREDIT_LINE_MAX_ADDON_PERIOD_COST_RATE = type(uint32).max;
+//     uint32 public constant INIT_CREDIT_LINE_MIN_ADDON_FIXED_RATE = 0;
+//     uint32 public constant INIT_CREDIT_LINE_MAX_ADDON_FIXED_RATE = type(uint32).max;
+//     uint32 public constant INIT_CREDIT_LINE_MIN_ADDON_PERIOD_RATE = 0;
+//     uint32 public constant INIT_CREDIT_LINE_MAX_ADDON_PERIOD_RATE = type(uint32).max;
 
 //     uint32 public constant INIT_BORROWER_DURATION = 1000;
 //     uint64 public constant INIT_BORROWER_MIN_BORROW_AMOUNT = 0;
@@ -168,8 +168,8 @@
 //             maxDurationInPeriods: type(uint32).max,
 //             interestRatePrimary: loan.interestRatePrimary,
 //             interestRateSecondary: loan.interestRateSecondary,
-//             addonFixedCostRate: loan.addonFixedCostRate,
-//             addonPeriodCostRate: loan.addonPeriodCostRate,
+//             addonFixedRate: loan.addonFixedRate,
+//             addonPeriodRate: loan.addonPeriodRate,
 //             interestFormula: loan.interestFormula,
 //             borrowPolicy: INIT_BORROWER_POLICY,
 //             autoRepayment: false
@@ -190,10 +190,10 @@
 //              maxInterestRateSecondary: INIT_CREDIT_LINE_MAX_INTEREST_RATE_SECONDARY,
 //              interestRateFactor: loan.interestRateFactor,
 //              addonRecipient: loan.addonRecipient,
-//              minAddonFixedCostRate: INIT_CREDIT_LINE_MIN_ADDON_FIXED_COST_RATE,
-//              maxAddonFixedCostRate: INIT_CREDIT_LINE_MAX_ADDON_FIXED_COST_RATE,
-//              minAddonPeriodCostRate: INIT_CREDIT_LINE_MIN_ADDON_PERIOD_COST_RATE,
-//              maxAddonPeriodCostRate: INIT_CREDIT_LINE_MAX_ADDON_PERIOD_COST_RATE
+//              minAddonFixedRate: INIT_CREDIT_LINE_MIN_ADDON_FIXED_RATE,
+//              maxAddonFixedRate: INIT_CREDIT_LINE_MAX_ADDON_FIXED_RATE,
+//              minAddonPeriodRate: INIT_CREDIT_LINE_MIN_ADDON_PERIOD_RATE,
+//              maxAddonPeriodRate: INIT_CREDIT_LINE_MAX_ADDON_PERIOD_RATE
 //          });
 //      }
 

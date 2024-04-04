@@ -109,13 +109,13 @@ contract LendingMarketTest is Test {
     uint32 public constant CREDIT_LINE_CONFIG_PERIOD_IN_SECONDS = 600;
     uint32 public constant CREDIT_LINE_CONFIG_MIN_DURATION_IN_PERIODS = 50;
     uint32 public constant CREDIT_LINE_CONFIG_MAX_DURATION_IN_PERIODS = 200;
-    uint32 public constant CREDIT_LINE_CONFIG_MIN_ADDON_FIXED_COST_RATE = 10;
-    uint32 public constant CREDIT_LINE_CONFIG_MAX_ADDON_FIXED_COST_RATE = 50;
-    uint32 public constant CREDIT_LINE_CONFIG_MIN_ADDON_PERIOD_COST_RATE = 10;
-    uint32 public constant CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_COST_RATE = 50;
+    uint32 public constant CREDIT_LINE_CONFIG_MIN_ADDON_FIXED_RATE = 10;
+    uint32 public constant CREDIT_LINE_CONFIG_MAX_ADDON_FIXED_RATE = 50;
+    uint32 public constant CREDIT_LINE_CONFIG_MIN_ADDON_PERIOD_RATE = 10;
+    uint32 public constant CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_RATE = 50;
 
-    uint32 public constant BORROWER_CONFIG_ADDON_FIXED_COST_RATE = 15;
-    uint32 public constant BORROWER_CONFIG_ADDON_PERIOD_COST_RATE = 20;
+    uint32 public constant BORROWER_CONFIG_ADDON_FIXED_RATE = 15;
+    uint32 public constant BORROWER_CONFIG_ADDON_PERIOD_RATE = 20;
     uint32 public constant BORROWER_CONFIG_MIN_DURATION_IN_PERIODS = 25;
     uint32 public constant BORROWER_CONFIG_MAX_DURATION_IN_PERIODS = 35;
     uint32 public constant BORROWER_CONFIG_DURATION = 1000;
@@ -241,8 +241,8 @@ contract LendingMarketTest is Test {
             maxDurationInPeriods: BORROWER_CONFIG_MAX_DURATION_IN_PERIODS,
             interestRatePrimary: BORROWER_CONFIG_INTEREST_RATE_PRIMARY,
             interestRateSecondary: BORROWER_CONFIG_INTEREST_RATE_SECONDARY,
-            addonFixedCostRate: BORROWER_CONFIG_ADDON_FIXED_COST_RATE,
-            addonPeriodCostRate: BORROWER_CONFIG_ADDON_PERIOD_COST_RATE,
+            addonFixedRate: BORROWER_CONFIG_ADDON_FIXED_RATE,
+            addonPeriodRate: BORROWER_CONFIG_ADDON_PERIOD_RATE,
             interestFormula: BORROWER_CONFIG_INTEREST_FORMULA_COMPOUND,
             borrowPolicy: BORROWER_CONFIG_BORROW_POLICY_DECREASE,
             autoRepayment: BORROWER_CONFIG_AUTOREPAYMENT
@@ -281,10 +281,10 @@ contract LendingMarketTest is Test {
             maxInterestRateSecondary: CREDIT_LINE_CONFIG_MAX_INTEREST_RATE_SECONDARY,
             interestRateFactor: CREDIT_LINE_CONFIG_INTEREST_RATE_FACTOR,
             addonRecipient: ADDON_RECIPIENT,
-            minAddonFixedCostRate: CREDIT_LINE_CONFIG_MIN_ADDON_FIXED_COST_RATE,
-            maxAddonFixedCostRate: CREDIT_LINE_CONFIG_MAX_ADDON_FIXED_COST_RATE,
-            minAddonPeriodCostRate: CREDIT_LINE_CONFIG_MIN_ADDON_PERIOD_COST_RATE,
-            maxAddonPeriodCostRate: CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_COST_RATE
+            minAddonFixedRate: CREDIT_LINE_CONFIG_MIN_ADDON_FIXED_RATE,
+            maxAddonFixedRate: CREDIT_LINE_CONFIG_MAX_ADDON_FIXED_RATE,
+            minAddonPeriodRate: CREDIT_LINE_CONFIG_MIN_ADDON_PERIOD_RATE,
+            maxAddonPeriodRate: CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_RATE
         });
     }
 

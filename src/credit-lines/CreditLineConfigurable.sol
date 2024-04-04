@@ -164,10 +164,10 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         if (config.minInterestRateSecondary > config.maxInterestRateSecondary) {
             revert InvalidCreditLineConfiguration();
         }
-        if (config.minAddonFixedCostRate > config.maxAddonFixedCostRate) {
+        if (config.minAddonFixedRate > config.maxAddonFixedRate) {
             revert InvalidCreditLineConfiguration();
         }
-        if (config.minAddonPeriodCostRate > config.maxAddonPeriodCostRate) {
+        if (config.minAddonPeriodRate > config.maxAddonPeriodRate) {
             revert InvalidCreditLineConfiguration();
         }
 
@@ -278,8 +278,8 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
             terms.addonAmount = calculateAddonAmount(
                 borrowAmount,
                 durationInPeriods,
-                borrowerConfig.addonFixedCostRate,
-                borrowerConfig.addonPeriodCostRate
+                borrowerConfig.addonFixedRate,
+                borrowerConfig.addonPeriodRate
             ).toUint64();
         }
     }
@@ -319,26 +319,26 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         return 1;
     }
 
-    /// @notice Calculates the amount of a loan addon (extra charges and fees).
+    /// @notice Calculates the amount of a loan addon (extra charges, fees, etc.).
     /// @param amount The initial principal amount of the loan.
     /// @param durationInPeriods The duration of the loan in periods.
-    /// @param addonFixedCostRate The fixed rate of the loan addon.
-    /// @param addonPeriodCostRate The rate per period of the loan addon.
+    /// @param addonFixedRate The fixed rate of the loan addon (extra charges, fees, etc.).
+    /// @param addonPeriodRate The rate per period of the loan addon (extra charges, fees, etc.).
     function calculateAddonAmount(
         uint256 amount,
         uint256 durationInPeriods,
-        uint256 addonFixedCostRate,
-        uint256 addonPeriodCostRate
+        uint256 addonFixedRate,
+        uint256 addonPeriodRate
     ) public view returns (uint256) {
         /*
-         * The initial formula for calculating the addon payment amount is:
+         * The initial formula for calculating the amount of the loan addon (extra charges, fees, etc.) is:
          * E = (A + E) * r (1)
          * where `A` -- the borrow amount, `E` -- addon, `r` -- the result addon rate (e.g. `1 %` => `0.01`),
          * Formula (1) can be rewritten as:
          * E = A * r / (1 - r) = A * (R / F) / (1 - R / F) = A * R (F - R) (2)
          * where `R` -- the addon rate in units of the rate factor, `F` -- the interest rate factor.
          */
-        uint256 addonRate = addonPeriodCostRate * durationInPeriods + addonFixedCostRate;
+        uint256 addonRate = addonPeriodRate * durationInPeriods + addonFixedRate;
         return (amount * addonRate) / (_config.interestRateFactor - addonRate);
     }
 
@@ -391,17 +391,17 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
             revert InvalidBorrowerConfiguration();
         }
 
-        if (config.addonFixedCostRate < _config.minAddonFixedCostRate) {
+        if (config.addonFixedRate < _config.minAddonFixedRate) {
             revert InvalidBorrowerConfiguration();
         }
-        if (config.addonFixedCostRate > _config.maxAddonFixedCostRate) {
+        if (config.addonFixedRate > _config.maxAddonFixedRate) {
             revert InvalidBorrowerConfiguration();
         }
 
-        if (config.addonPeriodCostRate < _config.minAddonPeriodCostRate) {
+        if (config.addonPeriodRate < _config.minAddonPeriodRate) {
             revert InvalidBorrowerConfiguration();
         }
-        if (config.addonPeriodCostRate > _config.maxAddonPeriodCostRate) {
+        if (config.addonPeriodRate > _config.maxAddonPeriodRate) {
             revert InvalidBorrowerConfiguration();
         }
 

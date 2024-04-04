@@ -40,12 +40,12 @@ interface ICreditLineConfigurable is ICreditLine {
         uint32 maxInterestRateSecondary; // The maximum secondary interest rate to be applied to the loan.
         // Slot 3
         uint32 interestRateFactor;       // The interest rate factor used for interest calculation.
-        address addonRecipient;          // The address of the recipient for the loan addon (extra charges and fees).
-        uint32 minAddonFixedCostRate;    // The minimum fixed rate of the loan addon (extra charges and fees).
-        uint32 maxAddonFixedCostRate;    // The maximum fixed rate of the loan addon (extra charges and fees).
+        address addonRecipient;          // The address of the recipient for the loan addon (extra charges, fees, etc.).
+        uint32 minAddonFixedRate;        // The minimum fixed rate of the loan addon (extra charges, fees, etc.).
+        uint32 maxAddonFixedRate;        // The maximum fixed rate of the loan addon (extra charges, fees, etc.).
         // Slot 4
-        uint32 minAddonPeriodCostRate;   // The minimum rate per loan period for the loan addon.
-        uint32 maxAddonPeriodCostRate;   // The maximum rate per loan period for the loan addon.
+        uint32 minAddonPeriodRate;       // The minimum rate per loan period for the loan addon.
+        uint32 maxAddonPeriodRate;       // The maximum rate per loan period for the loan addon.
     }
 
     /// @notice A struct that defines borrower configuration.
@@ -58,8 +58,8 @@ interface ICreditLineConfigurable is ICreditLine {
         uint32 interestRatePrimary;       // The primary interest rate to be applied to the loan.
         uint32 interestRateSecondary;     // The secondary interest rate to be applied to the loan.
         // Slot 2
-        uint32 addonFixedCostRate;        // The fixed rate of the loan addon (extra charges and fees).
-        uint32 addonPeriodCostRate;       // The rate per loan period for the loan addon (extra charges and fees).
+        uint32 addonFixedRate;            // The fixed rate of the loan addon (extra charges, fees, etc.).
+        uint32 addonPeriodRate;           // The rate per loan period for the loan addon (extra charges, fees, etc.).
         Interest.Formula interestFormula; // The formula to be used for interest calculation on the loan.
         BorrowPolicy borrowPolicy;        // The borrow policy to be applied to the borrower.
         bool autoRepayment;               // Whether the loan can be repaid automatically.
