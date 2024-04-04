@@ -12,32 +12,32 @@ import { CreditLineMock } from "src/mocks/CreditLineMock.sol";
 
 /// @title CreditLineMockTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Contains tests for the `CreditLineMock` contract.
+/// @dev Contains tests for the `CreditLineMock` contract.
 contract CreditLineMockTest is Test {
     // -------------------------------------------- //
     //  Storage variables                           //
     // -------------------------------------------- //
 
-    CreditLineMock public mock;
+    CreditLineMock private mock;
 
-    uint256 public constant LOAN_ID = 1;
-    uint256 public constant BORROW_AMOUNT = 100;
-    uint256 public constant DURATION_IN_PERIODS = 30;
-    address public constant BORROWER = address(bytes20(keccak256("borrower")));
+    uint256 private constant LOAN_ID = 1;
+    uint256 private constant BORROW_AMOUNT = 100;
+    uint256 private constant DURATION_IN_PERIODS = 30;
+    address private constant BORROWER = address(bytes20(keccak256("borrower")));
 
-    address public constant TERMS_TOKEN = address(bytes20(keccak256("token")));
-    address public constant TERMS_TREASURY = address(bytes20(keccak256("treasury")));
-    address public constant TERMS_ADDON_RECIPIENT = address(bytes20(keccak256("addon")));
+    address private constant TERMS_TOKEN = address(bytes20(keccak256("token")));
+    address private constant TERMS_TREASURY = address(bytes20(keccak256("treasury")));
+    address private constant TERMS_ADDON_RECIPIENT = address(bytes20(keccak256("addon")));
 
-    uint32 public constant TERMS_PERIOD_IN_SECONDS = 100;
-    uint32 public constant TERMS_DURATION_IN_PERIODS = 200;
-    uint32 public constant TERMS_INTEREST_RATE_FACTOR = 300;
-    uint32 public constant TERMS_INTEREST_RATE_PRIMARY = 400;
-    uint32 public constant TERMS_INTEREST_RATE_SECONDARY = 500;
-    uint32 public constant TERMS_ADDON_AMOUNT = 600;
+    uint32 private constant TERMS_PERIOD_IN_SECONDS = 100;
+    uint32 private constant TERMS_DURATION_IN_PERIODS = 200;
+    uint32 private constant TERMS_INTEREST_RATE_FACTOR = 300;
+    uint32 private constant TERMS_INTEREST_RATE_PRIMARY = 400;
+    uint32 private constant TERMS_INTEREST_RATE_SECONDARY = 500;
+    uint32 private constant TERMS_ADDON_AMOUNT = 600;
 
-    Interest.Formula public constant TERMS_INTEREST_FORMULA = Interest.Formula.Compound;
-    bool public constant TERMS_AUTO_REPAYMENT = true;
+    Interest.Formula private constant TERMS_INTEREST_FORMULA = Interest.Formula.Compound;
+    bool private constant TERMS_AUTO_REPAYMENT = true;
 
     // -------------------------------------------- //
     //  Setup and configuration                     //
