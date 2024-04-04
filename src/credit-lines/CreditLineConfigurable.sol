@@ -79,7 +79,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     //  Initializers                                //
     // -------------------------------------------- //
 
-    /// @notice Initializer of the upgradable contract.
+    /// @dev Initializer of the upgradable contract.
     /// @param market_ The address of the lending market.
     /// @param lender_ The address of the lender.
     /// @param token_ The address of the token.
@@ -124,12 +124,12 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     //  Owner functions                             //
     // -------------------------------------------- //
 
-    /// @notice Pauses the contract.
+    /// @dev Pauses the contract.
     function pause() external onlyOwner {
         _pause();
     }
 
-    /// @notice Unpauses the contract.
+    /// @dev Unpauses the contract.
     function unpause() external onlyOwner {
         _unpause();
     }
