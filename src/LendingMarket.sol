@@ -25,7 +25,7 @@ import { LendingMarketStorage } from "./LendingMarketStorage.sol";
 
 /// @title LendingMarket contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
-/// @notice Implementation of the lending market contract.
+/// @dev Implementation of the lending market contract.
 contract LendingMarket is
     LendingMarketStorage,
     Initializable,
@@ -42,47 +42,47 @@ contract LendingMarket is
     //  Errors                                      //
     // -------------------------------------------- //
 
-    /// @notice Thrown when the loan does not exist.
+    /// @dev Thrown when the loan does not exist.
     error LoanNotExist();
 
-    /// @notice Thrown when the loan is not frozen.
+    /// @dev Thrown when the loan is not frozen.
     error LoanNotFrozen();
 
-    /// @notice Thrown when the loan is already repaid.
+    /// @dev Thrown when the loan is already repaid.
     error LoanAlreadyRepaid();
 
-    /// @notice Thrown when the loan is already frozen.
+    /// @dev Thrown when the loan is already frozen.
     error LoanAlreadyFrozen();
 
-    /// @notice Thrown when the credit line is not registered.
+    /// @dev Thrown when the credit line is not registered.
     error CreditLineNotRegistered();
 
-    /// @notice Thrown when the liquidity pool is not registered.
+    /// @dev Thrown when the liquidity pool is not registered.
     error LiquidityPoolNotRegistered();
 
-    /// @notice Thrown when the credit line is already registered.
+    /// @dev Thrown when the credit line is already registered.
     error CreditLineAlreadyRegistered();
 
-    /// @notice Thrown when the liquidity pool is already registered.
+    /// @dev Thrown when the liquidity pool is already registered.
     error LiquidityPoolAlreadyRegistered();
 
-    /// @notice Thrown when provided interest rate is inappropriate.
+    /// @dev Thrown when provided interest rate is inappropriate.
     error InappropriateInterestRate();
 
-    /// @notice Thrown when provided loan duration is inappropriate.
+    /// @dev Thrown when provided loan duration is inappropriate.
     error InappropriateLoanDuration();
 
-    /// @notice Thrown when provided loan moratorium is inappropriate.
+    /// @dev Thrown when provided loan moratorium is inappropriate.
     error InappropriateLoanMoratorium();
 
-    /// @notice Thrown when loan auto repayment is not allowed.
+    /// @dev Thrown when loan auto repayment is not allowed.
     error AutoRepaymentNotAllowed();
 
     // -------------------------------------------- //
     //  Modifiers                                   //
     // -------------------------------------------- //
 
-    /// @notice Throws if called by any account other than the market registry or the owner.
+    /// @dev Throws if called by any account other than the market registry or the owner.
     modifier onlyRegistryOrOwner() {
         if (msg.sender != _registry && msg.sender != owner()) {
             revert Error.Unauthorized();
@@ -90,7 +90,7 @@ contract LendingMarket is
         _;
     }
 
-    /// @notice Throws if called by any account other than the lender or its alias.
+    /// @dev Throws if called by any account other than the lender or its alias.
     /// @param loanId The unique identifier of the loan to check.
     modifier onlyLenderOrAlias(uint256 loanId) {
         address lender = ownerOf(loanId);
@@ -100,7 +100,7 @@ contract LendingMarket is
         _;
     }
 
-    /// @notice Throws if the loan does not exist or has already been repaid.
+    /// @dev Throws if the loan does not exist or has already been repaid.
     /// @param loanId The unique identifier of the loan to check.
     modifier onlyOngoingLoan(uint256 loanId) {
         if (_loans[loanId].token == address(0)) {
@@ -116,7 +116,7 @@ contract LendingMarket is
     //  Initializers                                //
     // -------------------------------------------- //
 
-    /// @notice Initializer of the upgradable contract.
+    /// @dev Initializer of the upgradable contract.
     /// @param name_ The name of the NFT token that will represent the loans.
     /// @param symbol_ The symbol of the NFT token that will represent the loans.
     function initialize(string memory name_, string memory symbol_) external initializer {
@@ -135,23 +135,23 @@ contract LendingMarket is
     }
 
     /// @dev Unchained internal initializer of the upgradable contract.
-    function __LendingMarket_init_unchained() internal onlyInitializing { }
+    function __LendingMarket_init_unchained() internal onlyInitializing {}
 
     // -------------------------------------------- //
     //  Owner functions                             //
     // -------------------------------------------- //
 
-    /// @notice Pauses the contract.
+    /// @dev Pauses the contract.
     function pause() external onlyOwner {
         _pause();
     }
 
-    /// @notice Unpauses the contract.
+    /// @dev Unpauses the contract.
     function unpause() external onlyOwner {
         _unpause();
     }
 
-    /// @notice Sets the address of the lending market registry.
+    /// @dev Sets the address of the lending market registry.
     /// @param newRegistry The address of the new registry.
     function setRegistry(address newRegistry) external onlyOwner {
         if (newRegistry == _registry) {
@@ -202,13 +202,19 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ILendingMarket
-    function updateCreditLineLender(address creditLine, address newLender) external {
+    function updateCreditLineLender(address creditLine, address newLender) external pure {
+        creditLine; // To prevent compiler warning about unused variable
+        newLender; // To prevent compiler warning about unused variable
+
         // TBD Check if updating the lender associated with the credit line
         // can have any unexpected side effects during the loan lifecycle.
         revert Error.NotImplemented();
     }
 
-    function updateLiquidityPoolLender(address liquidityPool, address newLender) external {
+    function updateLiquidityPoolLender(address liquidityPool, address newLender) external pure {
+        liquidityPool; // To prevent compiler warning about unused variable
+        newLender; // To prevent compiler warning about unused variable
+
         // TBD Check if updating the lender associated with the liquidity pool
         // can have any unexpected side effects during the loan lifecycle.
         revert Error.NotImplemented();
@@ -266,8 +272,12 @@ contract LendingMarket is
         }
 
         uint256 id = _safeMint(lender);
-        Loan.Terms memory terms =
-            ICreditLine(creditLine).onBeforeLoanTaken(msg.sender, borrowAmount, durationInPeriods, id);
+        Loan.Terms memory terms = ICreditLine(creditLine).onBeforeLoanTaken(
+            msg.sender,
+            borrowAmount,
+            durationInPeriods,
+            id
+        );
         uint64 totalBorrowAmount = (borrowAmount + terms.addonAmount).toUint64();
         uint32 blockTimestamp = _blockTimestamp(id).toUint32();
 
@@ -361,7 +371,7 @@ contract LendingMarket is
 
         loan.freezeTimestamp = _blockTimestamp(loanId).toUint32();
 
-        emit LoanFrozen(loanId, _blockTimestamp(loanId));
+        emit LoanFrozen(loanId);
     }
 
     /// @inheritdoc ILendingMarket
@@ -372,10 +382,9 @@ contract LendingMarket is
             revert LoanNotFrozen();
         }
 
-        uint256 periodTimestamp = _periodTimestamp(_blockTimestamp(loanId), loan.periodInSeconds);
-        uint256 freezeTimestamp = _periodTimestamp(loan.freezeTimestamp, loan.periodInSeconds);
-
-        uint256 frozenPeriods = (periodTimestamp - freezeTimestamp) / loan.periodInSeconds;
+        uint256 currentPeriodIndex = _periodIndex(_blockTimestamp(loanId), loan.periodInSeconds);
+        uint256 freezePeriodIndex = _periodIndex(loan.freezeTimestamp, loan.periodInSeconds);
+        uint256 frozenPeriods = currentPeriodIndex - freezePeriodIndex;
 
         if (frozenPeriods > 0) {
             loan.trackedTimestamp += (frozenPeriods * loan.periodInSeconds).toUint32();
@@ -384,7 +393,7 @@ contract LendingMarket is
 
         loan.freezeTimestamp = 0;
 
-        emit LoanUnfrozen(loanId, _blockTimestamp(loanId));
+        emit LoanUnfrozen(loanId);
     }
 
     /// @inheritdoc ILendingMarket
@@ -501,7 +510,7 @@ contract LendingMarket is
         Loan.Preview memory preview;
         Loan.State storage loan = _loans[loanId];
 
-        (preview.outstandingBalance, preview.periodTimestamp) = _outstandingBalance(loan, timestamp);
+        (preview.outstandingBalance, preview.periodIndex) = _outstandingBalance(loan, timestamp);
 
         return preview;
     }
@@ -516,14 +525,16 @@ contract LendingMarket is
         return _registry;
     }
 
-    /// @notice Calculates the period index based on the provided timestamp.
-    /// @param timestamp The timestamp to calculate the period index for.
+    /// @dev Calculates the period index that corresponds the specified timestamp.
+    /// @param timestamp The timestamp to calculate the period index.
     /// @param periodInSeconds The period duration in seconds.
     function calculatePeriodTimestamp(uint256 timestamp, uint256 periodInSeconds) external pure returns (uint256) {
         return _periodTimestamp(timestamp, periodInSeconds);
+    function calculatePeriodIndex(uint256 timestamp, uint256 periodInSeconds) external pure returns (uint256) {
+        return _periodIndex(timestamp, periodInSeconds);
     }
 
-    /// @notice Calculates the outstanding balance of a loan.
+    /// @dev Calculates the outstanding balance of a loan.
     /// @param originalBalance The balance of the loan at the beginning.
     /// @param numberOfPeriods The number of periods to calculate the outstanding balance.
     /// @param interestRate The interest rate applied to the loan.
@@ -536,9 +547,14 @@ contract LendingMarket is
         uint256 interestRateFactor,
         Interest.Formula interestFormula
     ) external pure returns (uint256) {
-        return InterestMath.calculateOutstandingBalance(
-            originalBalance, numberOfPeriods, interestRate, interestRateFactor, interestFormula
-        );
+        return
+            InterestMath.calculateOutstandingBalance(
+                originalBalance,
+                numberOfPeriods,
+                interestRate,
+                interestRateFactor,
+                interestFormula
+            );
     }
 
     // -------------------------------------------- //
@@ -547,33 +563,37 @@ contract LendingMarket is
 
     /// @dev Calculates the outstanding balance of a loan.
     /// @param loan The loan to calculate the outstanding balance for.
-    /// @param timestamp The period to calculate the outstanding balance at.
-    /// @return The outstanding balance of the loan at the specified period date.
-    function _outstandingBalance(Loan.State storage loan, uint256 timestamp) internal view returns (uint256, uint256) {
-        uint256 outstandingBalance = loan.trackedBorrowBalance;
+    /// @param timestamp The timestamp to calculate the outstanding balance at.
+    /// @return outstandingBalance The outstanding balance of the loan at the specified timestamp.
+    /// @return periodIndex The period index that corresponds the provided timestamp.
+    function _outstandingBalance(
+        Loan.State storage loan,
+        uint256 timestamp
+    ) internal view returns (uint256 outstandingBalance, uint256 periodIndex) {
+        outstandingBalance = loan.trackedBorrowBalance;
 
         if (loan.freezeTimestamp != 0) {
             timestamp = loan.freezeTimestamp;
         }
 
-        uint256 periodTimestamp = _periodTimestamp(timestamp, loan.periodInSeconds);
-        uint256 trackedTimestamp = _periodTimestamp(loan.trackedTimestamp, loan.periodInSeconds);
+        periodIndex = _periodIndex(timestamp, loan.periodInSeconds);
+        uint256 trackedPeriodIndex = _periodIndex(loan.trackedTimestamp, loan.periodInSeconds);
 
-        if (periodTimestamp > trackedTimestamp) {
-            uint256 startTimestamp = _periodTimestamp(loan.startTimestamp, loan.periodInSeconds);
-            uint256 dueTimestamp = startTimestamp + loan.durationInPeriods * loan.periodInSeconds;
-            if (periodTimestamp < dueTimestamp) {
+        if (periodIndex > trackedPeriodIndex) {
+            uint256 startPeriodIndex = _periodIndex(loan.startTimestamp, loan.periodInSeconds);
+            uint256 duePeriodIndex = startPeriodIndex + loan.durationInPeriods;
+            if (periodIndex < duePeriodIndex) {
                 outstandingBalance = InterestMath.calculateOutstandingBalance(
                     outstandingBalance,
-                    (periodTimestamp - trackedTimestamp) / loan.periodInSeconds,
+                    periodIndex - trackedPeriodIndex,
                     loan.interestRatePrimary,
                     loan.interestRateFactor,
                     loan.interestFormula
                 );
-            } else if (trackedTimestamp >= dueTimestamp) {
+            } else if (trackedPeriodIndex >= duePeriodIndex) {
                 outstandingBalance = InterestMath.calculateOutstandingBalance(
                     outstandingBalance,
-                    (periodTimestamp - trackedTimestamp) / loan.periodInSeconds,
+                    periodIndex - trackedPeriodIndex,
                     loan.interestRateSecondary,
                     loan.interestRateFactor,
                     loan.interestFormula
@@ -581,15 +601,15 @@ contract LendingMarket is
             } else {
                 outstandingBalance = InterestMath.calculateOutstandingBalance(
                     outstandingBalance,
-                    (dueTimestamp - trackedTimestamp) / loan.periodInSeconds,
+                    duePeriodIndex - trackedPeriodIndex,
                     loan.interestRatePrimary,
                     loan.interestRateFactor,
                     loan.interestFormula
                 );
-                if (periodTimestamp > dueTimestamp) {
+                if (periodIndex > duePeriodIndex) {
                     outstandingBalance = InterestMath.calculateOutstandingBalance(
                         outstandingBalance,
-                        (periodTimestamp - dueTimestamp) / loan.periodInSeconds,
+                        periodIndex - duePeriodIndex,
                         loan.interestRateSecondary,
                         loan.interestRateFactor,
                         loan.interestFormula
@@ -597,8 +617,6 @@ contract LendingMarket is
                 }
             }
         }
-
-        return (outstandingBalance, periodTimestamp);
     }
 
     /// @dev Calculates the moratorium periods of a loan.
@@ -606,10 +624,10 @@ contract LendingMarket is
     /// @param timestamp The timestamp to calculate the moratorium periods at.
     /// @return The number of moratorium periods of the loan at the specified timestamp.
     function _moratoriumInPeriods(Loan.State storage loan, uint256 timestamp) internal view returns (uint256) {
-        uint256 periodTimestamp = _periodTimestamp(timestamp, loan.periodInSeconds);
-        uint256 trackedTimestamp = _periodTimestamp(loan.trackedTimestamp, loan.periodInSeconds);
+        uint256 periodIndex = _periodIndex(timestamp, loan.periodInSeconds);
+        uint256 trackedPeriodIndex = _periodIndex(loan.trackedTimestamp, loan.periodInSeconds);
 
-        return trackedTimestamp > periodTimestamp ? (trackedTimestamp - periodTimestamp) / loan.periodInSeconds : 0;
+        return trackedPeriodIndex > periodIndex ? trackedPeriodIndex - periodIndex : 0;
     }
 
     /// @dev Mints a new NFT token.
@@ -621,13 +639,14 @@ contract LendingMarket is
         return tokenId;
     }
 
-    /// @dev Calculates the index of the period for the specified timestamp.
-    function _periodTimestamp(uint256 timestamp, uint256 periodInSeconds) internal pure returns (uint256) {
-        return (timestamp / periodInSeconds) * periodInSeconds;
+    /// @dev Calculates the period index that corresponds the specified timestamp.
+    function _periodIndex(uint256 timestamp, uint256 periodInSeconds) internal pure returns (uint256) {
+        return (timestamp / periodInSeconds);
     }
 
     /// @dev Returns the current block timestamp.
-    function _blockTimestamp(uint256 loanId) virtual internal view returns (uint256) {
+    function _blockTimestamp(uint256 loanId) internal view virtual returns (uint256) {
+        loanId; // To prevent compiler warning about unused variable
         return block.timestamp;
     }
 
@@ -653,12 +672,9 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ERC721Upgradeable
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        override (ERC721Upgradeable, ERC721EnumerableUpgradeable)
-        returns (bool)
-    {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view override (ERC721Upgradeable, ERC721EnumerableUpgradeable) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 
