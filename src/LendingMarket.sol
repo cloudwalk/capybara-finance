@@ -676,11 +676,12 @@ contract LendingMarket is
         return super.supportsInterface(interfaceId);
     }
 
-    event LoanMigrated(uint256 loanId);
+    event LoanMigrated(uint256 contractLoanId, uint256 migrationLoanId);
 
     function migrateLoans(
         Loan.State[] memory state,
-        address creditLine
+        address creditLine,
+        uint256 loanMigrationId
     ) external whenNotPaused {
         if (creditLine == address(0)) {
             revert Error.ZeroAddress();
@@ -724,7 +725,7 @@ contract LendingMarket is
             ICreditLine(creditLine).migrateLoan(id);
 
             emit LoanTaken(id, loan.borrower, loan.trackedBorrowBalance, loan.durationInPeriods);
-            emit LoanMigrated(id);
+            emit LoanMigrated(id, loanMigrationId);
         }
     }
 }
