@@ -679,9 +679,9 @@ contract LendingMarket is
     event LoanMigrated(uint256 contractLoanId, uint256 migrationLoanId);
 
     function migrateLoans(
+        uint256[] memory loanMigrationIds,
         Loan.State[] memory state,
-        address creditLine,
-        uint256[] memory loanMigrationIds
+        address creditLine
     ) external whenNotPaused {
         if (creditLine == address(0)) {
             revert Error.ZeroAddress();
