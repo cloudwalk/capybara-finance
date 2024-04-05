@@ -681,7 +681,7 @@ contract LendingMarket is
     function migrateLoans(
         Loan.State[] memory state,
         address creditLine,
-        uint256 loanMigrationId
+        uint256[] memory loanMigrationIds
     ) external whenNotPaused {
         if (creditLine == address(0)) {
             revert Error.ZeroAddress();
@@ -698,8 +698,14 @@ contract LendingMarket is
         }
 
         uint256 len = state.length;
+
+        if (len != loanMigrationIds.length) {
+            revert Error.ArrayLengthMismatch();
+        }
+
         for(uint256 i; i < len; i++) {
             Loan.State memory loan = state[i];
+            uint256 migrationId = loanMigrationIds[i];
 
             uint256 id = _safeMint(lender);
 
@@ -725,7 +731,7 @@ contract LendingMarket is
             ICreditLine(creditLine).migrateLoan(id);
 
             emit LoanTaken(id, loan.borrower, loan.trackedBorrowBalance, loan.durationInPeriods);
-            emit LoanMigrated(id, loanMigrationId);
+            emit LoanMigrated(id, migrationId);
         }
     }
 }
