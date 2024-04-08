@@ -411,7 +411,4 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
 
         emit BorrowerConfigured(address(this), borrower);
     }
-
-    function migrateLoan(uint256 loanId) external {
-    }
 }

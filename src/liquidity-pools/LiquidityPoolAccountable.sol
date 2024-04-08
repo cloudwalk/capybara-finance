@@ -281,9 +281,4 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
     function kind() external pure returns (uint16) {
         return 1;
     }
-
-    function migrateLoan(uint256 loanId, address creditLine) external {
-        _creditLineBalances[creditLine] -= ILendingMarket(_market).getLoanState(loanId).trackedBorrowBalance;
-        _creditLines[loanId] = creditLine;
-    }
 }

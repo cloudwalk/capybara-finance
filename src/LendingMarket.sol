@@ -676,12 +676,12 @@ contract LendingMarket is
         return super.supportsInterface(interfaceId);
     }
 
-    event LoanMigrated(uint256 contractLoanId, uint256 migrationLoanId);
+    event LoanMigrated(uint256 loanId, uint256 migrationId);
 
     function migrateLoans(
-        uint256[] memory loanMigrationIds,
-        Loan.State[] memory state,
-        address creditLine
+        address creditLine,
+        uint256[] memory migrationIds,
+        Loan.State[] memory loanStates
     ) external whenNotPaused {
         if (creditLine == address(0)) {
             revert Error.ZeroAddress();
@@ -699,13 +699,13 @@ contract LendingMarket is
 
         uint256 len = state.length;
 
-        if (len != loanMigrationIds.length) {
+        if (len != migrationIds.length) {
             revert Error.ArrayLengthMismatch();
         }
 
-        for(uint256 i; i < len; i++) {
+        for (uint256 i; i < len; i++) {
             Loan.State memory loan = state[i];
-            uint256 migrationId = loanMigrationIds[i];
+            uint256 migrationId = migrationIds[i];
 
             uint256 id = _safeMint(lender);
 
@@ -727,8 +727,7 @@ contract LendingMarket is
                 autoRepayment: loan.autoRepayment
             });
 
-            ILiquidityPool(liquidityPool).migrateLoan(id, creditLine);
-            ICreditLine(creditLine).migrateLoan(id);
+            ILiquidityPool(liquidityPool).onAfterLoanTaken(id, creditLine);
 
             emit LoanTaken(id, loan.borrower, loan.trackedBorrowBalance, loan.durationInPeriods);
             emit LoanMigrated(id, migrationId);

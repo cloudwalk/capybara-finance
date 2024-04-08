@@ -47,6 +47,4 @@ interface ICreditLine {
 
     /// @dev Returns the kind of the credit line.
     function kind() external view returns (uint16);
-
-    function migrateLoan(uint256 loanId) external;
 }

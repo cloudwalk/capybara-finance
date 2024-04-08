@@ -38,6 +38,4 @@ interface ILiquidityPool {
 
     /// @dev Returns the kind of the liquidity pool.
     function kind() external view returns (uint16);
-
-    function migrateLoan(uint256 loanId, address creditLine) external;
 }
