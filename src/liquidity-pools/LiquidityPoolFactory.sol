@@ -38,7 +38,7 @@ contract LiquidityPoolFactory is OwnableUpgradeable, ILiquidityPoolFactory {
     }
 
     /// @dev Unchained internal initializer of the upgradable contract.
-    function __LiquidityPoolFactory_init_unchained() internal onlyInitializing {}
+    function __LiquidityPoolFactory_init_unchained() internal onlyInitializing { }
 
     // -------------------------------------------- //
     //  Functions                                   //

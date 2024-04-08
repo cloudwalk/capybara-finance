@@ -15,26 +15,17 @@ interface ILiquidityPoolAccountable is ILiquidityPool {
     /// @dev Emitted when an account is configured as an admin.
     /// @param account The address of the admin account.
     /// @param adminStatus True if the account is an admin.
-    event AdminConfigured(
-        address indexed account,
-        bool adminStatus
-    );
+    event AdminConfigured(address indexed account, bool adminStatus);
 
     /// @dev Emitted when tokens are deposited to the liquidity pool.
     /// @param creditLine The address of the credit line.
     /// @param amount The amount of tokens deposited.
-    event Deposit(
-        address indexed creditLine,
-        uint256 amount
-    );
+    event Deposit(address indexed creditLine, uint256 amount);
 
     /// @dev Emitted when tokens are withdrawn from the liquidity pool.
     /// @param tokenSource The address of the token source.
     /// @param amount The amount of tokens withdrawn.
-    event Withdrawal(
-        address indexed tokenSource,
-        uint256 amount
-    );
+    event Withdrawal(address indexed tokenSource, uint256 amount);
 
     /// @dev Emitted when loan auto repayment was initiated.
     /// @param numberOfLoans The number of loans repaid.

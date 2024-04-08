@@ -132,7 +132,7 @@ contract LendingMarket is
     }
 
     /// @dev Unchained internal initializer of the upgradable contract.
-    function __LendingMarket_init_unchained() internal onlyInitializing {}
+    function __LendingMarket_init_unchained() internal onlyInitializing { }
 
     // -------------------------------------------- //
     //  Owner functions                             //
@@ -323,7 +323,7 @@ contract LendingMarket is
             revert Error.NotImplemented();
         }
 
-        (uint256 outstandingBalance, ) = _outstandingBalance(loan, _blockTimestamp(loanId));
+        (uint256 outstandingBalance,) = _outstandingBalance(loan, _blockTimestamp(loanId));
 
         if (repayAmount == type(uint256).max) {
             repayAmount = outstandingBalance;
@@ -637,9 +637,12 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ERC721Upgradeable
-    function supportsInterface(
-        bytes4 interfaceId
-    ) public view override (ERC721Upgradeable, ERC721EnumerableUpgradeable) returns (bool) {
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        override (ERC721Upgradeable, ERC721EnumerableUpgradeable)
+        returns (bool)
+    {
         return super.supportsInterface(interfaceId);
     }
 }

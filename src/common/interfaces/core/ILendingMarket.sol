@@ -15,26 +15,17 @@ interface ILendingMarket {
     /// @dev Emitted when the lending market registry is changed.
     /// @param newRegistry The address of the new registry.
     /// @param oldRegistry The address of the old registry.
-    event MarketRegistryChanged(
-        address indexed newRegistry,
-        address indexed oldRegistry
-    );
+    event MarketRegistryChanged(address indexed newRegistry, address indexed oldRegistry);
 
     /// @dev Emitted when a liquidity pool is registered.
     /// @param lender The address of the liquidity pool lender.
     /// @param liquidityPool The address of the liquidity pool contract.
-    event LiquidityPoolRegistered(
-        address indexed lender,
-        address indexed liquidityPool
-    );
+    event LiquidityPoolRegistered(address indexed lender, address indexed liquidityPool);
 
     /// @dev Emitted when a credit line is registered.
     /// @param lender The address of the credit line lender.
     /// @param creditLine The address of the credit line contract.
-    event CreditLineRegistered(
-        address indexed lender,
-        address indexed creditLine
-    );
+    event CreditLineRegistered(address indexed lender, address indexed creditLine);
 
     /// @dev Emitted when a loan is taken.
     /// @param loanId The unique identifier of the loan.

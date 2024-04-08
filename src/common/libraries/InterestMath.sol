@@ -75,9 +75,9 @@ library InterestMath {
         uint256 interestRate,
         uint256 interestRateFactor
     ) private pure returns (uint256) {
-         // The equivalent formula: round(originalBalance * (1 + interestRate / interestRateFactor)^numberOfPeriods)
-         // Where division operator `/` and power operator `^` take into account the fractional part and
-         // the `round()` function returns an integer rounded according to standard mathematical rules.
+        // The equivalent formula: round(originalBalance * (1 + interestRate / interestRateFactor)^numberOfPeriods)
+        // Where division operator `/` and power operator `^` take into account the fractional part and
+        // the `round()` function returns an integer rounded according to standard mathematical rules.
         int128 onePlusRateValue = divide(interestRateFactor + interestRate, interestRateFactor);
         int128 powValue = _power(onePlusRateValue, numberOfPeriods);
         uint256 unroundedResult = uint256(uint128(_multiply(powValue, int128(int256(originalBalance << 64)))));
@@ -87,7 +87,7 @@ library InterestMath {
         }
         return result;
     }
-    
+
     /// @dev Calculates the division of unsigned 256-bit integer `numerator`
     /// by non-zero unsigned 256-bit integer `denominator` with rounding towards zero.
     ///
@@ -108,7 +108,7 @@ library InterestMath {
             return int128(remainder);
         }
     }
-    
+
     /// @dev Calculates the raising a signed 64.64 fixed-point number to the power of an unsigned 256-bit integer.
     ///
     /// Reverts in case of arithmetic overflow.
