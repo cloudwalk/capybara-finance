@@ -61,12 +61,6 @@ contract LendingMarketMock is ILendingMarket {
         revert Error.NotImplemented();
     }
 
-    function updateLoanMoratorium(uint256 loanId, uint256 newMoratoriumInPeriods) external pure {
-        loanId; // To prevent compiler warning about unused variable
-        newMoratoriumInPeriods; // To prevent compiler warning about unused variable
-        revert Error.NotImplemented();
-    }
-
     function updateLoanInterestRatePrimary(uint256 loanId, uint256 newInterestRate) external pure {
         loanId; // To prevent compiler warning about unused variable
         newInterestRate; // To prevent compiler warning about unused variable

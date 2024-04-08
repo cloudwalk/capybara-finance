@@ -57,7 +57,6 @@ contract LendingMarketMockTest is Test {
     bool private constant STATE_AUTO_REPAYMENT = true;
 
     uint256 private constant UPDATE_LOAN_DURATION = 100;
-    uint256 private constant UPDATE_LOAN_MORATORIUM = 200;
     uint256 private constant UPDATE_LOAN_INTEREST_RATE_PRIMARY = 300;
     uint256 private constant UPDATE_LOAN_INTEREST_RATE_SECONDARY = 400;
 
@@ -98,11 +97,6 @@ contract LendingMarketMockTest is Test {
     function test_updateLoanDuration() public {
         vm.expectRevert(Error.NotImplemented.selector);
         mock.updateLoanDuration(LOAN_ID, UPDATE_LOAN_DURATION);
-    }
-
-    function test_updateLoanMoratorium() public {
-        vm.expectRevert(Error.NotImplemented.selector);
-        mock.updateLoanMoratorium(LOAN_ID, UPDATE_LOAN_MORATORIUM);
     }
 
     function test_updateLoanInterestRatePrimary() public {

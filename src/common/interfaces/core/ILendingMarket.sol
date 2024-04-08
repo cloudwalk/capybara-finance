@@ -80,16 +80,6 @@ interface ILendingMarket {
         uint256 indexed oldDuration
     );
 
-    /// @dev Emitted when the moratorium of the loan is updated.
-    /// @param loanId The unique identifier of the loan.
-    /// @param fromTimestamp The start timestamp of the moratorium period.
-    /// @param moratoriumPeriods The number of periods of the moratorium.
-    event LoanMoratoriumUpdated(
-        uint256 indexed loanId,
-        uint256 indexed fromTimestamp,
-        uint256 indexed moratoriumPeriods
-    );
-
     /// @dev Emitted when the primary interest rate of the loan is updated.
     /// @param loanId The unique identifier of the loan.
     /// @param newInterestRate The new primary interest rate of the loan.
@@ -166,11 +156,6 @@ interface ILendingMarket {
     /// @param loanId The unique identifier of the loan whose duration is to update.
     /// @param newDurationInPeriods The new duration of the loan, specified in periods.
     function updateLoanDuration(uint256 loanId, uint256 newDurationInPeriods) external;
-
-    /// @dev Updates the moratorium of a loan.
-    /// @param loanId The unique identifier of the loan whose moratorium is to update.
-    /// @param newMoratoriumInPeriods The new moratorium of the loan, specified in periods.
-    function updateLoanMoratorium(uint256 loanId, uint256 newMoratoriumInPeriods) external;
 
     /// @dev Updates the primary interest rate of a loan.
     /// @param loanId The unique identifier of the loan whose primary interest rate is to update.

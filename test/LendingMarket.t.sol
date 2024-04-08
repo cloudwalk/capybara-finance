@@ -52,11 +52,10 @@ contract LendingMarketTest is Test {
     event LoanFrozen(uint256 indexed loanId);
     event LoanUnfrozen(uint256 indexed loanId);
 
-    event LoanDurationUpdated(uint256 indexed loanId, uint256 indexed newDuration, uint256 indexed oldDuration);
-    event LoanMoratoriumUpdated(
-        uint256 indexed loanId,
-        uint256 indexed fromTimestamp,
-        uint256 indexed moratoriumPeriods
+    event LoanDurationUpdated(
+        uint256 indexed loanId, 
+        uint256 indexed newDuration, 
+        uint256 indexed oldDuration
     );
     event LoanInterestRatePrimaryUpdated(
         uint256 indexed loanId,
@@ -1219,159 +1218,6 @@ contract LendingMarketTest is Test {
         vm.prank(LENDER_1);
         vm.expectRevert(LendingMarket.InappropriateLoanDuration.selector);
         market.updateLoanDuration(loanId, newDurationInPeriods);
-    }
-
-    // -------------------------------------------- //
-    //  Test `updateLoanMoratorium` function        //
-    // -------------------------------------------- //
-
-    function test_updateLoanMoratorium(address caller) private {
-        configureMarket();
-        uint256 loanId = createActiveLoan(0);
-        Loan.State memory loan = market.getLoanState(loanId);
-
-        uint256 currentMoratoriumInPeriods = getMoratoriumInPeriods(loanId);
-        assertEq(currentMoratoriumInPeriods, 0);
-
-        // Set initial moratorium
-
-        uint256 newMoratoriumInPeriods = 2;
-        uint256 newTrackedTimestamp = loan.trackedTimestamp + newMoratoriumInPeriods * loan.periodInSeconds;
-
-        vm.prank(caller);
-        vm.expectEmit(true, true, true, true, address(market));
-        emit LoanMoratoriumUpdated(loanId, loan.trackedTimestamp, newMoratoriumInPeriods);
-        market.updateLoanMoratorium(loanId, newMoratoriumInPeriods);
-
-        loan = market.getLoanState(loanId);
-        currentMoratoriumInPeriods = getMoratoriumInPeriods(loanId);
-
-        assertEq(currentMoratoriumInPeriods, newMoratoriumInPeriods);
-        assertEq(loan.trackedTimestamp, newTrackedTimestamp);
-
-        // Increase moratorium by 1 period
-
-        newMoratoriumInPeriods += 1;
-        uint256 increaseInPeriods = newMoratoriumInPeriods - currentMoratoriumInPeriods;
-        newTrackedTimestamp = loan.trackedTimestamp + increaseInPeriods * loan.periodInSeconds;
-
-        vm.prank(caller);
-        vm.expectEmit(true, true, true, true, address(market));
-        emit LoanMoratoriumUpdated(loanId, loan.trackedTimestamp, increaseInPeriods);
-        market.updateLoanMoratorium(loanId, newMoratoriumInPeriods);
-
-        loan = market.getLoanState(loanId);
-        assertEq(loan.trackedTimestamp, newTrackedTimestamp);
-        assertEq(getMoratoriumInPeriods(loanId), newMoratoriumInPeriods);
-    }
-
-    function test_updateLoanMoratorium_IfLender() public {
-        test_updateLoanMoratorium(LENDER_1);
-    }
-
-    function test_updateLoanMoratorium_IfLenderAlias() public {
-        test_updateLoanMoratorium(LENDER_1_ALIAS);
-    }
-
-    function test_updateLoanMoratorium_Flow() public {
-        configureMarket();
-        uint256 loanId = createActiveLoan(0);
-        Loan.State memory loan = market.getLoanState(loanId);
-
-        uint256 skipPeriods = 2;
-        uint256 addonPeriods = 3;
-        uint256 moratoriumInPeriods = 4;
-
-        assertEq(getMoratoriumInPeriods(loanId), 0);
-
-        vm.prank(LENDER_1);
-        market.updateLoanMoratorium(loanId, moratoriumInPeriods);
-        assertEq(getMoratoriumInPeriods(loanId), moratoriumInPeriods);
-
-        skip(loan.periodInSeconds * skipPeriods);
-        assertEq(getMoratoriumInPeriods(loanId), moratoriumInPeriods - skipPeriods);
-
-        vm.prank(LENDER_1);
-        market.updateLoanMoratorium(loanId, moratoriumInPeriods + addonPeriods);
-        assertEq(getMoratoriumInPeriods(loanId), moratoriumInPeriods + addonPeriods);
-    }
-
-    function test_updateLoanMoratorium_Revert_IfContractIsPaused() public {
-        configureMarket();
-        uint256 loanId = createActiveLoan(1);
-
-        vm.prank(OWNER);
-        market.pause();
-
-        uint256 moratoriumInPeriods = 2;
-
-        vm.prank(LENDER_1);
-        vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
-        market.updateLoanMoratorium(loanId, moratoriumInPeriods);
-    }
-
-    function test_updateLoanMoratorium_Revert_IfCallerNotLender() public {
-        configureMarket();
-        uint256 loanId = createActiveLoan(1);
-
-        uint256 moratoriumInPeriods = 2;
-
-        vm.prank(ATTACKER);
-        vm.expectRevert(Error.Unauthorized.selector);
-        market.updateLoanMoratorium(loanId, moratoriumInPeriods);
-    }
-
-    function test_updateLoanMoratorium_Revert_IfLoanNotExist() public {
-        vm.prank(LENDER_1);
-        uint256 moratoriumInPeriods = 2;
-        vm.expectRevert(LendingMarket.LoanNotExist.selector);
-        market.updateLoanMoratorium(LOAN_ID_NONEXISTENT, moratoriumInPeriods);
-    }
-
-    function test_updateLoanMoratorium_Revert_IfRepaidLoan() public {
-        configureMarket();
-        uint256 loanId = createRepaidLoan(1);
-
-        uint256 moratoriumInPeriods = 2;
-
-        vm.prank(LENDER_1);
-        vm.expectRevert(LendingMarket.LoanAlreadyRepaid.selector);
-        market.updateLoanMoratorium(loanId, moratoriumInPeriods);
-    }
-
-    function test_updateLoanMoratorium_Revert_IfSameLoanMoratorium() public {
-        configureMarket();
-        uint256 loanId = createActiveLoan(0);
-
-        uint256 currentMoratoriumInPeriods = getMoratoriumInPeriods(loanId);
-        uint256 newMoratoriumInPeriods = currentMoratoriumInPeriods + 2;
-
-        vm.startPrank(LENDER_1);
-        market.updateLoanMoratorium(loanId, newMoratoriumInPeriods);
-        vm.expectRevert(LendingMarket.InappropriateLoanMoratorium.selector);
-        market.updateLoanMoratorium(loanId, newMoratoriumInPeriods);
-    }
-
-    function test_updateLoanMoratorium_Revert_IfDecreasedLoanMoratorium() public {
-        configureMarket();
-        uint256 loanId = createActiveLoan(1);
-
-        uint256 currentMoratoriumInPeriods = getMoratoriumInPeriods(loanId);
-        uint256 newMoratoriumInPeriods = currentMoratoriumInPeriods + 2;
-
-        vm.startPrank(LENDER_1);
-        market.updateLoanMoratorium(loanId, newMoratoriumInPeriods);
-        vm.expectRevert(LendingMarket.InappropriateLoanMoratorium.selector);
-        market.updateLoanMoratorium(loanId, newMoratoriumInPeriods - 1);
-    }
-
-    function getMoratoriumInPeriods(uint256 loanId) private view returns (uint256) {
-        Loan.State memory loan = market.getLoanState(loanId);
-        uint256 currentTimestamp =
-            market.calculatePeriodIndex(block.timestamp, loan.periodInSeconds) * loan.periodInSeconds;
-        return loan.trackedTimestamp > currentTimestamp
-            ? (loan.trackedTimestamp - currentTimestamp) / loan.periodInSeconds
-            : 0;
     }
 
     // -------------------------------------------- //
