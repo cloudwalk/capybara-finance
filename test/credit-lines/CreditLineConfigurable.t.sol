@@ -188,9 +188,11 @@ contract CreditLineConfigurableTest is Test {
         );
     }
 
-    function initBorrowerConfig(
-        uint256 blockTimestamp
-    ) private pure returns (ICreditLineConfigurable.BorrowerConfig memory) {
+    function initBorrowerConfig(uint256 blockTimestamp)
+        private
+        pure
+        returns (ICreditLineConfigurable.BorrowerConfig memory)
+    {
         return ICreditLineConfigurable.BorrowerConfig({
             expiration: (blockTimestamp + BORROWER_CONFIG_EXPIRATION).toUint32(),
             minBorrowAmount: BORROWER_CONFIG_MIN_BORROW_AMOUNT,
@@ -207,9 +209,11 @@ contract CreditLineConfigurableTest is Test {
         });
     }
 
-    function initBorrowerConfigs(
-        uint256 blockTimestamp
-    ) private pure returns (address[] memory, ICreditLineConfigurable.BorrowerConfig[] memory) {
+    function initBorrowerConfigs(uint256 blockTimestamp)
+        private
+        pure
+        returns (address[] memory, ICreditLineConfigurable.BorrowerConfig[] memory)
+    {
         address[] memory borrowers = new address[](3);
         borrowers[0] = BORROWER_1;
         borrowers[1] = BORROWER_2;

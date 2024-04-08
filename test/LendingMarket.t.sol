@@ -40,7 +40,12 @@ contract LendingMarketTest is Test {
     event LiquidityPoolRegistered(address indexed lender, address indexed liquidityPool);
     event CreditLineRegistered(address indexed lender, address indexed creditLine);
 
-    event LoanTaken(uint256 indexed loanId, address indexed borrower, uint256 borrowAmount, uint256 durationInPeriods);
+    event LoanTaken(
+        uint256 indexed loanId, 
+        address indexed borrower, 
+        uint256 borrowAmount, 
+        uint256 durationInPeriods
+    );
     event LoanRepayment(
         uint256 indexed loanId,
         address indexed repayer,
@@ -73,7 +78,11 @@ contract LendingMarketTest is Test {
         address indexed newLiquidityPool,
         address indexed oldLiquidityPool
     );
-    event LenderAliasConfigured(address indexed lender, address indexed account, bool isAlias);
+    event LenderAliasConfigured(
+        address indexed lender, 
+        address indexed account,
+        bool isAlias
+    );
 
     // -------------------------------------------- //
     //  Storage variables                           //
@@ -235,9 +244,11 @@ contract LendingMarketTest is Test {
         return loanId;
     }
 
-    function initBorrowerConfig(
-        uint256 blockTimestamp
-    ) private pure returns (ICreditLineConfigurable.BorrowerConfig memory) {
+    function initBorrowerConfig(uint256 blockTimestamp)
+        private
+        pure
+        returns (ICreditLineConfigurable.BorrowerConfig memory)
+    {
         return ICreditLineConfigurable.BorrowerConfig({
             expiration: (blockTimestamp + BORROWER_CONFIG_DURATION).toUint32(),
             minBorrowAmount: BORROWER_CONFIG_MIN_BORROW_AMOUNT,
@@ -254,9 +265,11 @@ contract LendingMarketTest is Test {
         });
     }
 
-    function initBorrowerConfigs(
-        uint256 blockTimestamp
-    ) private pure returns (address[] memory, ICreditLineConfigurable.BorrowerConfig[] memory) {
+    function initBorrowerConfigs(uint256 blockTimestamp)
+        private
+        pure
+        returns (address[] memory, ICreditLineConfigurable.BorrowerConfig[] memory)
+    {
         address[] memory borrowers = new address[](3);
         borrowers[0] = BORROWER_1;
         borrowers[1] = BORROWER_2;
