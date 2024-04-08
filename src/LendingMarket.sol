@@ -697,15 +697,15 @@ contract LendingMarket is
             revert LiquidityPoolNotRegistered();
         }
 
-        uint256 len = state.length;
+        uint256 len = migrationIds.length;
 
-        if (len != migrationIds.length) {
+        if (len != loanStates.length) {
             revert Error.ArrayLengthMismatch();
         }
 
         for (uint256 i; i < len; i++) {
-            Loan.State memory loan = state[i];
             uint256 migrationId = migrationIds[i];
+            Loan.State memory loan = loanStates[i];
 
             uint256 id = _safeMint(lender);
 
