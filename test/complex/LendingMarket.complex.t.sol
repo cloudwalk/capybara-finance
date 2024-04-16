@@ -1,4 +1,4 @@
-    // SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
 
 pragma solidity 0.8.24;
 
@@ -19,7 +19,7 @@ import { ERC20Mock } from "src/mocks/ERC20Mock.sol";
 import { LendingMarket } from "src/LendingMarket.sol";
 import { CreditLineConfigurable } from "src/credit-lines/CreditLineConfigurable.sol";
 import { LiquidityPoolAccountable } from "src/liquidity-pools/LiquidityPoolAccountable.sol";
-import { ComplexScenarios } from "./ComplexScenarios.sol";
+import { LoanComplexScenarios } from "./LoanComplexScenarios.sol";
 
 /// @title LendingMarketComplexTest contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
@@ -29,7 +29,7 @@ contract LendingMarketComplexTest is Test {
     LendingMarket private lendingMarket;
     CreditLineConfigurable private creditLine;
     LiquidityPoolAccountable private liquidityPool;
-    ComplexScenarios private scenarios;
+    LoanComplexScenarios private scenarios;
 
     address private borrower;
     CreditLineConfigurable.CreditLineConfig private creditLineConfig;
@@ -43,7 +43,7 @@ contract LendingMarketComplexTest is Test {
     address private constant ADDON_RECIPIENT = address(bytes20(keccak256("recipient")));
 
     uint256 private constant ZERO_VALUE = 0;
-    uint256 private constant PERMISSIBLE_PERCENT_ERROR = 1;
+    uint256 private constant PERMISSIBLE_ERROR = 1;
 
     // -------------------------------------------- //
     //  Setup and configuration                     //
@@ -60,7 +60,7 @@ contract LendingMarketComplexTest is Test {
         lendingMarket.initialize("NAME", "SYMBOL");
 
         // Deploy scenarios
-        scenarios = new ComplexScenarios();
+        scenarios = new LoanComplexScenarios();
 
         // Deploy credit line
         creditLine = new CreditLineConfigurable();
@@ -76,6 +76,8 @@ contract LendingMarketComplexTest is Test {
 
         vm.stopPrank();
 
+        // Switch to the lender
+
         vm.startPrank(LENDER);
 
         creditLine.configureAdmin(ADMIN, true);
@@ -84,23 +86,23 @@ contract LendingMarketComplexTest is Test {
         vm.stopPrank();
     }
 
-    function configureLendingMarketForComplexTests(ComplexScenarios.LoanParameters memory loan) private {
+    function configureScenario(LoanComplexScenarios.Scenario memory scenario) private {
         // Configure token
         vm.startPrank(OWNER);
-        token.mint(LENDER, loan.borrowAmount);
-        token.mint(BORROWER, type(uint256).max - loan.borrowAmount);
+        token.mint(LENDER, scenario.borrowAmount);
+        token.mint(BORROWER, type(uint256).max - scenario.borrowAmount);
         vm.stopPrank();
 
         // Configure liquidity pool and credit line
         vm.startPrank(LENDER);
         token.approve(address(liquidityPool), type(uint256).max);
-        liquidityPool.deposit(address(creditLine), loan.borrowAmount);
-        creditLine.configureCreditLine(createCreditLineConfig(loan));
+        liquidityPool.deposit(address(creditLine), scenario.borrowAmount);
+        creditLine.configureCreditLine(createCreditLineConfig(scenario));
         vm.stopPrank();
 
         // Configure borrower
         vm.startPrank(ADMIN);
-        creditLine.configureBorrower(BORROWER, createBorrowerConfig(loan));
+        creditLine.configureBorrower(BORROWER, createBorrowerConfig(scenario));
         vm.stopPrank();
 
         // Configure allowance
@@ -109,50 +111,45 @@ contract LendingMarketComplexTest is Test {
         vm.stopPrank();
     }
 
-    function takeLoan(address BORROWER_CONFIG_, uint256 amount) private returns (uint256) {
-        vm.prank(BORROWER_CONFIG_);
-        return lendingMarket.takeLoan(address(creditLine), amount, 250);
-    }
-
-    function createBorrowerConfig(ComplexScenarios.LoanParameters memory loan)
+    function createBorrowerConfig(LoanComplexScenarios.Scenario memory scenario)
         private
         pure
         returns (ICreditLineConfigurable.BorrowerConfig memory)
     {
         return ICreditLineConfigurable.BorrowerConfig({
-            expiration: type(uint32).max,
             minBorrowAmount: 0,
             maxBorrowAmount: type(uint64).max,
             minDurationInPeriods: 0,
             maxDurationInPeriods: type(uint32).max,
-            interestRatePrimary: loan.interestRatePrimary,
-            interestRateSecondary: loan.interestRateSecondary,
-            addonFixedRate: loan.addonFixedRate,
-            addonPeriodRate: loan.addonPeriodRate,
-            interestFormula: loan.interestFormula,
+            interestRatePrimary: scenario.interestRatePrimary,
+            interestRateSecondary: scenario.interestRateSecondary,
+            addonFixedRate: 0,
+            addonPeriodRate: 0,
+            interestFormula: scenario.interestFormula,
             borrowPolicy: ICreditLineConfigurable.BorrowPolicy.Keep,
-            autoRepayment: false
+            autoRepayment: false,
+            expiration: type(uint32).max
         });
     }
 
-    function createCreditLineConfig(ComplexScenarios.LoanParameters memory loan)
+    function createCreditLineConfig(LoanComplexScenarios.Scenario memory scenario)
         private
         view
         returns (ICreditLineConfigurable.CreditLineConfig memory)
     {
         return ICreditLineConfigurable.CreditLineConfig({
             treasury: address(liquidityPool),
-            periodInSeconds: loan.periodInSeconds,
-            interestRateFactor: loan.interestRateFactor,
-            addonRecipient: loan.addonRecipient,
-            minBorrowAmount: 0,
-            maxBorrowAmount: type(uint64).max,
+            periodInSeconds: scenario.periodInSeconds,
             minDurationInPeriods: 0,
             maxDurationInPeriods: type(uint32).max,
+            minBorrowAmount: 0,
+            maxBorrowAmount: type(uint64).max,
             minInterestRatePrimary: 0,
             maxInterestRatePrimary: type(uint32).max,
             minInterestRateSecondary: 0,
             maxInterestRateSecondary: type(uint32).max,
+            interestRateFactor: scenario.interestRateFactor,
+            addonRecipient: address(0),
             minAddonFixedRate: 0,
             maxAddonFixedRate: type(uint32).max,
             minAddonPeriodRate: 0,
@@ -160,104 +157,103 @@ contract LendingMarketComplexTest is Test {
         });
     }
 
-    // function test_repayLoan_Case8() public {
-    //     ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_8();
-    //     takeLoanAndVerifyCalculations(loan);
-    // }
+    // -------------------------------------------- //
+    //  Setup and configuration                     //
+    // -------------------------------------------- //
 
-    // function test_repayLoan_Case10() public {
-    //     ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_10();
-    //     takeLoanAndVerifyCalculations(loan);
-    // }
-
-    function test_repayLoan_Case11() public {
-        ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_11();
-        takeLoanAndVerifyCalculations(loan);
+    function test_LOAN_10_20_1M_SCENARIO_1() public {
+        LoanComplexScenarios.Scenario memory scenario = scenarios.LOAN_10_20_1M_SCENARIO_1();
+        testScenario(scenario);
     }
 
-    // function test_repayLoan_Case12() public {
-    //     ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_12();
-    //     takeLoanAndVerifyCalculations(loan);
-    // }
+    function test_LOAN_10_20_1M_SCENARIO_2() public {
+        LoanComplexScenarios.Scenario memory scenario = scenarios.LOAN_10_20_1M_SCENARIO_2();
+        testScenario(scenario);
+    }
 
-    // function test_repayLoan_Case13() public {
-    //     ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_13();
-    //     takeLoanAndVerifyCalculations(loan);
-    // }
+    function test_LOAN_10_20_1M_SCENARIO_3() public {
+        LoanComplexScenarios.Scenario memory scenario = scenarios.LOAN_10_20_1M_SCENARIO_3();
+        testScenario(scenario);
+    }
 
-    // function test_repayLoan_Case14() public {
-    //     ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_14();
-    //     takeLoanAndVerifyCalculations(loan);
-    // }
+    function test_LOAN_10_20_1B_SCENARIO_1() public {
+        LoanComplexScenarios.Scenario memory scenario = scenarios.LOAN_10_20_1B_SCENARIO_1();
+        testScenario(scenario);
+    }
 
-    // function test_repayLoan_Case22() public {
-    //     ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_22();
-    //     takeLoanAndVerifyCalculations(loan);
-    // }
+    function test_LOAN_10_20_1B_SCENARIO_2() public {
+        LoanComplexScenarios.Scenario memory scenario = scenarios.LOAN_10_20_1B_SCENARIO_2();
+        testScenario(scenario);
+    }
 
-    // function test_repayLoan_Case24() public {
-    //     ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_24();
-    //     takeLoanAndVerifyCalculations(loan);
-    // }
+    function test_LOAN_10_20_1B_SCENARIO_3() public {
+        LoanComplexScenarios.Scenario memory scenario = scenarios.LOAN_10_20_1B_SCENARIO_3();
+        testScenario(scenario);
+    }
 
-    // function test_repayLoan_Case25() public {
-    //     ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_25();
-    //     takeLoanAndVerifyCalculations(loan);
-    // }
+    function test_LOAN_365_730_1M_SCENARIO_1() public {
+        LoanComplexScenarios.Scenario memory scenario = scenarios.LOAN_365_730_1M_SCENARIO_1();
+        testScenario(scenario);
+    }
 
-    // function test_repayLoan_Case26() public {
-    //     ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_26();
-    //     takeLoanAndVerifyCalculations(loan);
-    // }
+    function test_LOAN_365_730_1M_SCENARIO_2() public {
+        LoanComplexScenarios.Scenario memory scenario = scenarios.LOAN_365_730_1M_SCENARIO_2();
+        testScenario(scenario);
+    }
 
-    // function test_repayLoan_Case27() public {
-    //     ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_27();
-    //     takeLoanAndVerifyCalculations(loan);
-    // }
+    function test_LOAN_365_730_1B_SCENARIO_1() public {
+        LoanComplexScenarios.Scenario memory scenario = scenarios.LOAN_365_730_1B_SCENARIO_1();
+        testScenario(scenario);
+    }
 
-    // function test_repayLoan_Case28() public {
-    //     ComplexScenarios.LoanParameters memory loan = scenarios.LOAN_CASE_28();
-    //     takeLoanAndVerifyCalculations(loan);
-    // }
+    function test_LOAN_365_730_1B_SCENARIO_2() public {
+        LoanComplexScenarios.Scenario memory scenario = scenarios.LOAN_365_730_1B_SCENARIO_2();
+        testScenario(scenario);
+    }
 
-    function takeLoanAndVerifyCalculations(ComplexScenarios.LoanParameters memory loan) private {
-        configureLendingMarketForComplexTests(loan);
-        uint256 loanId = takeLoan(BORROWER, loan.borrowAmount);
-        for (uint256 i = 0; i < loan.outstandingBalances.length; i++) {
-            Loan.Preview memory loanPreview = lendingMarket.getLoanPreview(loanId, 0);
+    // -------------------------------------------- //
+    //  Helper functions                            //
+    // -------------------------------------------- //
 
-            (uint256 diff, uint256 percent) = getDiff(loanPreview.outstandingBalance, loan.outstandingBalances[i]);
-            if (diff == 0) {
-                assertEq(loanPreview.outstandingBalance, loan.outstandingBalances[i]);
-            } else {
-                assertTrue(percent <= PERMISSIBLE_PERCENT_ERROR);
+    function testScenario(LoanComplexScenarios.Scenario memory scenario) private {
+        configureScenario(scenario);
+
+        vm.startPrank(BORROWER);
+
+        uint256 loanId = lendingMarket.takeLoan(address(creditLine), scenario.borrowAmount, scenario.durationInPeriods);
+
+        for (uint256 i = 0; i < scenario.repaymentAmounts.length; i++) {
+            skip(scenario.periodInSeconds * scenario.iterationStep);
+
+            Loan.Preview memory previewBefore = lendingMarket.getLoanPreview(loanId, 0);
+
+            if (scenario.repaymentAmounts[i] != 0) {
+                lendingMarket.repayLoan(loanId, scenario.repaymentAmounts[i]);
             }
-            if (loan.repayments[i] != 0) {
-                vm.prank(BORROWER);
-                lendingMarket.repayLoan(loanId, loan.repayments[i]);
+
+            Loan.Preview memory previewAfter = lendingMarket.getLoanPreview(loanId, 0);
+
+            uint256 difference = diff(previewBefore.outstandingBalance, scenario.outstandingBalancesBeforeRepayment[i]);
+            uint256 precission = difference * scenario.precisionBase / scenario.outstandingBalancesBeforeRepayment[i];
+
+            if (precission > scenario.precisionMinimum) {
+                console.log("------------------ Precision error ------------------");
+                console.log("Index: ", i);
+                console.log("Expected balance before repayment: ", scenario.outstandingBalancesBeforeRepayment[i]);
+                console.log("Actual balance before repayment: ", previewBefore.outstandingBalance);
+                console.log("Payment amount: ", scenario.repaymentAmounts[i]);
+                console.log("Difference: ", difference);
+                revert("Precision error");
             }
-            skip(loan.periodInSeconds * loan.step);
+
+            require(
+                previewAfter.outstandingBalance == previewBefore.outstandingBalance - scenario.repaymentAmounts[i],
+                "Outstanding balance mismatch after repayment"
+            );
         }
     }
 
-    function getDiff(uint256 contractValue, uint256 expectedValue) private view returns (uint256, uint256) {
-        uint256 diff = contractValue > expectedValue ? contractValue - expectedValue : expectedValue - contractValue;
-        uint256 percent;
-
-        console.logUint(contractValue);
-        console.logUint(expectedValue);
-        console.logUint(diff);
-
-        if (contractValue == 0 && expectedValue == 0) {
-            percent = 0;
-            return (diff, percent);
-        }
-
-        if (contractValue > expectedValue) {
-            percent = ((contractValue - expectedValue) * 100) / expectedValue;
-        } else {
-            percent = ((expectedValue - contractValue) * 100) / expectedValue;
-        }
-        return (diff, percent);
+    function diff(uint256 actualValue, uint256 expectedValue) private pure returns (uint256) {
+        return actualValue >= expectedValue ? actualValue - expectedValue : expectedValue - actualValue;
     }
 }
