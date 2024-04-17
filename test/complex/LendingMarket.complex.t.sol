@@ -158,57 +158,47 @@ contract LendingMarketComplexTest is Test {
     }
 
     // -------------------------------------------- //
-    //  Setup and configuration                     //
+    //  Test functions                              //
     // -------------------------------------------- //
 
-    function test_LOAN_10_20_1M_SCENARIO_1() public {
-        LoanComplexScenarios.Scenario memory scenario = scenarios.LOAN_10_20_1M_SCENARIO_1();
-        testScenario(scenario);
+    function test_SCENARIO_01_LOAN_10_20_1M() public {
+        testScenario(scenarios.SCENARIO_01_LOAN_10_20_1M());
     }
 
-    function test_LOAN_10_20_1M_SCENARIO_2() public {
-        LoanComplexScenarios.Scenario memory scenario = scenarios.LOAN_10_20_1M_SCENARIO_2();
-        testScenario(scenario);
+    function test_SCENARIO_02_LOAN_10_20_1M() public {
+        testScenario(scenarios.SCENARIO_02_LOAN_10_20_1M());
     }
 
-    function test_LOAN_10_20_1M_SCENARIO_3() public {
-        LoanComplexScenarios.Scenario memory scenario = scenarios.LOAN_10_20_1M_SCENARIO_3();
-        testScenario(scenario);
+    function test_SCENARIO_03_LOAN_10_20_1M() public {
+        testScenario(scenarios.SCENARIO_03_LOAN_10_20_1M());
     }
 
-    function test_LOAN_10_20_1B_SCENARIO_1() public {
-        LoanComplexScenarios.Scenario memory scenario = scenarios.LOAN_10_20_1B_SCENARIO_1();
-        testScenario(scenario);
+    function test_SCENARIO_04_LOAN_10_20_1B() public {
+        testScenario(scenarios.SCENARIO_04_LOAN_10_20_1B());
     }
 
-    function test_LOAN_10_20_1B_SCENARIO_2() public {
-        LoanComplexScenarios.Scenario memory scenario = scenarios.LOAN_10_20_1B_SCENARIO_2();
-        testScenario(scenario);
+    function test_SCENARIO_05_LOAN_10_20_1B() public {
+        testScenario(scenarios.SCENARIO_05_LOAN_10_20_1B());
     }
 
-    function test_LOAN_10_20_1B_SCENARIO_3() public {
-        LoanComplexScenarios.Scenario memory scenario = scenarios.LOAN_10_20_1B_SCENARIO_3();
-        testScenario(scenario);
+    function test_SCENARIO_06_LOAN_10_20_1B() public {
+        testScenario(scenarios.SCENARIO_06_LOAN_10_20_1B());
     }
 
-    function test_LOAN_365_730_1M_SCENARIO_1() public {
-        LoanComplexScenarios.Scenario memory scenario = scenarios.LOAN_365_730_1M_SCENARIO_1();
-        testScenario(scenario);
+    function test_SCENARIO_07_LOAN_365_730_1M() public {
+        testScenario(scenarios.SCENARIO_07_LOAN_365_730_1M());
     }
 
-    function test_LOAN_365_730_1M_SCENARIO_2() public {
-        LoanComplexScenarios.Scenario memory scenario = scenarios.LOAN_365_730_1M_SCENARIO_2();
-        testScenario(scenario);
+    function test_SCENARIO_08_LOAN_365_730_1M() public {
+        testScenario(scenarios.SCENARIO_08_LOAN_365_730_1M());
     }
 
-    function test_LOAN_365_730_1B_SCENARIO_1() public {
-        LoanComplexScenarios.Scenario memory scenario = scenarios.LOAN_365_730_1B_SCENARIO_1();
-        testScenario(scenario);
+    function test_SCENARIO_09_LOAN_365_730_1B() public {
+        testScenario(scenarios.SCENARIO_09_LOAN_365_730_1B());
     }
 
-    function test_LOAN_365_730_1B_SCENARIO_2() public {
-        LoanComplexScenarios.Scenario memory scenario = scenarios.LOAN_365_730_1B_SCENARIO_2();
-        testScenario(scenario);
+    function test_SCENARIO_10_LOAN_365_730_1B() public {
+        testScenario(scenarios.SCENARIO_10_LOAN_365_730_1B());
     }
 
     // -------------------------------------------- //
@@ -234,9 +224,9 @@ contract LendingMarketComplexTest is Test {
             Loan.Preview memory previewAfter = lendingMarket.getLoanPreview(loanId, 0);
 
             uint256 difference = diff(previewBefore.outstandingBalance, scenario.outstandingBalancesBeforeRepayment[i]);
-            uint256 precission = difference * scenario.precisionBase / scenario.outstandingBalancesBeforeRepayment[i];
+            uint256 precision = difference * scenario.precisionFactor / scenario.outstandingBalancesBeforeRepayment[i];
 
-            if (precission > scenario.precisionMinimum) {
+            if (precision > scenario.precisionMinimum) {
                 console.log("------------------ Precision error ------------------");
                 console.log("Index: ", i);
                 console.log("Expected balance before repayment: ", scenario.outstandingBalancesBeforeRepayment[i]);

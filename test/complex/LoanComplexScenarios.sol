@@ -28,8 +28,8 @@ contract LoanComplexScenarios is Test {
     uint32 private constant DURATION_IN_PERIODS = 750;
     uint32 private constant ITERATION_STEP = 50;
 
-    uint256 private constant PRECISION_BASE = 10_000_000_000;
-    uint256 private constant PRECISION_MINIMUM = 100_000; // 0.01%
+    uint256 private constant PRECISION_FACTOR = 1_000_000_000;
+    uint256 private constant PRECISION_MINIMUM = 10_000; // 0.001%
 
     // -------------------------------------------- //
     //  Structs                                     //
@@ -44,7 +44,7 @@ contract LoanComplexScenarios is Test {
         Interest.Formula interestFormula;
         uint32 interestRateFactor;
         uint32 iterationStep;
-        uint256 precisionBase;
+        uint256 precisionFactor;
         uint256 precisionMinimum;
         uint64[] repaymentAmounts;
         uint64[] outstandingBalancesBeforeRepayment;
@@ -70,7 +70,7 @@ contract LoanComplexScenarios is Test {
             interestFormula: Interest.Formula.Compound,
             interestRateFactor: INTEREST_RATE_FACTOR,
             iterationStep: ITERATION_STEP,
-            precisionBase: PRECISION_BASE,
+            precisionFactor: PRECISION_FACTOR,
             precisionMinimum: PRECISION_MINIMUM,
             repaymentAmounts: repaymentAmounts,
             outstandingBalancesBeforeRepayment: outstandingBalancesBeforeRepayment
@@ -81,10 +81,10 @@ contract LoanComplexScenarios is Test {
     //  Loan 10% | 20%, 1M                          //
     // -------------------------------------------- //
 
-    uint64[] private LOAN_10_20_1M_SCENARIO_1_REPAYMENTS =
+    uint64[] private SCENARIO_01_LOAN_10_20_1M_REPAYMENTS =
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-    uint64[] private LOAN_10_20_1M_SCENARIO_1_OUTSTANDING_BALANCES = [
+    uint64[] private SCENARIO_01_LOAN_10_20_1M_OUTSTANDING_BALANCES = [
         1_013_142,
         1_026_457,
         1_039_946,
@@ -117,17 +117,17 @@ contract LoanComplexScenarios is Test {
         1_769_107
     ];
 
-    function LOAN_10_20_1M_SCENARIO_1() public view returns (Scenario memory) {
+    function SCENARIO_01_LOAN_10_20_1M() public view returns (Scenario memory) {
         return initScenario(
             BORROW_AMOUNT_1M,
             INTEREST_RATE_10,
             INTEREST_RATE_20,
-            LOAN_10_20_1M_SCENARIO_1_REPAYMENTS,
-            LOAN_10_20_1M_SCENARIO_1_OUTSTANDING_BALANCES
+            SCENARIO_01_LOAN_10_20_1M_REPAYMENTS,
+            SCENARIO_01_LOAN_10_20_1M_OUTSTANDING_BALANCES
         );
     }
 
-    uint64[] private LOAN_10_20_1M_SCENARIO_2_REPAYMENTS = [
+    uint64[] private SCENARIO_02_LOAN_10_20_1M_REPAYMENTS = [
         10_000,
         10_000,
         10_000,
@@ -160,7 +160,7 @@ contract LoanComplexScenarios is Test {
         10_000
     ];
 
-    uint64[] private LOAN_10_20_1M_SCENARIO_2_OUTSTANDING_BALANCES = [
+    uint64[] private SCENARIO_02_LOAN_10_20_1M_OUTSTANDING_BALANCES = [
         1_013_142,
         1_016_325,
         1_019_550,
@@ -193,17 +193,17 @@ contract LoanComplexScenarios is Test {
         1_359_984
     ];
 
-    function LOAN_10_20_1M_SCENARIO_2() public view returns (Scenario memory) {
+    function SCENARIO_02_LOAN_10_20_1M() public view returns (Scenario memory) {
         return initScenario(
             BORROW_AMOUNT_1M,
             INTEREST_RATE_10,
             INTEREST_RATE_20,
-            LOAN_10_20_1M_SCENARIO_2_REPAYMENTS,
-            LOAN_10_20_1M_SCENARIO_2_OUTSTANDING_BALANCES
+            SCENARIO_02_LOAN_10_20_1M_REPAYMENTS,
+            SCENARIO_02_LOAN_10_20_1M_OUTSTANDING_BALANCES
         );
     }
 
-    uint64[] private LOAN_10_20_1M_SCENARIO_3_REPAYMENTS = [
+    uint64[] private SCENARIO_03_LOAN_10_20_1M_REPAYMENTS = [
         40_000,
         40_000,
         40_000,
@@ -236,7 +236,7 @@ contract LoanComplexScenarios is Test {
         40_000
     ];
 
-    uint64[] private LOAN_10_20_1M_SCENARIO_3_OUTSTANDING_BALANCES = [
+    uint64[] private SCENARIO_03_LOAN_10_20_1M_OUTSTANDING_BALANCES = [
         1_013_142,
         985_931,
         958_362,
@@ -269,13 +269,13 @@ contract LoanComplexScenarios is Test {
         132_604
     ];
 
-    function LOAN_10_20_1M_SCENARIO_3() public view returns (Scenario memory) {
+    function SCENARIO_03_LOAN_10_20_1M() public view returns (Scenario memory) {
         return initScenario(
             BORROW_AMOUNT_1M,
             INTEREST_RATE_10,
             INTEREST_RATE_20,
-            LOAN_10_20_1M_SCENARIO_3_REPAYMENTS,
-            LOAN_10_20_1M_SCENARIO_3_OUTSTANDING_BALANCES
+            SCENARIO_03_LOAN_10_20_1M_REPAYMENTS,
+            SCENARIO_03_LOAN_10_20_1M_OUTSTANDING_BALANCES
         );
     }
 
@@ -283,10 +283,10 @@ contract LoanComplexScenarios is Test {
     //  Loan 10% | 20%, 1B                          //
     // -------------------------------------------- //
 
-    uint64[] private LOAN_10_20_1B_SCENARIO_1_REPAYMENTS =
+    uint64[] private SCENARIO_04_LOAN_10_20_1B_REPAYMENTS =
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-    uint64[] private LOAN_10_20_1B_SCENARIO_1_OUTSTANDING_BALANCES = [
+    uint64[] private SCENARIO_04_LOAN_10_20_1B_OUTSTANDING_BALANCES = [
         1_013_141_793_199,
         1_026_456_293_127,
         1_039_945_769_459,
@@ -319,17 +319,17 @@ contract LoanComplexScenarios is Test {
         1_769_109_249_586
     ];
 
-    function LOAN_10_20_1B_SCENARIO_1() public view returns (Scenario memory) {
+    function SCENARIO_04_LOAN_10_20_1B() public view returns (Scenario memory) {
         return initScenario(
             BORROW_AMOUNT_1B,
             INTEREST_RATE_10,
             INTEREST_RATE_20,
-            LOAN_10_20_1B_SCENARIO_1_REPAYMENTS,
-            LOAN_10_20_1B_SCENARIO_1_OUTSTANDING_BALANCES
+            SCENARIO_04_LOAN_10_20_1B_REPAYMENTS,
+            SCENARIO_04_LOAN_10_20_1B_OUTSTANDING_BALANCES
         );
     }
 
-    uint64[] private LOAN_10_20_1B_SCENARIO_2_REPAYMENTS = [
+    uint64[] private SCENARIO_05_LOAN_10_20_1B_REPAYMENTS = [
         10_000_000_000,
         10_000_000_000,
         10_000_000_000,
@@ -362,7 +362,7 @@ contract LoanComplexScenarios is Test {
         10_000_000_000
     ];
 
-    uint64[] private LOAN_10_20_1B_SCENARIO_2_OUTSTANDING_BALANCES = [
+    uint64[] private SCENARIO_05_LOAN_10_20_1B_OUTSTANDING_BALANCES = [
         1_013_141_793_199,
         1_016_324_875_195,
         1_019_549_788_596,
@@ -395,17 +395,17 @@ contract LoanComplexScenarios is Test {
         1_359_983_030_110
     ];
 
-    function LOAN_10_20_1B_SCENARIO_2() public view returns (Scenario memory) {
+    function SCENARIO_05_LOAN_10_20_1B() public view returns (Scenario memory) {
         return initScenario(
             BORROW_AMOUNT_1B,
             INTEREST_RATE_10,
             INTEREST_RATE_20,
-            LOAN_10_20_1B_SCENARIO_2_REPAYMENTS,
-            LOAN_10_20_1B_SCENARIO_2_OUTSTANDING_BALANCES
+            SCENARIO_05_LOAN_10_20_1B_REPAYMENTS,
+            SCENARIO_05_LOAN_10_20_1B_OUTSTANDING_BALANCES
         );
     }
 
-    uint64[] private LOAN_10_20_1B_SCENARIO_3_REPAYMENTS = [
+    uint64[] private SCENARIO_06_LOAN_10_20_1B_REPAYMENTS = [
         40_000_000_000,
         40_000_000_000,
         40_000_000_000,
@@ -438,7 +438,7 @@ contract LoanComplexScenarios is Test {
         40_000_000_000
     ];
 
-    uint64[] private LOAN_10_20_1B_SCENARIO_3_OUTSTANDING_BALANCES = [
+    uint64[] private SCENARIO_06_LOAN_10_20_1B_OUTSTANDING_BALANCES = [
         1_013_141_793_199,
         985_930_621_399,
         958_361_846_006,
@@ -471,13 +471,13 @@ contract LoanComplexScenarios is Test {
         132_604_371_687
     ];
 
-    function LOAN_10_20_1B_SCENARIO_3() public view returns (Scenario memory) {
+    function SCENARIO_06_LOAN_10_20_1B() public view returns (Scenario memory) {
         return initScenario(
             BORROW_AMOUNT_1B,
             INTEREST_RATE_10,
             INTEREST_RATE_20,
-            LOAN_10_20_1B_SCENARIO_3_REPAYMENTS,
-            LOAN_10_20_1B_SCENARIO_3_OUTSTANDING_BALANCES
+            SCENARIO_06_LOAN_10_20_1B_REPAYMENTS,
+            SCENARIO_06_LOAN_10_20_1B_OUTSTANDING_BALANCES
         );
     }
 
@@ -485,10 +485,10 @@ contract LoanComplexScenarios is Test {
     //  Loan 365% | 730%, 1M                        //
     // -------------------------------------------- //
 
-    uint64[] private LOAN_365_730_1M_SCENARIO_1_REPAYMENTS =
+    uint64[] private SCENARIO_07_LOAN_365_730_1M_REPAYMENTS =
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-    uint64[] private LOAN_365_730_1M_SCENARIO_1_OUTSTANDING_BALANCES = [
+    uint64[] private SCENARIO_07_LOAN_365_730_1M_OUTSTANDING_BALANCES = [
         1_234_332,
         1_523_575,
         1_880_597,
@@ -521,17 +521,17 @@ contract LoanComplexScenarios is Test {
         1_819_682_006
     ];
 
-    function LOAN_365_730_1M_SCENARIO_1() public view returns (Scenario memory) {
+    function SCENARIO_07_LOAN_365_730_1M() public view returns (Scenario memory) {
         return initScenario(
             BORROW_AMOUNT_1M,
             INTEREST_RATE_365,
             INTEREST_RATE_730,
-            LOAN_365_730_1M_SCENARIO_1_REPAYMENTS,
-            LOAN_365_730_1M_SCENARIO_1_OUTSTANDING_BALANCES
+            SCENARIO_07_LOAN_365_730_1M_REPAYMENTS,
+            SCENARIO_07_LOAN_365_730_1M_OUTSTANDING_BALANCES
         );
     }
 
-    uint64[] private LOAN_365_730_1M_SCENARIO_2_REPAYMENTS = [
+    uint64[] private SCENARIO_08_LOAN_365_730_1M_REPAYMENTS = [
         50_000,
         150_000,
         150_000,
@@ -564,7 +564,7 @@ contract LoanComplexScenarios is Test {
         150_000
     ];
 
-    uint64[] private LOAN_365_730_1M_SCENARIO_2_OUTSTANDING_BALANCES = [
+    uint64[] private SCENARIO_08_LOAN_365_730_1M_OUTSTANDING_BALANCES = [
         1_234_332,
         1_461_859,
         1_619_269,
@@ -597,13 +597,13 @@ contract LoanComplexScenarios is Test {
         15_880_789
     ];
 
-    function LOAN_365_730_1M_SCENARIO_2() public view returns (Scenario memory) {
+    function SCENARIO_08_LOAN_365_730_1M() public view returns (Scenario memory) {
         return initScenario(
             BORROW_AMOUNT_1M,
             INTEREST_RATE_365,
             INTEREST_RATE_730,
-            LOAN_365_730_1M_SCENARIO_2_REPAYMENTS,
-            LOAN_365_730_1M_SCENARIO_2_OUTSTANDING_BALANCES
+            SCENARIO_08_LOAN_365_730_1M_REPAYMENTS,
+            SCENARIO_08_LOAN_365_730_1M_OUTSTANDING_BALANCES
         );
     }
 
@@ -611,10 +611,10 @@ contract LoanComplexScenarios is Test {
     //  Loan 365% | 730%, 1B                        //
     // -------------------------------------------- //
 
-    uint64[] private LOAN_365_730_1B_SCENARIO_1_REPAYMENTS =
+    uint64[] private SCENARIO_09_LOAN_365_730_1B_REPAYMENTS =
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-    uint64[] private LOAN_365_730_1B_SCENARIO_1_OUTSTANDING_BALANCES = [
+    uint64[] private SCENARIO_09_LOAN_365_730_1B_OUTSTANDING_BALANCES = [
         1_234_331_781_587,
         1_523_574_947_036,
         1_880_596_978_757,
@@ -647,17 +647,17 @@ contract LoanComplexScenarios is Test {
         1_819_681_159_320_820
     ];
 
-    function LOAN_365_730_1B_SCENARIO_1() public view returns (Scenario memory) {
+    function SCENARIO_09_LOAN_365_730_1B() public view returns (Scenario memory) {
         return initScenario(
             BORROW_AMOUNT_1B,
             INTEREST_RATE_365,
             INTEREST_RATE_730,
-            LOAN_365_730_1B_SCENARIO_1_REPAYMENTS,
-            LOAN_365_730_1B_SCENARIO_1_OUTSTANDING_BALANCES
+            SCENARIO_09_LOAN_365_730_1B_REPAYMENTS,
+            SCENARIO_09_LOAN_365_730_1B_OUTSTANDING_BALANCES
         );
     }
 
-    uint64[] private LOAN_365_730_1B_SCENARIO_2_REPAYMENTS = [
+    uint64[] private SCENARIO_10_LOAN_365_730_1B_REPAYMENTS = [
         50_000_000_000,
         150_000_000_000,
         150_000_000_000,
@@ -690,7 +690,7 @@ contract LoanComplexScenarios is Test {
         150_000_000_000
     ];
 
-    uint64[] private LOAN_365_730_1B_SCENARIO_2_OUTSTANDING_BALANCES = [
+    uint64[] private SCENARIO_10_LOAN_365_730_1B_OUTSTANDING_BALANCES = [
         1_234_331_781_587,
         1_461_858_357_957,
         1_619_268_464_167,
@@ -723,13 +723,13 @@ contract LoanComplexScenarios is Test {
         15_880_774_097_866
     ];
 
-    function LOAN_365_730_1B_SCENARIO_2() public view returns (Scenario memory) {
+    function SCENARIO_10_LOAN_365_730_1B() public view returns (Scenario memory) {
         return initScenario(
             BORROW_AMOUNT_1B,
             INTEREST_RATE_365,
             INTEREST_RATE_730,
-            LOAN_365_730_1B_SCENARIO_2_REPAYMENTS,
-            LOAN_365_730_1B_SCENARIO_2_OUTSTANDING_BALANCES
+            SCENARIO_10_LOAN_365_730_1B_REPAYMENTS,
+            SCENARIO_10_LOAN_365_730_1B_OUTSTANDING_BALANCES
         );
     }
 }
