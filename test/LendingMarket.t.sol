@@ -53,9 +53,9 @@ contract LendingMarketTest is Test {
     );
 
     event LoanTaken(
-        uint256 indexed loanId, 
-        address indexed borrower, 
-        uint256 borrowAmount, 
+        uint256 indexed loanId,
+        address indexed borrower,
+        uint256 borrowAmount,
         uint256 durationInPeriods
     );
     event LoanRepayment(
@@ -70,8 +70,8 @@ contract LendingMarketTest is Test {
     event LoanUnfrozen(uint256 indexed loanId);
 
     event LoanDurationUpdated(
-        uint256 indexed loanId, 
-        uint256 indexed newDuration, 
+        uint256 indexed loanId,
+        uint256 indexed newDuration,
         uint256 indexed oldDuration
     );
     event LoanInterestRatePrimaryUpdated(
@@ -91,7 +91,7 @@ contract LendingMarketTest is Test {
         address indexed oldLiquidityPool
     );
     event LenderAliasConfigured(
-        address indexed lender, 
+        address indexed lender,
         address indexed account,
         bool isAlias
     );
