@@ -27,6 +27,26 @@ interface ILendingMarket {
     /// @param creditLine The address of the credit line contract.
     event CreditLineRegistered(address indexed lender, address indexed creditLine);
 
+    /// @dev Emitted when the lender of a liquidity pool is updated.
+    /// @param liquidityPool The address of the liquidity pool.
+    /// @param newLender The address of the new lender.
+    /// @param oldLender The address of the old lender.
+    event LiquidityPoolLenderUpdated(
+        address indexed liquidityPool,
+        address indexed newLender,
+        address indexed oldLender
+    );
+
+    /// @dev Emitted when the lender of a credit line is updated.
+    /// @param creditLine The address of the credit line.
+    /// @param newLender The address of the new lender.
+    /// @param oldLender The address of the old lender.
+    event CreditLineLenderUpdated(
+        address indexed creditLine,
+        address indexed newLender,
+        address indexed oldLender
+    );
+
     /// @dev Emitted when a loan is taken.
     /// @param loanId The unique identifier of the loan.
     /// @param borrower The address of the borrower of the loan.
