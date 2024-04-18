@@ -166,10 +166,7 @@ contract LendingMarket is
 
     /// @inheritdoc ILendingMarket
     function registerCreditLine(address lender, address creditLine) external whenNotPaused onlyRegistryOrOwner {
-        if (lender == address(0)) {
-            revert Error.ZeroAddress();
-        }
-        if (creditLine == address(0)) {
+        if (lender == address(0) || creditLine == address(0)) {
             revert Error.ZeroAddress();
         }
         if (_creditLineLenders[creditLine] != address(0)) {
@@ -183,10 +180,7 @@ contract LendingMarket is
 
     /// @inheritdoc ILendingMarket
     function registerLiquidityPool(address lender, address liquidityPool) external whenNotPaused onlyRegistryOrOwner {
-        if (lender == address(0)) {
-            revert Error.ZeroAddress();
-        }
-        if (liquidityPool == address(0)) {
+        if (lender == address(0) || liquidityPool == address(0)) {
             revert Error.ZeroAddress();
         }
         if (_liquidityPoolLenders[liquidityPool] != address(0)) {
@@ -199,22 +193,30 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ILendingMarket
-    function updateCreditLineLender(address creditLine, address newLender) external pure {
-        creditLine; // To prevent compiler warning about unused variable
-        newLender; // To prevent compiler warning about unused variable
+    function updateCreditLineLender(address creditLine, address newLender) external onlyOwner {
+        if (creditLine == address(0) || newLender == address(0)) {
+            revert Error.ZeroAddress();
+        }
+        if (_creditLineLenders[creditLine] == newLender) {
+            revert Error.AlreadyConfigured();
+        }
 
-        // TBD Check if updating the lender associated with the credit line
-        // can have any unexpected side effects during the loan lifecycle.
-        revert Error.NotImplemented();
+        emit CreditLineLenderUpdated(creditLine, newLender, _creditLineLenders[creditLine]);
+
+        _creditLineLenders[creditLine] = newLender;
     }
 
-    function updateLiquidityPoolLender(address liquidityPool, address newLender) external pure {
-        liquidityPool; // To prevent compiler warning about unused variable
-        newLender; // To prevent compiler warning about unused variable
+    function updateLiquidityPoolLender(address liquidityPool, address newLender) external onlyOwner {
+        if (liquidityPool == address(0) || newLender == address(0)) {
+            revert Error.ZeroAddress();
+        }
+        if (_liquidityPoolLenders[liquidityPool] == newLender) {
+            revert Error.AlreadyConfigured();
+        }
 
-        // TBD Check if updating the lender associated with the liquidity pool
-        // can have any unexpected side effects during the loan lifecycle.
-        revert Error.NotImplemented();
+        emit LiquidityPoolLenderUpdated(liquidityPool, newLender, _liquidityPoolLenders[liquidityPool]);
+
+        _liquidityPoolLenders[liquidityPool] = newLender;
     }
 
     /// @inheritdoc ILendingMarket
