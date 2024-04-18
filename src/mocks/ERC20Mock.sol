@@ -9,9 +9,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 /// @dev Mock of the `ERC20` token contract used for testing.
 contract ERC20Mock is ERC20 {
     /// @dev Contract constructor.
-    constructor(uint256 amount, uint8 decimals) ERC20("NAME", "SYMBOL") {
-        _mint(msg.sender, amount * 10 ** decimals);
-    }
+    constructor() ERC20("NAME", "SYMBOL") { }
 
     /// @dev Mints tokens.
     /// @param to The address to mint tokens to.

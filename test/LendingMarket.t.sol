@@ -158,14 +158,13 @@ contract LendingMarketTest is Test {
 
     bool private canOverrideAutoRepayment = false;
     bool private overrideAutoRepayment = false;
-    uint8 private constant DECIMALS = 6;
 
     // -------------------------------------------- //
     //  Setup and configuration                     //
     // -------------------------------------------- //
 
     function setUp() public {
-        token = new ERC20Mock(0, DECIMALS);
+        token = new ERC20Mock();
         creditLine = new CreditLineMock();
         liquidityPool = new LiquidityPoolMock();
 
