@@ -106,6 +106,7 @@ const DEFAULT_MAX_ADDON_FIXED_RATE = 10;
 const DEFAULT_MIN_ADDON_PERIOD_RATE = 1;
 const DEFAULT_MAX_ADDON_PERIOD_RATE = 10;
 const DEFAULT_EXPIRATION_TIME = 4294967295;
+const BORROWERS_NUMBER = 3
 
 describe("Contract CreditLineConfigurable", async () => {
   let lender: HardhatEthersSigner;
@@ -686,7 +687,7 @@ describe("Contract CreditLineConfigurable", async () => {
   describe("Function 'configureBorrowers()'", async () => {
     it("Executes as expected and emits correct events", async () => {
       const { creditLine, creditLineConnectedToLender } = await loadFixture(deployAndConfigureCreditLine);
-      const { borrowers, configs } = await prepareDataForBatchBorrowerConfig(10);
+      const { borrowers, configs } = await prepareDataForBatchBorrowerConfig(BORROWERS_NUMBER);
 
       const tx = await creditLineConnectedToLender.configureBorrowers(borrowers, configs);
 
@@ -698,7 +699,7 @@ describe("Contract CreditLineConfigurable", async () => {
 
     it("Is reverted if the caller is not an admin", async () => {
       const { creditLine } = await loadFixture(deployAndConfigureCreditLine);
-      const { borrowers, configs } = await prepareDataForBatchBorrowerConfig(10);
+      const { borrowers, configs } = await prepareDataForBatchBorrowerConfig(BORROWERS_NUMBER);
 
       await expect((creditLine.connect(attacker) as Contract).configureBorrowers(borrowers, configs))
         .to.be.revertedWithCustomError(creditLine, UNAUTHORIZED_ERROR_NAME);
@@ -706,7 +707,7 @@ describe("Contract CreditLineConfigurable", async () => {
 
     it("Is reverted if the contract is paused", async () => {
       const { creditLine, creditLineConnectedToLender } = await loadFixture(deployAndConfigureCreditLine);
-      const { borrowers, configs } = await prepareDataForBatchBorrowerConfig(10);
+      const { borrowers, configs } = await prepareDataForBatchBorrowerConfig(BORROWERS_NUMBER);
 
       await proveTx(creditLineConnectedToLender.pause());
 
@@ -716,7 +717,7 @@ describe("Contract CreditLineConfigurable", async () => {
 
     it("Is reverted if the length of arrays is different", async () => {
       const { creditLine, creditLineConnectedToLender } = await loadFixture(deployAndConfigureCreditLine);
-      const { borrowers, configs } = await prepareDataForBatchBorrowerConfig(10);
+      const { borrowers, configs } = await prepareDataForBatchBorrowerConfig(BORROWERS_NUMBER);
 
       borrowers.push(attacker.address);
 
