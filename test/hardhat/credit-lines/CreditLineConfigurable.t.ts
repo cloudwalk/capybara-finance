@@ -1,8 +1,8 @@
-import {ethers, upgrades} from "hardhat";
-import {expect} from "chai";
-import {Contract, ContractFactory, Signer} from "ethers";
-import {loadFixture} from "@nomicfoundation/hardhat-network-helpers";
-import {proveTx} from "../../../test-utils/eth";
+import { ethers, upgrades } from "hardhat";
+import { expect } from "chai";
+import { Contract, ContractFactory, Signer } from "ethers";
+import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
+import { proveTx } from "../../../test-utils/eth";
 
 interface CreditLineConfig {
   treasury: string;
@@ -21,6 +21,7 @@ interface CreditLineConfig {
   maxAddonFixedRate: number;
   minAddonPeriodRate: number;
   maxAddonPeriodRate: number;
+
   [key: string]: string | number;  // Index signature
 }
 
@@ -37,6 +38,7 @@ interface BorrowerConfig {
   borrowPolicy: BorrowPolicy;
   autoRepayment: boolean;
   expiration: number;
+
   [key: string]: string | number | InterestFormula | BorrowPolicy | boolean; // Index signature
 }
 
@@ -52,12 +54,13 @@ interface LoanTerms {
   autoRepayment: boolean;
   addonRecipient: string;
   addonAmount: number;
+
   [key: string]: string | number | boolean | InterestFormula;  // Index signature
 }
 
 enum InterestFormula {
-  Simple,
-  Compound
+  // Simple = 0 -- this value is not used in tests
+  Compound = 1
 }
 
 enum BorrowPolicy {
@@ -69,7 +72,7 @@ enum BorrowPolicy {
 const ZERO_ADDRESS_ERROR_NAME = "ZeroAddress";
 const OWNABLE_UNAUTHORIZED_ERROR_NAME = "OwnableUnauthorizedAccount";
 const UNAUTHORIZED_ERROR_NAME = "Unauthorized";
-const PAUSED_ERROR_NAME ="EnforcedPause";
+const PAUSED_ERROR_NAME = "EnforcedPause";
 const NOT_PAUSED_ERROR_NAME = "ExpectedPause";
 const ALREADY_CONFIGURED_ERROR_NAME = "AlreadyConfigured";
 const INVALID_CREDIT_LINE_CONFIGURATION_ERROR_NAME = "InvalidCreditLineConfiguration";
@@ -211,7 +214,7 @@ describe("Contract CreditLineConfigurable", async () => {
   }> {
     const config = createDefaultBorrowerConfiguration();
 
-    const [user1, ...userN] = await ethers.getSigners();
+    const [, ...userN] = await ethers.getSigners();
     const borrowers = userN.slice(0, borrowersNumber).map(signer => signer.address);
     const configs = [];
 
@@ -222,7 +225,7 @@ describe("Contract CreditLineConfigurable", async () => {
     return {
       borrowers,
       configs
-    }
+    };
   }
 
   async function deployCreditLine(): Promise<{
@@ -241,7 +244,7 @@ describe("Contract CreditLineConfigurable", async () => {
     return {
       creditLine,
       creditLineConnectedToLender
-    }
+    };
   }
 
   async function deployAndConfigureCreditLine(): Promise<{
@@ -265,26 +268,14 @@ describe("Contract CreditLineConfigurable", async () => {
     return {
       creditLine,
       creditLineConnectedToLender
-    }
+    };
   }
 
   async function deployAndConfigureCreditLineWithBorrower(): Promise<{
     creditLine: Contract;
     creditLineConnectedToLender: Contract
   }> {
-    const creditLine = await upgrades.deployProxy(CreditLineFactory, [
-      marketAddress,
-      lenderAddress,
-      tokenAddress,
-    ]);
-    await creditLine.waitForDeployment();
-
-    const creditLineConnectedToLender = creditLine.connect(lender) as Contract;
-
-    await proveTx(creditLineConnectedToLender.configureAdmin(lenderAddress, true));
-
-    const creditLineConfig = createDefaultCreditLineConfiguration();
-    await proveTx(creditLineConnectedToLender.configureCreditLine(creditLineConfig));
+    const { creditLine, creditLineConnectedToLender } = await deployAndConfigureCreditLine();
 
     const borrowerConfig = createDefaultBorrowerConfiguration();
     await proveTx(creditLineConnectedToLender.configureBorrower(lenderAddress, borrowerConfig));
@@ -292,7 +283,7 @@ describe("Contract CreditLineConfigurable", async () => {
     return {
       creditLine,
       creditLineConnectedToLender
-    }
+    };
   }
 
   describe("Function 'initialize()'", async () => {
@@ -397,7 +388,7 @@ describe("Contract CreditLineConfigurable", async () => {
 
       await expect((creditLine.connect(attacker) as Contract).configureAdmin(attackerAddress, true))
         .to.be.revertedWithCustomError(creditLine, OWNABLE_UNAUTHORIZED_ERROR_NAME)
-        .withArgs(attackerAddress)
+        .withArgs(attackerAddress);
     });
 
     it("Is reverted if account is zero address", async () => {
@@ -716,7 +707,7 @@ describe("Contract CreditLineConfigurable", async () => {
     });
 
     it("Is reverted if the caller is not an admin", async () => {
-      const { creditLine  } = await loadFixture(deployAndConfigureCreditLine);
+      const { creditLine } = await loadFixture(deployAndConfigureCreditLine);
       const { borrowers, configs } = await prepareDataForBatchBorrowerConfig(10);
 
       await expect((creditLine.connect(attacker) as Contract).configureBorrowers(borrowers, configs))
@@ -740,7 +731,7 @@ describe("Contract CreditLineConfigurable", async () => {
       borrowers.push(attackerAddress);
 
       await expect(creditLineConnectedToLender.configureBorrowers(borrowers, configs))
-        .to.be.revertedWithCustomError(creditLine, ARRAYS_LENGTH_MISMATCH_ERROR_NAME)
+        .to.be.revertedWithCustomError(creditLine, ARRAYS_LENGTH_MISMATCH_ERROR_NAME);
     });
   });
 
@@ -766,7 +757,7 @@ describe("Contract CreditLineConfigurable", async () => {
     it("Executes as expected if the borrow policy is 'Decrease'", async () => {
       const { creditLine, creditLineConnectedToLender } = await loadFixture(deployAndConfigureCreditLine);
       const borrowerConfig: BorrowerConfig = createDefaultBorrowerConfiguration();
-      borrowerConfig.borrowPolicy = BorrowPolicy.Decrease
+      borrowerConfig.borrowPolicy = BorrowPolicy.Decrease;
 
       await proveTx(creditLineConnectedToLender.configureBorrower(lenderAddress, borrowerConfig));
 
@@ -789,7 +780,7 @@ describe("Contract CreditLineConfigurable", async () => {
     it("Executes as expected if the borrow policy is 'Reset'", async () => {
       const { creditLine, creditLineConnectedToLender } = await loadFixture(deployAndConfigureCreditLine);
       const borrowerConfig: BorrowerConfig = createDefaultBorrowerConfiguration();
-      borrowerConfig.borrowPolicy = BorrowPolicy.Reset
+      borrowerConfig.borrowPolicy = BorrowPolicy.Reset;
 
       await proveTx(creditLineConnectedToLender.configureBorrower(lenderAddress, borrowerConfig));
 
@@ -871,7 +862,7 @@ describe("Contract CreditLineConfigurable", async () => {
         lenderAddress,
         DEFAULT_MIN_BORROW_AMOUNT,
         DEFAULT_MIN_DURATION_IN_PERIODS
-      )).to.be.revertedWithCustomError(creditLine, BORROWER_CONFIGURATION_EXPIRED_ERROR_NAME)
+      )).to.be.revertedWithCustomError(creditLine, BORROWER_CONFIGURATION_EXPIRED_ERROR_NAME);
     });
 
     it("Is reverted if the borrow amount is bigger than max borrow amount", async () => {
