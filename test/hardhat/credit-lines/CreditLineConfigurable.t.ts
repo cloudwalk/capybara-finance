@@ -179,28 +179,28 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     };
   }
 
-  function validateCreditLineConfigs(onChainConfig: CreditLineConfig, defaultConfig: CreditLineConfig) {
-    Object.keys(defaultConfig).forEach(property => {
-      expect(onChainConfig[property]).to.eq(
-        defaultConfig[property],
+  function compareCreditLineConfigs(actualConfig: CreditLineConfig, expectedConfig: CreditLineConfig) {
+    Object.keys(expectedConfig).forEach(property => {
+      expect(actualConfig[property]).to.eq(
+        expectedConfig[property],
         `Mismatch in the "${property}" property of the credit line config`
       );
     });
   }
 
-  function validateBorrowerConfigs(onChainConfig: BorrowerConfig, defaultConfig: BorrowerConfig) {
-    Object.keys(defaultConfig).forEach(property => {
-      expect(onChainConfig[property]).to.eq(
-        defaultConfig[property],
+  function compareBorrowerConfigs(actualConfig: BorrowerConfig, expectedConfig: BorrowerConfig) {
+    Object.keys(expectedConfig).forEach(property => {
+      expect(actualConfig[property]).to.eq(
+        expectedConfig[property],
         `Mismatch in the "${property}" property of the borrower config`
       );
     });
   }
 
-  function validateLoanTerms(onChainTerms: LoanTerms, defaultTerms: LoanTerms) {
-    Object.keys(defaultTerms).forEach(property => {
-      expect(onChainTerms[property]).to.eq(
-        defaultTerms[property],
+  function compareLoanTerms(actualTerms: LoanTerms, expectedTerms: LoanTerms) {
+    Object.keys(expectedTerms).forEach(property => {
+      expect(actualTerms[property]).to.eq(
+        expectedTerms[property],
         `Mismatch in the "${property}" property of the loan terms`
       );
     });
@@ -419,7 +419,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
 
       const onChainConfig: CreditLineConfig = await creditLine.creditLineConfiguration();
 
-      validateCreditLineConfigs(onChainConfig, config);
+      compareCreditLineConfigs(onChainConfig, config);
     });
 
     it("Is reverted if the caller is not the owner", async () => {
@@ -523,7 +523,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
 
       const onChainConfig: BorrowerConfig = await creditLine.getBorrowerConfiguration(lender.address);
 
-      validateBorrowerConfigs(onChainConfig, config);
+      compareBorrowerConfigs(onChainConfig, config);
     });
 
     it("Is reverted if the caller is not an admin", async () => {
@@ -751,7 +751,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
 
       const onChainBorrowerConfig: BorrowerConfig = await creditLine.getBorrowerConfiguration(lender.address);
 
-      validateBorrowerConfigs(onChainBorrowerConfig, borrowerConfig);
+      compareBorrowerConfigs(onChainBorrowerConfig, borrowerConfig);
     });
 
     it("Executes as expected if the borrow policy is 'Decrease'", async () => {
@@ -774,7 +774,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
 
       const onChainBorrowerConfig: BorrowerConfig = await creditLine.getBorrowerConfiguration(lender.address);
 
-      validateBorrowerConfigs(onChainBorrowerConfig, borrowerConfig);
+      compareBorrowerConfigs(onChainBorrowerConfig, borrowerConfig);
     });
 
     it("Executes as expected if the borrow policy is 'Reset'", async () => {
@@ -797,7 +797,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
 
       const onChainBorrowerConfig: BorrowerConfig = await creditLine.getBorrowerConfiguration(lender.address);
 
-      validateBorrowerConfigs(onChainBorrowerConfig, borrowerConfig);
+      compareBorrowerConfigs(onChainBorrowerConfig, borrowerConfig);
     });
 
     it("Is reverted if the caller is not a market", async () => {
@@ -830,7 +830,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
         DEFAULT_MIN_DURATION_IN_PERIODS
       );
 
-      validateLoanTerms(onChainTerms, expectedTerms);
+      compareLoanTerms(onChainTerms, expectedTerms);
     });
 
     it("Is reverted if the borrower address is zero", async () => {
