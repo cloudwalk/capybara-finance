@@ -106,7 +106,7 @@ const DEFAULT_MAX_ADDON_FIXED_RATE = 10;
 const DEFAULT_MIN_ADDON_PERIOD_RATE = 1;
 const DEFAULT_MAX_ADDON_PERIOD_RATE = 10;
 const DEFAULT_EXPIRATION_TIME = 4294967295;
-const BORROWERS_NUMBER = 3
+const BORROWERS_NUMBER = 3;
 
 describe("Contract 'CreditLineConfigurable'", async () => {
   let lender: HardhatEthersSigner;
@@ -181,19 +181,28 @@ describe("Contract 'CreditLineConfigurable'", async () => {
 
   function validateCreditLineConfigs(onChainConfig: CreditLineConfig, defaultConfig: CreditLineConfig) {
     Object.keys(defaultConfig).forEach(property => {
-      expect(onChainConfig[property]).to.eq(defaultConfig[property], `Mismatch in property ${property}`);
+      expect(onChainConfig[property]).to.eq(
+        defaultConfig[property],
+        `Mismatch in the "${property}" property of the credit line config`
+      );
     });
   }
 
   function validateBorrowerConfigs(onChainConfig: BorrowerConfig, defaultConfig: BorrowerConfig) {
     Object.keys(defaultConfig).forEach(property => {
-      expect(onChainConfig[property]).to.eq(defaultConfig[property], `Mismatch in property ${property}`);
+      expect(onChainConfig[property]).to.eq(
+        defaultConfig[property],
+        `Mismatch in the "${property}" property of the borrower config`
+      );
     });
   }
 
   function validateLoanTerms(onChainTerms: LoanTerms, defaultTerms: LoanTerms) {
     Object.keys(defaultTerms).forEach(property => {
-      expect(onChainTerms[property]).to.eq(defaultTerms[property], `Mismatch in property ${property}`);
+      expect(onChainTerms[property]).to.eq(
+        defaultTerms[property],
+        `Mismatch in the "${property}" property of the loan terms`
+      );
     });
   }
 
