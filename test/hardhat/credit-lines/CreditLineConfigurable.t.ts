@@ -100,7 +100,7 @@ const DEFAULT_MIN_INTEREST_RATE_PRIMARY = 1;
 const DEFAULT_MAX_INTEREST_RATE_PRIMARY = 10;
 const DEFAULT_MIN_INTEREST_RATE_SECONDARY = 10;
 const DEFAULT_MAX_INTEREST_RATE_SECONDARY = 20;
-const DEFAULT_INTEREST_RATE_FACTOR = 10;
+const DEFAULT_INTEREST_RATE_FACTOR = 1000;
 const DEFAULT_MIN_ADDON_FIXED_RATE = 1;
 const DEFAULT_MAX_ADDON_FIXED_RATE = 10;
 const DEFAULT_MIN_ADDON_PERIOD_RATE = 1;
@@ -166,7 +166,10 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     };
   }
 
-  function createLoanTerms(borrowerConfiguration: BorrowerConfig, addonAmount: number): LoanTerms {
+  function createLoanTerms(
+    borrowerConfiguration: BorrowerConfig,
+    durationInPeriods: number,
+    addonAmount: number): LoanTerms {
     return {
       token: token.address,
       interestRatePrimary: borrowerConfiguration.interestRatePrimary,
@@ -174,12 +177,23 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       interestRateFactor: DEFAULT_INTEREST_RATE_FACTOR,
       treasury: treasury.address,
       periodInSeconds: DEFAULT_PERIOD_IN_SECONDS,
-      durationInPeriods: borrowerConfiguration.minDurationInPeriods,
+      durationInPeriods,
       interestFormula: borrowerConfiguration.interestFormula,
       autoRepayment: borrowerConfiguration.autoRepayment,
       addonRecipient: addonRecipient.address,
       addonAmount: addonAmount
     };
+  }
+
+  function calculateAddonAmount(
+    borrowAmount: number,
+    durationInPeriods: number,
+    addonFixedRate: number,
+    addonPeriodRate: number,
+    interestRateFactor: number
+  ): number {
+    const addonRate = addonPeriodRate * durationInPeriods + addonFixedRate;
+    return Math.floor((borrowAmount * addonRate) / (interestRateFactor - addonRate));
   }
 
   function compareCreditLineConfigs(actualConfig: CreditLineConfig, expectedConfig: CreditLineConfig) {
@@ -800,18 +814,25 @@ describe("Contract 'CreditLineConfigurable'", async () => {
   describe("Function 'determineLoanTerms()'", async () => {
     it("Executes as expected and returns correct values", async () => {
       const { creditLine } = await loadFixture(deployAndConfigureCreditLineWithBorrower);
-      const addonAmount = await creditLine.calculateAddonAmount(
-        DEFAULT_MIN_BORROW_AMOUNT,
-        DEFAULT_MIN_DURATION_IN_PERIODS,
-        DEFAULT_MIN_ADDON_FIXED_RATE,
-        DEFAULT_MIN_ADDON_PERIOD_RATE
+      const creditLineConfig = createDefaultCreditLineConfiguration();
+      const borrowerConfig = createDefaultBorrowerConfiguration();
+      const borrowAmount = Math.floor((borrowerConfig.minBorrowAmount + borrowerConfig.maxBorrowAmount) / 2);
+      const durationInPeriods = Math.floor(
+        (borrowerConfig.minDurationInPeriods + borrowerConfig.maxDurationInPeriods) / 2
+      );
+      const addonAmount = calculateAddonAmount(
+        borrowAmount,
+        durationInPeriods,
+        borrowerConfig.addonFixedRate,
+        borrowerConfig.addonPeriodRate,
+        creditLineConfig.interestRateFactor
       );
 
-      const expectedTerms: LoanTerms = createLoanTerms(createDefaultBorrowerConfiguration(), addonAmount);
+      const expectedTerms: LoanTerms = createLoanTerms(borrowerConfig, durationInPeriods, addonAmount);
       const onChainTerms: LoanTerms = await creditLine.determineLoanTerms(
         borrower.address,
-        DEFAULT_MIN_BORROW_AMOUNT,
-        DEFAULT_MIN_DURATION_IN_PERIODS
+        borrowAmount,
+        durationInPeriods
       );
 
       compareLoanTerms(onChainTerms, expectedTerms);
