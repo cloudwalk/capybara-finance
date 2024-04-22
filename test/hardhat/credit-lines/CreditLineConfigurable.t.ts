@@ -90,7 +90,7 @@ const CREDIT_LINE_CONFIGURED_EVENT_NAME = "CreditLineConfigured";
 const BORROWER_CONFIGURED_EVENT_NAME = "BorrowerConfigured";
 
 const ZERO_ADDRESS = ethers.ZeroAddress;
-const EXPECTED_KIND = 1;
+const CREDIT_LINE_KIND = 1;
 const DEFAULT_PERIOD_IN_SECONDS = 86400;
 const DEFAULT_MIN_DURATION_IN_PERIODS = 7;
 const DEFAULT_MAX_DURATION_IN_PERIODS = 14;
@@ -284,7 +284,7 @@ describe("Contract CreditLineConfigurable", async () => {
       expect(await creditLine.owner()).to.eq(await lender.getAddress());
       expect(await creditLine.token()).to.eq(await token.getAddress());
       expect(await creditLine.market()).to.eq(await market.getAddress());
-      expect(await creditLine.kind()).to.eq(EXPECTED_KIND);
+      expect(await creditLine.kind()).to.eq(CREDIT_LINE_KIND);
     });
 
     it("Is reverted if market address is zero", async () => {
