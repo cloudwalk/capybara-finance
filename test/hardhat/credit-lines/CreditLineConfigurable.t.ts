@@ -109,6 +109,8 @@ const DEFAULT_EXPIRATION_TIME = 4294967295;
 const BORROWERS_NUMBER = 3;
 
 describe("Contract 'CreditLineConfigurable'", async () => {
+  let creditLineFactory: ContractFactory;
+
   let lender: HardhatEthersSigner;
   let market: HardhatEthersSigner;
   let token: HardhatEthersSigner;
@@ -116,8 +118,6 @@ describe("Contract 'CreditLineConfigurable'", async () => {
   let treasury: HardhatEthersSigner;
   let addonRecipient: HardhatEthersSigner;
   let users: HardhatEthersSigner[];
-
-  let creditLineFactory: ContractFactory;
 
   before(async () => {
     creditLineFactory = await ethers.getContractFactory("CreditLineConfigurable");
