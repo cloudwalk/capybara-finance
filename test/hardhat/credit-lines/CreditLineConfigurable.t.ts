@@ -263,10 +263,10 @@ describe("Contract 'CreditLineConfigurable'", async () => {
   describe("Function 'initialize()'", async () => {
     it("Configures contract as expected", async () => {
       const { creditLine } = await loadFixture(deployCreditLine);
-      expect(await creditLine.lender()).to.eq(await lender.getAddress());
-      expect(await creditLine.owner()).to.eq(await lender.getAddress());
-      expect(await creditLine.token()).to.eq(await token.getAddress());
-      expect(await creditLine.market()).to.eq(await market.getAddress());
+      expect(await creditLine.lender()).to.eq(lender.address);
+      expect(await creditLine.owner()).to.eq(lender.address);
+      expect(await creditLine.token()).to.eq(token.address);
+      expect(await creditLine.market()).to.eq(market.address);
       expect(await creditLine.kind()).to.eq(CREDIT_LINE_KIND);
       expect(await creditLine.paused()).to.eq(false);
     });
@@ -682,7 +682,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       for (let i = 0; i < borrowers.length; i++) {
         await expect(tx)
           .to.emit(creditLine, BORROWER_CONFIGURED_EVENT_NAME)
-          .withArgs(creditLine.getAddress(), borrowers[i]);
+          .withArgs(await creditLine.getAddress(), borrowers[i]);
       }
     });
 
