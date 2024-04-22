@@ -163,7 +163,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     };
   }
 
-  function assumeDefaultLoanTerms(borrowerConfiguration: BorrowerConfig, addonAmount: number): LoanTerms {
+  function createLoanTerms(borrowerConfiguration: BorrowerConfig, addonAmount: number): LoanTerms {
     return {
       token: token.address,
       interestRatePrimary: borrowerConfiguration.interestRatePrimary,
@@ -181,19 +181,19 @@ describe("Contract 'CreditLineConfigurable'", async () => {
 
   function validateCreditLineConfigs(onChainConfig: CreditLineConfig, defaultConfig: CreditLineConfig) {
     Object.keys(defaultConfig).forEach(property => {
-      expect(onChainConfig[property], `Mismatch in property ${property}`).to.eq(defaultConfig[property]);
+      expect(onChainConfig[property]).to.eq(defaultConfig[property], `Mismatch in property ${property}`);
     });
   }
 
   function validateBorrowerConfigs(onChainConfig: BorrowerConfig, defaultConfig: BorrowerConfig) {
     Object.keys(defaultConfig).forEach(property => {
-      expect(onChainConfig[property], `Mismatch in property ${property}`).to.eq(defaultConfig[property]);
+      expect(onChainConfig[property]).to.eq(defaultConfig[property], `Mismatch in property ${property}`);
     });
   }
 
   function validateLoanTerms(onChainTerms: LoanTerms, defaultTerms: LoanTerms) {
     Object.keys(defaultTerms).forEach(property => {
-      expect(onChainTerms[property], `Mismatch in property ${property}`).to.eq(defaultTerms[property]);
+      expect(onChainTerms[property]).to.eq(defaultTerms[property], `Mismatch in property ${property}`);
     });
   }
 
@@ -814,7 +814,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
         DEFAULT_MIN_ADDON_PERIOD_RATE
       );
 
-      const expectedTerms: LoanTerms = assumeDefaultLoanTerms(createDefaultBorrowerConfiguration(), addonAmount);
+      const expectedTerms: LoanTerms = createLoanTerms(createDefaultBorrowerConfiguration(), addonAmount);
       const onChainTerms: LoanTerms = await creditLine.determineLoanTerms(
         lender.address,
         DEFAULT_MIN_BORROW_AMOUNT,
