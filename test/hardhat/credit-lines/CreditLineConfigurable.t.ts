@@ -352,13 +352,13 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     it("Executes as expected and emits the correct event", async () => {
       const { creditLine } = await loadFixture(deployCreditLine);
 
-      expect(await creditLine.isAdmin(lender.address)).to.eq(false);
+      expect(await creditLine.isAdmin(users[0].address)).to.eq(false);
 
-      expect(await creditLine.configureAdmin(lender.address, true))
+      expect(await creditLine.configureAdmin(users[0].address, true))
         .to.emit(creditLine, ADMIN_CONFIGURED_EVENT_NAME)
-        .withArgs(lender.address, true);
+        .withArgs(users[0].address, true);
 
-      expect(await creditLine.isAdmin(lender.address)).to.eq(true);
+      expect(await creditLine.isAdmin(users[0].address)).to.eq(true);
     });
 
     it("Is reverted if caller is not the owner", async () => {
@@ -381,9 +381,9 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     it("Is reverted if the admin is already configured", async () => {
       const { creditLine } = await loadFixture(deployCreditLine);
 
-      await proveTx(creditLine.configureAdmin(lender.address, true));
+      await proveTx(creditLine.configureAdmin(users[0].address, true));
 
-      await expect(creditLine.configureAdmin(lender.address, true))
+      await expect(creditLine.configureAdmin(users[0].address, true))
         .to.be.revertedWithCustomError(creditLine, ALREADY_CONFIGURED_ERROR_NAME);
     });
   });
