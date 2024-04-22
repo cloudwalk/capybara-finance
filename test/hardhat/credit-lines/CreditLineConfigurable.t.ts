@@ -167,20 +167,32 @@ describe("Contract 'CreditLineConfigurable'", async () => {
   }
 
   function createLoanTerms(
-    borrowerConfiguration: BorrowerConfig,
+    borrowAmount: number,
     durationInPeriods: number,
-    addonAmount: number): LoanTerms {
+    creditLineConfig: CreditLineConfig,
+    borrowerConfig: BorrowerConfig
+  ): LoanTerms {
+    let addonAmount = 0;
+    if (creditLineConfig.addonRecipient !== ZERO_ADDRESS) {
+      addonAmount = calculateAddonAmount(
+        borrowAmount,
+        durationInPeriods,
+        borrowerConfig.addonFixedRate,
+        borrowerConfig.addonPeriodRate,
+        creditLineConfig.interestRateFactor
+      );
+    }
     return {
       token: token.address,
-      interestRatePrimary: borrowerConfiguration.interestRatePrimary,
-      interestRateSecondary: borrowerConfiguration.interestRateSecondary,
+      interestRatePrimary: borrowerConfig.interestRatePrimary,
+      interestRateSecondary: borrowerConfig.interestRateSecondary,
       interestRateFactor: DEFAULT_INTEREST_RATE_FACTOR,
       treasury: treasury.address,
       periodInSeconds: DEFAULT_PERIOD_IN_SECONDS,
       durationInPeriods,
-      interestFormula: borrowerConfiguration.interestFormula,
-      autoRepayment: borrowerConfiguration.autoRepayment,
-      addonRecipient: addonRecipient.address,
+      interestFormula: borrowerConfig.interestFormula,
+      autoRepayment: borrowerConfig.autoRepayment,
+      addonRecipient: creditLineConfig.addonRecipient,
       addonAmount: addonAmount
     };
   }
@@ -825,7 +837,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
   });
 
   describe("Function 'determineLoanTerms()'", async () => {
-    it("Executes as expected and returns correct values", async () => {
+    it("Executes as expected and returns correct values if the addon recipient address is not zero", async () => {
       const { creditLine } = await loadFixture(deployAndConfigureCreditLineWithBorrower);
       const creditLineConfig = createDefaultCreditLineConfiguration();
       const borrowerConfig = createDefaultBorrowerConfiguration();
@@ -833,15 +845,40 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       const durationInPeriods = Math.floor(
         (borrowerConfig.minDurationInPeriods + borrowerConfig.maxDurationInPeriods) / 2
       );
-      const addonAmount = calculateAddonAmount(
+
+      const expectedTerms: LoanTerms = createLoanTerms(
         borrowAmount,
         durationInPeriods,
-        borrowerConfig.addonFixedRate,
-        borrowerConfig.addonPeriodRate,
-        creditLineConfig.interestRateFactor
+        creditLineConfig,
+        borrowerConfig
+      );
+      const onChainTerms: LoanTerms = await creditLine.determineLoanTerms(
+        borrower.address,
+        borrowAmount,
+        durationInPeriods
       );
 
-      const expectedTerms: LoanTerms = createLoanTerms(borrowerConfig, durationInPeriods, addonAmount);
+      compareLoanTerms(onChainTerms, expectedTerms);
+    });
+
+    it("Executes as expected and returns correct values if the addon recipient address is zero", async () => {
+      const { creditLine } = await loadFixture(deployAndConfigureCreditLineWithBorrower);
+      const creditLineConfig = createDefaultCreditLineConfiguration();
+      const borrowerConfig = createDefaultBorrowerConfiguration();
+      const borrowAmount = Math.floor((borrowerConfig.minBorrowAmount + borrowerConfig.maxBorrowAmount) / 2);
+      const durationInPeriods = Math.floor(
+        (borrowerConfig.minDurationInPeriods + borrowerConfig.maxDurationInPeriods) / 2
+      );
+
+      creditLineConfig.addonRecipient = ZERO_ADDRESS;
+      await proveTx(creditLine.configureCreditLine(creditLineConfig));
+
+      const expectedTerms: LoanTerms = createLoanTerms(
+        borrowAmount,
+        durationInPeriods,
+        creditLineConfig,
+        borrowerConfig
+      );
       const onChainTerms: LoanTerms = await creditLine.determineLoanTerms(
         borrower.address,
         borrowAmount,
