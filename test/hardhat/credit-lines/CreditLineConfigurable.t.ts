@@ -292,7 +292,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     it("Executes as expected and emits the correct event", async () => {
       const { creditLine } = await loadFixture(deployCreditLine);
 
-      expect(await creditLine.pause())
+      await expect(creditLine.pause())
         .to.emit(creditLine, PAUSED_EVENT_NAME)
         .withArgs(lender.address);
       expect(await creditLine.paused()).to.eq(true);
@@ -309,7 +309,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     it("Is reverted if contract is paused", async () => {
       const { creditLine } = await loadFixture(deployCreditLine);
 
-      await proveTx(await creditLine.pause());
+      await proveTx(creditLine.pause());
       await expect(creditLine.pause())
         .to.be.revertedWithCustomError(creditLine, PAUSED_ERROR_NAME);
     });
@@ -322,7 +322,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       await proveTx(creditLine.pause());
       expect(await creditLine.paused()).to.eq(true);
 
-      expect(creditLine.unpause())
+      await expect(creditLine.unpause())
         .to.emit(creditLine, UNPAUSED_EVENT_NAME)
         .withArgs(lender.address);
 
@@ -378,7 +378,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     it("Is reverted if the admin is already configured", async () => {
       const { creditLine } = await loadFixture(deployCreditLine);
 
-      await proveTx(await creditLine.configureAdmin(lender.address, true));
+      await proveTx(creditLine.configureAdmin(lender.address, true));
 
       await expect(creditLine.configureAdmin(lender.address, true))
         .to.be.revertedWithCustomError(creditLine, ALREADY_CONFIGURED_ERROR_NAME);
@@ -390,7 +390,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       const { creditLine } = await loadFixture(deployCreditLine);
       const config = createDefaultCreditLineConfiguration();
 
-      expect(await creditLine.configureCreditLine(config))
+      await expect(creditLine.configureCreditLine(config))
         .to.emit(creditLine, CREDIT_LINE_CONFIGURED_EVENT_NAME)
         .withArgs(await creditLine.getAddress());
 
@@ -494,7 +494,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       const { creditLine } = await loadFixture(deployAndConfigureCreditLine);
       const config = createDefaultBorrowerConfiguration();
 
-      await expect(await creditLine.configureBorrower(lender.address, config))
+      await expect(creditLine.configureBorrower(lender.address, config))
         .to.emit(creditLine, BORROWER_CONFIGURED_EVENT_NAME)
         .withArgs(await creditLine.getAddress(), lender.address);
 
@@ -677,7 +677,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       const { creditLine } = await loadFixture(deployAndConfigureCreditLine);
       const { borrowers, configs } = await prepareDataForBatchBorrowerConfig(BORROWERS_NUMBER);
 
-      const tx = await creditLine.configureBorrowers(borrowers, configs);
+      const tx = creditLine.configureBorrowers(borrowers, configs);
 
       for (let i = 0; i < borrowers.length; i++) {
         await expect(tx)
