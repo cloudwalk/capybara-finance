@@ -108,7 +108,7 @@ const DEFAULT_MAX_ADDON_PERIOD_RATE = 10;
 const DEFAULT_EXPIRATION_TIME = 4294967295;
 const BORROWERS_NUMBER = 3
 
-describe("Contract CreditLineConfigurable", async () => {
+describe("Contract 'CreditLineConfigurable'", async () => {
   let lender: HardhatEthersSigner;
   let market: HardhatEthersSigner;
   let token: HardhatEthersSigner;
