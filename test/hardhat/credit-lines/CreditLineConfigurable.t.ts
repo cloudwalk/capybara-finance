@@ -70,24 +70,24 @@ enum BorrowPolicy {
   Keep = 2
 }
 
-const ERROR_NAME_ZERO_ADDRESS = "ZeroAddress";
+const ERROR_NAME_ALREADY_PAUSED = "EnforcedPause";
+const ERROR_NAME_ALREADY_CONFIGURED = "AlreadyConfigured";
+const ERROR_NAME_ARRAYS_LENGTH_MISMATCH = "ArrayLengthMismatch";
+const ERROR_NAME_BORROWER_CONFIGURATION_EXPIRED = "BorrowerConfigurationExpired";
+const ERROR_NAME_INVALID_AMOUNT = "InvalidAmount";
+const ERROR_NAME_INVALID_BORROWER_CONFIGURATION = "InvalidBorrowerConfiguration";
+const ERROR_NAME_INVALID_CREDIT_LINE_CONFIGURATION = "InvalidCreditLineConfiguration";
+const ERROR_NAME_LOAN_DURATION_OUT_OF_RANGE = "LoanDurationOutOfRange";
+const ERROR_NAME_NOT_PAUSED = "ExpectedPause";
 const ERROR_NAME_OWNABLE_UNAUTHORIZED = "OwnableUnauthorizedAccount";
 const ERROR_NAME_UNAUTHORIZED = "Unauthorized";
-const ERROR_NAME_ALREADY_PAUSED = "EnforcedPause";
-const ERROR_NAME_NOT_PAUSED = "ExpectedPause";
-const ERROR_NAME_ALREADY_CONFIGURED = "AlreadyConfigured";
-const ERROR_NAME_INVALID_CREDIT_LINE_CONFIGURATION = "InvalidCreditLineConfiguration";
-const ERROR_NAME_INVALID_BORROWER_CONFIGURATION = "InvalidBorrowerConfiguration";
-const ERROR_NAME_ARRAYS_LENGTH_MISMATCH = "ArrayLengthMismatch";
-const ERROR_NAME_INVALID_AMOUNT = "InvalidAmount";
-const ERROR_NAME_BORROWER_CONFIGURATION_EXPIRED = "BorrowerConfigurationExpired";
-const ERROR_NAME_LOAN_DURATION_OUT_OF_RANGE = "LoanDurationOutOfRange";
+const ERROR_NAME_ZERO_ADDRESS = "ZeroAddress";
 
+const EVENT_NAME_ADMIN_CONFIGURED = "AdminConfigured";
+const EVENT_NAME_BORROWER_CONFIGURED = "BorrowerConfigured";
+const EVENT_NAME_CREDIT_LINE_CONFIGURED = "CreditLineConfigured";
 const EVENT_NAME_PAUSED = "Paused";
 const EVENT_NAME_UNPAUSED = "Unpaused";
-const EVENT_NAME_ADMIN_CONFIGURED = "AdminConfigured";
-const EVENT_NAME_CREDIT_LINE_CONFIGURED = "CreditLineConfigured";
-const EVENT_NAME_BORROWER_CONFIGURED = "BorrowerConfigured";
 
 const ZERO_ADDRESS = ethers.ZeroAddress;
 const CREDIT_LINE_KIND = 1;
