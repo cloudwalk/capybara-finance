@@ -65,9 +65,9 @@ enum InterestFormula {
 }
 
 enum BorrowPolicy {
-  Reset,
-  Decrease,
-  Keep
+  Reset = 0,
+  Decrease = 1,
+  Keep = 2
 }
 
 const ZERO_ADDRESS_ERROR_NAME = "ZeroAddress";
