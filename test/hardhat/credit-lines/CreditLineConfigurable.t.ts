@@ -291,9 +291,10 @@ describe("Contract 'CreditLineConfigurable'", async () => {
   describe("Function 'pause()'", async () => {
     it("Executes as expected and emits the correct event", async () => {
       const { creditLine } = await loadFixture(deployCreditLine);
-      expect(await creditLine.pause())
-        .to.emit(creditLine, PAUSED_EVENT_NAME).withArgs(lender.address);
 
+      expect(await creditLine.pause())
+        .to.emit(creditLine, PAUSED_EVENT_NAME)
+        .withArgs(lender.address);
       expect(await creditLine.paused()).to.eq(true);
     });
 
@@ -307,9 +308,10 @@ describe("Contract 'CreditLineConfigurable'", async () => {
 
     it("Is reverted if contract is paused", async () => {
       const { creditLine } = await loadFixture(deployCreditLine);
-      await proveTx(await creditLine.pause());
 
-      await expect(creditLine.pause()).to.be.revertedWithCustomError(creditLine, PAUSED_ERROR_NAME);
+      await proveTx(await creditLine.pause());
+      await expect(creditLine.pause())
+        .to.be.revertedWithCustomError(creditLine, PAUSED_ERROR_NAME);
     });
   });
 
@@ -320,8 +322,9 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       await proveTx(creditLine.pause());
       expect(await creditLine.paused()).to.eq(true);
 
-      expect(await creditLine.unpause())
-        .to.emit(creditLine, UNPAUSED_EVENT_NAME).withArgs(lender.address);
+      expect(creditLine.unpause())
+        .to.emit(creditLine, UNPAUSED_EVENT_NAME)
+        .withArgs(lender.address);
 
       expect(await creditLine.paused()).to.eq(false);
     });
@@ -349,7 +352,8 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       expect(await creditLine.isAdmin(lender.address)).to.eq(false);
 
       expect(await creditLine.configureAdmin(lender.address, true))
-        .to.emit(creditLine, ADMIN_CONFIGURED_EVENT_NAME).withArgs(lender.address, true);
+        .to.emit(creditLine, ADMIN_CONFIGURED_EVENT_NAME)
+        .withArgs(lender.address, true);
 
       expect(await creditLine.isAdmin(lender.address)).to.eq(true);
     });
@@ -676,7 +680,8 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       const tx = await creditLine.configureBorrowers(borrowers, configs);
 
       for (let i = 0; i < borrowers.length; i++) {
-        await expect(tx).to.emit(creditLine, BORROWER_CONFIGURED_EVENT_NAME)
+        await expect(tx)
+          .to.emit(creditLine, BORROWER_CONFIGURED_EVENT_NAME)
           .withArgs(creditLine.getAddress(), borrowers[i]);
       }
     });
