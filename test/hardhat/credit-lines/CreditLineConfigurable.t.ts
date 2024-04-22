@@ -519,11 +519,26 @@ describe("Contract 'CreditLineConfigurable'", async () => {
   });
 
   describe("Function 'configureBorrower()'", async () => {
-    it("Executes as expected and emits the correct event", async () => {
+    it("Executes as expected and emits the correct event if is called by the lender", async () => {
       const { creditLine } = await loadFixture(deployAndConfigureCreditLine);
       const config = createDefaultBorrowerConfiguration();
 
       await expect(creditLine.configureBorrower(borrower.address, config))
+        .to.emit(creditLine, BORROWER_CONFIGURED_EVENT_NAME)
+        .withArgs(await creditLine.getAddress(), borrower.address);
+
+      const onChainConfig: BorrowerConfig = await creditLine.getBorrowerConfiguration(borrower.address);
+
+      compareBorrowerConfigs(onChainConfig, config);
+    });
+
+    it("Executes as expected and emits the correct event if is called by an admin", async () => {
+      const { creditLine } = await loadFixture(deployAndConfigureCreditLine);
+      const config = createDefaultBorrowerConfiguration();
+
+      await proveTx(creditLine.configureAdmin(users[0].address, true));
+
+      await expect((creditLine.connect(users[0]) as Contract).configureBorrower(borrower.address, config))
         .to.emit(creditLine, BORROWER_CONFIGURED_EVENT_NAME)
         .withArgs(await creditLine.getAddress(), borrower.address);
 
@@ -702,11 +717,26 @@ describe("Contract 'CreditLineConfigurable'", async () => {
   });
 
   describe("Function 'configureBorrowers()'", async () => {
-    it("Executes as expected and emits correct events", async () => {
+    it("Executes as expected and emits correct events if is called by the lender", async () => {
       const { creditLine } = await loadFixture(deployAndConfigureCreditLine);
       const { borrowers, configs } = await prepareDataForBatchBorrowerConfig(BORROWERS_NUMBER);
 
       const tx = creditLine.configureBorrowers(borrowers, configs);
+
+      for (let i = 0; i < borrowers.length; i++) {
+        await expect(tx)
+          .to.emit(creditLine, BORROWER_CONFIGURED_EVENT_NAME)
+          .withArgs(await creditLine.getAddress(), borrowers[i]);
+      }
+    });
+
+    it("Executes as expected and emits correct events if is called by an admin", async () => {
+      const { creditLine } = await loadFixture(deployAndConfigureCreditLine);
+      const { borrowers, configs } = await prepareDataForBatchBorrowerConfig(BORROWERS_NUMBER);
+
+      await proveTx(creditLine.configureAdmin(users[0].address, true));
+
+      const tx = (creditLine.connect(users[0]) as Contract).configureBorrowers(borrowers, configs);
 
       for (let i = 0; i < borrowers.length; i++) {
         await expect(tx)
