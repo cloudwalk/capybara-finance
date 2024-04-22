@@ -741,6 +741,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       const { creditLine } = await loadFixture(deployAndConfigureCreditLine);
       const borrowerConfig: BorrowerConfig = createDefaultBorrowerConfiguration();
       borrowerConfig.borrowPolicy = BorrowPolicy.Decrease;
+      const borrowAmount = borrowerConfig.maxBorrowAmount - 1;
 
       await proveTx(creditLine.configureBorrower(borrower.address, borrowerConfig));
 
@@ -748,12 +749,12 @@ describe("Contract 'CreditLineConfigurable'", async () => {
 
       await proveTx(creditLineConnectedToMarket.onBeforeLoanTaken(
         borrower.address,
-        borrowerConfig.minBorrowAmount,
+        borrowAmount,
         borrowerConfig.minDurationInPeriods,
         0 // loanId
       ));
 
-      borrowerConfig.maxBorrowAmount -= borrowerConfig.minBorrowAmount;
+      borrowerConfig.maxBorrowAmount -= borrowAmount;
 
       const onChainBorrowerConfig: BorrowerConfig = await creditLine.getBorrowerConfiguration(borrower.address);
 
