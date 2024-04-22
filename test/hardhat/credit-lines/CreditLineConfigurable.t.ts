@@ -852,8 +852,8 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       await expect(creditLine.determineLoanTerms(
         borrower.address,
         0, // borrowAmount
-        DEFAULT_MIN_DURATION_IN_PERIODS)
-      ).to.be.revertedWithCustomError(creditLine, INVALID_AMOUNT_ERROR_NAME);
+        DEFAULT_MIN_DURATION_IN_PERIODS // durationInPeriods
+      )).to.be.revertedWithCustomError(creditLine, INVALID_AMOUNT_ERROR_NAME);
     });
 
     it("Is reverted if the borrower configuration expired", async () => {
@@ -865,8 +865,8 @@ describe("Contract 'CreditLineConfigurable'", async () => {
 
       await expect(creditLine.determineLoanTerms(
         borrower.address,
-        DEFAULT_MIN_BORROW_AMOUNT,
-        DEFAULT_MIN_DURATION_IN_PERIODS
+        DEFAULT_MIN_BORROW_AMOUNT, // borrowAmount
+        DEFAULT_MIN_DURATION_IN_PERIODS // durationInPeriods
       )).to.be.revertedWithCustomError(creditLine, BORROWER_CONFIGURATION_EXPIRED_ERROR_NAME);
     });
 
@@ -874,36 +874,36 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       const { creditLine } = await loadFixture(deployAndConfigureCreditLineWithBorrower);
       await expect(creditLine.determineLoanTerms(
         borrower.address,
-        DEFAULT_MAX_BORROW_AMOUNT + 1,
-        DEFAULT_MIN_DURATION_IN_PERIODS)
-      ).to.be.revertedWithCustomError(creditLine, INVALID_AMOUNT_ERROR_NAME);
+        DEFAULT_MAX_BORROW_AMOUNT + 1, // borrowAmount
+        DEFAULT_MIN_DURATION_IN_PERIODS // durationInPeriods
+      )).to.be.revertedWithCustomError(creditLine, INVALID_AMOUNT_ERROR_NAME);
     });
 
     it("Is reverted if the borrow amount is less than min borrow amount", async () => {
       const { creditLine } = await loadFixture(deployAndConfigureCreditLineWithBorrower);
       await expect(creditLine.determineLoanTerms(
         borrower.address,
-        DEFAULT_MIN_BORROW_AMOUNT - 1,
-        DEFAULT_MIN_DURATION_IN_PERIODS)
-      ).to.be.revertedWithCustomError(creditLine, INVALID_AMOUNT_ERROR_NAME);
+        DEFAULT_MIN_BORROW_AMOUNT - 1, // borrowAmount
+        DEFAULT_MIN_DURATION_IN_PERIODS // durationInPeriods
+      )).to.be.revertedWithCustomError(creditLine, INVALID_AMOUNT_ERROR_NAME);
     });
 
     it("Is reverted if the duration in periods is less than min duration in periods", async () => {
       const { creditLine } = await loadFixture(deployAndConfigureCreditLineWithBorrower);
       await expect(creditLine.determineLoanTerms(
         borrower.address,
-        DEFAULT_MIN_BORROW_AMOUNT,
-        DEFAULT_MIN_DURATION_IN_PERIODS - 1)
-      ).to.be.revertedWithCustomError(creditLine, LOAN_DURATION_OUT_OF_RANGE_ERROR_NAME);
+        DEFAULT_MIN_BORROW_AMOUNT, // borrowAmount
+        DEFAULT_MIN_DURATION_IN_PERIODS - 1 // durationInPeriods
+      )).to.be.revertedWithCustomError(creditLine, LOAN_DURATION_OUT_OF_RANGE_ERROR_NAME);
     });
 
     it("Is reverted if the duration in periods is bigger than max duration in periods", async () => {
       const { creditLine } = await loadFixture(deployAndConfigureCreditLineWithBorrower);
       await expect(creditLine.determineLoanTerms(
         borrower.address,
-        DEFAULT_MIN_BORROW_AMOUNT,
-        DEFAULT_MAX_DURATION_IN_PERIODS + 1)
-      ).to.be.revertedWithCustomError(creditLine, LOAN_DURATION_OUT_OF_RANGE_ERROR_NAME);
+        DEFAULT_MIN_BORROW_AMOUNT, // borrowAmount
+        DEFAULT_MAX_DURATION_IN_PERIODS + 1 // durationInPeriods
+      )).to.be.revertedWithCustomError(creditLine, LOAN_DURATION_OUT_OF_RANGE_ERROR_NAME);
     });
   });
 });
