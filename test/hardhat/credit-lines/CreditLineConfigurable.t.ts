@@ -809,6 +809,19 @@ describe("Contract 'CreditLineConfigurable'", async () => {
         0 // loanId
       )).to.be.revertedWithCustomError(creditLine, UNAUTHORIZED_ERROR_NAME);
     });
+
+    it("Is reverted if the contract is paused", async () => {
+      const { creditLine } = await loadFixture(deployAndConfigureCreditLineWithBorrower);
+      const borrowerConfig: BorrowerConfig = createDefaultBorrowerConfiguration();
+      await proveTx(creditLine.pause());
+
+      await expect((creditLine.connect(market) as Contract).onBeforeLoanTaken(
+        borrower.address,
+        borrowerConfig.minBorrowAmount,
+        borrowerConfig.minDurationInPeriods,
+        0 // loanId
+      )).to.be.revertedWithCustomError(creditLine, PAUSED_ERROR_NAME);
+    });
   });
 
   describe("Function 'determineLoanTerms()'", async () => {
