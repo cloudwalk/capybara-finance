@@ -123,7 +123,9 @@ describe("Contract 'CreditLineConfigurable'", async () => {
   before(async () => {
     creditLineFactory = await ethers.getContractFactory("CreditLineConfigurable");
 
-    [lender, market, token, attacker, treasury, addonRecipient, borrower, ...users] = await ethers.getSigners();
+    // Skip the deployer of the contract to check the owner initialization logic
+    [, lender, market, token, attacker, treasury, addonRecipient, borrower, ...users] = await ethers.getSigners();
+
   });
 
   function createDefaultCreditLineConfiguration(): CreditLineConfig {
