@@ -268,6 +268,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       expect(await creditLine.token()).to.eq(await token.getAddress());
       expect(await creditLine.market()).to.eq(await market.getAddress());
       expect(await creditLine.kind()).to.eq(CREDIT_LINE_KIND);
+      expect(await creditLine.paused()).to.eq(false);
     });
 
     it("Is reverted if market address is zero", async () => {
@@ -290,8 +291,6 @@ describe("Contract 'CreditLineConfigurable'", async () => {
   describe("Function 'pause()'", async () => {
     it("Executes as expected and emits the correct event", async () => {
       const { creditLine } = await loadFixture(deployCreditLine);
-      expect(await creditLine.paused()).to.eq(false);
-
       expect(await creditLine.pause())
         .to.emit(creditLine, PAUSED_EVENT_NAME).withArgs(lender.address);
 
@@ -317,7 +316,6 @@ describe("Contract 'CreditLineConfigurable'", async () => {
   describe("Function 'unpause", async () => {
     it("Executes as expected and emits the correct event", async () => {
       const { creditLine } = await loadFixture(deployCreditLine);
-      expect(await creditLine.paused()).to.eq(false);
 
       await proveTx(creditLine.pause());
       expect(await creditLine.paused()).to.eq(true);
@@ -338,7 +336,6 @@ describe("Contract 'CreditLineConfigurable'", async () => {
 
     it("Is reverted if contract is not paused", async () => {
       const { creditLine } = await loadFixture(deployCreditLine);
-      expect(await creditLine.paused()).to.eq(false);
 
       await expect(creditLine.unpause())
         .to.be.revertedWithCustomError(creditLine, NOT_PAUSED_ERROR_NAME);
