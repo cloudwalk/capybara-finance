@@ -117,10 +117,10 @@ describe("Contract 'CreditLineConfigurable'", async () => {
   let addonRecipient: HardhatEthersSigner;
   let users: HardhatEthersSigner[];
 
-  let CreditLineFactory: ContractFactory;
+  let creditLineFactory: ContractFactory;
 
   before(async () => {
-    CreditLineFactory = await ethers.getContractFactory("CreditLineConfigurable");
+    creditLineFactory = await ethers.getContractFactory("CreditLineConfigurable");
 
     [lender, market, token, attacker, treasury, addonRecipient, ...users] = await ethers.getSigners();
   });
@@ -232,7 +232,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     creditLine: Contract;
     creditLineConnectedToLender: Contract
   }> {
-    const creditLine = await upgrades.deployProxy(CreditLineFactory, [
+    const creditLine = await upgrades.deployProxy(creditLineFactory, [
       market.address,
       lender.address,
       token.address,
@@ -251,7 +251,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     creditLine: Contract;
     creditLineConnectedToLender: Contract
   }> {
-    const creditLine = await upgrades.deployProxy(CreditLineFactory, [
+    const creditLine = await upgrades.deployProxy(creditLineFactory, [
       market.address,
       lender.address,
       token.address,
@@ -297,19 +297,19 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
 
     it("Is reverted if market address is zero", async () => {
-      await expect(upgrades.deployProxy(CreditLineFactory, [
+      await expect(upgrades.deployProxy(creditLineFactory, [
         ZERO_ADDRESS,
         lender.address,
         token.address
-      ])).to.be.revertedWithCustomError(CreditLineFactory, ZERO_ADDRESS_ERROR_NAME);
+      ])).to.be.revertedWithCustomError(creditLineFactory, ZERO_ADDRESS_ERROR_NAME);
     });
 
     it("Is reverted if token address is zero", async () => {
-      await expect(upgrades.deployProxy(CreditLineFactory, [
+      await expect(upgrades.deployProxy(creditLineFactory, [
         market.address,
         lender.address,
         ZERO_ADDRESS
-      ])).to.be.revertedWithCustomError(CreditLineFactory, ZERO_ADDRESS_ERROR_NAME);
+      ])).to.be.revertedWithCustomError(creditLineFactory, ZERO_ADDRESS_ERROR_NAME);
     });
   });
 
@@ -328,7 +328,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       const { creditLine } = await loadFixture(deployCreditLine);
 
       await expect((creditLine.connect(attacker) as Contract).pause())
-        .to.be.revertedWithCustomError(CreditLineFactory, OWNABLE_UNAUTHORIZED_ERROR_NAME)
+        .to.be.revertedWithCustomError(creditLineFactory, OWNABLE_UNAUTHORIZED_ERROR_NAME)
         .withArgs(attacker.address);
     });
 
@@ -358,7 +358,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       const { creditLine } = await loadFixture(deployCreditLine);
 
       await expect((creditLine.connect(attacker) as Contract).unpause())
-        .to.be.revertedWithCustomError(CreditLineFactory, OWNABLE_UNAUTHORIZED_ERROR_NAME)
+        .to.be.revertedWithCustomError(creditLineFactory, OWNABLE_UNAUTHORIZED_ERROR_NAME)
         .withArgs(attacker.address);
     });
 
