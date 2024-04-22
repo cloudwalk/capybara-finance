@@ -273,7 +273,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
 
     it("Is reverted if market address is zero", async () => {
       await expect(upgrades.deployProxy(creditLineFactory, [
-        ZERO_ADDRESS,
+        ZERO_ADDRESS, // market
         lender.address,
         token.address
       ])).to.be.revertedWithCustomError(creditLineFactory, ZERO_ADDRESS_ERROR_NAME);
@@ -283,7 +283,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       await expect(upgrades.deployProxy(creditLineFactory, [
         market.address,
         lender.address,
-        ZERO_ADDRESS
+        ZERO_ADDRESS // token
       ])).to.be.revertedWithCustomError(creditLineFactory, ZERO_ADDRESS_ERROR_NAME);
     });
   });
@@ -365,8 +365,10 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     it("Is reverted if account is zero address", async () => {
       const { creditLine } = await loadFixture(deployCreditLine);
 
-      await expect(creditLine.configureAdmin(ZERO_ADDRESS, true))
-        .to.be.revertedWithCustomError(creditLine, ZERO_ADDRESS_ERROR_NAME);
+      await expect(creditLine.configureAdmin(
+        ZERO_ADDRESS, // account
+        true // isAdmin
+      )).to.be.revertedWithCustomError(creditLine, ZERO_ADDRESS_ERROR_NAME);
     });
 
     it("Is reverted if the admin is already configured", async () => {
@@ -519,8 +521,10 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       const { creditLine } = await loadFixture(deployAndConfigureCreditLine);
       const config = createDefaultBorrowerConfiguration();
 
-      await expect(creditLine.configureBorrower(ZERO_ADDRESS, config))
-        .to.be.revertedWithCustomError(creditLine, ZERO_ADDRESS_ERROR_NAME);
+      await expect(creditLine.configureBorrower(
+        ZERO_ADDRESS, // borrower
+        config
+      )).to.be.revertedWithCustomError(creditLine, ZERO_ADDRESS_ERROR_NAME);
     });
 
     it("Is reverted if borrower`s min borrow amount is bigger than max borrow amount", async () => {
@@ -717,7 +721,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
         lender.address,
         borrowerConfig.minBorrowAmount,
         borrowerConfig.minDurationInPeriods,
-        0
+        0 // loanId
       ));
 
       const onChainBorrowerConfig: BorrowerConfig = await creditLine.getBorrowerConfiguration(lender.address);
@@ -738,7 +742,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
         lender.address,
         borrowerConfig.minBorrowAmount,
         borrowerConfig.minDurationInPeriods,
-        0
+        0 // loanId
       ));
 
       borrowerConfig.maxBorrowAmount -= borrowerConfig.minBorrowAmount;
@@ -761,7 +765,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
         lender.address,
         borrowerConfig.minBorrowAmount,
         borrowerConfig.minDurationInPeriods,
-        0
+        0 // loanId
       ));
 
       borrowerConfig.maxBorrowAmount = 0;
@@ -779,7 +783,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
         lender.address,
         borrowerConfig.minBorrowAmount,
         borrowerConfig.minDurationInPeriods,
-        0
+        0 // loanId
       )).to.be.revertedWithCustomError(creditLine, UNAUTHORIZED_ERROR_NAME);
     });
   });
@@ -807,17 +811,17 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     it("Is reverted if the borrower address is zero", async () => {
       const { creditLine } = await loadFixture(deployAndConfigureCreditLineWithBorrower);
       await expect(creditLine.determineLoanTerms(
-        ZERO_ADDRESS,
+        ZERO_ADDRESS, // borrower
         DEFAULT_MIN_BORROW_AMOUNT,
-        DEFAULT_MIN_DURATION_IN_PERIODS)
-      ).to.be.revertedWithCustomError(creditLine, ZERO_ADDRESS_ERROR_NAME);
+        DEFAULT_MIN_DURATION_IN_PERIODS
+      )).to.be.revertedWithCustomError(creditLine, ZERO_ADDRESS_ERROR_NAME);
     });
 
     it("Is reverted if the borrow amount is zero", async () => {
       const { creditLine } = await loadFixture(deployAndConfigureCreditLineWithBorrower);
       await expect(creditLine.determineLoanTerms(
         lender.address,
-        0,
+        0, // borrowAmount
         DEFAULT_MIN_DURATION_IN_PERIODS)
       ).to.be.revertedWithCustomError(creditLine, INVALID_AMOUNT_ERROR_NAME);
     });
