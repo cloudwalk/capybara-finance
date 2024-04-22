@@ -251,14 +251,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     creditLine: Contract;
     creditLineConnectedToLender: Contract
   }> {
-    const creditLine = await upgrades.deployProxy(creditLineFactory, [
-      market.address,
-      lender.address,
-      token.address,
-    ]);
-    await creditLine.waitForDeployment();
-
-    const creditLineConnectedToLender = creditLine.connect(lender) as Contract;
+    const {creditLine, creditLineConnectedToLender} = await deployCreditLine();
 
     await proveTx(creditLineConnectedToLender.configureAdmin(lender.address, true));
 
