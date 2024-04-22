@@ -119,7 +119,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
 
   let CreditLineFactory: ContractFactory;
 
-  beforeEach(async () => {
+  before(async () => {
     CreditLineFactory = await ethers.getContractFactory("CreditLineConfigurable");
 
     [lender, market, token, attacker, treasury, addonRecipient, ...users] = await ethers.getSigners();
