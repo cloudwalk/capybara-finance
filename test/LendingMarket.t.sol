@@ -141,6 +141,8 @@ contract LendingMarketTest is Test {
     uint32 private constant CREDIT_LINE_CONFIG_MAX_ADDON_FIXED_RATE = 50;
     uint32 private constant CREDIT_LINE_CONFIG_MIN_ADDON_PERIOD_RATE = 10;
     uint32 private constant CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_RATE = 50;
+    uint16 private constant CREDIT_LINE_CONFIG_MIN_REVOKE_PERIODS = 2;
+    uint16 private constant CREDIT_LINE_CONFIG_MAX_REVOKE_PERIODS = 4;
 
     uint32 private constant BORROWER_CONFIG_ADDON_FIXED_RATE = 15;
     uint32 private constant BORROWER_CONFIG_ADDON_PERIOD_RATE = 20;
@@ -151,6 +153,7 @@ contract LendingMarketTest is Test {
     uint64 private constant BORROWER_CONFIG_MAX_BORROW_AMOUNT = 800;
     uint32 private constant BORROWER_CONFIG_INTEREST_RATE_PRIMARY = 5;
     uint32 private constant BORROWER_CONFIG_INTEREST_RATE_SECONDARY = 6;
+    uint16 private constant BORROWER_CONFIG_REVOKE_PERIODS = 3;
     bool private constant BORROWER_CONFIG_AUTOREPAYMENT = true;
     Interest.Formula private constant BORROWER_CONFIG_INTEREST_FORMULA_COMPOUND = Interest.Formula.Compound;
     ICreditLineConfigurable.BorrowPolicy private constant BORROWER_CONFIG_BORROW_POLICY_DECREASE =
@@ -272,7 +275,8 @@ contract LendingMarketTest is Test {
             addonPeriodRate: BORROWER_CONFIG_ADDON_PERIOD_RATE,
             interestFormula: BORROWER_CONFIG_INTEREST_FORMULA_COMPOUND,
             borrowPolicy: BORROWER_CONFIG_BORROW_POLICY_DECREASE,
-            autoRepayment: BORROWER_CONFIG_AUTOREPAYMENT
+            autoRepayment: BORROWER_CONFIG_AUTOREPAYMENT,
+            revokePeriods: BORROWER_CONFIG_REVOKE_PERIODS
         });
     }
 
@@ -311,7 +315,9 @@ contract LendingMarketTest is Test {
             minAddonFixedRate: CREDIT_LINE_CONFIG_MIN_ADDON_FIXED_RATE,
             maxAddonFixedRate: CREDIT_LINE_CONFIG_MAX_ADDON_FIXED_RATE,
             minAddonPeriodRate: CREDIT_LINE_CONFIG_MIN_ADDON_PERIOD_RATE,
-            maxAddonPeriodRate: CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_RATE
+            maxAddonPeriodRate: CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_RATE,
+            minRevokePeriods: CREDIT_LINE_CONFIG_MIN_REVOKE_PERIODS,
+            maxRevokePeriods: CREDIT_LINE_CONFIG_MAX_REVOKE_PERIODS
         });
     }
 
@@ -329,7 +335,8 @@ contract LendingMarketTest is Test {
             interestFormula: borrowerConfig.interestFormula,
             addonRecipient: creditLineConfig.addonRecipient,
             autoRepayment: borrowerConfig.autoRepayment,
-            addonAmount: ADDON_AMOUNT
+            addonAmount: ADDON_AMOUNT,
+            revokePeriods: borrowerConfig.revokePeriods
         });
     }
 
@@ -769,7 +776,9 @@ contract LendingMarketTest is Test {
         assertEq(loan.trackedBorrowBalance, borrowAmount + terms.addonAmount);
 
         assertEq(loan.token, terms.token);
+        assertEq(loan.treasury, terms.treasury);
         assertEq(loan.autoRepayment, terms.autoRepayment);
+        assertEq(loan.revokePeriods, terms.revokePeriods);
         assertEq(loan.periodInSeconds, terms.periodInSeconds);
         assertEq(loan.durationInPeriods, terms.durationInPeriods);
         assertEq(loan.interestRateFactor, terms.interestRateFactor);

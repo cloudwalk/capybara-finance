@@ -64,6 +64,8 @@ contract CreditLineConfigurableTest is Test {
     uint32 private constant CREDIT_LINE_CONFIG_MAX_ADDON_FIXED_RATE = 50;
     uint32 private constant CREDIT_LINE_CONFIG_MIN_ADDON_PERIOD_RATE = 10;
     uint32 private constant CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_RATE = 50;
+    uint16 private constant CREDIT_LINE_CONFIG_MIN_REVOKE_PERIODS = 2;
+    uint16 private constant CREDIT_LINE_CONFIG_MAX_REVOKE_PERIODS = 4;
 
     uint32 private constant BORROWER_CONFIG_EXPIRATION = 1000;
     uint64 private constant BORROWER_CONFIG_MIN_BORROW_AMOUNT = 500;
@@ -74,6 +76,7 @@ contract CreditLineConfigurableTest is Test {
     uint32 private constant BORROWER_CONFIG_INTEREST_RATE_SECONDARY = 6;
     uint32 private constant BORROWER_CONFIG_ADDON_FIXED_RATE = 15;
     uint32 private constant BORROWER_CONFIG_ADDON_PERIOD_RATE = 20;
+    uint16 private constant BORROWER_CONFIG_REVOKE_PERIODS = 3;
     bool private constant BORROWER_CONFIG_AUTOREPAYMENT = true;
     Interest.Formula private constant BORROWER_CONFIG_INTEREST_FORMULA_COMPOUND = Interest.Formula.Compound;
     ICreditLineConfigurable.BorrowPolicy private constant BORROWER_CONFIG_BORROW_POLICY_DECREASE =
@@ -136,7 +139,8 @@ contract CreditLineConfigurableTest is Test {
             config1.addonPeriodRate == config2.addonPeriodRate &&
             uint256(config1.interestFormula) == uint256(config2.interestFormula) &&
             uint256(config1.borrowPolicy) == uint256(config2.borrowPolicy) &&
-            config1.autoRepayment == config2.autoRepayment
+            config1.autoRepayment == config2.autoRepayment &&
+            config1.revokePeriods == config2.revokePeriods
         );
     }
 
@@ -160,7 +164,9 @@ contract CreditLineConfigurableTest is Test {
             config1.minAddonFixedRate == config2.minAddonFixedRate &&
             config1.maxAddonFixedRate == config2.maxAddonFixedRate &&
             config1.minAddonPeriodRate == config2.minAddonPeriodRate &&
-            config1.maxAddonPeriodRate == config2.maxAddonPeriodRate
+            config1.maxAddonPeriodRate == config2.maxAddonPeriodRate &&
+            config1.minRevokePeriods == config2.minRevokePeriods &&
+            config1.maxRevokePeriods == config2.maxRevokePeriods
         );
     }
 
@@ -184,7 +190,9 @@ contract CreditLineConfigurableTest is Test {
             config1.minAddonFixedRate == config2.minAddonFixedRate &&
             config1.maxAddonFixedRate == config2.maxAddonFixedRate &&
             config1.minAddonPeriodRate == config2.minAddonPeriodRate &&
-            config1.maxAddonPeriodRate == config2.maxAddonPeriodRate
+            config1.maxAddonPeriodRate == config2.maxAddonPeriodRate &&
+            config1.minRevokePeriods == config2.minRevokePeriods &&
+            config1.maxRevokePeriods == config2.maxRevokePeriods
         );
     }
 
@@ -205,7 +213,8 @@ contract CreditLineConfigurableTest is Test {
             addonPeriodRate: BORROWER_CONFIG_ADDON_PERIOD_RATE,
             interestFormula: BORROWER_CONFIG_INTEREST_FORMULA_COMPOUND,
             borrowPolicy: BORROWER_CONFIG_BORROW_POLICY_DECREASE,
-            autoRepayment: BORROWER_CONFIG_AUTOREPAYMENT
+            autoRepayment: BORROWER_CONFIG_AUTOREPAYMENT,
+            revokePeriods: BORROWER_CONFIG_REVOKE_PERIODS
         });
     }
 
@@ -244,7 +253,9 @@ contract CreditLineConfigurableTest is Test {
             minAddonFixedRate: CREDIT_LINE_CONFIG_MIN_ADDON_FIXED_RATE,
             maxAddonFixedRate: CREDIT_LINE_CONFIG_MAX_ADDON_FIXED_RATE,
             minAddonPeriodRate: CREDIT_LINE_CONFIG_MIN_ADDON_PERIOD_RATE,
-            maxAddonPeriodRate: CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_RATE
+            maxAddonPeriodRate: CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_RATE,
+            minRevokePeriods: CREDIT_LINE_CONFIG_MIN_REVOKE_PERIODS,
+            maxRevokePeriods: CREDIT_LINE_CONFIG_MAX_REVOKE_PERIODS
         });
     }
 
@@ -476,6 +487,15 @@ contract CreditLineConfigurableTest is Test {
         creditLine.configureCreditLine(config);
     }
 
+    function test_configureCreditLine_Revert_IfMinRevokePeriodsIsGreaterThanMaxRevokePeriods() public {
+        ICreditLineConfigurable.CreditLineConfig memory config = initCreditLineConfig();
+        config.minRevokePeriods = config.maxRevokePeriods + 1;
+
+        vm.prank(LENDER_1);
+        vm.expectRevert(CreditLineConfigurable.InvalidCreditLineConfiguration.selector);
+        creditLine.configureCreditLine(config);
+    }
+
     // -------------------------------------------- //
     //  Test `configureBorrower` function           //
     // -------------------------------------------- //
@@ -676,6 +696,28 @@ contract CreditLineConfigurableTest is Test {
 
         ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(block.timestamp);
         borrowerConfig.addonPeriodRate = creditLineConfig.maxAddonPeriodRate + 1;
+
+        vm.prank(ADMIN);
+        vm.expectRevert(CreditLineConfigurable.InvalidBorrowerConfiguration.selector);
+        creditLine.configureBorrower(BORROWER_1, borrowerConfig);
+    }
+
+    function test_configureBorrower_Revert_IfRevokePeriodsIsLessThanCreditLineMinRevokePeriods() public {
+        ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = configureCreditLine();
+
+        ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(block.timestamp);
+        borrowerConfig.revokePeriods = creditLineConfig.minRevokePeriods - 1;
+
+        vm.prank(ADMIN);
+        vm.expectRevert(CreditLineConfigurable.InvalidBorrowerConfiguration.selector);
+        creditLine.configureBorrower(BORROWER_1, borrowerConfig);
+    }
+
+    function test_configureBorrower_Revert_IfRevokePeriodsIsGreaterThanCreditLineMaxRevokePeriods() public {
+        ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = configureCreditLine();
+
+        ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(block.timestamp);
+        borrowerConfig.revokePeriods = creditLineConfig.maxRevokePeriods + 1;
 
         vm.prank(ADMIN);
         vm.expectRevert(CreditLineConfigurable.InvalidBorrowerConfiguration.selector);

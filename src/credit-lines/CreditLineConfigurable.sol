@@ -174,6 +174,9 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         if (config.minAddonPeriodRate > config.maxAddonPeriodRate) {
             revert InvalidCreditLineConfiguration();
         }
+        if (config.minRevokePeriods > config.maxRevokePeriods) {
+            revert InvalidCreditLineConfiguration();
+        }
 
         _config = config;
 
@@ -277,6 +280,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         terms.interestRateSecondary = borrowerConfig.interestRateSecondary;
         terms.interestFormula = borrowerConfig.interestFormula;
         terms.autoRepayment = borrowerConfig.autoRepayment;
+        terms.revokePeriods = borrowerConfig.revokePeriods;
 
         if (terms.addonRecipient != address(0)) {
             terms.addonAmount = calculateAddonAmount(
@@ -404,6 +408,13 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
             revert InvalidBorrowerConfiguration();
         }
         if (config.addonPeriodRate > _config.maxAddonPeriodRate) {
+            revert InvalidBorrowerConfiguration();
+        }
+
+        if (config.revokePeriods < _config.minRevokePeriods) {
+            revert InvalidBorrowerConfiguration();
+        }
+        if (config.revokePeriods > _config.maxRevokePeriods) {
             revert InvalidBorrowerConfiguration();
         }
 

@@ -128,7 +128,8 @@ contract LendingMarketComplexTest is Test {
             interestFormula: scenario.interestFormula,
             borrowPolicy: ICreditLineConfigurable.BorrowPolicy.Keep,
             autoRepayment: false,
-            expiration: type(uint32).max
+            expiration: type(uint32).max,
+            revokePeriods: 0
         });
     }
 
@@ -153,7 +154,9 @@ contract LendingMarketComplexTest is Test {
             minAddonFixedRate: 0,
             maxAddonFixedRate: type(uint32).max,
             minAddonPeriodRate: 0,
-            maxAddonPeriodRate: type(uint32).max
+            maxAddonPeriodRate: type(uint32).max,
+            minRevokePeriods: 0,
+            maxRevokePeriods: type(uint16).max
         });
     }
 
