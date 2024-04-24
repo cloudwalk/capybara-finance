@@ -777,6 +777,7 @@ contract LendingMarketTest is Test {
 
         assertEq(loan.token, terms.token);
         assertEq(loan.treasury, terms.treasury);
+        assertEq(loan.addonAmount, terms.addonAmount);
         assertEq(loan.autoRepayment, terms.autoRepayment);
         assertEq(loan.revokePeriods, terms.revokePeriods);
         assertEq(loan.periodInSeconds, terms.periodInSeconds);

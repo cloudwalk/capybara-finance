@@ -30,6 +30,7 @@ library Loan {
         uint64 trackedBorrowBalance;      // The borrow balance of the loan that is tracked over its lifetime.
         uint32 trackedTimestamp;          // The timestamp when the loan was last paid or its balance was updated.
         uint32 freezeTimestamp;           // The timestamp when the loan was frozen. Zero value for unfrozen loans.
+        uint64 addonAmount;               // The amount of the loan addon (extra charges or fees).
     }
 
     /// @dev A struct that defines the terms of the loan.

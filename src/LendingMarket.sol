@@ -296,7 +296,8 @@ contract LendingMarket is
             trackedTimestamp: blockTimestamp,
             freezeTimestamp: 0,
             autoRepayment: terms.autoRepayment,
-            revokePeriods: terms.revokePeriods
+            revokePeriods: terms.revokePeriods,
+            addonAmount: terms.addonAmount
         });
 
         ILiquidityPool(liquidityPool).onBeforeLoanTaken(id, creditLine);
