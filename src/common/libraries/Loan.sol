@@ -48,7 +48,6 @@ library Loan {
         bool autoRepayment;               // The flag that indicates whether the loan can be repaid automatically.
         uint16 revokePeriods;             // The number of periods during which the loan can be revoked.
         // Slot 3
-        address addonRecipient;           // The address of the loan addon recipient (extra charges or fees).
         uint64 addonAmount;               // The amount of the loan addon (extra charges or fees).
     }
 

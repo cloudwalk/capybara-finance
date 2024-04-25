@@ -301,12 +301,7 @@ contract LendingMarket is
         });
 
         ILiquidityPool(liquidityPool).onBeforeLoanTaken(id, creditLine);
-
         IERC20(terms.token).safeTransferFrom(liquidityPool, msg.sender, borrowAmount);
-        if (terms.addonAmount != 0) {
-            IERC20(terms.token).safeTransferFrom(liquidityPool, terms.addonRecipient, terms.addonAmount);
-        }
-
         ILiquidityPool(liquidityPool).onAfterLoanTaken(id, creditLine);
 
         emit LoanTaken(id, msg.sender, totalBorrowAmount, terms.durationInPeriods);

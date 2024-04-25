@@ -48,7 +48,6 @@ contract CreditLineConfigurableTest is Test {
     address private constant BORROWER_2 = address(bytes20(keccak256("borrower_2")));
     address private constant BORROWER_3 = address(bytes20(keccak256("borrower_3")));
     address private constant LOAN_TREASURY = address(bytes20(keccak256("loan_treasury")));
-    address private constant ADDON_RECIPIENT = address(bytes20(keccak256("addon_recipient")));
 
     uint64 private constant CREDIT_LINE_CONFIG_MIN_BORROW_AMOUNT = 400;
     uint64 private constant CREDIT_LINE_CONFIG_MAX_BORROW_AMOUNT = 900;
@@ -160,7 +159,6 @@ contract CreditLineConfigurableTest is Test {
             config1.minInterestRateSecondary == config2.minInterestRateSecondary &&
             config1.maxInterestRateSecondary == config2.maxInterestRateSecondary &&
             config1.interestRateFactor == config2.interestRateFactor &&
-            config1.addonRecipient == config2.addonRecipient &&
             config1.minAddonFixedRate == config2.minAddonFixedRate &&
             config1.maxAddonFixedRate == config2.maxAddonFixedRate &&
             config1.minAddonPeriodRate == config2.minAddonPeriodRate &&
@@ -186,7 +184,6 @@ contract CreditLineConfigurableTest is Test {
             config1.minInterestRateSecondary == config2.minInterestRateSecondary &&
             config1.maxInterestRateSecondary == config2.maxInterestRateSecondary &&
             config1.interestRateFactor == config2.interestRateFactor &&
-            config1.addonRecipient == config2.addonRecipient &&
             config1.minAddonFixedRate == config2.minAddonFixedRate &&
             config1.maxAddonFixedRate == config2.maxAddonFixedRate &&
             config1.minAddonPeriodRate == config2.minAddonPeriodRate &&
@@ -249,7 +246,6 @@ contract CreditLineConfigurableTest is Test {
             minInterestRateSecondary: CREDIT_LINE_CONFIG_MIN_INTEREST_RATE_SECONDARY,
             maxInterestRateSecondary: CREDIT_LINE_CONFIG_MAX_INTEREST_RATE_SECONDARY,
             interestRateFactor: CREDIT_LINE_CONFIG_INTEREST_RATE_FACTOR,
-            addonRecipient: ADDON_RECIPIENT,
             minAddonFixedRate: CREDIT_LINE_CONFIG_MIN_ADDON_FIXED_RATE,
             maxAddonFixedRate: CREDIT_LINE_CONFIG_MAX_ADDON_FIXED_RATE,
             minAddonPeriodRate: CREDIT_LINE_CONFIG_MIN_ADDON_PERIOD_RATE,
@@ -903,7 +899,6 @@ contract CreditLineConfigurableTest is Test {
         assertEq(uint256(terms.interestFormula), uint256(borrowerConfig.interestFormula));
         assertEq(terms.autoRepayment, borrowerConfig.autoRepayment);
 
-        assertEq(terms.addonRecipient, creditLineConfig.addonRecipient);
         assertEq(
             terms.addonAmount,
             creditLine.calculateAddonAmount(
@@ -926,26 +921,6 @@ contract CreditLineConfigurableTest is Test {
         ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(block.timestamp);
         borrowerConfig.addonFixedRate = 0;
         borrowerConfig.addonPeriodRate = 0;
-
-        vm.prank(ADMIN);
-        creditLine.configureBorrower(BORROWER_1, borrowerConfig);
-
-        Loan.Terms memory terms = creditLine.determineLoanTerms(
-            BORROWER_1,
-            borrowerConfig.minBorrowAmount,
-            DURATION_IN_PERIODS
-        );
-        assertEq(terms.addonAmount, 0);
-    }
-
-    function test_determineLoanTerms_WithoutAddon_ZeroAddonRecipient() public {
-        ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = configureCreditLine();
-        creditLineConfig.addonRecipient = address(0);
-
-        vm.prank(LENDER_1);
-        creditLine.configureCreditLine(creditLineConfig);
-
-        ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(block.timestamp);
 
         vm.prank(ADMIN);
         creditLine.configureBorrower(BORROWER_1, borrowerConfig);

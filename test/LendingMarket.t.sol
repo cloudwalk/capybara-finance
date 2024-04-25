@@ -117,7 +117,6 @@ contract LendingMarketTest is Test {
     address private constant CREDIT_LINE = address(bytes20(keccak256("credit_line")));
     address private constant LOAN_TREASURY = address(bytes20(keccak256("loan_treasury")));
     address private constant LENDER_1_ALIAS = address(bytes20(keccak256("lender_1_alias")));
-    address private constant ADDON_RECIPIENT = address(bytes20(keccak256("addon_recipient")));
     address private constant LIQUIDITY_POOL_1 = address(bytes20(keccak256("liquidity_pool_1")));
     address private constant LIQUIDITY_POOL_2 = address(bytes20(keccak256("liquidity_pool_2")));
 
@@ -311,7 +310,6 @@ contract LendingMarketTest is Test {
             minInterestRateSecondary: CREDIT_LINE_CONFIG_MIN_INTEREST_RATE_SECONDARY,
             maxInterestRateSecondary: CREDIT_LINE_CONFIG_MAX_INTEREST_RATE_SECONDARY,
             interestRateFactor: CREDIT_LINE_CONFIG_INTEREST_RATE_FACTOR,
-            addonRecipient: ADDON_RECIPIENT,
             minAddonFixedRate: CREDIT_LINE_CONFIG_MIN_ADDON_FIXED_RATE,
             maxAddonFixedRate: CREDIT_LINE_CONFIG_MAX_ADDON_FIXED_RATE,
             minAddonPeriodRate: CREDIT_LINE_CONFIG_MIN_ADDON_PERIOD_RATE,
@@ -333,7 +331,6 @@ contract LendingMarketTest is Test {
             interestRatePrimary: borrowerConfig.interestRatePrimary,
             interestRateSecondary: borrowerConfig.interestRateSecondary,
             interestFormula: borrowerConfig.interestFormula,
-            addonRecipient: creditLineConfig.addonRecipient,
             autoRepayment: borrowerConfig.autoRepayment,
             addonAmount: ADDON_AMOUNT,
             revokePeriods: borrowerConfig.revokePeriods
@@ -740,43 +737,40 @@ contract LendingMarketTest is Test {
     function test_takeLoan() public {
         configureMarket();
         (uint256 borrowAmount, Loan.Terms memory terms) = mockLoanTerms();
-        token.mint(address(liquidityPool), borrowAmount + terms.addonAmount);
+        uint256 totalBorrowAmount = borrowAmount + terms.addonAmount;
+        uint256 loanId = 0;
 
+        token.mint(address(liquidityPool), borrowAmount);
+
+        assertEq(token.balanceOf(address(liquidityPool)), borrowAmount);
         assertEq(token.balanceOf(BORROWER_1), 0);
-        assertEq(token.balanceOf(terms.addonRecipient), 0);
-        assertEq(token.balanceOf(address(liquidityPool)), borrowAmount + terms.addonAmount);
-        assertEq(market.balanceOf(LENDER_1), 0);
         assertEq(market.totalSupply(), 0);
 
-        uint256 loanId = 0;
         vm.expectEmit(true, true, true, true, address(liquidityPool));
         emit OnBeforeLoanTakenCalled(loanId, address(creditLine));
         vm.expectEmit(true, true, true, true, address(liquidityPool));
         emit OnAfterLoanTakenCalled(loanId, address(creditLine));
         vm.expectEmit(true, true, true, true, address(market));
-        emit LoanTaken(loanId, BORROWER_1, borrowAmount + terms.addonAmount, terms.durationInPeriods);
+        emit LoanTaken(loanId, BORROWER_1, totalBorrowAmount, terms.durationInPeriods);
 
         vm.prank(BORROWER_1);
         assertEq(market.takeLoan(address(creditLine), borrowAmount, terms.durationInPeriods), loanId);
 
         Loan.State memory loan = market.getLoanState(loanId);
 
-        assertEq(market.ownerOf(loanId), LENDER_1);
-        assertEq(token.balanceOf(address(liquidityPool)), 0);
         assertEq(token.balanceOf(BORROWER_1), borrowAmount);
-        assertEq(token.balanceOf(terms.addonRecipient), terms.addonAmount);
-        assertEq(market.balanceOf(LENDER_1), 1);
+        assertEq(token.balanceOf(address(liquidityPool)), 0);
+        assertEq(market.ownerOf(loanId), LENDER_1);
         assertEq(market.totalSupply(), 1);
 
+        assertEq(loan.token, terms.token);
         assertEq(loan.borrower, BORROWER_1);
+        assertEq(loan.treasury, terms.treasury);
         assertEq(loan.startTimestamp, block.timestamp);
         assertEq(loan.trackedTimestamp, block.timestamp);
         assertEq(loan.freezeTimestamp, 0);
-        assertEq(loan.initialBorrowAmount, borrowAmount + terms.addonAmount);
-        assertEq(loan.trackedBorrowBalance, borrowAmount + terms.addonAmount);
-
-        assertEq(loan.token, terms.token);
-        assertEq(loan.treasury, terms.treasury);
+        assertEq(loan.initialBorrowAmount, totalBorrowAmount);
+        assertEq(loan.trackedBorrowBalance, totalBorrowAmount);
         assertEq(loan.addonAmount, terms.addonAmount);
         assertEq(loan.autoRepayment, terms.autoRepayment);
         assertEq(loan.revokePeriods, terms.revokePeriods);

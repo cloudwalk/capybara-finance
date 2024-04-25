@@ -272,7 +272,6 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
 
         terms.token = _token;
         terms.treasury = _config.treasury;
-        terms.addonRecipient = _config.addonRecipient;
         terms.periodInSeconds = _config.periodInSeconds;
         terms.interestRateFactor = _config.interestRateFactor;
         terms.durationInPeriods = durationInPeriods.toUint32();
@@ -281,15 +280,12 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         terms.interestFormula = borrowerConfig.interestFormula;
         terms.autoRepayment = borrowerConfig.autoRepayment;
         terms.revokePeriods = borrowerConfig.revokePeriods;
-
-        if (terms.addonRecipient != address(0)) {
-            terms.addonAmount = calculateAddonAmount(
-                borrowAmount,
-                durationInPeriods,
-                borrowerConfig.addonFixedRate,
-                borrowerConfig.addonPeriodRate
-            ).toUint64();
-        }
+        terms.addonAmount = calculateAddonAmount(
+            borrowAmount,
+            durationInPeriods,
+            borrowerConfig.addonFixedRate,
+            borrowerConfig.addonPeriodRate
+        ).toUint64();
     }
 
     /// @inheritdoc ICreditLineConfigurable

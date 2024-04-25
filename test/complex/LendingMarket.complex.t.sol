@@ -150,7 +150,6 @@ contract LendingMarketComplexTest is Test {
             minInterestRateSecondary: 0,
             maxInterestRateSecondary: type(uint32).max,
             interestRateFactor: scenario.interestRateFactor,
-            addonRecipient: address(0),
             minAddonFixedRate: 0,
             maxAddonFixedRate: type(uint32).max,
             minAddonPeriodRate: 0,
