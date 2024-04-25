@@ -71,6 +71,7 @@ enum BorrowPolicy {
 }
 
 const ERROR_NAME_ALREADY_PAUSED = "EnforcedPause";
+const ERROR_NAME_ALREADY_INITIALIZED = "InvalidInitialization";
 const ERROR_NAME_ALREADY_CONFIGURED = "AlreadyConfigured";
 const ERROR_NAME_ARRAYS_LENGTH_MISMATCH = "ArrayLengthMismatch";
 const ERROR_NAME_BORROWER_CONFIGURATION_EXPIRED = "BorrowerConfigurationExpired";
@@ -315,6 +316,13 @@ describe("Contract 'CreditLineConfigurable'", async () => {
         ZERO_ADDRESS // token
       ])).to.be.revertedWithCustomError(creditLineFactory, ERROR_NAME_ZERO_ADDRESS);
     });
+
+    it("Is reverted if called second time", async () => {
+      const { creditLine } = await loadFixture(deployCreditLine);
+
+      await expect(creditLine.initialize(market.address, lender.address, token.address))
+        .to.be.revertedWithCustomError(creditLine, ERROR_NAME_ALREADY_INITIALIZED);
+    });
   });
 
   describe("Function 'pause()'", async () => {
@@ -344,7 +352,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
   });
 
-  describe("Function 'unpause", async () => {
+  describe("Function 'unpause()'", async () => {
     it("Executes as expected and emits the correct event", async () => {
       const { creditLine } = await loadFixture(deployCreditLine);
 
