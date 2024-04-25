@@ -5,6 +5,7 @@ pragma solidity 0.8.24;
 import { Loan } from "../common/libraries/Loan.sol";
 import { Error } from "../common/libraries/Error.sol";
 import { ILendingMarket } from "../common/interfaces/core/ILendingMarket.sol";
+import { ILiquidityPool } from "../common/interfaces/core/ILiquidityPool.sol";
 
 /// @title LendingMarketMock contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
@@ -17,6 +18,7 @@ contract LendingMarketMock is ILendingMarket {
     event RegisterCreditLineCalled(address indexed lender, address indexed creditLine);
     event RegisterLiquidityPoolCalled(address indexed lender, address indexed liquidityPool);
     event RepayLoanCalled(uint256 indexed loanId, uint256 repayAmount);
+    event HookCallResult(bool result);
 
     // -------------------------------------------- //
     //  Storage variables                           //
@@ -142,6 +144,22 @@ contract LendingMarketMock is ILendingMarket {
 
     function registry() external pure returns (address) {
         revert Error.NotImplemented();
+    }
+
+    function callOnBeforeLoanTaken(address liquidityPool, uint256 loanId, address creditLine) external {
+        emit HookCallResult(ILiquidityPool(liquidityPool).onBeforeLoanTaken(loanId, creditLine));
+    }
+
+    function callOnAfterLoanTaken(address liquidityPool, uint256 loanId, address creditLine) external {
+        emit HookCallResult(ILiquidityPool(liquidityPool).onAfterLoanTaken(loanId, creditLine));
+    }
+
+    function callOnBeforeLoanPayment(address liquidityPool, uint256 loanId, uint256 amount) external {
+        emit HookCallResult(ILiquidityPool(liquidityPool).onBeforeLoanPayment(loanId, amount));
+    }
+
+    function callOnAfterLoanPayment(address liquidityPool, uint256 loanId, uint256 amount) external {
+        emit HookCallResult(ILiquidityPool(liquidityPool).onAfterLoanPayment(loanId, amount));
     }
 
     // -------------------------------------------- //
