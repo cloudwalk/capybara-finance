@@ -36,8 +36,8 @@ contract LendingMarketTest is Test {
     event OnBeforeLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
     event OnAfterLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
 
-    event OnBeforeLoanRevocationdCalled(uint256 indexed loanId);
-    event OnAfterLoanRevocationdCalled(uint256 indexed loanId);
+    event OnBeforeLoanRevocationCalled(uint256 indexed loanId);
+    event OnAfterLoanRevocationCalled(uint256 indexed loanId);
 
     event MarketRegistryChanged(address indexed newRegistry, address indexed oldRegistry);
     event LiquidityPoolRegistered(address indexed lender, address indexed liquidityPool);
@@ -1019,25 +1019,85 @@ contract LendingMarketTest is Test {
     function test_revokeLoan() public {
         configureMarket();
 
-        uint256 loanId = createActiveLoan(1);
+        uint256 loanId = createActiveLoan(0);
         Loan.State memory loan = market.getLoanState(loanId);
-        uint256 treasuryBalance = token.balanceOf(address(loan.treasury));
+
+        uint256 borrowerBalance = token.balanceOf(loan.borrower);
+        uint256 treasuryBalance = token.balanceOf(loan.treasury);
         uint256 borrowAmount = loan.initialBorrowAmount - loan.addonAmount;
 
-        assertEq(loan.trackedBorrowBalance, loan.initialBorrowAmount);
-        assertEq(token.balanceOf(loan.borrower), borrowAmount);
+        skip(loan.periodInSeconds * (loan.revocationPeriods - 1));
 
         vm.prank(loan.borrower);
-        token.approve(address(market), type(uint256).max);
+        token.approve(address(market), borrowAmount);
 
-        vm.prank(loan.borrower);
+        vm.expectEmit(true, true, true, true, address(liquidityPool));
+        emit OnBeforeLoanRevocationCalled(loanId);
+        vm.expectEmit(true, true, true, true, address(liquidityPool));
+        emit OnAfterLoanRevocationCalled(loanId);
+        vm.expectEmit(true, true, true, true, address(market));
         emit LoanRevoked(loanId);
+
+        vm.prank(loan.borrower);
         market.revokeLoan(loanId);
 
         loan = market.getLoanState(loanId);
         assertEq(loan.trackedBorrowBalance, 0);
-        assertEq(token.balanceOf(loan.borrower), 0);
+        assertEq(token.balanceOf(loan.borrower), borrowerBalance - borrowAmount);
         assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance + borrowAmount);
+    }
+
+    function test_revokeLoan_Revert_IfContractIsPaused() public {
+        configureMarket();
+
+        uint256 loanId = createActiveLoan(1);
+        Loan.State memory loan = market.getLoanState(loanId);
+
+        vm.startPrank(OWNER);
+        market.pause();
+
+        vm.startPrank(loan.borrower);
+        vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
+        market.revokeLoan(loanId);
+    }
+
+    function test_revokeLoan_Revert_IfLoanNotExist() public {
+        configureMarket();
+
+        vm.prank(BORROWER_1);
+        vm.expectRevert(LendingMarket.LoanNotExist.selector);
+        market.revokeLoan(LOAN_ID_NONEXISTENT);
+    }
+
+    function test_revokeLoan_Revert_IfRevocationIsProhibited() public {
+        configureMarket();
+
+        uint256 loanId = createActiveLoan(1);
+        Loan.State memory loan = market.getLoanState(loanId);
+        assertEq(loan.trackedTimestamp, loan.startTimestamp);
+
+        skip(1);
+
+        vm.startPrank(loan.borrower);
+        token.approve(address(market), 1);
+        market.repayLoan(loanId, 1);
+
+        vm.expectRevert(LendingMarket.RevocationIsProhibited.selector);
+        market.revokeLoan(loanId);
+    }
+
+    function test_revokeLoan_Revert_IfRevocationPeriodHasPassed() public {
+        configureMarket();
+
+        uint256 loanId = createActiveLoan(1);
+        Loan.State memory loan = market.getLoanState(loanId);
+        assertEq(loan.trackedTimestamp, loan.startTimestamp);
+
+        skip(loan.periodInSeconds * loan.revocationPeriods);
+
+        vm.prank(loan.borrower);
+        vm.expectRevert(LendingMarket.RevocationPeriodHasPassed.selector);
+        market.revokeLoan(loanId);
     }
 
     // -------------------------------------------- //
