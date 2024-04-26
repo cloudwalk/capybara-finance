@@ -2,19 +2,26 @@ import { ethers } from "hardhat";
 import { expect } from "chai";
 import { Contract, ContractFactory} from "ethers";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
+import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 
 const ERROR_NAME_NOT_IMPLEMENTED = "NotImplemented";
 
 describe("Contract 'LiquidityPoolMock'", async () => {
   let liquidityPoolFactory: ContractFactory;
 
+  let deployer: HardhatEthersSigner;
+
   before(async () => {
+    [deployer] = await ethers.getSigners();
+
     liquidityPoolFactory = await ethers.getContractFactory("LiquidityPoolMock");
+    liquidityPoolFactory = liquidityPoolFactory.connect(deployer); // Explicitly specifying the deployer account
   });
 
   async function deployLiquidityPool(): Promise<{ liquidityPool: Contract }> {
-    const liquidityPool = await liquidityPoolFactory.deploy() as Contract;
+    let liquidityPool = await liquidityPoolFactory.deploy() as Contract;
     await liquidityPool.waitForDeployment();
+    liquidityPool = liquidityPool.connect(deployer) as Contract; // Explicitly specifying the initial account
 
     return  {
       liquidityPool

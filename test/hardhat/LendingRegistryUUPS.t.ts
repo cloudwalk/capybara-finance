@@ -18,9 +18,10 @@ describe("Contract 'LendingRegistryUUPS'", async () => {
   let attacker: HardhatEthersSigner;
 
   before(async () => {
-    registryFactory = await ethers.getContractFactory("LendingRegistryUUPS");
-
     [deployer, market, attacker] = await ethers.getSigners();
+
+    registryFactory = await ethers.getContractFactory("LendingRegistryUUPS");
+    registryFactory = registryFactory.connect(deployer); // Factories with an explicitly specified deployer account
   });
 
   async function deployLendingRegistry(): Promise<{registry: Contract}> {
@@ -30,7 +31,7 @@ describe("Contract 'LendingRegistryUUPS'", async () => {
       {kind: "uups"}
     );
 
-    registry = registry.connect(deployer) as Contract;
+    registry = registry.connect(deployer) as Contract; // Explicitly specifying the initial account
 
     return {
       registry

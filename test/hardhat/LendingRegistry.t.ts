@@ -45,23 +45,31 @@ describe("Contract 'LendingRegistry'", async () => {
   let poolFactoryAddress: string;
 
   before(async () => {
-    marketFactory = await ethers.getContractFactory("LendingMarketMock");
-    creditLineFactory = await ethers.getContractFactory("CreditLineFactoryMock");
-    liquidityPoolFactory = await ethers.getContractFactory("LiquidityPoolFactoryMock");
-    registryFactory = await ethers.getContractFactory("LendingRegistry");
-
     [owner, attacker, token] = await ethers.getSigners();
+
+    // Factories with an explicitly specified deployer account
+    marketFactory = await ethers.getContractFactory("LendingMarketMock");
+    marketFactory = marketFactory.connect(owner);
+    creditLineFactory = await ethers.getContractFactory("CreditLineFactoryMock");
+    creditLineFactory = creditLineFactory.connect(owner);
+    liquidityPoolFactory = await ethers.getContractFactory("LiquidityPoolFactoryMock");
+    liquidityPoolFactory = liquidityPoolFactory.connect(owner);
+    registryFactory = await ethers.getContractFactory("LendingRegistry");
+    registryFactory = registryFactory.connect(owner);
 
     market = await marketFactory.deploy() as Contract;
     await market.waitForDeployment();
+    market = market.connect(owner) as Contract; // Explicitly specifying the initial account
     marketAddress = await market.getAddress();
 
     lineFactory = await creditLineFactory.deploy() as Contract;
     await lineFactory.waitForDeployment();
+    lineFactory = lineFactory.connect(owner) as Contract; // Explicitly specifying the initial account
     lineFactoryAddress = await lineFactory.getAddress();
 
     poolFactory = await liquidityPoolFactory.deploy() as Contract;
     await poolFactory.waitForDeployment();
+    poolFactory = poolFactory.connect(owner) as Contract; // Explicitly specifying the initial account
     poolFactoryAddress = await poolFactory.getAddress();
   });
 
@@ -71,7 +79,7 @@ describe("Contract 'LendingRegistry'", async () => {
     ]);
 
     await registry.waitForDeployment();
-    registry = registry.connect(owner) as Contract;
+    registry = registry.connect(owner) as Contract; // Explicitly specifying the initial account
 
     return {
       registry

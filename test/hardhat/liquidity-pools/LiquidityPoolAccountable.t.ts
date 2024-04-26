@@ -5,6 +5,7 @@ import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { proveTx } from "../../../test-utils/eth";
 import { TransactionReceipt } from "@ethersproject/abstract-provider";
+import { deploy } from "@openzeppelin/hardhat-upgrades/dist/utils";
 
 const ERROR_NAME_ALREADY_CONFIGURED = "AlreadyConfigured";
 const ERROR_NAME_ALREADY_INITIALIZED = "InvalidInitialization";
@@ -46,6 +47,7 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
   let token: Contract;
   let creditLine: Contract
 
+  let deployer: HardhatEthersSigner;
   let lender: HardhatEthersSigner;
   let admin: HardhatEthersSigner;
   let attacker: HardhatEthersSigner;
@@ -56,24 +58,32 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
   let liquidityPoolAddress: string;
 
   before(async () => {
-    liquidityPoolFactory = await ethers.getContractFactory("LiquidityPoolAccountable");
-    tokenFactory = await ethers.getContractFactory("ERC20Mock");
-    marketFactory = await ethers.getContractFactory("LendingMarketMock");
-    creditLineFactory = await ethers.getContractFactory("CreditLineMock");
+    [deployer, lender, admin, attacker] = await ethers.getSigners();
 
-    [, lender, admin, attacker] = await ethers.getSigners();
+    // Factories with an explicitly specified deployer account
+    liquidityPoolFactory = await ethers.getContractFactory("LiquidityPoolAccountable");
+    liquidityPoolFactory = liquidityPoolFactory.connect(deployer);
+    tokenFactory = await ethers.getContractFactory("ERC20Mock");
+    tokenFactory = tokenFactory.connect(deployer);
+    marketFactory = await ethers.getContractFactory("LendingMarketMock");
+    marketFactory = marketFactory.connect(deployer);
+    creditLineFactory = await ethers.getContractFactory("CreditLineMock");
+    creditLineFactory = creditLineFactory.connect(deployer);
 
     market = await marketFactory.deploy() as Contract;
     await market.waitForDeployment();
+    market = market.connect(deployer) as Contract; // Explicitly specifying the initial account
     marketAddress = await market.getAddress();
 
     token = await tokenFactory.deploy() as Contract;
     await token.waitForDeployment();
+    token = token.connect(deployer) as Contract; // Explicitly specifying the initial account
     tokenAddress = await token.getAddress();
     await token.mint(lender.address, MINT_AMOUNT);
 
     creditLine = await creditLineFactory.deploy() as Contract;
     await creditLine.waitForDeployment()
+    creditLine = creditLine.connect(deployer) as Contract; // Explicitly specifying the initial account
     await creditLine.mockTokenAddress(tokenAddress);
     creditLineAddress = await creditLine.getAddress();
   });
@@ -85,7 +95,7 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
     ])
 
     await liquidityPool.waitForDeployment();
-    liquidityPool = liquidityPool.connect(lender) as Contract
+    liquidityPool = liquidityPool.connect(lender) as Contract; // Explicitly specifying the initial account
     liquidityPoolAddress = await liquidityPool.getAddress();
 
     await proveTx((token.connect(lender) as Contract).approve(liquidityPoolAddress, MINT_AMOUNT));
