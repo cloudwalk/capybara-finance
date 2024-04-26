@@ -75,8 +75,8 @@ contract LendingMarket is
     /// @dev Thrown when loan auto repayment is not allowed.
     error AutoRepaymentNotAllowed();
 
-    /// @dev Thrown when loan revoke is not allowed.
-    error RevokeNotAllowed();
+    /// @dev Thrown when loan revocation is not allowed.
+    error RevocationNotAllowed();
 
     // -------------------------------------------- //
     //  Modifiers                                   //
@@ -299,7 +299,7 @@ contract LendingMarket is
             trackedTimestamp: blockTimestamp,
             freezeTimestamp: 0,
             autoRepayment: terms.autoRepayment,
-            revokePeriods: terms.revokePeriods,
+            revocationPeriods: terms.revocationPeriods,
             addonAmount: terms.addonAmount
         });
 
@@ -361,20 +361,20 @@ contract LendingMarket is
         Loan.State storage loan = _loans[loanId];
 
         if (loan.startTimestamp != loan.trackedTimestamp) {
-            revert RevokeNotAllowed();
+            revert RevocationNotAllowed();
         }
 
         uint256 currentPeriodIndex = _periodIndex(_blockTimestamp(loanId), loan.periodInSeconds);
         uint256 startPeriodIndex = _periodIndex(loan.startTimestamp, loan.periodInSeconds);
-        if (loan.revokePeriods <= currentPeriodIndex - startPeriodIndex ) {
-            revert RevokeNotAllowed();
+        if (loan.revocationPeriods <= currentPeriodIndex - startPeriodIndex ) {
+            revert RevocationNotAllowed();
         }
 
         loan.trackedBorrowBalance = 0;
 
-        ILiquidityPool(loan.treasury).onBeforeLoanRevoke(loanId);
+        ILiquidityPool(loan.treasury).onBeforeLoanRevocation(loanId);
         IERC20(loan.token).transferFrom(loan.borrower, loan.treasury, loan.initialBorrowAmount - loan.addonAmount);
-        ILiquidityPool(loan.treasury).onAfterLoanRevoke(loanId);
+        ILiquidityPool(loan.treasury).onAfterLoanRevocation(loanId);
 
         emit LoanRevoked(loanId);
     }

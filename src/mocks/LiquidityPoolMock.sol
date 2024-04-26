@@ -19,8 +19,8 @@ contract LiquidityPoolMock is ILiquidityPool {
     event OnBeforeLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
     event OnAfterLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
 
-    event OnBeforeLoanRevokeCalled(uint256 indexed loanId);
-    event OnAfterLoanRevokeCalled(uint256 indexed loanId);
+    event OnBeforeLoanRevocationCalled(uint256 indexed loanId);
+    event OnAfterLoanRevocationCalled(uint256 indexed loanId);
 
     // -------------------------------------------- //
     //  Storage variables                           //
@@ -32,8 +32,8 @@ contract LiquidityPoolMock is ILiquidityPool {
     bool private _onBeforeLoanPaymentResult;
     bool private _onAfterLoanPaymentResult;
 
-    bool private _onBeforeLoanRevokeResult;
-    bool private _onAfterLoanRevokeResult;
+    bool private _onBeforeLoanRevocationResult;
+    bool private _onAfterLoanRevocationResult;
 
     // -------------------------------------------- //
     //  ILiquidityPoolFactory functions             //
@@ -59,14 +59,14 @@ contract LiquidityPoolMock is ILiquidityPool {
         return _onAfterLoanPaymentResult;
     }
 
-    function onBeforeLoanRevoke(uint256 loanId) external returns (bool) {
-        emit OnBeforeLoanRevokeCalled(loanId);
-        return _onBeforeLoanRevokeResult;
+    function onBeforeLoanRevocation(uint256 loanId) external returns (bool) {
+        emit OnBeforeLoanRevocationCalled(loanId);
+        return _onBeforeLoanRevocationResult;
     }
 
-    function onAfterLoanRevoke(uint256 loanId) external returns (bool) {
-        emit OnAfterLoanRevokeCalled(loanId);
-        return _onAfterLoanRevokeResult;
+    function onAfterLoanRevocation(uint256 loanId) external returns (bool) {
+        emit OnAfterLoanRevocationCalled(loanId);
+        return _onAfterLoanRevocationResult;
     }
 
     function market() external pure returns (address) {
@@ -101,11 +101,11 @@ contract LiquidityPoolMock is ILiquidityPool {
         _onAfterLoanPaymentResult = result;
     }
 
-    function mockOnBeforeLoanRevokeResult(bool result) external {
-        _onBeforeLoanRevokeResult = result;
+    function mockOnBeforeLoanRevocationResult(bool result) external {
+        _onBeforeLoanRevocationResult = result;
     }
 
-    function mockOnAfterLoanRevokeResult(bool result) external {
-        _onAfterLoanRevokeResult = result;
+    function mockOnAfterLoanRevocationResult(bool result) external {
+        _onAfterLoanRevocationResult = result;
     }
 }

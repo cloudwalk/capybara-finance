@@ -43,7 +43,7 @@ contract LendingMarketMockTest is Test {
     uint256 private constant REPAY_AMOUNT = 200;
     uint256 private constant LOAN_ID = 1;
 
-    uint16 private constant STATE_REVOKE_PERIODS = 10;
+    uint16 private constant STATE_REVOCATION_PERIODS = 10;
     uint32 private constant STATE_PERIOD_IN_SECONDS = 100;
     uint32 private constant STATE_DURATION_IN_PERIODS = 200;
     uint32 private constant STATE_INTEREST_RATE_FACTOR = 300;
@@ -181,7 +181,7 @@ contract LendingMarketMockTest is Test {
         assertEq(loan.initialBorrowAmount, 0);
         assertEq(loan.trackedBorrowBalance, 0);
         assertEq(loan.autoRepayment, false);
-        assertEq(loan.revokePeriods, 0);
+        assertEq(loan.revocationPeriods, 0);
         assertEq(loan.addonAmount, 0);
 
         mock.mockLoanState(
@@ -202,7 +202,7 @@ contract LendingMarketMockTest is Test {
                 initialBorrowAmount: STATE_INITIAL_BORROW_AMOUNT,
                 trackedBorrowBalance: STATE_TRACKED_BORROW_BALANCE,
                 autoRepayment: STATE_AUTO_REPAYMENT,
-                revokePeriods: STATE_REVOKE_PERIODS,
+                revocationPeriods: STATE_REVOCATION_PERIODS,
                 addonAmount: STATE_ADDON_AMOUNT
             })
         );
@@ -224,7 +224,7 @@ contract LendingMarketMockTest is Test {
         assertEq(loan.initialBorrowAmount, STATE_INITIAL_BORROW_AMOUNT);
         assertEq(loan.trackedBorrowBalance, STATE_TRACKED_BORROW_BALANCE);
         assertEq(loan.autoRepayment, STATE_AUTO_REPAYMENT);
-        assertEq(loan.revokePeriods, STATE_REVOKE_PERIODS);
+        assertEq(loan.revocationPeriods, STATE_REVOCATION_PERIODS);
         assertEq(loan.addonAmount, STATE_ADDON_AMOUNT);
     }
 

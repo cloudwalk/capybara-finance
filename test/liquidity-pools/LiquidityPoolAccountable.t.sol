@@ -111,7 +111,7 @@ contract LiquidityPoolAccountableTest is Test {
             initialBorrowAmount: 0,
             trackedBorrowBalance: 0,
             autoRepayment: false,
-            revokePeriods: 0,
+            revocationPeriods: 0,
             addonAmount: 0
         });
     }
@@ -606,34 +606,34 @@ contract LiquidityPoolAccountableTest is Test {
     }
 
     // -------------------------------------------- //
-    //  Test `onBeforeLoanRevoke` function          //
+    //  Test `onBeforeLoanRevocation` function      //
     // -------------------------------------------- //
 
-    function test_onBeforeLoanRevoke() public {
+    function test_onBeforeLoanRevocation() public {
         vm.prank(address(lendingMarket));
-        assertEq(liquidityPool.onBeforeLoanRevoke(LOAN_ID_1), true);
+        assertEq(liquidityPool.onBeforeLoanRevocation(LOAN_ID_1), true);
     }
 
-    function test_onBeforeLoanRevoke_Revert_IfContractIsPaused() public {
+    function test_onBeforeLoanRevocation_Revert_IfContractIsPaused() public {
         vm.prank(LENDER);
         liquidityPool.pause();
 
         vm.prank(address(lendingMarket));
         vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
-        liquidityPool.onBeforeLoanRevoke(LOAN_ID_1);
+        liquidityPool.onBeforeLoanRevocation(LOAN_ID_1);
     }
 
-    function test_onBeforeLoanRevoke_Revert_IfCallerNotMarket() public {
+    function test_onBeforeLoanRevocation_Revert_IfCallerNotMarket() public {
         vm.prank(ATTACKER);
         vm.expectRevert(Error.Unauthorized.selector);
-        liquidityPool.onBeforeLoanRevoke(LOAN_ID_1);
+        liquidityPool.onBeforeLoanRevocation(LOAN_ID_1);
     }
 
     // -------------------------------------------- //
-    //  Test `onAfterLoanRevoke` function           //
+    //  Test `onAfterLoanRevocation` function       //
     // -------------------------------------------- //
 
-    function test_onAfterLoanRevoke_ExistentLoan() public {
+    function test_onAfterLoanRevocation_ExistentLoan() public {
         prepareRepayment();
 
         ILiquidityPoolAccountable.CreditLineBalance memory creditLineBalance =
@@ -649,14 +649,14 @@ contract LiquidityPoolAccountableTest is Test {
         assertEq(creditLineBalance.addons, ADDON_AMOUNT);
 
         vm.prank(address(lendingMarket));
-        assertEq(liquidityPool.onAfterLoanRevoke(LOAN_ID_1), true);
+        assertEq(liquidityPool.onAfterLoanRevocation(LOAN_ID_1), true);
 
         creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
         assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
         assertEq(creditLineBalance.addons, 0);
     }
 
-    function test_onAfterLoanRevoke_NonExistentLoan() public {
+    function test_onAfterLoanRevocation_NonExistentLoan() public {
         prepareRepayment();
 
         ILiquidityPoolAccountable.CreditLineBalance memory creditLineBalance =
@@ -665,26 +665,26 @@ contract LiquidityPoolAccountableTest is Test {
         assertEq(creditLineBalance.addons, 0);
 
         vm.prank(address(lendingMarket));
-        assertEq(liquidityPool.onAfterLoanRevoke(LOAN_ID_NONEXISTENT), true);
+        assertEq(liquidityPool.onAfterLoanRevocation(LOAN_ID_NONEXISTENT), true);
 
         creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
         assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
         assertEq(creditLineBalance.addons, 0);
     }
 
-    function test_onAfterLoanRevoke_Revert_IfContractIsPaused() public {
+    function test_onAfterLoanRevocation_Revert_IfContractIsPaused() public {
         vm.prank(LENDER);
         liquidityPool.pause();
 
         vm.prank(address(lendingMarket));
         vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
-        liquidityPool.onAfterLoanRevoke(LOAN_ID_1);
+        liquidityPool.onAfterLoanRevocation(LOAN_ID_1);
     }
 
-    function test_onAfterLoanRevoke_Revert_IfCallerNotMarket() public {
+    function test_onAfterLoanRevocation_Revert_IfCallerNotMarket() public {
         vm.prank(ATTACKER);
         vm.expectRevert(Error.Unauthorized.selector);
-        liquidityPool.onAfterLoanRevoke(LOAN_ID_1);
+        liquidityPool.onAfterLoanRevocation(LOAN_ID_1);
     }
 
     // -------------------------------------------- //
