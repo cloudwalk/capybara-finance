@@ -24,18 +24,18 @@ describe("Contract 'LendingRegistryUUPS'", async () => {
     registryFactory = registryFactory.connect(deployer); // Factories with an explicitly specified deployer account
   });
 
-  async function deployLendingRegistry(): Promise<{registry: Contract}> {
+  async function deployLendingRegistry(): Promise<{ registry: Contract }> {
     registry = await upgrades.deployProxy(
       registryFactory,
       [market.address],
-      {kind: "uups"}
+      { kind: "uups" }
     );
 
     registry = registry.connect(deployer) as Contract; // Explicitly specifying the initial account
 
     return {
       registry
-    }
+    };
   }
 
   describe("Function 'initialize()'", async () => {

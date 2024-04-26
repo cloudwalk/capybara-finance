@@ -2,7 +2,7 @@ import { ethers, upgrades } from "hardhat";
 import { expect } from "chai";
 import { Contract, ContractFactory } from "ethers";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
-import { getContractAddress } from "@ethersproject/address"
+import { getContractAddress } from "@ethersproject/address";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 
 const ERROR_NAME_ALREADY_INITIALIZED = "InvalidInitialization";
@@ -34,7 +34,7 @@ describe("Contract 'LiquidityPoolFactory'", async () => {
     liquidityPoolFactory = liquidityPoolFactory.connect(deployer); // Explicitly specifying the deployer account
   });
 
-  async function deployLiquidityPoolFactory(): Promise<{factory: Contract}> {
+  async function deployLiquidityPoolFactory(): Promise<{ factory: Contract }> {
     factory = await upgrades.deployProxy(liquidityPoolFactory, [
       registry.address
     ]);
@@ -43,7 +43,7 @@ describe("Contract 'LiquidityPoolFactory'", async () => {
 
     return {
       factory
-    }
+    };
   }
 
   describe("Function 'initialize()'", async () => {

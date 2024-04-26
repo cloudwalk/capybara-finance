@@ -26,18 +26,18 @@ describe("Contract 'CreditLineFactoryUUPS'", async () => {
     creditLineFactory = creditLineFactory.connect(deployer); // Explicitly specifying the deployer account
   });
 
-  async function deployCreditLine(): Promise<{creditLine: Contract}> {
+  async function deployCreditLine(): Promise<{ creditLine: Contract }> {
     creditLine = await upgrades.deployProxy(
       creditLineFactory,
       [market.address, lender.address, token.address],
-      {kind: "uups"}
+      { kind: "uups" }
     );
 
     creditLine = creditLine.connect(lender) as Contract; // Explicitly specifying the initial account
 
     return {
       creditLine
-    }
+    };
   }
 
   describe("Function 'initialize()'", async () => {
