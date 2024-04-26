@@ -86,6 +86,11 @@ contract LendingMarketMockTest is Test {
         mock.repayLoan(LOAN_ID, REPAY_AMOUNT);
     }
 
+    function test_revokeLoan() public {
+        vm.expectRevert(Error.NotImplemented.selector);
+        mock.revokeLoan(LOAN_ID);
+    }
+
     function test_freeze() public {
         vm.expectRevert(Error.NotImplemented.selector);
         mock.freeze(LOAN_ID);

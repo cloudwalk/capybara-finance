@@ -551,7 +551,7 @@ contract LiquidityPoolAccountableTest is Test {
         lendingMarket.mockLoanState(LOAN_ID_1, loan);
     }
 
-    function test_onAfterLoanPayment_CreditLineBalance() public {
+    function test_onAfterLoanPayment_ExistentLoan() public {
         prepareRepayment();
 
         ILiquidityPoolAccountable.CreditLineBalance memory creditLineBalance =
@@ -574,7 +574,7 @@ contract LiquidityPoolAccountableTest is Test {
         assertEq(creditLineBalance.addons, ADDON_AMOUNT);
     }
 
-    function test_onAfterLoanPayment_NonCreditLineBalance() public {
+    function test_onAfterLoanPayment_NonNonExistentLoan() public {
         prepareRepayment();
 
         ILiquidityPoolAccountable.CreditLineBalance memory creditLineBalance =
@@ -603,6 +603,88 @@ contract LiquidityPoolAccountableTest is Test {
         vm.prank(ATTACKER);
         vm.expectRevert(Error.Unauthorized.selector);
         liquidityPool.onAfterLoanPayment(LOAN_ID_1, DEPOSIT_AMOUNT_1);
+    }
+
+    // -------------------------------------------- //
+    //  Test `onBeforeLoanRevoke` function          //
+    // -------------------------------------------- //
+
+    function test_onBeforeLoanRevoke() public {
+        vm.prank(address(lendingMarket));
+        assertEq(liquidityPool.onBeforeLoanRevoke(LOAN_ID_1), true);
+    }
+
+    function test_onBeforeLoanRevoke_Revert_IfContractIsPaused() public {
+        vm.prank(LENDER);
+        liquidityPool.pause();
+
+        vm.prank(address(lendingMarket));
+        vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
+        liquidityPool.onBeforeLoanRevoke(LOAN_ID_1);
+    }
+
+    function test_onBeforeLoanRevoke_Revert_IfCallerNotMarket() public {
+        vm.prank(ATTACKER);
+        vm.expectRevert(Error.Unauthorized.selector);
+        liquidityPool.onBeforeLoanRevoke(LOAN_ID_1);
+    }
+
+    // -------------------------------------------- //
+    //  Test `onAfterLoanRevoke` function           //
+    // -------------------------------------------- //
+
+    function test_onAfterLoanRevoke_ExistentLoan() public {
+        prepareRepayment();
+
+        ILiquidityPoolAccountable.CreditLineBalance memory creditLineBalance =
+            liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
+        assertEq(creditLineBalance.addons, 0);
+
+        vm.prank(address(lendingMarket));
+        assertEq(liquidityPool.onAfterLoanTaken(LOAN_ID_1, address(creditLine)), true);
+
+        creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, 0);
+        assertEq(creditLineBalance.addons, ADDON_AMOUNT);
+
+        vm.prank(address(lendingMarket));
+        assertEq(liquidityPool.onAfterLoanRevoke(LOAN_ID_1), true);
+
+        creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
+        assertEq(creditLineBalance.addons, 0);
+    }
+
+    function test_onAfterLoanRevoke_NonExistentLoan() public {
+        prepareRepayment();
+
+        ILiquidityPoolAccountable.CreditLineBalance memory creditLineBalance =
+            liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
+        assertEq(creditLineBalance.addons, 0);
+
+        vm.prank(address(lendingMarket));
+        assertEq(liquidityPool.onAfterLoanRevoke(LOAN_ID_NONEXISTENT), true);
+
+        creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
+        assertEq(creditLineBalance.addons, 0);
+    }
+
+    function test_onAfterLoanRevoke_Revert_IfContractIsPaused() public {
+        vm.prank(LENDER);
+        liquidityPool.pause();
+
+        vm.prank(address(lendingMarket));
+        vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
+        liquidityPool.onAfterLoanRevoke(LOAN_ID_1);
+    }
+
+    function test_onAfterLoanRevoke_Revert_IfCallerNotMarket() public {
+        vm.prank(ATTACKER);
+        vm.expectRevert(Error.Unauthorized.selector);
+        liquidityPool.onAfterLoanRevoke(LOAN_ID_1);
     }
 
     // -------------------------------------------- //

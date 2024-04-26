@@ -36,6 +36,9 @@ contract LendingMarketTest is Test {
     event OnBeforeLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
     event OnAfterLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
 
+    event OnBeforeLoanRevokedCalled(uint256 indexed loanId);
+    event OnAfterLoanRevokedCalled(uint256 indexed loanId);
+
     event MarketRegistryChanged(address indexed newRegistry, address indexed oldRegistry);
     event LiquidityPoolRegistered(address indexed lender, address indexed liquidityPool);
     event CreditLineRegistered(address indexed lender, address indexed creditLine);
@@ -65,6 +68,7 @@ contract LendingMarketTest is Test {
         uint256 repayAmount,
         uint256 outstandingBalance
     );
+    event LoanRevoked(uint256 indexed loanId);
 
     event LoanFrozen(uint256 indexed loanId);
     event LoanUnfrozen(uint256 indexed loanId);
@@ -1006,6 +1010,34 @@ contract LendingMarketTest is Test {
         vm.prank(BORROWER_1);
         vm.expectRevert(Error.InvalidAmount.selector);
         market.repayLoan(loanId, outstandingBalance + 1);
+    }
+
+    // -------------------------------------------- //
+    //  Test `revokeLoan` function                  //
+    // -------------------------------------------- //
+
+    function test_revokeLoan() public {
+        configureMarket();
+
+        uint256 loanId = createActiveLoan(1);
+        Loan.State memory loan = market.getLoanState(loanId);
+        uint256 treasuryBalance = token.balanceOf(address(loan.treasury));
+        uint256 borrowAmount = loan.initialBorrowAmount - loan.addonAmount;
+
+        assertEq(loan.trackedBorrowBalance, loan.initialBorrowAmount);
+        assertEq(token.balanceOf(loan.borrower), borrowAmount);
+
+        vm.prank(loan.borrower);
+        token.approve(address(market), type(uint256).max);
+
+        vm.prank(loan.borrower);
+        emit LoanRevoked(loanId);
+        market.revokeLoan(loanId);
+
+        loan = market.getLoanState(loanId);
+        assertEq(loan.trackedBorrowBalance, 0);
+        assertEq(token.balanceOf(loan.borrower), 0);
+        assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance + borrowAmount);
     }
 
     // -------------------------------------------- //

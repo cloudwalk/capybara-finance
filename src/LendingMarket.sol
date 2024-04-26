@@ -75,6 +75,9 @@ contract LendingMarket is
     /// @dev Thrown when loan auto repayment is not allowed.
     error AutoRepaymentNotAllowed();
 
+    /// @dev Thrown when loan revoke is not allowed.
+    error RevokeNotAllowed();
+
     // -------------------------------------------- //
     //  Modifiers                                   //
     // -------------------------------------------- //
@@ -351,6 +354,29 @@ contract LendingMarket is
         if (outstandingBalance == 0) {
             _safeTransfer(ownerOf(loanId), loan.borrower, loanId, "");
         }
+    }
+
+    /// @inheritdoc ILendingMarket
+    function revokeLoan(uint256 loanId) external whenNotPaused onlyOngoingLoan(loanId) {
+        Loan.State storage loan = _loans[loanId];
+
+        if (loan.startTimestamp != loan.trackedTimestamp) {
+            revert RevokeNotAllowed();
+        }
+
+        uint256 currentPeriodIndex = _periodIndex(_blockTimestamp(loanId), loan.periodInSeconds);
+        uint256 startPeriodIndex = _periodIndex(loan.startTimestamp, loan.periodInSeconds);
+        if (loan.revokePeriods <= currentPeriodIndex - startPeriodIndex ) {
+            revert RevokeNotAllowed();
+        }
+
+        loan.trackedBorrowBalance = 0;
+
+        ILiquidityPool(loan.treasury).onBeforeLoanRevoke(loanId);
+        IERC20(loan.token).transferFrom(loan.borrower, loan.treasury, loan.initialBorrowAmount - loan.addonAmount);
+        ILiquidityPool(loan.treasury).onAfterLoanRevoke(loanId);
+
+        emit LoanRevoked(loanId);
     }
 
     // -------------------------------------------- //

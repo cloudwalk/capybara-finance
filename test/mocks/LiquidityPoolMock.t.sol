@@ -24,6 +24,9 @@ contract LiquidityPoolMockTest is Test {
     event OnBeforeLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
     event OnAfterLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
 
+    event OnBeforeLoanRevokeCalled(uint256 indexed loanId);
+    event OnAfterLoanRevokeCalled(uint256 indexed loanId);
+
     // -------------------------------------------- //
     //  Storage variables                           //
     // -------------------------------------------- //
@@ -99,6 +102,34 @@ contract LiquidityPoolMockTest is Test {
         vm.expectEmit(true, true, true, true, address(mock));
         emit OnAfterLoanPaymentCalled(LOAN_ID, REPAY_AMOUNT);
         result = mock.onAfterLoanPayment(LOAN_ID, REPAY_AMOUNT);
+        assertEq(result, true);
+    }
+
+    function test_onBeforeLoanRevoke() public {
+        vm.expectEmit(true, true, true, true, address(mock));
+        emit OnBeforeLoanRevokeCalled(LOAN_ID);
+        bool result = mock.onBeforeLoanRevoke(LOAN_ID);
+        assertEq(result, false);
+
+        mock.mockOnBeforeLoanRevokeResult(true);
+
+        vm.expectEmit(true, true, true, true, address(mock));
+        emit OnBeforeLoanRevokeCalled(LOAN_ID);
+        result = mock.onBeforeLoanRevoke(LOAN_ID);
+        assertEq(result, true);
+    }
+
+    function test_onAfterLoanRevoke() public {
+        vm.expectEmit(true, true, true, true, address(mock));
+        emit OnAfterLoanRevokeCalled(LOAN_ID);
+        bool result = mock.onAfterLoanRevoke(LOAN_ID);
+        assertEq(result, false);
+
+        mock.mockOnAfterLoanRevokeResult(true);
+
+        vm.expectEmit(true, true, true, true, address(mock));
+        emit OnAfterLoanRevokeCalled(LOAN_ID);
+        result = mock.onAfterLoanRevoke(LOAN_ID);
         assertEq(result, true);
     }
 
