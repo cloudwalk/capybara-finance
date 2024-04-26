@@ -145,28 +145,28 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
     }
 
     /// @inheritdoc ILiquidityPoolAccountable
-    function withdraw(address creditLine, uint256 borrowable, uint256 addons) external onlyOwner {
+    function withdraw(address creditLine, uint256 borrowableAmount, uint256 addonAmount) external onlyOwner {
         if (creditLine == address(0)) {
             revert Error.ZeroAddress();
         }
-        if (borrowable == 0 && addons == 0) {
+        if (borrowableAmount == 0 && addonAmount == 0) {
             revert Error.InvalidAmount();
         }
 
         CreditLineBalance storage balance = _creditLineBalances[creditLine];
-        if (balance.borrowable < borrowable) {
+        if (balance.borrowable < borrowableAmount) {
             revert InsufficientBalance();
         }
-        if (balance.addons < addons) {
+        if (balance.addons < addonAmount) {
             revert InsufficientBalance();
         }
 
-        balance.borrowable -= borrowable.toUint128();
-        balance.addons -= addons.toUint128();
+        balance.borrowable -= borrowableAmount.toUint128();
+        balance.addons -= addonAmount.toUint128();
 
-        IERC20(ICreditLine(creditLine).token()).safeTransfer(msg.sender, borrowable + addons);
+        IERC20(ICreditLine(creditLine).token()).safeTransfer(msg.sender, borrowableAmount + addonAmount);
 
-        emit Withdrawal(creditLine, borrowable, addons);
+        emit Withdrawal(creditLine, borrowableAmount, addonAmount);
     }
 
     /// @inheritdoc ILiquidityPoolAccountable

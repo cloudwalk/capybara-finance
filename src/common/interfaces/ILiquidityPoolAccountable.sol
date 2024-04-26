@@ -34,9 +34,9 @@ interface ILiquidityPoolAccountable is ILiquidityPool {
 
     /// @dev Emitted when tokens are withdrawn from the liquidity pool.
     /// @param creditLine The address of the credit line.
-    /// @param borrowable The amount of tokens withdrawn from the borrowable balance.
-    /// @param addons The amount of tokens withdrawn from the addons balance.
-    event Withdrawal(address indexed creditLine, uint256 borrowable, uint256 addons);
+    /// @param borrowableAmount The amount of tokens withdrawn from the borrowable balance.
+    /// @param addonAmount The amount of tokens withdrawn from the addons balance.
+    event Withdrawal(address indexed creditLine, uint256 borrowableAmount, uint256 addonAmount);
 
     /// @dev Emitted when tokens are rescued from the liquidity pool.
     /// @param token The address of the token rescued.
@@ -63,9 +63,9 @@ interface ILiquidityPoolAccountable is ILiquidityPool {
 
     /// @dev Withdraws tokens from the liquidity pool.
     /// @param creditLine The address of the credit line.
-    /// @param borrowable The amount of tokens to withdraw from the borrowable balance.
-    /// @param addons The amount of tokens to withdraw from the addons balance.
-    function withdraw(address creditLine, uint256 borrowable, uint256 addons) external;
+    /// @param borrowableAmount The amount of tokens to withdraw from the borrowable balance.
+    /// @param addonAmount The amount of tokens to withdraw from the addons balance.
+    function withdraw(address creditLine, uint256 borrowableAmount, uint256 addonAmount) external;
 
     /// @dev Rescues tokens from the liquidity pool.
     /// @param token The address of the token to rescue.
