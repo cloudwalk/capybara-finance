@@ -3,10 +3,9 @@ import { expect } from "chai";
 import { Contract, ContractFactory } from "ethers";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
+import { checkContractUupsUpgrading } from "../../../test-utils/eth";
 
 const ERROR_NAME_OWNABLE_UNAUTHORIZED = "OwnableUnauthorizedAccount";
-
-const EVENT_NAME_UPGRADED = "Upgraded";
 
 const CREDIT_LINE_KIND = 1;
 
@@ -49,12 +48,10 @@ describe("Contract 'CreditLineFactoryUUPS'", async () => {
     });
   });
 
-  describe("Function 'upgradeToAndCall()'", async () => {
-    it("Executes as expected and emits correct event", async () => {
+  describe("Upgrading", async () => {
+    it("Executes as expected", async () => {
       const { factory } = await loadFixture(deployCreditLineFactory);
-
-      expect(await upgrades.upgradeProxy(factory, creditLineFactory))
-        .to.emit(factory, EVENT_NAME_UPGRADED);
+      await checkContractUupsUpgrading(factory, creditLineFactory);
     });
 
     it("Is reverted if caller is not the owner", async () => {
