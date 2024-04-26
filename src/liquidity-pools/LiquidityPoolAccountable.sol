@@ -138,7 +138,7 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
             token.approve(_market, type(uint256).max);
         }
 
-        _creditLineBalances[creditLine].borrowable += amount.toUint128();
+        _creditLineBalances[creditLine].borrowable += amount.toUint64();
         token.safeTransferFrom(msg.sender, address(this), amount);
 
         emit Deposit(creditLine, amount);
@@ -161,8 +161,8 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
             revert InsufficientBalance();
         }
 
-        balance.borrowable -= borrowableAmount.toUint128();
-        balance.addons -= addonAmount.toUint128();
+        balance.borrowable -= borrowableAmount.toUint64();
+        balance.addons -= addonAmount.toUint64();
 
         IERC20(ICreditLine(creditLine).token()).safeTransfer(msg.sender, borrowableAmount + addonAmount);
 
@@ -234,7 +234,7 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
     function onAfterLoanPayment(uint256 loanId, uint256 amount) external whenNotPaused onlyMarket returns (bool) {
         address creditLine = _creditLines[loanId];
         if (creditLine != address(0)) {
-            _creditLineBalances[creditLine].borrowable += amount.toUint128();
+            _creditLineBalances[creditLine].borrowable += amount.toUint64();
         }
 
         return true;
