@@ -13,15 +13,17 @@ describe("Contract 'CreditLineFactoryUUPS'", async () => {
 
   let creditLine: Contract;
 
+  let deployer: HardhatEthersSigner;
   let lender: HardhatEthersSigner;
   let market: HardhatEthersSigner;
   let token: HardhatEthersSigner;
   let attacker: HardhatEthersSigner;
 
   before(async () => {
-    creditLineFactory = await ethers.getContractFactory("CreditLineConfigurableUUPS");
+    [deployer, lender, market, token, attacker] = await ethers.getSigners();
 
-    [lender, market, token, attacker] = await ethers.getSigners();
+    creditLineFactory = await ethers.getContractFactory("CreditLineConfigurableUUPS");
+    creditLineFactory = creditLineFactory.connect(deployer); // Explicitly specifying the deployer account
   });
 
   async function deployCreditLine(): Promise<{creditLine: Contract}> {
@@ -31,7 +33,7 @@ describe("Contract 'CreditLineFactoryUUPS'", async () => {
       {kind: "uups"}
     );
 
-    creditLine = creditLine.connect(lender) as Contract;
+    creditLine = creditLine.connect(lender) as Contract; // Explicitly specifying the initial account
 
     return {
       creditLine
@@ -53,7 +55,7 @@ describe("Contract 'CreditLineFactoryUUPS'", async () => {
     it("Executes as expected and emits correct event", async () => {
       const { creditLine } = await loadFixture(deployCreditLine);
 
-      expect(await upgrades.upgradeProxy(creditLine, creditLineFactory))
+      expect(await upgrades.upgradeProxy(creditLine, creditLineFactory.connect(lender)))
         .to.emit(creditLine, EVENT_NAME_UPGRADED);
     });
 

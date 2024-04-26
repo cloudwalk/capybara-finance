@@ -21,15 +21,17 @@ describe("Contract 'LiquidityPoolFactory'", async () => {
 
   let factory: Contract;
 
+  let deployer: HardhatEthersSigner;
   let registry: HardhatEthersSigner;
   let market: HardhatEthersSigner;
   let lender: HardhatEthersSigner;
   let attacker: HardhatEthersSigner;
 
   before(async () => {
-    liquidityPoolFactory = await ethers.getContractFactory("LiquidityPoolFactory");
+    [deployer, registry, market, lender, attacker] = await ethers.getSigners();
 
-    [, registry, market, lender, attacker] = await ethers.getSigners();
+    liquidityPoolFactory = await ethers.getContractFactory("LiquidityPoolFactory");
+    liquidityPoolFactory = liquidityPoolFactory.connect(deployer); // Explicitly specifying the deployer account
   });
 
   async function deployLiquidityPoolFactory(): Promise<{factory: Contract}> {
@@ -37,7 +39,7 @@ describe("Contract 'LiquidityPoolFactory'", async () => {
       registry.address
     ]);
 
-    factory = factory.connect(registry) as Contract;
+    factory = factory.connect(registry) as Contract; // Explicitly specifying the initial account
 
     return {
       factory

@@ -112,6 +112,7 @@ const BORROWERS_NUMBER = 3;
 describe("Contract 'CreditLineConfigurable'", async () => {
   let creditLineFactory: ContractFactory;
 
+  let deployer: HardhatEthersSigner;
   let lender: HardhatEthersSigner;
   let market: HardhatEthersSigner;
   let token: HardhatEthersSigner;
@@ -122,11 +123,11 @@ describe("Contract 'CreditLineConfigurable'", async () => {
   let users: HardhatEthersSigner[];
 
   before(async () => {
+    [deployer, lender, market, token, attacker, treasury, addonRecipient, borrower, ...users]
+      = await ethers.getSigners();
+
     creditLineFactory = await ethers.getContractFactory("CreditLineConfigurable");
-
-    // Skip the deployer of the contract to check the owner initialization logic
-    [, lender, market, token, attacker, treasury, addonRecipient, borrower, ...users] = await ethers.getSigners();
-
+    creditLineFactory.connect(deployer); // Explicitly specifying the deployer account
   });
 
   function createDefaultCreditLineConfiguration(): CreditLineConfig {
@@ -265,7 +266,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       token.address,
     ]);
     await creditLine.waitForDeployment();
-    creditLine = creditLine.connect(lender) as Contract;
+    creditLine = creditLine.connect(lender) as Contract; // Explicitly specifying the initial account
 
     return { creditLine };
   }
