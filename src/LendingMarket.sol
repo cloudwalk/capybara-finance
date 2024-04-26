@@ -75,8 +75,11 @@ contract LendingMarket is
     /// @dev Thrown when loan auto repayment is not allowed.
     error AutoRepaymentNotAllowed();
 
-    /// @dev Thrown when loan revocation is not allowed.
-    error RevocationNotAllowed();
+    /// @dev Thrown when the revocation period has passed.
+    error RevocationPeriodHasPassed();
+
+    /// @dev Thrown when loan revocation is prohibited.
+    error RevocationIsProhibited();
 
     // -------------------------------------------- //
     //  Modifiers                                   //
@@ -361,13 +364,13 @@ contract LendingMarket is
         Loan.State storage loan = _loans[loanId];
 
         if (loan.startTimestamp != loan.trackedTimestamp) {
-            revert RevocationNotAllowed();
+            revert RevocationIsProhibited();
         }
 
         uint256 currentPeriodIndex = _periodIndex(_blockTimestamp(loanId), loan.periodInSeconds);
         uint256 startPeriodIndex = _periodIndex(loan.startTimestamp, loan.periodInSeconds);
         if (loan.revocationPeriods <= currentPeriodIndex - startPeriodIndex ) {
-            revert RevocationNotAllowed();
+            revert RevocationPeriodHasPassed();
         }
 
         loan.trackedBorrowBalance = 0;
