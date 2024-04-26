@@ -2,7 +2,7 @@ import { ethers, upgrades } from "hardhat";
 import { expect } from "chai";
 import { Contract, ContractFactory } from "ethers";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
-import { getContractAddress } from "@ethersproject/address"
+import { getContractAddress } from "@ethersproject/address";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 
 const ERROR_NAME_OWNABLE_UNAUTHORIZED = "OwnableUnauthorizedAccount";
@@ -35,7 +35,7 @@ describe("Contract 'CreditLineFactory'", async () => {
     creditLineFactory = creditLineFactory.connect(deployer); // Explicitly specifying the deployer account
   });
 
-  async function deployCreditLineFactory(): Promise<{factory: Contract}> {
+  async function deployCreditLineFactory(): Promise<{ factory: Contract }> {
     factory = await upgrades.deployProxy(creditLineFactory, [
       registry.address
     ]);
@@ -44,7 +44,7 @@ describe("Contract 'CreditLineFactory'", async () => {
 
     return {
       factory
-    }
+    };
   }
 
   describe("Function 'initialize()'", async () => {

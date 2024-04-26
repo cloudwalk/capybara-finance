@@ -24,18 +24,18 @@ describe("Contract 'LiquidityPoolAccountableUUPS'", async () => {
     liquidityPoolFactory = liquidityPoolFactory.connect(deployer); // Explicitly specifying the deployer account
   });
 
-  async function deployLiquidityPool(): Promise<{liquidityPool: Contract}> {
+  async function deployLiquidityPool(): Promise<{ liquidityPool: Contract }> {
     liquidityPool = await upgrades.deployProxy(
       liquidityPoolFactory,
       [market.address, deployer.address],
-      {kind: "uups"}
+      { kind: "uups" }
     );
 
     liquidityPool = liquidityPool.connect(deployer) as Contract; // Explicitly specifying the initial account
 
     return {
       liquidityPool
-    }
+    };
   }
 
   describe("Function 'initialize()'", async () => {

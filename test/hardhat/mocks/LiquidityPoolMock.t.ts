@@ -1,6 +1,6 @@
 import { ethers } from "hardhat";
 import { expect } from "chai";
-import { Contract, ContractFactory} from "ethers";
+import { Contract, ContractFactory } from "ethers";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 
@@ -23,9 +23,9 @@ describe("Contract 'LiquidityPoolMock'", async () => {
     await liquidityPool.waitForDeployment();
     liquidityPool = liquidityPool.connect(deployer) as Contract; // Explicitly specifying the initial account
 
-    return  {
+    return {
       liquidityPool
-    }
+    };
   }
 
   describe("Mock functions", async () => {
@@ -50,4 +50,4 @@ describe("Contract 'LiquidityPoolMock'", async () => {
         .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_NOT_IMPLEMENTED);
     });
   });
-})
+});

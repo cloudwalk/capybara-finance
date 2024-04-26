@@ -1,11 +1,10 @@
 import { ethers, upgrades } from "hardhat";
 import { expect } from "chai";
-import { Contract, ContractFactory} from "ethers";
+import { Contract, ContractFactory } from "ethers";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { proveTx } from "../../../test-utils/eth";
 import { TransactionReceipt } from "@ethersproject/abstract-provider";
-import { deploy } from "@openzeppelin/hardhat-upgrades/dist/utils";
 
 const ERROR_NAME_ALREADY_CONFIGURED = "AlreadyConfigured";
 const ERROR_NAME_ALREADY_INITIALIZED = "InvalidInitialization";
@@ -39,13 +38,13 @@ const AUTO_REPAY_AMOUNTS = [4, 5, 6];
 
 describe("Contract 'LiquidityPoolAccountable'", async () => {
   let liquidityPoolFactory: ContractFactory;
-  let tokenFactory: ContractFactory
+  let tokenFactory: ContractFactory;
   let marketFactory: ContractFactory;
   let creditLineFactory: ContractFactory;
 
   let market: Contract;
   let token: Contract;
-  let creditLine: Contract
+  let creditLine: Contract;
 
   let deployer: HardhatEthersSigner;
   let lender: HardhatEthersSigner;
@@ -82,7 +81,7 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
     await token.mint(lender.address, MINT_AMOUNT);
 
     creditLine = await creditLineFactory.deploy() as Contract;
-    await creditLine.waitForDeployment()
+    await creditLine.waitForDeployment();
     creditLine = creditLine.connect(deployer) as Contract; // Explicitly specifying the initial account
     await creditLine.mockTokenAddress(tokenAddress);
     creditLineAddress = await creditLine.getAddress();
@@ -92,14 +91,14 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
     let liquidityPool = await upgrades.deployProxy(liquidityPoolFactory, [
       marketAddress,
       lender.address
-    ])
+    ]);
 
     await liquidityPool.waitForDeployment();
     liquidityPool = liquidityPool.connect(lender) as Contract; // Explicitly specifying the initial account
     liquidityPoolAddress = await liquidityPool.getAddress();
 
     await proveTx((token.connect(lender) as Contract).approve(liquidityPoolAddress, MINT_AMOUNT));
-    return { liquidityPool }
+    return { liquidityPool };
   }
 
   describe("Function 'initialize()'", async () => {
