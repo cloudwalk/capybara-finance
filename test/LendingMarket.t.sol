@@ -850,8 +850,13 @@ contract LendingMarketTest is Test {
         outstandingBalance -= repayAmount;
         token.mint(BORROWER, outstandingBalance - token.balanceOf(BORROWER));
 
+        vm.expectEmit(true, true, true, true, address(liquidityPool));
+        emit OnBeforeLoanPaymentCalled(loanId, repayAmount);
+        vm.expectEmit(true, true, true, true, address(liquidityPool));
+        emit OnAfterLoanPaymentCalled(loanId, repayAmount);
         vm.expectEmit(true, true, true, true, address(market));
         emit LoanRepayment(loanId, BORROWER, BORROWER, repayAmount, outstandingBalance);
+
         market.repayLoan(loanId, repayAmount);
 
         uint256 newOutstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
@@ -865,8 +870,13 @@ contract LendingMarketTest is Test {
         outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
         token.mint(BORROWER, outstandingBalance - token.balanceOf(BORROWER));
 
+        vm.expectEmit(true, true, true, true, address(liquidityPool));
+        emit OnBeforeLoanPaymentCalled(loanId, outstandingBalance);
+        vm.expectEmit(true, true, true, true, address(liquidityPool));
+        emit OnAfterLoanPaymentCalled(loanId, outstandingBalance);
         vm.expectEmit(true, true, true, true, address(market));
         emit LoanRepayment(loanId, BORROWER, BORROWER, outstandingBalance, 0);
+
         market.repayLoan(loanId, outstandingBalance);
 
         newOutstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
@@ -927,65 +937,67 @@ contract LendingMarketTest is Test {
         configureMarket();
 
         uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 1);
-        Loan.State memory loan = market.getLoanState(loanId);
+        uint256 repayAmount = 1; // min possible amount
 
         vm.startPrank(OWNER);
         market.pause();
 
         vm.startPrank(BORROWER);
         vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
-        market.repayLoan(loanId, loan.trackedBorrowBalance);
+        market.repayLoan(loanId, repayAmount);
     }
 
     function test_repayLoan_Revert_IfLoanNotExist() public {
         configureMarket();
         uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 0);
+        uint256 nonExistentLoanId = loanId + 1;
+        uint256 repayAmount = 1; // min possible amount
 
         vm.prank(BORROWER);
         vm.expectRevert(LendingMarket.LoanNotExist.selector);
-        market.repayLoan(loanId + 1, BORROW_AMOUNT);
+        market.repayLoan(nonExistentLoanId, repayAmount);
     }
 
     function test_repayLoan_Revert_IfLoanIsRepaid() public {
         configureMarket();
         uint256 loanId = createRepaidLoan(BORROWER, BORROW_AMOUNT, false, 1);
+        uint256 repayAmount = 1; // min possible amount
 
         vm.prank(BORROWER);
         vm.expectRevert(LendingMarket.LoanAlreadyRepaid.selector);
-        market.repayLoan(loanId, 1);
+        market.repayLoan(loanId, repayAmount);
     }
 
     function test_repayLoan_Revert_IfRepayAmountIsZero() public {
         configureMarket();
         uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 1);
+        uint256 repayAmount = 0;
 
         vm.prank(BORROWER);
         vm.expectRevert(Error.InvalidAmount.selector);
-        market.repayLoan(loanId, 0);
+        market.repayLoan(loanId, repayAmount);
     }
 
     function test_repayLoan_Revert_IfAutoRepaymentIsNotAllowed() public {
         configureMarket();
         uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 1);
-
-        uint256 outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
-        token.mint(BORROWER, outstandingBalance - token.balanceOf(BORROWER));
+        uint256 repayAmount = 1; // min possible amount
 
         vm.prank(address(liquidityPool));
         vm.expectRevert(LendingMarket.AutoRepaymentNotAllowed.selector);
-        market.repayLoan(loanId, outstandingBalance);
+        market.repayLoan(loanId, repayAmount);
     }
 
     function test_repayLoan_Revert_IfRepayAmountIsGreaterThanBorrowAmount() public {
         configureMarket();
         uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 1);
 
-        uint256 outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
-        token.mint(BORROWER, outstandingBalance - token.balanceOf(BORROWER) + 1);
+        uint256 outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance + 1;
+        uint256 repayAmount = outstandingBalance + 1;
 
         vm.prank(BORROWER);
         vm.expectRevert(Error.InvalidAmount.selector);
-        market.repayLoan(loanId, outstandingBalance + 1);
+        market.repayLoan(loanId, repayAmount);
     }
 
     // -------------------------------------------- //
