@@ -442,9 +442,10 @@ contract LendingMarketTest is Test {
     function test_registerCreditLine_IfOwner() public {
         assertEq(market.getCreditLineLender(address(creditLine)), address(0));
 
-        vm.prank(OWNER);
         vm.expectEmit(true, true, true, true, address(market));
         emit CreditLineRegistered(LENDER, address(creditLine));
+
+        vm.prank(OWNER);
         market.registerCreditLine(LENDER, address(creditLine));
 
         assertEq(market.getCreditLineLender(address(creditLine)), LENDER);
@@ -453,9 +454,10 @@ contract LendingMarketTest is Test {
     function test_registerCreditLine_IfRegistry() public {
         assertEq(market.getCreditLineLender(address(creditLine)), address(0));
 
-        vm.prank(REGISTRY_1);
         vm.expectEmit(true, true, true, true, address(market));
         emit CreditLineRegistered(LENDER, address(creditLine));
+
+        vm.prank(REGISTRY_1);
         market.registerCreditLine(LENDER, address(creditLine));
 
         assertEq(market.getCreditLineLender(address(creditLine)), LENDER);
@@ -508,9 +510,10 @@ contract LendingMarketTest is Test {
     function test_registerLiquidityPool_IfOwner() public {
         assertEq(market.getLiquidityPoolLender(address(liquidityPool)), address(0));
 
-        vm.prank(OWNER);
         vm.expectEmit(true, true, true, true, address(market));
         emit LiquidityPoolRegistered(LENDER, address(liquidityPool));
+
+        vm.prank(OWNER);
         market.registerLiquidityPool(LENDER, address(liquidityPool));
 
         assertEq(market.getLiquidityPoolLender(address(liquidityPool)), LENDER);
@@ -519,9 +522,10 @@ contract LendingMarketTest is Test {
     function test_registerLiquidityPool_IfRegistry() public {
         assertEq(market.getLiquidityPoolLender(address(liquidityPool)), address(0));
 
-        vm.prank(REGISTRY_1);
         vm.expectEmit(true, true, true, true, address(market));
         emit LiquidityPoolRegistered(LENDER, address(liquidityPool));
+
+        vm.prank(REGISTRY_1);
         market.registerLiquidityPool(LENDER, address(liquidityPool));
 
         assertEq(market.getLiquidityPoolLender(address(liquidityPool)), LENDER);
@@ -667,9 +671,10 @@ contract LendingMarketTest is Test {
 
         assertEq(market.getLiquidityPoolByCreditLine(address(creditLine)), address(0));
 
-        vm.prank(LENDER);
         vm.expectEmit(true, true, true, true, address(market));
         emit LiquidityPoolAssignedToCreditLine(address(creditLine), address(liquidityPool), address(0));
+
+        vm.prank(LENDER);
         market.assignLiquidityPoolToCreditLine(address(creditLine), address(liquidityPool));
 
         assertEq(market.getLiquidityPoolByCreditLine(address(creditLine)), address(liquidityPool));
@@ -1284,7 +1289,7 @@ contract LendingMarketTest is Test {
     //  Test `updateLoanDuration` function          //
     // -------------------------------------------- //
 
-    function test_updateLoanDuration(address caller) private {
+    function test_updateLoanDuration(address lender) private {
         configureMarket();
 
         uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 1);
@@ -1292,9 +1297,10 @@ contract LendingMarketTest is Test {
 
         uint256 newDurationInPeriods = loan.durationInPeriods + 2;
 
-        vm.prank(caller);
         vm.expectEmit(true, true, true, true, address(market));
         emit LoanDurationUpdated(loanId, newDurationInPeriods, loan.durationInPeriods);
+
+        vm.prank(lender);
         market.updateLoanDuration(loanId, newDurationInPeriods);
 
         loan = market.getLoanState(loanId);
@@ -1394,7 +1400,7 @@ contract LendingMarketTest is Test {
     //  Test `updateLoanInterestRatePrimary` function
     // -------------------------------------------- //
 
-    function test_updateLoanInterestRatePrimary(address caller) private {
+    function test_updateLoanInterestRatePrimary(address lender) private {
         configureMarket();
 
         uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 1);
@@ -1403,9 +1409,10 @@ contract LendingMarketTest is Test {
         uint256 oldInterestRatePrimary = loan.interestRatePrimary;
         uint256 newInterestRatePrimary = oldInterestRatePrimary - 1;
 
-        vm.prank(caller);
         vm.expectEmit(true, true, true, true, address(market));
         emit LoanInterestRatePrimaryUpdated(loanId, newInterestRatePrimary, oldInterestRatePrimary);
+
+        vm.prank(lender);
         market.updateLoanInterestRatePrimary(loanId, newInterestRatePrimary);
 
         loan = market.getLoanState(loanId);
@@ -1491,7 +1498,7 @@ contract LendingMarketTest is Test {
     //  Test `updateLoanInterestRateSecondary` function
     // -------------------------------------------- //
 
-    function test_updateLoanInterestRateSecondary(address caller) private {
+    function test_updateLoanInterestRateSecondary(address lender) private {
         configureMarket();
 
         uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 1);
@@ -1500,9 +1507,10 @@ contract LendingMarketTest is Test {
         uint256 oldInterestRateSecondary = loan.interestRateSecondary;
         uint256 newInterestRateSecondary = oldInterestRateSecondary - 1;
 
-        vm.prank(caller);
         vm.expectEmit(true, true, true, true, address(market));
         emit LoanInterestRateSecondaryUpdated(loanId, newInterestRateSecondary, oldInterestRateSecondary);
+
+        vm.prank(lender);
         market.updateLoanInterestRateSecondary(loanId, newInterestRateSecondary);
 
         loan = market.getLoanState(loanId);
