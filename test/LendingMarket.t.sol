@@ -193,6 +193,9 @@ contract LendingMarketTest is Test {
         market.assignLiquidityPoolToCreditLine(address(creditLine), address(liquidityPool));
         vm.stopPrank();
 
+        vm.prank(BORROWER_1);
+        token.approve(address(market), type(uint256).max);
+
         vm.prank(address(liquidityPool));
         token.approve(address(market), type(uint256).max);
     }
@@ -240,10 +243,8 @@ contract LendingMarketTest is Test {
         assertEq(outstandingBalance != 0, true);
         token.mint(BORROWER_1, outstandingBalance);
 
-        vm.startPrank(BORROWER_1);
-        token.approve(address(market), outstandingBalance);
+        vm.prank(BORROWER_1);
         market.repayLoan(loanId, outstandingBalance);
-        vm.stopPrank();
 
         outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
         assertEq(outstandingBalance == 0, true);
@@ -846,9 +847,6 @@ contract LendingMarketTest is Test {
         assertEq(market.ownerOf(loanId), LENDER_1);
         assertEq(loan.trackedBorrowBalance >= 2, true);
 
-        vm.prank(BORROWER_1);
-        token.approve(address(market), type(uint256).max);
-
         // Repayment mode
         if (autoRepaymnet) {
             vm.startPrank(address(liquidityPool));
@@ -930,8 +928,6 @@ contract LendingMarketTest is Test {
         uint256 loanId = createActiveLoan(1);
 
         vm.startPrank(BORROWER_1);
-
-        token.approve(address(market), type(uint256).max);
 
         uint256 outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
         assertEq(outstandingBalance != 0, true);
@@ -1029,9 +1025,6 @@ contract LendingMarketTest is Test {
 
         skip(loan.periodInSeconds * (loan.revocationPeriods - 1));
 
-        vm.prank(loan.borrower);
-        token.approve(address(market), borrowAmount);
-
         vm.expectEmit(true, true, true, true, address(liquidityPool));
         emit OnBeforeLoanRevocationCalled(loanId);
         vm.expectEmit(true, true, true, true, address(liquidityPool));
@@ -1079,8 +1072,7 @@ contract LendingMarketTest is Test {
 
         skip(1);
 
-        vm.startPrank(loan.borrower);
-        token.approve(address(market), 1);
+        vm.prank(loan.borrower);
         market.repayLoan(loanId, 1);
 
         vm.expectRevert(LendingMarket.RevocationIsProhibited.selector);
