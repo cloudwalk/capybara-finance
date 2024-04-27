@@ -166,8 +166,36 @@ contract LendingMarket is
         _registry = newRegistry;
     }
 
+    /// @inheritdoc ILendingMarket
+    function updateCreditLineLender(address creditLine, address newLender) external onlyOwner {
+        if (creditLine == address(0) || newLender == address(0)) {
+            revert Error.ZeroAddress();
+        }
+        if (_creditLineLenders[creditLine] == newLender) {
+            revert Error.AlreadyConfigured();
+        }
+
+        emit CreditLineLenderUpdated(creditLine, newLender, _creditLineLenders[creditLine]);
+
+        _creditLineLenders[creditLine] = newLender;
+    }
+
+    /// @inheritdoc ILendingMarket
+    function updateLiquidityPoolLender(address liquidityPool, address newLender) external onlyOwner {
+        if (liquidityPool == address(0) || newLender == address(0)) {
+            revert Error.ZeroAddress();
+        }
+        if (_liquidityPoolLenders[liquidityPool] == newLender) {
+            revert Error.AlreadyConfigured();
+        }
+
+        emit LiquidityPoolLenderUpdated(liquidityPool, newLender, _liquidityPoolLenders[liquidityPool]);
+
+        _liquidityPoolLenders[liquidityPool] = newLender;
+    }
+
     // -------------------------------------------- //
-    //  Registry functions                          //
+    //  Registry & owner functions                  //
     // -------------------------------------------- //
 
     /// @inheritdoc ILendingMarket
@@ -196,57 +224,6 @@ contract LendingMarket is
         emit LiquidityPoolRegistered(lender, liquidityPool);
 
         _liquidityPoolLenders[liquidityPool] = lender;
-    }
-
-    /// @inheritdoc ILendingMarket
-    function updateCreditLineLender(address creditLine, address newLender) external onlyOwner {
-        if (creditLine == address(0) || newLender == address(0)) {
-            revert Error.ZeroAddress();
-        }
-        if (_creditLineLenders[creditLine] == newLender) {
-            revert Error.AlreadyConfigured();
-        }
-
-        emit CreditLineLenderUpdated(creditLine, newLender, _creditLineLenders[creditLine]);
-
-        _creditLineLenders[creditLine] = newLender;
-    }
-
-    function updateLiquidityPoolLender(address liquidityPool, address newLender) external onlyOwner {
-        if (liquidityPool == address(0) || newLender == address(0)) {
-            revert Error.ZeroAddress();
-        }
-        if (_liquidityPoolLenders[liquidityPool] == newLender) {
-            revert Error.AlreadyConfigured();
-        }
-
-        emit LiquidityPoolLenderUpdated(liquidityPool, newLender, _liquidityPoolLenders[liquidityPool]);
-
-        _liquidityPoolLenders[liquidityPool] = newLender;
-    }
-
-    /// @inheritdoc ILendingMarket
-    function assignLiquidityPoolToCreditLine(address creditLine, address liquidityPool) external whenNotPaused {
-        if (creditLine == address(0)) {
-            revert Error.ZeroAddress();
-        }
-        if (liquidityPool == address(0)) {
-            revert Error.ZeroAddress();
-        }
-
-        if (_liquidityPoolByCreditLine[creditLine] != address(0)) {
-            // TBD Check if updating the liquidity pool associated with the credit line
-            // can have any unexpected side effects during the loan lifecycle.
-            revert Error.NotImplemented();
-        }
-
-        if (_creditLineLenders[creditLine] != msg.sender || _liquidityPoolLenders[liquidityPool] != msg.sender) {
-            revert Error.Unauthorized();
-        }
-
-        emit LiquidityPoolAssignedToCreditLine(creditLine, liquidityPool, _liquidityPoolByCreditLine[creditLine]);
-
-        _liquidityPoolByCreditLine[creditLine] = liquidityPool;
     }
 
     // -------------------------------------------- //
@@ -481,6 +458,26 @@ contract LendingMarket is
         emit LenderAliasConfigured(msg.sender, account, isAlias);
 
         _hasAlias[msg.sender][account] = isAlias;
+    }
+
+    /// @inheritdoc ILendingMarket
+    function assignLiquidityPoolToCreditLine(address creditLine, address liquidityPool) external whenNotPaused {
+        if (creditLine == address(0) || liquidityPool == address(0)) {
+            revert Error.ZeroAddress();
+        }
+        if (_liquidityPoolByCreditLine[creditLine] != address(0)) {
+            // TBD Check if updating the liquidity pool associated with the credit line
+            // will have any unexpected side effects during the loan lifecycle.
+            revert Error.NotImplemented();
+        }
+
+        if (_creditLineLenders[creditLine] != msg.sender || _liquidityPoolLenders[liquidityPool] != msg.sender) {
+            revert Error.Unauthorized();
+        }
+
+        emit LiquidityPoolAssignedToCreditLine(creditLine, liquidityPool, _liquidityPoolByCreditLine[creditLine]);
+
+        _liquidityPoolByCreditLine[creditLine] = liquidityPool;
     }
 
     // -------------------------------------------- //

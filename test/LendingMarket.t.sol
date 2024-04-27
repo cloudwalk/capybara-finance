@@ -347,6 +347,11 @@ contract LendingMarketTest is Test {
 
     function test_initialize() public {
         market = new LendingMarket();
+
+        assertEq(market.name(), "");
+        assertEq(market.symbol(), "");
+        assertEq(market.owner(), address(0));
+
         market.initialize("NAME", "SYMBOL");
 
         assertEq(market.name(), "NAME");
@@ -415,18 +420,20 @@ contract LendingMarketTest is Test {
     // -------------------------------------------- //
 
     function test_setRegistry() public {
-        assertEq(market.registry(), REGISTRY_1);
-
         vm.startPrank(OWNER);
+
+        assertEq(market.registry(), REGISTRY_1);
 
         vm.expectEmit(true, true, true, true, address(market));
         emit MarketRegistryChanged(address(0), REGISTRY_1);
         market.setRegistry(address(0));
+
         assertEq(market.registry(), address(0));
 
         vm.expectEmit(true, true, true, true, address(market));
         emit MarketRegistryChanged(REGISTRY_2, address(0));
         market.setRegistry(REGISTRY_2);
+
         assertEq(market.registry(), REGISTRY_2);
     }
 
@@ -471,10 +478,8 @@ contract LendingMarketTest is Test {
     }
 
     function test_registerCreditLine_Revert_IfOwner_ContractIsPaused() public {
-        vm.prank(OWNER);
+        vm.startPrank(OWNER);
         market.pause();
-
-        vm.prank(OWNER);
         vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
         market.registerCreditLine(LENDER_1, address(creditLine));
     }
@@ -482,7 +487,6 @@ contract LendingMarketTest is Test {
     function test_registerCreditLine_Revert_IfRegistry_ContractIsPaused() public {
         vm.prank(OWNER);
         market.pause();
-
         vm.prank(REGISTRY_1);
         vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
         market.registerCreditLine(LENDER_1, address(creditLine));
@@ -540,10 +544,8 @@ contract LendingMarketTest is Test {
     }
 
     function test_registerLiquidityPool_Revert_IfOwner_ContractIsPaused() public {
-        vm.prank(OWNER);
+        vm.startPrank(OWNER);
         market.pause();
-
-        vm.prank(OWNER);
         vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
         market.registerLiquidityPool(LENDER_1, address(liquidityPool));
     }
@@ -551,7 +553,6 @@ contract LendingMarketTest is Test {
     function test_registerLiquidityPool_Revert_IfRegistry_ContractIsPaused() public {
         vm.prank(OWNER);
         market.pause();
-
         vm.prank(REGISTRY_1);
         vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
         market.registerLiquidityPool(LENDER_1, address(liquidityPool));
@@ -588,7 +589,9 @@ contract LendingMarketTest is Test {
 
     function test_updateCreditLineLender() public {
         vm.startPrank(OWNER);
+
         market.registerCreditLine(LENDER_1, address(creditLine));
+        assertEq(market.getCreditLineLender(address(creditLine)), LENDER_1);
 
         vm.expectEmit(true, true, true, true, address(market));
         emit CreditLineLenderUpdated(address(creditLine), LENDER_2, LENDER_1);
@@ -628,7 +631,9 @@ contract LendingMarketTest is Test {
 
     function test_updateLiquidityPoolLender() public {
         vm.startPrank(OWNER);
+
         market.registerLiquidityPool(LENDER_1, address(liquidityPool));
+        assertEq(market.getLiquidityPoolLender(address(liquidityPool)), LENDER_1);
 
         vm.expectEmit(true, true, true, true, address(market));
         emit LiquidityPoolLenderUpdated(address(liquidityPool), LENDER_2, LENDER_1);
@@ -666,11 +671,15 @@ contract LendingMarketTest is Test {
     //  Test `assignLiquidityPoolToCreditLine`      //
     // -------------------------------------------- //
 
-    function test_assignLiquidityPoolToCreditLine() public {
+    function registerCreditLineAndLiquidityPool(address creditLineLender, address liquidityPoolLender) private {
         vm.startPrank(OWNER);
-        market.registerCreditLine(LENDER_1, address(creditLine));
-        market.registerLiquidityPool(LENDER_1, address(liquidityPool));
+        market.registerCreditLine(creditLineLender, address(creditLine));
+        market.registerLiquidityPool(liquidityPoolLender, address(liquidityPool));
         vm.stopPrank();
+    }
+
+    function test_assignLiquidityPoolToCreditLine() public {
+        registerCreditLineAndLiquidityPool(LENDER_1, LENDER_1);
 
         assertEq(market.getLiquidityPoolByCreditLine(address(creditLine)), address(0));
 
@@ -683,6 +692,8 @@ contract LendingMarketTest is Test {
     }
 
     function test_assignLiquidityPoolToCreditLine_Revert_IfContractIsPaused() public {
+        registerCreditLineAndLiquidityPool(LENDER_1, LENDER_1);
+
         vm.prank(OWNER);
         market.pause();
 
@@ -692,42 +703,32 @@ contract LendingMarketTest is Test {
     }
 
     function test_assignLiquidityPoolToCreditLine_Revert_IfCreditLineIsZeroAddress() public {
-        configureMarket();
+        registerCreditLineAndLiquidityPool(LENDER_1, LENDER_1);
+
         vm.prank(LENDER_1);
         vm.expectRevert(Error.ZeroAddress.selector);
         market.assignLiquidityPoolToCreditLine(address(0), address(liquidityPool));
     }
 
     function test_assignLiquidityPoolToCreditLine_Revert_IfLiquidityPoolIsZeroAddress() public {
-        configureMarket();
+        registerCreditLineAndLiquidityPool(LENDER_1, LENDER_1);
+
         vm.prank(LENDER_1);
         vm.expectRevert(Error.ZeroAddress.selector);
         market.assignLiquidityPoolToCreditLine(address(creditLine), address(0));
     }
 
     function test_assignLiquidityPoolToCreditLine_Revert_IfAlreadyAssigned() public {
-        configureMarket();
-        vm.prank(LENDER_1);
+        registerCreditLineAndLiquidityPool(LENDER_1, LENDER_1);
+
+        vm.startPrank(LENDER_1);
+        market.assignLiquidityPoolToCreditLine(address(creditLine), address(liquidityPool));
         vm.expectRevert(Error.NotImplemented.selector);
-        market.assignLiquidityPoolToCreditLine(address(creditLine), LIQUIDITY_POOL_1);
-    }
-
-    function test_assignLiquidityPoolToCreditLine_Revert_IfWrongCreditLineLender() public {
-        vm.startPrank(OWNER);
-        market.registerCreditLine(LENDER_1, address(creditLine));
-        market.registerLiquidityPool(LENDER_2, address(liquidityPool));
-        vm.stopPrank();
-
-        vm.prank(LENDER_2);
-        vm.expectRevert(Error.Unauthorized.selector);
         market.assignLiquidityPoolToCreditLine(address(creditLine), address(liquidityPool));
     }
 
-    function test_assignLiquidityPoolToCreditLine_Revert_IfWrongLiquidityPoolLender() public {
-        vm.startPrank(OWNER);
-        market.registerCreditLine(LENDER_1, address(creditLine));
-        market.registerLiquidityPool(LENDER_2, address(liquidityPool));
-        vm.stopPrank();
+    function test_assignLiquidityPoolToCreditLine_Revert_IfLenderMismatch() public {
+        registerCreditLineAndLiquidityPool(LENDER_1, LENDER_2);
 
         vm.prank(LENDER_1);
         vm.expectRevert(Error.Unauthorized.selector);
