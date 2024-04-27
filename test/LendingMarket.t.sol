@@ -1311,6 +1311,7 @@ contract LendingMarketTest is Test {
 
     function test_updateLoanDuration(address caller) private {
         configureMarket();
+
         uint256 loanId = createActiveLoan(1);
         Loan.State memory loan = market.getLoanState(loanId);
 
@@ -1335,6 +1336,7 @@ contract LendingMarketTest is Test {
 
     function test_updateLoanDuration_Revert_IfContractIsPaused() public {
         configureMarket();
+
         uint256 loanId = createActiveLoan(1);
         Loan.State memory loan = market.getLoanState(loanId);
 
@@ -1350,6 +1352,7 @@ contract LendingMarketTest is Test {
 
     function test_updateLoanDuration_Revert_IfCallerNotLender() public {
         configureMarket();
+
         uint256 loanId = createActiveLoan(1);
         Loan.State memory loan = market.getLoanState(loanId);
 
@@ -1362,13 +1365,13 @@ contract LendingMarketTest is Test {
 
     function test_updateLoanDuration_Revert_IfLoanNotExist() public {
         vm.prank(LENDER_1);
-        uint256 newDurationInPeriods = 2;
         vm.expectRevert(LendingMarket.LoanNotExist.selector);
-        market.updateLoanDuration(LOAN_ID_NONEXISTENT, newDurationInPeriods);
+        market.updateLoanDuration(LOAN_ID_NONEXISTENT, 100);
     }
 
     function test_updateLoanDuration_Revert_IfRepaidLoan() public {
         configureMarket();
+
         uint256 loanId = createRepaidLoan(1);
         Loan.State memory loan = market.getLoanState(loanId);
 
@@ -1381,6 +1384,7 @@ contract LendingMarketTest is Test {
 
     function test_updateLoanDuration_Revert_IfSameLoanDuration() public {
         configureMarket();
+
         uint256 loanId = createActiveLoan(1);
         Loan.State memory loan = market.getLoanState(loanId);
 
@@ -1393,6 +1397,7 @@ contract LendingMarketTest is Test {
 
     function test_updateLoanDuration_Revert_IfDecreasedLoanDuration() public {
         configureMarket();
+
         uint256 loanId = createActiveLoan(1);
         Loan.State memory loan = market.getLoanState(loanId);
 
@@ -1409,6 +1414,7 @@ contract LendingMarketTest is Test {
 
     function test_updateLoanInterestRatePrimary(address caller) private {
         configureMarket();
+
         uint256 loanId = createActiveLoan(1);
         Loan.State memory loan = market.getLoanState(loanId);
 
@@ -1434,6 +1440,7 @@ contract LendingMarketTest is Test {
 
     function test_updateLoanInterestRatePrimary_Revert_IfContractIsPaused() public {
         configureMarket();
+
         uint256 loanId = createActiveLoan(1);
         Loan.State memory loan = market.getLoanState(loanId);
 
@@ -1449,6 +1456,7 @@ contract LendingMarketTest is Test {
 
     function test_updateLoanInterestRatePrimary_Revert_IfCallerNotLender() public {
         configureMarket();
+
         uint256 loanId = createActiveLoan(1);
         Loan.State memory loan = market.getLoanState(loanId);
 
@@ -1462,11 +1470,12 @@ contract LendingMarketTest is Test {
     function test_updateLoanInterestRatePrimary_Revert_IfLoanNotExist() public {
         vm.prank(LENDER_1);
         vm.expectRevert(LendingMarket.LoanNotExist.selector);
-        market.updateLoanInterestRatePrimary(LOAN_ID_NONEXISTENT, 1);
+        market.updateLoanInterestRatePrimary(LOAN_ID_NONEXISTENT, 100);
     }
 
     function test_updateLoanInterestRatePrimary_Revert_IfLoadIsRepaid() public {
         configureMarket();
+
         uint256 loanId = createRepaidLoan(1);
         Loan.State memory loan = market.getLoanState(loanId);
 
@@ -1495,6 +1504,7 @@ contract LendingMarketTest is Test {
 
     function test_updateLoanInterestRateSecondary(address caller) private {
         configureMarket();
+
         uint256 loanId = createActiveLoan(1);
         Loan.State memory loan = market.getLoanState(loanId);
 
@@ -1520,6 +1530,7 @@ contract LendingMarketTest is Test {
 
     function test_updateLoanInterestRateSecondary_Revert_IfContractIsPaused() public {
         configureMarket();
+
         uint256 loanId = createActiveLoan(1);
         Loan.State memory loan = market.getLoanState(loanId);
 
@@ -1535,6 +1546,7 @@ contract LendingMarketTest is Test {
 
     function test_updateLoanInterestRateSecondary_Revert_IfCallerNotLender() public {
         configureMarket();
+
         uint256 loanId = createActiveLoan(1);
         Loan.State memory loan = market.getLoanState(loanId);
 
@@ -1548,11 +1560,12 @@ contract LendingMarketTest is Test {
     function test_updateLoanInterestRateSecondary_Revert_IfLoanNotExist() public {
         vm.prank(LENDER_1);
         vm.expectRevert(LendingMarket.LoanNotExist.selector);
-        market.updateLoanInterestRateSecondary(LOAN_ID_NONEXISTENT, 1);
+        market.updateLoanInterestRateSecondary(LOAN_ID_NONEXISTENT, 100);
     }
 
     function test_updateLoanInterestRateSecondary_Revert_IfLoadIsRepaid() public {
         configureMarket();
+
         uint256 loanId = createRepaidLoan(1);
         Loan.State memory loan = market.getLoanState(loanId);
 
@@ -1565,6 +1578,7 @@ contract LendingMarketTest is Test {
 
     function test_updateLoanInterestRateSecondary_Revert_IfIncreasedInterestRate() public {
         configureMarket();
+
         uint256 loanId = createActiveLoan(1);
         Loan.State memory loan = market.getLoanState(loanId);
 
