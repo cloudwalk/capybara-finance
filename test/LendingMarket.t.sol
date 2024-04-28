@@ -12,6 +12,7 @@ import { Loan } from "src/common/libraries/Loan.sol";
 import { Error } from "src/common/libraries/Error.sol";
 import { Interest } from "src/common/libraries/Interest.sol";
 import { SafeCast } from "src/common/libraries/SafeCast.sol";
+import { Constants } from "src/common/libraries/Constants.sol";
 
 import { ERC20Mock } from "src/mocks/ERC20Mock.sol";
 import { CreditLineMock } from "src/mocks/CreditLineMock.sol";
@@ -297,7 +298,7 @@ contract LendingMarketTest is Test {
 
     function defaultLoan(uint256 loanId) private {
         Loan.State memory loan = market.getLoanState(loanId);
-        skip(market.PERIOD_IN_SECONDS() * loan.durationInPeriods);
+        skip(Constants.PERIOD_IN_SECONDS * loan.durationInPeriods);
     }
 
     function freezeLoan(address lender, uint256 loanId) private {
@@ -317,7 +318,7 @@ contract LendingMarketTest is Test {
         vm.prank(borrower);
         uint256 loanId = market.takeLoan(address(creditLine), borrowAmount, terms.durationInPeriods);
 
-        skip(market.PERIOD_IN_SECONDS() * skipPeriods);
+        skip(Constants.PERIOD_IN_SECONDS * skipPeriods);
 
         return loanId;
     }
@@ -335,8 +336,8 @@ contract LendingMarketTest is Test {
         uint256 loanId = createActiveLoan(borrower, borrowAmount, autoRepayment, 0);
         Loan.State memory loan = market.getLoanState(loanId);
 
-        skip(market.PERIOD_IN_SECONDS() * loan.durationInPeriods);
-        skip(market.PERIOD_IN_SECONDS() * skipPeriods);
+        skip(Constants.PERIOD_IN_SECONDS * loan.durationInPeriods);
+        skip(Constants.PERIOD_IN_SECONDS * skipPeriods);
 
         return loanId;
     }
@@ -877,7 +878,7 @@ contract LendingMarketTest is Test {
 
         // Partial repayment
 
-        skip(market.PERIOD_IN_SECONDS() * skipPeriodsBeforePartialRepayment);
+        skip(Constants.PERIOD_IN_SECONDS * skipPeriodsBeforePartialRepayment);
 
         uint256 outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
         uint256 repayAmount = outstandingBalance / 2;
@@ -898,7 +899,7 @@ contract LendingMarketTest is Test {
 
         // Full repayment
 
-        skip(market.PERIOD_IN_SECONDS() * skipPeriodsFullRepayment);
+        skip(Constants.PERIOD_IN_SECONDS * skipPeriodsFullRepayment);
 
         outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
         token.mint(loan.borrower, outstandingBalance);
@@ -1166,7 +1167,7 @@ contract LendingMarketTest is Test {
         uint256 treasuryBalance = token.balanceOf(loan.treasury);
         uint256 borrowAmount = loan.initialBorrowAmount - loan.addonAmount;
 
-        skip(market.PERIOD_IN_SECONDS() * (loan.revocationPeriods - 1));
+        skip(Constants.PERIOD_IN_SECONDS * (loan.revocationPeriods - 1));
 
         vm.expectEmit(true, true, true, true, address(liquidityPool));
         emit OnBeforeLoanRevocationCalled(loanId);
@@ -1230,7 +1231,7 @@ contract LendingMarketTest is Test {
         Loan.State memory loan = market.getLoanState(loanId);
         assertEq(loan.trackedTimestamp, loan.startTimestamp);
 
-        skip(market.PERIOD_IN_SECONDS() * loan.revocationPeriods);
+        skip(Constants.PERIOD_IN_SECONDS * loan.revocationPeriods);
 
         vm.prank(BORROWER);
         vm.expectRevert(LendingMarket.RevocationPeriodHasPassed.selector);
@@ -1385,7 +1386,7 @@ contract LendingMarketTest is Test {
         assertEq(loan.trackedTimestamp, blockTimestamp());
 
         uint256 skipPeriods = 2;
-        skip(market.PERIOD_IN_SECONDS() * skipPeriods);
+        skip(Constants.PERIOD_IN_SECONDS * skipPeriods);
 
         vm.prank(LENDER);
         market.unfreeze(loanId);

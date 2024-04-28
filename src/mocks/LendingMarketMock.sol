@@ -22,8 +22,6 @@ contract LendingMarketMock is ILendingMarket {
     //  Storage variables                           //
     // -------------------------------------------- //
 
-    uint256 private _interestRateFactor;
-
     mapping(uint256 => Loan.State) private _loanStates;
 
     // -------------------------------------------- //
@@ -116,10 +114,6 @@ contract LendingMarketMock is ILendingMarket {
         revert Error.NotImplemented();
     }
 
-    function INTEREST_RATE_FACTOR() external view returns (uint256) {
-        return _interestRateFactor;
-    }
-
     function getCreditLineLender(address creditLine) external pure returns (address) {
         creditLine; // To prevent compiler warning about unused variable
         revert Error.NotImplemented();
@@ -158,10 +152,6 @@ contract LendingMarketMock is ILendingMarket {
     // -------------------------------------------- //
     //  Mock functions                              //
     // -------------------------------------------- //
-
-    function mockInterestRateFactor(uint256 interestRateFactor) external {
-        _interestRateFactor = interestRateFactor;
-    }
 
     function mockLoanState(uint256 loanId, Loan.State memory state) external {
         _loanStates[loanId] = state;
