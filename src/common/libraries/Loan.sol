@@ -21,7 +21,6 @@ library Loan {
         uint32 startTimestamp;            // The timestamp when the loan was created.
         // Slot 3
         address treasury;                 // The address of the loan treasury.
-        uint32 periodInSeconds;           // The duration of the loan period specified in seconds.
         uint32 durationInPeriods;         // The total duration of the loan determined by the number of periods.
         Interest.Formula interestFormula; // The formula used for interest calculation on the loan.
         bool autoRepayment;               // The flag that indicates whether the loan can be repaid automatically.
@@ -42,7 +41,6 @@ library Loan {
         uint32 interestRateFactor;        // The rate factor used together with interest rate.
         // Slot 2
         address treasury;                 // The address of the loan treasury.
-        uint32 periodInSeconds;           // The duration of the loan period specified in seconds.
         uint32 durationInPeriods;         // The total duration of the loan determined by the number of periods.
         Interest.Formula interestFormula; // The formula to be used for interest calculation on the loan.
         bool autoRepayment;               // The flag that indicates whether the loan can be repaid automatically.

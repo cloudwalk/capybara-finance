@@ -39,6 +39,12 @@ contract LendingMarket is
     using SafeCast for uint256;
 
     // -------------------------------------------- //
+    //  Constants                                   //
+    // -------------------------------------------- //
+
+    uint256 public constant PERIOD_IN_SECONDS = 86400;
+
+    // -------------------------------------------- //
     //  Errors                                      //
     // -------------------------------------------- //
 
@@ -268,7 +274,6 @@ contract LendingMarket is
             borrower: msg.sender,
             treasury: terms.treasury,
             startTimestamp: blockTimestamp,
-            periodInSeconds: terms.periodInSeconds,
             durationInPeriods: terms.durationInPeriods,
             interestRateFactor: terms.interestRateFactor,
             interestRatePrimary: terms.interestRatePrimary,
@@ -344,8 +349,8 @@ contract LendingMarket is
             revert RevocationIsProhibited();
         }
 
-        uint256 currentPeriodIndex = _periodIndex(_blockTimestamp(loanId), loan.periodInSeconds);
-        uint256 startPeriodIndex = _periodIndex(loan.startTimestamp, loan.periodInSeconds);
+        uint256 currentPeriodIndex = _periodIndex(_blockTimestamp(loanId), PERIOD_IN_SECONDS);
+        uint256 startPeriodIndex = _periodIndex(loan.startTimestamp, PERIOD_IN_SECONDS);
         if (loan.revocationPeriods <= currentPeriodIndex - startPeriodIndex ) {
             revert RevocationPeriodHasPassed();
         }
@@ -384,12 +389,12 @@ contract LendingMarket is
             revert LoanNotFrozen();
         }
 
-        uint256 currentPeriodIndex = _periodIndex(_blockTimestamp(loanId), loan.periodInSeconds);
-        uint256 freezePeriodIndex = _periodIndex(loan.freezeTimestamp, loan.periodInSeconds);
+        uint256 currentPeriodIndex = _periodIndex(_blockTimestamp(loanId), PERIOD_IN_SECONDS);
+        uint256 freezePeriodIndex = _periodIndex(loan.freezeTimestamp, PERIOD_IN_SECONDS);
         uint256 frozenPeriods = currentPeriodIndex - freezePeriodIndex;
 
         if (frozenPeriods > 0) {
-            loan.trackedTimestamp += (frozenPeriods * loan.periodInSeconds).toUint32();
+            loan.trackedTimestamp += (frozenPeriods * PERIOD_IN_SECONDS).toUint32();
             loan.durationInPeriods += frozenPeriods.toUint32();
         }
 
@@ -577,11 +582,11 @@ contract LendingMarket is
             timestamp = loan.freezeTimestamp;
         }
 
-        periodIndex = _periodIndex(timestamp, loan.periodInSeconds);
-        uint256 trackedPeriodIndex = _periodIndex(loan.trackedTimestamp, loan.periodInSeconds);
+        periodIndex = _periodIndex(timestamp, PERIOD_IN_SECONDS);
+        uint256 trackedPeriodIndex = _periodIndex(loan.trackedTimestamp, PERIOD_IN_SECONDS);
 
         if (periodIndex > trackedPeriodIndex) {
-            uint256 startPeriodIndex = _periodIndex(loan.startTimestamp, loan.periodInSeconds);
+            uint256 startPeriodIndex = _periodIndex(loan.startTimestamp, PERIOD_IN_SECONDS);
             uint256 duePeriodIndex = startPeriodIndex + loan.durationInPeriods;
             if (periodIndex < duePeriodIndex) {
                 outstandingBalance = InterestMath.calculateOutstandingBalance(

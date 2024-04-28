@@ -24,7 +24,6 @@ contract LoanComplexScenarios is Test {
     uint64 private constant BORROW_AMOUNT_1B = 1_000_000_000_000;
     uint64 private constant BORROW_AMOUNT_1M = 1_000_000;
 
-    uint32 private constant PERIOD_IN_SECONDS = 86_400;
     uint32 private constant DURATION_IN_PERIODS = 750;
     uint32 private constant ITERATION_STEP = 50;
 
@@ -37,7 +36,6 @@ contract LoanComplexScenarios is Test {
 
     struct Scenario {
         uint64 borrowAmount;
-        uint32 periodInSeconds;
         uint32 durationInPeriods;
         uint32 interestRatePrimary;
         uint32 interestRateSecondary;
@@ -63,7 +61,6 @@ contract LoanComplexScenarios is Test {
     ) private pure returns (Scenario memory) {
         return Scenario({
             borrowAmount: borrowAmount,
-            periodInSeconds: PERIOD_IN_SECONDS,
             durationInPeriods: DURATION_IN_PERIODS,
             interestRatePrimary: interestRatePrimary,
             interestRateSecondary: interestRateSecondary,
