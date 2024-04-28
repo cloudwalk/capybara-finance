@@ -99,7 +99,6 @@ contract LiquidityPoolAccountableTest is Test {
             token: address(token),
             borrower: address(0),
             treasury: address(0),
-            periodInSeconds: 0,
             durationInPeriods: 0,
             interestRateFactor: 0,
             interestRatePrimary: 0,

@@ -150,9 +150,6 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
 
     /// @inheritdoc ICreditLineConfigurable
     function configureCreditLine(CreditLineConfig memory config) external onlyOwner {
-        if (config.periodInSeconds == 0) {
-            revert InvalidCreditLineConfiguration();
-        }
         if (config.interestRateFactor == 0) {
             revert InvalidCreditLineConfiguration();
         }
@@ -272,7 +269,6 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
 
         terms.token = _token;
         terms.treasury = _config.treasury;
-        terms.periodInSeconds = _config.periodInSeconds;
         terms.interestRateFactor = _config.interestRateFactor;
         terms.durationInPeriods = durationInPeriods.toUint32();
         terms.interestRatePrimary = borrowerConfig.interestRatePrimary;

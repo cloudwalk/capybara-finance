@@ -28,7 +28,6 @@ contract CreditLineMockTest is Test {
     address private constant TERMS_TOKEN = address(bytes20(keccak256("token")));
     address private constant TERMS_TREASURY = address(bytes20(keccak256("treasury")));
 
-    uint32 private constant TERMS_PERIOD_IN_SECONDS = 100;
     uint32 private constant TERMS_DURATION_IN_PERIODS = 200;
     uint32 private constant TERMS_INTEREST_RATE_FACTOR = 300;
     uint32 private constant TERMS_INTEREST_RATE_PRIMARY = 400;
@@ -56,7 +55,6 @@ contract CreditLineMockTest is Test {
 
         assertEq(terms.token, address(0));
         assertEq(terms.treasury, address(0));
-        assertEq(terms.periodInSeconds, 0);
         assertEq(terms.durationInPeriods, 0);
         assertEq(terms.interestRateFactor, 0);
         assertEq(terms.interestRatePrimary, 0);
@@ -72,7 +70,6 @@ contract CreditLineMockTest is Test {
             Loan.Terms({
                 token: TERMS_TOKEN,
                 treasury: TERMS_TREASURY,
-                periodInSeconds: TERMS_PERIOD_IN_SECONDS,
                 durationInPeriods: TERMS_DURATION_IN_PERIODS,
                 interestRateFactor: TERMS_INTEREST_RATE_FACTOR,
                 interestRatePrimary: TERMS_INTEREST_RATE_PRIMARY,
@@ -88,7 +85,6 @@ contract CreditLineMockTest is Test {
 
         assertEq(terms.token, TERMS_TOKEN);
         assertEq(terms.treasury, TERMS_TREASURY);
-        assertEq(terms.periodInSeconds, TERMS_PERIOD_IN_SECONDS);
         assertEq(terms.durationInPeriods, TERMS_DURATION_IN_PERIODS);
         assertEq(terms.interestRateFactor, TERMS_INTEREST_RATE_FACTOR);
         assertEq(terms.interestRatePrimary, TERMS_INTEREST_RATE_PRIMARY);
@@ -104,7 +100,6 @@ contract CreditLineMockTest is Test {
 
         assertEq(terms.token, address(0));
         assertEq(terms.treasury, address(0));
-        assertEq(terms.periodInSeconds, 0);
         assertEq(terms.durationInPeriods, 0);
         assertEq(terms.interestRateFactor, 0);
         assertEq(terms.interestRatePrimary, 0);
@@ -120,7 +115,6 @@ contract CreditLineMockTest is Test {
             Loan.Terms({
                 token: TERMS_TOKEN,
                 treasury: TERMS_TREASURY,
-                periodInSeconds: TERMS_PERIOD_IN_SECONDS,
                 durationInPeriods: TERMS_DURATION_IN_PERIODS,
                 interestRateFactor: TERMS_INTEREST_RATE_FACTOR,
                 interestRatePrimary: TERMS_INTEREST_RATE_PRIMARY,
@@ -136,7 +130,6 @@ contract CreditLineMockTest is Test {
 
         assertEq(terms.token, TERMS_TOKEN);
         assertEq(terms.treasury, TERMS_TREASURY);
-        assertEq(terms.periodInSeconds, TERMS_PERIOD_IN_SECONDS);
         assertEq(terms.durationInPeriods, TERMS_DURATION_IN_PERIODS);
         assertEq(terms.interestRateFactor, TERMS_INTEREST_RATE_FACTOR);
         assertEq(terms.interestRatePrimary, TERMS_INTEREST_RATE_PRIMARY);

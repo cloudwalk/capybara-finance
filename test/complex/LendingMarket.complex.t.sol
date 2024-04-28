@@ -140,7 +140,6 @@ contract LendingMarketComplexTest is Test {
     {
         return ICreditLineConfigurable.CreditLineConfig({
             treasury: address(liquidityPool),
-            periodInSeconds: scenario.periodInSeconds,
             minDurationInPeriods: 0,
             maxDurationInPeriods: type(uint32).max,
             minBorrowAmount: 0,
@@ -215,7 +214,7 @@ contract LendingMarketComplexTest is Test {
         uint256 loanId = lendingMarket.takeLoan(address(creditLine), scenario.borrowAmount, scenario.durationInPeriods);
 
         for (uint256 i = 0; i < scenario.repaymentAmounts.length; i++) {
-            skip(scenario.periodInSeconds * scenario.iterationStep);
+            skip(lendingMarket.PERIOD_IN_SECONDS() * scenario.iterationStep);
 
             Loan.Preview memory previewBefore = lendingMarket.getLoanPreview(loanId, 0);
 
