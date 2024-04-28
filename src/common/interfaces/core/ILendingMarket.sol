@@ -220,6 +220,9 @@ interface ILendingMarket {
     //  View functions                              //
     // -------------------------------------------- //
 
+    /// @dev Returns the interest rate factor used for interest calculation.
+    function INTEREST_RATE_FACTOR() external view returns (uint256);
+
     /// @dev Gets the lender of a credit line.
     /// @param creditLine The address of the credit line to check.
     /// @return The lender address of the credit line.

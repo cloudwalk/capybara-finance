@@ -100,7 +100,6 @@ contract LiquidityPoolAccountableTest is Test {
             borrower: address(0),
             treasury: address(0),
             durationInPeriods: 0,
-            interestRateFactor: 0,
             interestRatePrimary: 0,
             interestRateSecondary: 0,
             interestFormula: Interest.Formula.Simple,

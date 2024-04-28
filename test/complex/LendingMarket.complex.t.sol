@@ -44,6 +44,7 @@ contract LendingMarketComplexTest is Test {
 
     uint256 private constant ZERO_VALUE = 0;
     uint256 private constant PERMISSIBLE_ERROR = 1;
+    uint256 private constant NEGATIVE_TIME_SHIFT = 3 hours;
 
     // -------------------------------------------- //
     //  Setup and configuration                     //
@@ -84,6 +85,10 @@ contract LendingMarketComplexTest is Test {
         lendingMarket.assignLiquidityPoolToCreditLine(address(creditLine), address(liquidityPool));
 
         vm.stopPrank();
+
+        // Skip negative time shift
+
+        skip(NEGATIVE_TIME_SHIFT);
     }
 
     function configureScenario(LoanComplexScenarios.Scenario memory scenario) private {
@@ -148,7 +153,6 @@ contract LendingMarketComplexTest is Test {
             maxInterestRatePrimary: type(uint32).max,
             minInterestRateSecondary: 0,
             maxInterestRateSecondary: type(uint32).max,
-            interestRateFactor: scenario.interestRateFactor,
             minAddonFixedRate: 0,
             maxAddonFixedRate: type(uint32).max,
             minAddonPeriodRate: 0,

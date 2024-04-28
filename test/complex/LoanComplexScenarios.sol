@@ -13,8 +13,6 @@ contract LoanComplexScenarios is Test {
     //  Constants                                   //
     // -------------------------------------------- //
 
-    uint32 private constant INTEREST_RATE_FACTOR = 1_000_000_000;
-
     uint32 private constant INTEREST_RATE_365 = 4_219_472; // 365 %
     uint32 private constant INTEREST_RATE_730 = 5_814_801; // 730 %
 
@@ -40,7 +38,6 @@ contract LoanComplexScenarios is Test {
         uint32 interestRatePrimary;
         uint32 interestRateSecondary;
         Interest.Formula interestFormula;
-        uint32 interestRateFactor;
         uint32 iterationStep;
         uint256 precisionFactor;
         uint256 precisionMinimum;
@@ -65,7 +62,6 @@ contract LoanComplexScenarios is Test {
             interestRatePrimary: interestRatePrimary,
             interestRateSecondary: interestRateSecondary,
             interestFormula: Interest.Formula.Compound,
-            interestRateFactor: INTEREST_RATE_FACTOR,
             iterationStep: ITERATION_STEP,
             precisionFactor: PRECISION_FACTOR,
             precisionMinimum: PRECISION_MINIMUM,

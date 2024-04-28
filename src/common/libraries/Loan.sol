@@ -12,7 +12,6 @@ library Loan {
     struct State {
         // Slot 1
         address token;                    // The address of the token used for the loan.
-        uint32 interestRateFactor;        // The rate factor used together with interest rates.
         uint32 interestRatePrimary;       // The primary interest rate that is applied to the loan.
         uint32 interestRateSecondary;     // The secondary interest rate that is applied to the loan.
         // Slot 2
@@ -38,7 +37,6 @@ library Loan {
         address token;                    // The address of the token to be used for the loan.
         uint32 interestRatePrimary;       // The primary interest rate to be applied to the loan.
         uint32 interestRateSecondary;     // The secondary interest rate to be applied to the loan.
-        uint32 interestRateFactor;        // The rate factor used together with interest rate.
         // Slot 2
         address treasury;                 // The address of the loan treasury.
         uint32 durationInPeriods;         // The total duration of the loan determined by the number of periods.

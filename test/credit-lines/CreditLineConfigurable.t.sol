@@ -13,6 +13,8 @@ import { Error } from "src/common/libraries/Error.sol";
 import { Interest } from "src/common/libraries/Interest.sol";
 import { SafeCast } from "src/common/libraries/SafeCast.sol";
 
+import { LendingMarketMock } from "src/mocks/LendingMarketMock.sol";
+
 import { ICreditLineConfigurable } from "src/common/interfaces/ICreditLineConfigurable.sol";
 import { CreditLineConfigurable } from "src/credit-lines/CreditLineConfigurable.sol";
 
@@ -35,10 +37,10 @@ contract CreditLineConfigurableTest is Test {
     //  Storage variables                           //
     // -------------------------------------------- //
 
+    LendingMarketMock private market;
     CreditLineConfigurable private creditLine;
 
     address private constant ADMIN = address(bytes20(keccak256("admin")));
-    address private constant MARKET = address(bytes20(keccak256("market")));
     address private constant TOKEN_1 = address(bytes20(keccak256("token_1")));
     address private constant TOKEN_2 = address(bytes20(keccak256("token_2")));
     address private constant LENDER_1 = address(bytes20(keccak256("lender_1")));
@@ -55,7 +57,6 @@ contract CreditLineConfigurableTest is Test {
     uint32 private constant CREDIT_LINE_CONFIG_MAX_INTEREST_RATE_PRIMARY = 7;
     uint32 private constant CREDIT_LINE_CONFIG_MIN_INTEREST_RATE_SECONDARY = 4;
     uint32 private constant CREDIT_LINE_CONFIG_MAX_INTEREST_RATE_SECONDARY = 8;
-    uint32 private constant CREDIT_LINE_CONFIG_INTEREST_RATE_FACTOR = 1000;
     uint32 private constant CREDIT_LINE_CONFIG_MIN_DURATION_IN_PERIODS = 20;
     uint32 private constant CREDIT_LINE_CONFIG_MAX_DURATION_IN_PERIODS = 200;
     uint32 private constant CREDIT_LINE_CONFIG_MIN_ADDON_FIXED_RATE = 10;
@@ -83,13 +84,17 @@ contract CreditLineConfigurableTest is Test {
     uint32 private constant DURATION_IN_PERIODS = 30;
     uint16 private constant KIND_1 = 1;
 
+    uint256 private constant INTEREST_RATE_FACTOR = 1_000_000_000;
+
     // -------------------------------------------- //
     //  Setup and configuration                     //
     // -------------------------------------------- //
 
     function setUp() public {
+        market = new LendingMarketMock();
         creditLine = new CreditLineConfigurable();
-        creditLine.initialize(MARKET, LENDER_1, TOKEN_1);
+        creditLine.initialize(address(market), LENDER_1, TOKEN_1);
+        market.mockInterestRateFactor(INTEREST_RATE_FACTOR);
     }
 
     function configureCreditLine() public returns (ICreditLineConfigurable.CreditLineConfig memory) {
@@ -156,7 +161,6 @@ contract CreditLineConfigurableTest is Test {
             config1.maxInterestRatePrimary == config2.maxInterestRatePrimary &&
             config1.minInterestRateSecondary == config2.minInterestRateSecondary &&
             config1.maxInterestRateSecondary == config2.maxInterestRateSecondary &&
-            config1.interestRateFactor == config2.interestRateFactor &&
             config1.minAddonFixedRate == config2.minAddonFixedRate &&
             config1.maxAddonFixedRate == config2.maxAddonFixedRate &&
             config1.minAddonPeriodRate == config2.minAddonPeriodRate &&
@@ -180,7 +184,6 @@ contract CreditLineConfigurableTest is Test {
             config1.maxInterestRatePrimary == config2.maxInterestRatePrimary &&
             config1.minInterestRateSecondary == config2.minInterestRateSecondary &&
             config1.maxInterestRateSecondary == config2.maxInterestRateSecondary &&
-            config1.interestRateFactor == config2.interestRateFactor &&
             config1.minAddonFixedRate == config2.minAddonFixedRate &&
             config1.maxAddonFixedRate == config2.maxAddonFixedRate &&
             config1.minAddonPeriodRate == config2.minAddonPeriodRate &&
@@ -241,7 +244,6 @@ contract CreditLineConfigurableTest is Test {
             maxInterestRatePrimary: CREDIT_LINE_CONFIG_MAX_INTEREST_RATE_PRIMARY,
             minInterestRateSecondary: CREDIT_LINE_CONFIG_MIN_INTEREST_RATE_SECONDARY,
             maxInterestRateSecondary: CREDIT_LINE_CONFIG_MAX_INTEREST_RATE_SECONDARY,
-            interestRateFactor: CREDIT_LINE_CONFIG_INTEREST_RATE_FACTOR,
             minAddonFixedRate: CREDIT_LINE_CONFIG_MIN_ADDON_FIXED_RATE,
             maxAddonFixedRate: CREDIT_LINE_CONFIG_MAX_ADDON_FIXED_RATE,
             minAddonPeriodRate: CREDIT_LINE_CONFIG_MIN_ADDON_PERIOD_RATE,
@@ -257,8 +259,8 @@ contract CreditLineConfigurableTest is Test {
 
     function test_initializer() public {
         creditLine = new CreditLineConfigurable();
-        creditLine.initialize(MARKET, LENDER_1, TOKEN_1);
-        assertEq(creditLine.market(), MARKET);
+        creditLine.initialize(address(market), LENDER_1, TOKEN_1);
+        assertEq(creditLine.market(), address(market));
         assertEq(creditLine.lender(), LENDER_1);
         assertEq(creditLine.owner(), LENDER_1);
         assertEq(creditLine.token(), TOKEN_1);
@@ -273,20 +275,20 @@ contract CreditLineConfigurableTest is Test {
     function test_initializer_Revert_IfLenderIsZeroAddress() public {
         creditLine = new CreditLineConfigurable();
         vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableInvalidOwner.selector, address(0)));
-        creditLine.initialize(MARKET, address(0), TOKEN_1);
+        creditLine.initialize(address(market), address(0), TOKEN_1);
     }
 
     function test_initializer_Revert_IfTokenIsZeroAddress() public {
         creditLine = new CreditLineConfigurable();
         vm.expectRevert(Error.ZeroAddress.selector);
-        creditLine.initialize(MARKET, LENDER_1, address(0));
+        creditLine.initialize(address(market), LENDER_1, address(0));
     }
 
     function test_initialize_Revert_IfCalledSecondTime() public {
         creditLine = new CreditLineConfigurable();
-        creditLine.initialize(MARKET, LENDER_1, TOKEN_1);
+        creditLine.initialize(address(market), LENDER_1, TOKEN_1);
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        creditLine.initialize(MARKET, LENDER_2, TOKEN_2);
+        creditLine.initialize(address(market), LENDER_2, TOKEN_2);
     }
 
     // -------------------------------------------- //
@@ -404,15 +406,6 @@ contract CreditLineConfigurableTest is Test {
 
         vm.prank(ATTACKER);
         vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
-        creditLine.configureCreditLine(config);
-    }
-
-    function test_configureCreditLine_Revert_IfInterestRateFactorIsZero() public {
-        ICreditLineConfigurable.CreditLineConfig memory config = initCreditLineConfig();
-        config.interestRateFactor = 0;
-
-        vm.prank(LENDER_1);
-        vm.expectRevert(CreditLineConfigurable.InvalidCreditLineConfiguration.selector);
         creditLine.configureCreditLine(config);
     }
 
@@ -784,7 +777,7 @@ contract CreditLineConfigurableTest is Test {
 
         assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, config.maxBorrowAmount);
 
-        vm.prank(MARKET);
+        vm.prank(address(market));
         creditLine.onBeforeLoanTaken(BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS, 1);
 
         assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, config.maxBorrowAmount);
@@ -801,7 +794,7 @@ contract CreditLineConfigurableTest is Test {
 
         assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, config.maxBorrowAmount);
 
-        vm.prank(MARKET);
+        vm.prank(address(market));
         creditLine.onBeforeLoanTaken(BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS, 1);
 
         assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, 0);
@@ -818,7 +811,7 @@ contract CreditLineConfigurableTest is Test {
 
         assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, config.maxBorrowAmount);
 
-        vm.prank(MARKET);
+        vm.prank(address(market));
         creditLine.onBeforeLoanTaken(BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS, 1);
 
         assertEq(
@@ -875,23 +868,20 @@ contract CreditLineConfigurableTest is Test {
         );
 
         assertEq(terms.token, creditLine.token());
-
         assertEq(terms.treasury, creditLineConfig.treasury);
-        assertEq(terms.interestRateFactor, creditLineConfig.interestRateFactor);
-
         assertEq(terms.durationInPeriods, DURATION_IN_PERIODS);
         assertEq(terms.interestRatePrimary, borrowerConfig.interestRatePrimary);
         assertEq(terms.interestRateSecondary, borrowerConfig.interestRateSecondary);
         assertEq(uint256(terms.interestFormula), uint256(borrowerConfig.interestFormula));
         assertEq(terms.autoRepayment, borrowerConfig.autoRepayment);
-
         assertEq(
             terms.addonAmount,
             creditLine.calculateAddonAmount(
                 borrowerConfig.minBorrowAmount,
                 DURATION_IN_PERIODS,
                 borrowerConfig.addonFixedRate,
-                borrowerConfig.addonPeriodRate
+                borrowerConfig.addonPeriodRate,
+                market.INTEREST_RATE_FACTOR()
             )
         );
     }
@@ -1011,19 +1001,22 @@ contract CreditLineConfigurableTest is Test {
     function test_calculateAddonAmount() public {
         ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = configureCreditLine();
         ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(block.timestamp);
+        uint256 interestRateFactor = market.INTEREST_RATE_FACTOR();
+
 
         vm.prank(ADMIN);
         creditLine.configureBorrower(BORROWER_1, borrowerConfig);
 
         uint256 addonRate = borrowerConfig.addonFixedRate + borrowerConfig.addonPeriodRate * DURATION_IN_PERIODS;
-        addonRate = addonRate * creditLineConfig.interestRateFactor / (creditLineConfig.interestRateFactor - addonRate);
-        uint256 expectedAddonAmount = (borrowerConfig.minBorrowAmount * addonRate) / creditLineConfig.interestRateFactor;
+        addonRate = addonRate * interestRateFactor / (interestRateFactor - addonRate);
+        uint256 expectedAddonAmount = (borrowerConfig.minBorrowAmount * addonRate) / interestRateFactor;
 
         uint256 actualAddonAmount = creditLine.calculateAddonAmount(
             borrowerConfig.minBorrowAmount,
             DURATION_IN_PERIODS,
             borrowerConfig.addonFixedRate,
-            borrowerConfig.addonPeriodRate
+            borrowerConfig.addonPeriodRate,
+            interestRateFactor
         );
         assertEq(actualAddonAmount, expectedAddonAmount);
 
@@ -1082,7 +1075,7 @@ contract CreditLineConfigurableTest is Test {
     }
 
     function test_market() public {
-        assertEq(creditLine.market(), MARKET);
+        assertEq(creditLine.market(), address(market));
     }
 
     function test_token() public {
