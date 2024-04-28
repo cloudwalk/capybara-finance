@@ -32,8 +32,8 @@ interface ICreditLineConfigurable is ICreditLine {
         address treasury;                // The address of the loan treasury.
         uint32 minDurationInPeriods;     // The minimum duration of the loan determined in periods.
         uint32 maxDurationInPeriods;     // The maximum duration of the loan determined in periods.
-        uint8 minRevocationPeriods;     // The minimum number of periods during which the loan can be revoked.
-        uint8 maxRevocationPeriods;     // The maximum number of periods during which the loan can be revoked.
+        uint8 minCooldownPeriods;        // The minimum number of periods during which the loan can be revoked.
+        uint8 maxCooldownPeriods;        // The maximum number of periods during which the loan can be revoked.
         // Slot 2
         uint64 minBorrowAmount;          // The minimum amount of tokens the borrower can take as a loan.
         uint64 maxBorrowAmount;          // The maximum amount of tokens the borrower can take as a loan.
@@ -63,7 +63,7 @@ interface ICreditLineConfigurable is ICreditLine {
         uint32 maxDurationInPeriods;      // The maximum duration of the loan determined in periods.
         Interest.Formula interestFormula; // The formula to be used for interest calculation on the loan.
         BorrowPolicy borrowPolicy;        // The borrow policy to be applied to the borrower.
-        uint8 revocationPeriods;          // The number of periods during which the loan can be revoked.
+        uint8 cooldownPeriods;            // The number of periods during which the loan can be revoked.
         bool autoRepayment;               // Whether the loan can be repaid automatically.
     }
 
