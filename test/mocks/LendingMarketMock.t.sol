@@ -230,6 +230,21 @@ contract LendingMarketMockTest is Test {
         mock.hasAlias(LENDER_1, LENDER_2);
     }
 
+    function test_interestRateFactor() public {
+        vm.expectRevert(Error.NotImplemented.selector);
+        mock.interestRateFactor();
+    }
+
+    function test_periodInSeconds() public {
+        vm.expectRevert(Error.NotImplemented.selector);
+        mock.periodInSeconds();
+    }
+
+    function test_timeShift() public {
+        vm.expectRevert(Error.NotImplemented.selector);
+        mock.timeShift();
+    }
+
     function test_registry() public {
         vm.expectRevert(Error.NotImplemented.selector);
         mock.registry();

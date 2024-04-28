@@ -523,6 +523,21 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ILendingMarket
+    function interestRateFactor() external view returns (uint256) {
+        return Constants.INTEREST_RATE_FACTOR;
+    }
+
+    /// @inheritdoc ILendingMarket
+    function periodInSeconds() external view returns (uint256) {
+        return Constants.PERIOD_IN_SECONDS;
+    }
+
+    /// @inheritdoc ILendingMarket
+    function timeShift() external view returns (uint256, bool) {
+        return (Constants.NEGATIVE_TIME_SHIFT, false);
+    }
+
+    /// @inheritdoc ILendingMarket
     function registry() external view returns (address) {
         return _registry;
     }
