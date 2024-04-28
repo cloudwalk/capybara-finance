@@ -45,7 +45,6 @@ contract LendingMarketMockTest is Test {
 
     uint16 private constant STATE_REVOCATION_PERIODS = 10;
     uint32 private constant STATE_DURATION_IN_PERIODS = 200;
-    uint32 private constant STATE_INTEREST_RATE_FACTOR = 300;
     uint32 private constant STATE_INTEREST_RATE_PRIMARY = 400;
     uint32 private constant STATE_INTEREST_RATE_SECONDARY = 500;
     Interest.Formula private constant STATE_INTEREST_FORMULA = Interest.Formula.Compound;
@@ -169,7 +168,6 @@ contract LendingMarketMockTest is Test {
         assertEq(loan.borrower, address(0));
         assertEq(loan.treasury, address(0));
         assertEq(loan.durationInPeriods, 0);
-        assertEq(loan.interestRateFactor, 0);
         assertEq(loan.interestRatePrimary, 0);
         assertEq(loan.interestRateSecondary, 0);
         assertEq(uint256(loan.interestFormula), uint256(Interest.Formula.Simple));
@@ -189,7 +187,6 @@ contract LendingMarketMockTest is Test {
                 borrower: BORROWER,
                 treasury: TREASURY,
                 durationInPeriods: STATE_DURATION_IN_PERIODS,
-                interestRateFactor: STATE_INTEREST_RATE_FACTOR,
                 interestRatePrimary: STATE_INTEREST_RATE_PRIMARY,
                 interestRateSecondary: STATE_INTEREST_RATE_SECONDARY,
                 interestFormula: STATE_INTEREST_FORMULA,
@@ -210,7 +207,6 @@ contract LendingMarketMockTest is Test {
         assertEq(loan.borrower, BORROWER);
         assertEq(loan.treasury, TREASURY);
         assertEq(loan.durationInPeriods, STATE_DURATION_IN_PERIODS);
-        assertEq(loan.interestRateFactor, STATE_INTEREST_RATE_FACTOR);
         assertEq(loan.interestRatePrimary, STATE_INTEREST_RATE_PRIMARY);
         assertEq(loan.interestRateSecondary, STATE_INTEREST_RATE_SECONDARY);
         assertEq(uint256(loan.interestFormula), uint256(STATE_INTEREST_FORMULA));

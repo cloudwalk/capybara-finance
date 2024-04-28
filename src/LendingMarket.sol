@@ -46,6 +46,8 @@ contract LendingMarket is
 
     uint256 public constant NEGATIVE_TIME_SHIFT = 3 hours;
 
+    uint256 public constant INTEREST_RATE_FACTOR = 10 ** 9;
+
     // -------------------------------------------- //
     //  Errors                                      //
     // -------------------------------------------- //
@@ -277,7 +279,6 @@ contract LendingMarket is
             treasury: terms.treasury,
             startTimestamp: blockTimestamp,
             durationInPeriods: terms.durationInPeriods,
-            interestRateFactor: terms.interestRateFactor,
             interestRatePrimary: terms.interestRatePrimary,
             interestRateSecondary: terms.interestRateSecondary,
             interestFormula: terms.interestFormula,
@@ -595,7 +596,7 @@ contract LendingMarket is
                     outstandingBalance,
                     periodIndex - trackedPeriodIndex,
                     loan.interestRatePrimary,
-                    loan.interestRateFactor,
+                    INTEREST_RATE_FACTOR,
                     loan.interestFormula
                 );
             } else if (trackedPeriodIndex >= duePeriodIndex) {
@@ -603,7 +604,7 @@ contract LendingMarket is
                     outstandingBalance,
                     periodIndex - trackedPeriodIndex,
                     loan.interestRateSecondary,
-                    loan.interestRateFactor,
+                    INTEREST_RATE_FACTOR,
                     loan.interestFormula
                 );
             } else {
@@ -611,7 +612,7 @@ contract LendingMarket is
                     outstandingBalance,
                     duePeriodIndex - trackedPeriodIndex,
                     loan.interestRatePrimary,
-                    loan.interestRateFactor,
+                    INTEREST_RATE_FACTOR,
                     loan.interestFormula
                 );
                 if (periodIndex > duePeriodIndex) {
@@ -619,7 +620,7 @@ contract LendingMarket is
                         outstandingBalance,
                         periodIndex - duePeriodIndex,
                         loan.interestRateSecondary,
-                        loan.interestRateFactor,
+                        INTEREST_RATE_FACTOR,
                         loan.interestFormula
                     );
                 }

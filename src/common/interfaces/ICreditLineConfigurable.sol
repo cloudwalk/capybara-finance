@@ -40,7 +40,6 @@ interface ICreditLineConfigurable is ICreditLine {
         uint32 minInterestRateSecondary; // The minimum secondary interest rate to be applied to the loan.
         uint32 maxInterestRateSecondary; // The maximum secondary interest rate to be applied to the loan.
         // Slot 3
-        uint32 interestRateFactor;       // The interest rate factor used for interest calculation.
         uint32 minAddonFixedRate;        // The minimum fixed rate for the loan addon calculation.
         uint32 maxAddonFixedRate;        // The maximum fixed rate for the loan addon calculation.
         uint32 minAddonPeriodRate;       // The minimum period rate for the loan addon calculation.

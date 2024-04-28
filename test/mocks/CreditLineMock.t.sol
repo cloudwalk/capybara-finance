@@ -29,7 +29,6 @@ contract CreditLineMockTest is Test {
     address private constant TERMS_TREASURY = address(bytes20(keccak256("treasury")));
 
     uint32 private constant TERMS_DURATION_IN_PERIODS = 200;
-    uint32 private constant TERMS_INTEREST_RATE_FACTOR = 300;
     uint32 private constant TERMS_INTEREST_RATE_PRIMARY = 400;
     uint32 private constant TERMS_INTEREST_RATE_SECONDARY = 500;
     uint16 private constant TERMS_REVOCATION_PERIODS = 25;
@@ -56,7 +55,6 @@ contract CreditLineMockTest is Test {
         assertEq(terms.token, address(0));
         assertEq(terms.treasury, address(0));
         assertEq(terms.durationInPeriods, 0);
-        assertEq(terms.interestRateFactor, 0);
         assertEq(terms.interestRatePrimary, 0);
         assertEq(terms.interestRateSecondary, 0);
         assertEq(uint256(terms.interestFormula), uint256(Interest.Formula.Simple));
@@ -71,7 +69,6 @@ contract CreditLineMockTest is Test {
                 token: TERMS_TOKEN,
                 treasury: TERMS_TREASURY,
                 durationInPeriods: TERMS_DURATION_IN_PERIODS,
-                interestRateFactor: TERMS_INTEREST_RATE_FACTOR,
                 interestRatePrimary: TERMS_INTEREST_RATE_PRIMARY,
                 interestRateSecondary: TERMS_INTEREST_RATE_SECONDARY,
                 interestFormula: TERMS_INTEREST_FORMULA,
@@ -86,7 +83,6 @@ contract CreditLineMockTest is Test {
         assertEq(terms.token, TERMS_TOKEN);
         assertEq(terms.treasury, TERMS_TREASURY);
         assertEq(terms.durationInPeriods, TERMS_DURATION_IN_PERIODS);
-        assertEq(terms.interestRateFactor, TERMS_INTEREST_RATE_FACTOR);
         assertEq(terms.interestRatePrimary, TERMS_INTEREST_RATE_PRIMARY);
         assertEq(terms.interestRateSecondary, TERMS_INTEREST_RATE_SECONDARY);
         assertEq(uint256(terms.interestFormula), uint256(TERMS_INTEREST_FORMULA));
@@ -101,7 +97,6 @@ contract CreditLineMockTest is Test {
         assertEq(terms.token, address(0));
         assertEq(terms.treasury, address(0));
         assertEq(terms.durationInPeriods, 0);
-        assertEq(terms.interestRateFactor, 0);
         assertEq(terms.interestRatePrimary, 0);
         assertEq(terms.interestRateSecondary, 0);
         assertEq(uint256(terms.interestFormula), uint256(Interest.Formula.Simple));
@@ -116,7 +111,6 @@ contract CreditLineMockTest is Test {
                 token: TERMS_TOKEN,
                 treasury: TERMS_TREASURY,
                 durationInPeriods: TERMS_DURATION_IN_PERIODS,
-                interestRateFactor: TERMS_INTEREST_RATE_FACTOR,
                 interestRatePrimary: TERMS_INTEREST_RATE_PRIMARY,
                 interestRateSecondary: TERMS_INTEREST_RATE_SECONDARY,
                 interestFormula: TERMS_INTEREST_FORMULA,
@@ -131,7 +125,6 @@ contract CreditLineMockTest is Test {
         assertEq(terms.token, TERMS_TOKEN);
         assertEq(terms.treasury, TERMS_TREASURY);
         assertEq(terms.durationInPeriods, TERMS_DURATION_IN_PERIODS);
-        assertEq(terms.interestRateFactor, TERMS_INTEREST_RATE_FACTOR);
         assertEq(terms.interestRatePrimary, TERMS_INTEREST_RATE_PRIMARY);
         assertEq(terms.interestRateSecondary, TERMS_INTEREST_RATE_SECONDARY);
         assertEq(uint256(terms.interestFormula), uint256(TERMS_INTEREST_FORMULA));
