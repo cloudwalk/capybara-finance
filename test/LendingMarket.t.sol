@@ -1827,6 +1827,20 @@ contract LendingMarketTest is Test {
         assertEq(market.getLiquidityPoolLender(address(liquidityPool)), LENDER);
     }
 
+    function test_interestRateFactor() public {
+        assertEq(market.interestRateFactor(), Constants.INTEREST_RATE_FACTOR);
+    }
+
+    function test_periodInSeconds() public {
+        assertEq(market.periodInSeconds(), Constants.PERIOD_IN_SECONDS);
+    }
+
+    function test_timeShift() public {
+        (uint256 timeShift, bool isPositive) = market.timeShift();
+        assertEq(timeShift, Constants.NEGATIVE_TIME_SHIFT);
+        assertEq(isPositive, false);
+    }
+
     // function test_calculatePeriodIndex() public {
     //     uint256 timestamp = 10 ** 6 - 1;
     //     uint256 periodInSeconds = 1 seconds;
