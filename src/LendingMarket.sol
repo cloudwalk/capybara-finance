@@ -76,8 +76,8 @@ contract LendingMarket is
     /// @dev Thrown when loan auto repayment is not allowed.
     error AutoRepaymentNotAllowed();
 
-    /// @dev Thrown when the revocation period has passed.
-    error RevocationPeriodHasPassed();
+    /// @dev Thrown when the cooldown period has passed.
+    error CooldownPeriodHasPassed();
 
     /// @dev Thrown when loan revocation is prohibited.
     error RevocationIsProhibited();
@@ -278,7 +278,7 @@ contract LendingMarket is
             trackedTimestamp: blockTimestamp,
             freezeTimestamp: 0,
             autoRepayment: terms.autoRepayment,
-            revocationPeriods: terms.revocationPeriods,
+            cooldownPeriods: terms.cooldownPeriods,
             addonAmount: terms.addonAmount
         });
 
@@ -345,8 +345,8 @@ contract LendingMarket is
 
         uint256 currentPeriodIndex = _periodIndex(_blockTimestamp(), Constants.PERIOD_IN_SECONDS);
         uint256 startPeriodIndex = _periodIndex(loan.startTimestamp, Constants.PERIOD_IN_SECONDS);
-        if (loan.revocationPeriods <= currentPeriodIndex - startPeriodIndex ) {
-            revert RevocationPeriodHasPassed();
+        if (loan.cooldownPeriods <= currentPeriodIndex - startPeriodIndex ) {
+            revert CooldownPeriodHasPassed();
         }
 
         loan.trackedBorrowBalance = 0;

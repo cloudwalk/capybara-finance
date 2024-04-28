@@ -143,8 +143,8 @@ contract LendingMarketTest is Test {
     uint32 private constant CREDIT_LINE_CONFIG_MAX_ADDON_FIXED_RATE = 50;
     uint32 private constant CREDIT_LINE_CONFIG_MIN_ADDON_PERIOD_RATE = 10;
     uint32 private constant CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_RATE = 50;
-    uint8 private constant CREDIT_LINE_CONFIG_MIN_REVOCATION_PERIODS = 2;
-    uint8 private constant CREDIT_LINE_CONFIG_MAX_REVOCATION_PERIODS = 4;
+    uint8 private constant CREDIT_LINE_CONFIG_MIN_COOLDOWN_PERIODS = 2;
+    uint8 private constant CREDIT_LINE_CONFIG_MAX_COOLDOWN_PERIODS = 4;
 
     uint32 private constant BORROWER_CONFIG_ADDON_FIXED_RATE = 15;
     uint32 private constant BORROWER_CONFIG_ADDON_PERIOD_RATE = 20;
@@ -155,7 +155,7 @@ contract LendingMarketTest is Test {
     uint64 private constant BORROWER_CONFIG_MAX_BORROW_AMOUNT = 800;
     uint32 private constant BORROWER_CONFIG_INTEREST_RATE_PRIMARY = 5;
     uint32 private constant BORROWER_CONFIG_INTEREST_RATE_SECONDARY = 6;
-    uint8 private constant BORROWER_CONFIG_REVOCATION_PERIODS = 3;
+    uint8 private constant BORROWER_CONFIG_COOLDOWN_PERIODS = 3;
     bool private constant BORROWER_CONFIG_AUTOREPAYMENT = true;
     Interest.Formula private constant BORROWER_CONFIG_INTEREST_FORMULA_COMPOUND = Interest.Formula.Compound;
     ICreditLineConfigurable.BorrowPolicy private constant BORROWER_CONFIG_BORROW_POLICY_DECREASE =
@@ -214,7 +214,7 @@ contract LendingMarketTest is Test {
             interestFormula: BORROWER_CONFIG_INTEREST_FORMULA_COMPOUND,
             borrowPolicy: BORROWER_CONFIG_BORROW_POLICY_DECREASE,
             autoRepayment: BORROWER_CONFIG_AUTOREPAYMENT,
-            revocationPeriods: BORROWER_CONFIG_REVOCATION_PERIODS
+            cooldownPeriods: BORROWER_CONFIG_COOLDOWN_PERIODS
         });
     }
 
@@ -251,8 +251,8 @@ contract LendingMarketTest is Test {
             maxAddonFixedRate: CREDIT_LINE_CONFIG_MAX_ADDON_FIXED_RATE,
             minAddonPeriodRate: CREDIT_LINE_CONFIG_MIN_ADDON_PERIOD_RATE,
             maxAddonPeriodRate: CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_RATE,
-            minRevocationPeriods: CREDIT_LINE_CONFIG_MIN_REVOCATION_PERIODS,
-            maxRevocationPeriods: CREDIT_LINE_CONFIG_MAX_REVOCATION_PERIODS
+            minCooldownPeriods: CREDIT_LINE_CONFIG_MIN_COOLDOWN_PERIODS,
+            maxCooldownPeriods: CREDIT_LINE_CONFIG_MAX_COOLDOWN_PERIODS
         });
     }
 
@@ -269,7 +269,7 @@ contract LendingMarketTest is Test {
             interestFormula: borrowerConfig.interestFormula,
             autoRepayment: autoRepayment,
             addonAmount: ADDON_AMOUNT,
-            revocationPeriods: borrowerConfig.revocationPeriods
+            cooldownPeriods: borrowerConfig.cooldownPeriods
         });
 
         creditLine.mockLoanTerms(borrower, borrowAmount, terms);
@@ -802,7 +802,7 @@ contract LendingMarketTest is Test {
         assertEq(loan.addonAmount, terms.addonAmount);
         assertEq(loan.autoRepayment, terms.autoRepayment);
         assertEq(loan.durationInPeriods, terms.durationInPeriods);
-        assertEq(loan.revocationPeriods, terms.revocationPeriods);
+        assertEq(loan.cooldownPeriods, terms.cooldownPeriods);
         assertEq(loan.interestRatePrimary, terms.interestRatePrimary);
         assertEq(loan.interestRateSecondary, terms.interestRateSecondary);
         assertEq(uint256(loan.interestFormula), uint256(terms.interestFormula));
@@ -1167,7 +1167,7 @@ contract LendingMarketTest is Test {
         uint256 treasuryBalance = token.balanceOf(loan.treasury);
         uint256 borrowAmount = loan.initialBorrowAmount - loan.addonAmount;
 
-        skip(Constants.PERIOD_IN_SECONDS * (loan.revocationPeriods - 1));
+        skip(Constants.PERIOD_IN_SECONDS * (loan.cooldownPeriods - 1));
 
         vm.expectEmit(true, true, true, true, address(liquidityPool));
         emit OnBeforeLoanRevocationCalled(loanId);
@@ -1224,17 +1224,17 @@ contract LendingMarketTest is Test {
         market.revokeLoan(loanId);
     }
 
-    function test_revokeLoan_Revert_IfRevocationPeriodHasPassed() public {
+    function test_revokeLoan_Revert_IfCooldownPeriodHasPassed() public {
         configureMarket();
 
         uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 1);
         Loan.State memory loan = market.getLoanState(loanId);
         assertEq(loan.trackedTimestamp, loan.startTimestamp);
 
-        skip(Constants.PERIOD_IN_SECONDS * loan.revocationPeriods);
+        skip(Constants.PERIOD_IN_SECONDS * loan.cooldownPeriods);
 
         vm.prank(BORROWER);
-        vm.expectRevert(LendingMarket.RevocationPeriodHasPassed.selector);
+        vm.expectRevert(LendingMarket.CooldownPeriodHasPassed.selector);
         market.revokeLoan(loanId);
     }
 
