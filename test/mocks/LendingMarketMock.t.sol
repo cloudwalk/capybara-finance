@@ -43,7 +43,7 @@ contract LendingMarketMockTest is Test {
     uint256 private constant REPAY_AMOUNT = 200;
     uint256 private constant LOAN_ID = 1;
 
-    uint16 private constant STATE_REVOCATION_PERIODS = 10;
+    uint8 private constant STATE_REVOCATION_PERIODS = 10;
     uint32 private constant STATE_DURATION_IN_PERIODS = 200;
     uint32 private constant STATE_INTEREST_RATE_PRIMARY = 400;
     uint32 private constant STATE_INTEREST_RATE_SECONDARY = 500;

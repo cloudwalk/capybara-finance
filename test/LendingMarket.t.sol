@@ -143,8 +143,8 @@ contract LendingMarketTest is Test {
     uint32 private constant CREDIT_LINE_CONFIG_MAX_ADDON_FIXED_RATE = 50;
     uint32 private constant CREDIT_LINE_CONFIG_MIN_ADDON_PERIOD_RATE = 10;
     uint32 private constant CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_RATE = 50;
-    uint16 private constant CREDIT_LINE_CONFIG_MIN_REVOCATION_PERIODS = 2;
-    uint16 private constant CREDIT_LINE_CONFIG_MAX_REVOCATION_PERIODS = 4;
+    uint8 private constant CREDIT_LINE_CONFIG_MIN_REVOCATION_PERIODS = 2;
+    uint8 private constant CREDIT_LINE_CONFIG_MAX_REVOCATION_PERIODS = 4;
 
     uint32 private constant BORROWER_CONFIG_ADDON_FIXED_RATE = 15;
     uint32 private constant BORROWER_CONFIG_ADDON_PERIOD_RATE = 20;
@@ -155,7 +155,7 @@ contract LendingMarketTest is Test {
     uint64 private constant BORROWER_CONFIG_MAX_BORROW_AMOUNT = 800;
     uint32 private constant BORROWER_CONFIG_INTEREST_RATE_PRIMARY = 5;
     uint32 private constant BORROWER_CONFIG_INTEREST_RATE_SECONDARY = 6;
-    uint16 private constant BORROWER_CONFIG_REVOCATION_PERIODS = 3;
+    uint8 private constant BORROWER_CONFIG_REVOCATION_PERIODS = 3;
     bool private constant BORROWER_CONFIG_AUTOREPAYMENT = true;
     Interest.Formula private constant BORROWER_CONFIG_INTEREST_FORMULA_COMPOUND = Interest.Formula.Compound;
     ICreditLineConfigurable.BorrowPolicy private constant BORROWER_CONFIG_BORROW_POLICY_DECREASE =
