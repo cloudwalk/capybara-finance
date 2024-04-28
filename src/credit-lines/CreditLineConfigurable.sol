@@ -11,7 +11,6 @@ import { SafeCast } from "../common/libraries/SafeCast.sol";
 import { Constants } from "../common/libraries/Constants.sol";
 
 import { ICreditLine } from "../common/interfaces/core/ICreditLine.sol";
-import { ILendingMarket } from "../common/interfaces/core/ILendingMarket.sol";
 import { ICreditLineConfigurable } from "../common/interfaces/ICreditLineConfigurable.sol";
 
 /// @title CreditLineConfigurable contract
