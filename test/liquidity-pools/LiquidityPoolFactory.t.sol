@@ -19,10 +19,7 @@ contract LiquidityPoolFactoryTest is Test {
     // -------------------------------------------- //
 
     event LiquidityPoolCreated(
-        address indexed market,
-        address indexed lender,
-        uint16 indexed kind,
-        address liquidityPool
+        address indexed market, address indexed lender, uint16 indexed kind, address liquidityPool
     );
 
     // -------------------------------------------- //

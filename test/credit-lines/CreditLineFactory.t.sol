@@ -19,11 +19,7 @@ contract CreditLineFactoryTest is Test {
     // -------------------------------------------- //
 
     event CreditLineCreated(
-        address indexed market,
-        address indexed lender,
-        address indexed token,
-        uint16 kind,
-        address creditLine
+        address indexed market, address indexed lender, address indexed token, uint16 kind, address creditLine
     );
 
     // -------------------------------------------- //

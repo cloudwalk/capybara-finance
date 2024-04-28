@@ -41,7 +41,7 @@ contract LendingRegistryTest is Test {
         bytes data
     );
     event CreateLiquidityPoolCalled(
-        address indexed market, 
+        address indexed market,
         address indexed lender,
         uint16 indexed kind,
         bytes data

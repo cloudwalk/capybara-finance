@@ -15,7 +15,7 @@ interface ILiquidityPoolAccountable is ILiquidityPool {
     /// @dev A struct that defines the credit line balance.
     struct CreditLineBalance {
         uint64 borrowable; // The amount of tokens that can be borrowed.
-        uint64 addons;     // The amount of tokens that are locked as addons.
+        uint64 addons; // The amount of tokens that are locked as addons.
     }
 
     // -------------------------------------------- //
