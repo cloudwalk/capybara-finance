@@ -42,7 +42,9 @@ contract LendingMarket is
     //  Constants                                   //
     // -------------------------------------------- //
 
-    uint256 public constant PERIOD_IN_SECONDS = 86400;
+    uint256 public constant PERIOD_IN_SECONDS = 24 hours;
+
+    uint256 public constant NEGATIVE_TIME_SHIFT = 3 hours;
 
     // -------------------------------------------- //
     //  Errors                                      //
@@ -267,7 +269,7 @@ contract LendingMarket is
             id
         );
         uint64 totalBorrowAmount = (borrowAmount + terms.addonAmount).toUint64();
-        uint32 blockTimestamp = _blockTimestamp(id).toUint32();
+        uint32 blockTimestamp = _blockTimestamp().toUint32();
 
         _loans[id] = Loan.State({
             token: terms.token,
@@ -310,7 +312,7 @@ contract LendingMarket is
             revert Error.NotImplemented();
         }
 
-        (uint256 outstandingBalance,) = _outstandingBalance(loan, _blockTimestamp(loanId));
+        (uint256 outstandingBalance,) = _outstandingBalance(loan, _blockTimestamp());
 
         if (repayAmount == type(uint256).max) {
             repayAmount = outstandingBalance;
@@ -327,7 +329,7 @@ contract LendingMarket is
         address payer = autoRepayment ? loan.borrower : msg.sender;
 
         outstandingBalance -= repayAmount;
-        loan.trackedTimestamp = _blockTimestamp(loanId).toUint32();
+        loan.trackedTimestamp = _blockTimestamp().toUint32();
         loan.trackedBorrowBalance = outstandingBalance.toUint64();
 
         ILiquidityPool(loan.treasury).onBeforeLoanPayment(loanId, repayAmount);
@@ -349,7 +351,7 @@ contract LendingMarket is
             revert RevocationIsProhibited();
         }
 
-        uint256 currentPeriodIndex = _periodIndex(_blockTimestamp(loanId), PERIOD_IN_SECONDS);
+        uint256 currentPeriodIndex = _periodIndex(_blockTimestamp(), PERIOD_IN_SECONDS);
         uint256 startPeriodIndex = _periodIndex(loan.startTimestamp, PERIOD_IN_SECONDS);
         if (loan.revocationPeriods <= currentPeriodIndex - startPeriodIndex ) {
             revert RevocationPeriodHasPassed();
@@ -376,7 +378,7 @@ contract LendingMarket is
             revert LoanAlreadyFrozen();
         }
 
-        loan.freezeTimestamp = _blockTimestamp(loanId).toUint32();
+        loan.freezeTimestamp = _blockTimestamp().toUint32();
 
         emit LoanFrozen(loanId);
     }
@@ -389,7 +391,7 @@ contract LendingMarket is
             revert LoanNotFrozen();
         }
 
-        uint256 currentPeriodIndex = _periodIndex(_blockTimestamp(loanId), PERIOD_IN_SECONDS);
+        uint256 currentPeriodIndex = _periodIndex(_blockTimestamp(), PERIOD_IN_SECONDS);
         uint256 freezePeriodIndex = _periodIndex(loan.freezeTimestamp, PERIOD_IN_SECONDS);
         uint256 frozenPeriods = currentPeriodIndex - freezePeriodIndex;
 
@@ -512,7 +514,7 @@ contract LendingMarket is
     /// @inheritdoc ILendingMarket
     function getLoanPreview(uint256 loanId, uint256 timestamp) external view returns (Loan.Preview memory) {
         if (timestamp == 0) {
-            timestamp = _blockTimestamp(loanId);
+            timestamp = _blockTimestamp();
         }
 
         Loan.Preview memory preview;
@@ -640,9 +642,8 @@ contract LendingMarket is
     }
 
     /// @dev Returns the current block timestamp.
-    function _blockTimestamp(uint256 loanId) internal view virtual returns (uint256) {
-        loanId; // To prevent compiler warning about unused variable
-        return block.timestamp;
+    function _blockTimestamp() internal view virtual returns (uint256) {
+        return block.timestamp - NEGATIVE_TIME_SHIFT;
     }
 
     // -------------------------------------------- //

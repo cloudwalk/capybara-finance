@@ -126,8 +126,9 @@ contract LendingMarketTest is Test {
     uint64 private constant ADDON_AMOUNT = 100;
     uint64 private constant BORROW_AMOUNT = 100;
     uint32 private constant DURATION_IN_PERIODS = 30;
-    uint256 private constant LOAN_ID_NONEXISTENT = 999_999_999;
-    uint256 private constant INIT_BLOCK_TIMESTAMP = 123_256_789;
+    uint256 private constant LOAN_ID_NONEXISTENT = 111_111_111;
+    uint256 private constant INIT_BLOCK_TIMESTAMP = 999_999_999;
+    uint256 private constant NEGAVIVE_TIME_SHIFT = 3 hours;
 
     uint64 private constant CREDIT_LINE_CONFIG_MIN_BORROW_AMOUNT = 400;
     uint64 private constant CREDIT_LINE_CONFIG_MAX_BORROW_AMOUNT = 900;
@@ -353,6 +354,10 @@ contract LendingMarketTest is Test {
         market.repayLoan(loanId, outstandingBalance);
 
         return loanId;
+    }
+
+    function blockTimestamp() private view returns (uint256) {
+        return block.timestamp - NEGAVIVE_TIME_SHIFT;
     }
 
     // -------------------------------------------- //
@@ -791,8 +796,8 @@ contract LendingMarketTest is Test {
         assertEq(loan.token, terms.token);
         assertEq(loan.borrower, BORROWER);
         assertEq(loan.treasury, terms.treasury);
-        assertEq(loan.startTimestamp, block.timestamp);
-        assertEq(loan.trackedTimestamp, block.timestamp);
+        assertEq(loan.startTimestamp, blockTimestamp());
+        assertEq(loan.trackedTimestamp, blockTimestamp());
         assertEq(loan.freezeTimestamp, 0);
         assertEq(loan.initialBorrowAmount, totalBorrowAmount);
         assertEq(loan.trackedBorrowBalance, totalBorrowAmount);
@@ -1245,7 +1250,7 @@ contract LendingMarketTest is Test {
         uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 1);
 
         Loan.State memory loan = market.getLoanState(loanId);
-        assertNotEq(loan.freezeTimestamp, block.timestamp);
+        assertNotEq(loan.freezeTimestamp, blockTimestamp());
         assertEq(loan.freezeTimestamp, 0);
 
         vm.expectEmit(true, true, true, true, address(market));
@@ -1255,7 +1260,7 @@ contract LendingMarketTest is Test {
         market.freeze(loanId);
 
         loan = market.getLoanState(loanId);
-        assertEq(loan.freezeTimestamp, block.timestamp);
+        assertEq(loan.freezeTimestamp, blockTimestamp());
     }
 
     function test_freeze_IfLender() public {
@@ -1365,7 +1370,7 @@ contract LendingMarketTest is Test {
         preview = market.getLoanPreview(loanId, 0);
 
         assertEq(loan.freezeTimestamp, 0);
-        assertEq(loan.trackedTimestamp, block.timestamp);
+        assertEq(loan.trackedTimestamp, blockTimestamp());
         assertEq(loan.durationInPeriods, oldDurationInPeriods);
         assertEq(preview.outstandingBalance, oldOutstandingBalance);
     }
@@ -1380,8 +1385,8 @@ contract LendingMarketTest is Test {
         uint256 oldDurationInPeriods = loan.durationInPeriods;
         uint256 oldOutstandingBalance = preview.outstandingBalance;
 
-        assertEq(loan.freezeTimestamp, block.timestamp);
-        assertEq(loan.trackedTimestamp, block.timestamp);
+        assertEq(loan.freezeTimestamp, blockTimestamp());
+        assertEq(loan.trackedTimestamp, blockTimestamp());
 
         uint256 skipPeriods = 2;
         skip(market.PERIOD_IN_SECONDS() * skipPeriods);
@@ -1393,7 +1398,7 @@ contract LendingMarketTest is Test {
         preview = market.getLoanPreview(loanId, 0);
 
         assertEq(loan.freezeTimestamp, 0);
-        assertEq(loan.trackedTimestamp, block.timestamp);
+        assertEq(loan.trackedTimestamp, blockTimestamp());
         assertEq(loan.durationInPeriods, oldDurationInPeriods + skipPeriods);
         assertEq(preview.outstandingBalance, oldOutstandingBalance);
     }
