@@ -12,38 +12,37 @@ library Loan {
     struct State {
         // Slot 1
         address token;                    // The address of the token used for the loan.
-        uint32 interestRatePrimary;       // The primary interest rate that is applied to the loan.
-        uint32 interestRateSecondary;     // The secondary interest rate that is applied to the loan.
+        uint32 startTimestamp;            // The timestamp when the loan was created (stated).
+        uint64 initialBorrowAmount;       // The initial total amount of the loan, including the addon.
         // Slot 2
         address borrower;                 // The address of the borrower.
-        uint64 initialBorrowAmount;       // The initial total amount of the loan, including the addon.
-        uint32 startTimestamp;            // The timestamp when the loan was created.
+        uint32 durationInPeriods;         // The total duration of the loan determined by the number of periods.
+        uint64 addonAmount;               // The amount of the loan addon (extra charges or fees).
         // Slot 3
         address treasury;                 // The address of the loan treasury.
-        uint32 durationInPeriods;         // The total duration of the loan determined by the number of periods.
         Interest.Formula interestFormula; // The formula used for interest calculation on the loan.
+        uint8 revocationPeriods;          // The number of periods during which the loan can be revoked.
         bool autoRepayment;               // The flag that indicates whether the loan can be repaid automatically.
-        uint16 revocationPeriods;         // The number of periods during which the loan can be revoked.
         // Slot 4
+        uint32 interestRatePrimary;       // The primary interest rate that is applied to the loan.
+        uint32 interestRateSecondary;     // The secondary interest rate that is applied to the loan.
         uint64 trackedBorrowBalance;      // The borrow balance of the loan that is tracked over its lifetime.
         uint32 trackedTimestamp;          // The timestamp when the loan was last paid or its balance was updated.
         uint32 freezeTimestamp;           // The timestamp when the loan was frozen. Zero value for unfrozen loans.
-        uint64 addonAmount;               // The amount of the loan addon (extra charges or fees).
     }
 
     /// @dev A struct that defines the terms of the loan.
     struct Terms {
         // Slot 1
         address token;                    // The address of the token to be used for the loan.
+        uint32 durationInPeriods;         // The total duration of the loan determined by the number of periods.
         uint32 interestRatePrimary;       // The primary interest rate to be applied to the loan.
         uint32 interestRateSecondary;     // The secondary interest rate to be applied to the loan.
         // Slot 2
         address treasury;                 // The address of the loan treasury.
-        uint32 durationInPeriods;         // The total duration of the loan determined by the number of periods.
         Interest.Formula interestFormula; // The formula to be used for interest calculation on the loan.
+        uint8 revocationPeriods;          // The number of periods during which the loan can be revoked.
         bool autoRepayment;               // The flag that indicates whether the loan can be repaid automatically.
-        uint16 revocationPeriods;         // The number of periods during which the loan can be revoked.
-        // Slot 3
         uint64 addonAmount;               // The amount of the loan addon (extra charges or fees).
     }
 

@@ -158,7 +158,7 @@ contract LendingMarketComplexTest is Test {
             minAddonPeriodRate: 0,
             maxAddonPeriodRate: type(uint32).max,
             minRevocationPeriods: 0,
-            maxRevocationPeriods: type(uint16).max
+            maxRevocationPeriods: type(uint8).max
         });
     }
 

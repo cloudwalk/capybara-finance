@@ -28,10 +28,10 @@ contract CreditLineMockTest is Test {
     address private constant TERMS_TOKEN = address(bytes20(keccak256("token")));
     address private constant TERMS_TREASURY = address(bytes20(keccak256("treasury")));
 
+    uint8 private constant TERMS_REVOCATION_PERIODS = 25;
     uint32 private constant TERMS_DURATION_IN_PERIODS = 200;
     uint32 private constant TERMS_INTEREST_RATE_PRIMARY = 400;
     uint32 private constant TERMS_INTEREST_RATE_SECONDARY = 500;
-    uint16 private constant TERMS_REVOCATION_PERIODS = 25;
     uint32 private constant TERMS_ADDON_AMOUNT = 600;
 
     Interest.Formula private constant TERMS_INTEREST_FORMULA = Interest.Formula.Compound;
