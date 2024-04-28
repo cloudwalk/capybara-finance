@@ -300,14 +300,19 @@ contract LendingMarketTest is Test {
         market.repayLoan(loanId, outstandingBalance);
     }
 
+    function defaultLoan(uint256 loanId) private {
+        Loan.State memory loan = market.getLoanState(loanId);
+        skip(loan.periodInSeconds * loan.durationInPeriods);
+    }
+
     function freezeLoan(address lender, uint256 loanId) private {
         vm.prank(lender);
         market.freeze(loanId);
     }
 
-    function defaultLoan(uint256 loanId) private {
-        Loan.State memory loan = market.getLoanState(loanId);
-        skip(loan.periodInSeconds * loan.durationInPeriods);
+    function unfreezeLoan(address lender, uint256 loanId) private {
+        vm.prank(lender);
+        market.unfreeze(loanId);
     }
 
     function createActiveLoan(address borrower, uint256 borrowAmount, bool autoRepayment, uint256 skipPeriods) private returns (uint256) {
@@ -1020,7 +1025,8 @@ contract LendingMarketTest is Test {
         bool autoRepayment = false;
         uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT, autoRepayment);
 
-        token.mint(BORROWER, market.getLoanPreview(loanId, 0).outstandingBalance);
+        uint256 outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
+        token.mint(BORROWER, outstandingBalance);
 
         vm.expectEmit(true, true, true, true, address(market));
         emit LoanRepayment(loanId, BORROWER, BORROWER, outstandingBalance, 0);
