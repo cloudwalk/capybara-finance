@@ -8,6 +8,7 @@ import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/P
 import { Loan } from "../common/libraries/Loan.sol";
 import { Error } from "../common/libraries/Error.sol";
 import { SafeCast } from "../common/libraries/SafeCast.sol";
+import { Constants } from "../common/libraries/Constants.sol";
 
 import { ICreditLine } from "../common/interfaces/core/ICreditLine.sol";
 import { ILendingMarket } from "../common/interfaces/core/ILendingMarket.sol";
@@ -279,7 +280,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
             durationInPeriods,
             borrowerConfig.addonFixedRate,
             borrowerConfig.addonPeriodRate,
-            ILendingMarket(_market).INTEREST_RATE_FACTOR()
+            Constants.INTEREST_RATE_FACTOR
         ).toUint64();
     }
 

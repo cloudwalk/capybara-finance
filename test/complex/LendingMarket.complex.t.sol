@@ -12,6 +12,7 @@ import { IERC721Receiver } from "@openzeppelin/contracts/token/ERC721/IERC721Rec
 
 import { Loan } from "src/common/libraries/Loan.sol";
 import { Interest } from "src/common/libraries/Interest.sol";
+import { Constants } from "src/common/libraries/Constants.sol";
 
 import { ICreditLineConfigurable } from "src/common/interfaces/ICreditLineConfigurable.sol";
 import { ERC20Mock } from "src/mocks/ERC20Mock.sol";
@@ -44,7 +45,6 @@ contract LendingMarketComplexTest is Test {
 
     uint256 private constant ZERO_VALUE = 0;
     uint256 private constant PERMISSIBLE_ERROR = 1;
-    uint256 private constant NEGATIVE_TIME_SHIFT = 3 hours;
 
     // -------------------------------------------- //
     //  Setup and configuration                     //
@@ -88,7 +88,7 @@ contract LendingMarketComplexTest is Test {
 
         // Skip negative time shift
 
-        skip(NEGATIVE_TIME_SHIFT);
+        skip(Constants.NEGATIVE_TIME_SHIFT);
     }
 
     function configureScenario(LoanComplexScenarios.Scenario memory scenario) private {
@@ -218,7 +218,7 @@ contract LendingMarketComplexTest is Test {
         uint256 loanId = lendingMarket.takeLoan(address(creditLine), scenario.borrowAmount, scenario.durationInPeriods);
 
         for (uint256 i = 0; i < scenario.repaymentAmounts.length; i++) {
-            skip(lendingMarket.PERIOD_IN_SECONDS() * scenario.iterationStep);
+            skip(Constants.PERIOD_IN_SECONDS * scenario.iterationStep);
 
             Loan.Preview memory previewBefore = lendingMarket.getLoanPreview(loanId, 0);
 

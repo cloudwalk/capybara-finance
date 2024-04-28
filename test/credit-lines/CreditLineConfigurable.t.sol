@@ -12,6 +12,7 @@ import { Loan } from "src/common/libraries/Loan.sol";
 import { Error } from "src/common/libraries/Error.sol";
 import { Interest } from "src/common/libraries/Interest.sol";
 import { SafeCast } from "src/common/libraries/SafeCast.sol";
+import { Constants } from "src/common/libraries/Constants.sol";
 
 import { LendingMarketMock } from "src/mocks/LendingMarketMock.sol";
 
@@ -94,7 +95,6 @@ contract CreditLineConfigurableTest is Test {
         market = new LendingMarketMock();
         creditLine = new CreditLineConfigurable();
         creditLine.initialize(address(market), LENDER_1, TOKEN_1);
-        market.mockInterestRateFactor(INTEREST_RATE_FACTOR);
     }
 
     function configureCreditLine() public returns (ICreditLineConfigurable.CreditLineConfig memory) {
@@ -881,7 +881,7 @@ contract CreditLineConfigurableTest is Test {
                 DURATION_IN_PERIODS,
                 borrowerConfig.addonFixedRate,
                 borrowerConfig.addonPeriodRate,
-                market.INTEREST_RATE_FACTOR()
+                Constants.INTEREST_RATE_FACTOR
             )
         );
     }
@@ -1001,22 +1001,20 @@ contract CreditLineConfigurableTest is Test {
     function test_calculateAddonAmount() public {
         ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = configureCreditLine();
         ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(block.timestamp);
-        uint256 interestRateFactor = market.INTEREST_RATE_FACTOR();
-
 
         vm.prank(ADMIN);
         creditLine.configureBorrower(BORROWER_1, borrowerConfig);
 
         uint256 addonRate = borrowerConfig.addonFixedRate + borrowerConfig.addonPeriodRate * DURATION_IN_PERIODS;
-        addonRate = addonRate * interestRateFactor / (interestRateFactor - addonRate);
-        uint256 expectedAddonAmount = (borrowerConfig.minBorrowAmount * addonRate) / interestRateFactor;
+        addonRate = addonRate * Constants.INTEREST_RATE_FACTOR / (Constants.INTEREST_RATE_FACTOR - addonRate);
+        uint256 expectedAddonAmount = (borrowerConfig.minBorrowAmount * addonRate) / Constants.INTEREST_RATE_FACTOR;
 
         uint256 actualAddonAmount = creditLine.calculateAddonAmount(
             borrowerConfig.minBorrowAmount,
             DURATION_IN_PERIODS,
             borrowerConfig.addonFixedRate,
             borrowerConfig.addonPeriodRate,
-            interestRateFactor
+            Constants.INTEREST_RATE_FACTOR
         );
         assertEq(actualAddonAmount, expectedAddonAmount);
 
