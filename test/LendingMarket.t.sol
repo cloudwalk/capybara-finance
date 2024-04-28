@@ -281,6 +281,35 @@ contract LendingMarketTest is Test {
         return terms;
     }
 
+    function createLoan(address borrower, uint256 borrowAmount, bool autoRepayment) private returns (uint256) {
+        Loan.Terms memory terms = mockLoanTerms(borrower, borrowAmount, autoRepayment);
+        token.mint(address(liquidityPool), borrowAmount + terms.addonAmount);
+
+        vm.prank(borrower);
+        uint256 loanId = market.takeLoan(address(creditLine), borrowAmount, terms.durationInPeriods);
+
+        return loanId;
+    }
+
+    function repayLoan(uint256 loanId) private {
+        Loan.State memory loan = market.getLoanState(loanId);
+        uint256 outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
+        token.mint(loan.borrower, outstandingBalance);
+
+        vm.prank(loan.borrower);
+        market.repayLoan(loanId, outstandingBalance);
+    }
+
+    function freezeLoan(address lender, uint256 loanId) private {
+        vm.prank(lender);
+        market.freeze(loanId);
+    }
+
+    function defaultLoan(uint256 loanId) private {
+        Loan.State memory loan = market.getLoanState(loanId);
+        skip(loan.periodInSeconds * loan.durationInPeriods);
+    }
+
     function createActiveLoan(address borrower, uint256 borrowAmount, bool autoRepayment, uint256 skipPeriods) private returns (uint256) {
         Loan.Terms memory terms = mockLoanTerms(borrower, borrowAmount, autoRepayment);
         token.mint(address(liquidityPool), borrowAmount + terms.addonAmount);
@@ -886,11 +915,15 @@ contract LendingMarketTest is Test {
 
     function test_repayLoan_IfLoanIsActive() public {
         configureMarket();
+
         bool autoRepayment = false;
-        uint256 skipPeriodsBeforePartialRepayment = 2;
-        uint256 skipPeriodsFullRepayment = 3;
+        uint256 skipPeriodsBeforePartialRepayment = 5;
+        uint256 skipPeriodsFullRepayment = 10;
+
+        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT, autoRepayment);
+
         repayLoan(
-            createActiveLoan(BORROWER, BORROW_AMOUNT, autoRepayment, 1),
+            loanId,
             autoRepayment,
             skipPeriodsBeforePartialRepayment,
             skipPeriodsFullRepayment);
@@ -899,10 +932,14 @@ contract LendingMarketTest is Test {
     function test_repayLoan_IfLoanIsFrozen() public {
         configureMarket();
         bool autoRepayment = false;
-        uint256 skipPeriodsBeforePartialRepayment = 2;
-        uint256 skipPeriodsFullRepayment = 3;
+        uint256 skipPeriodsBeforePartialRepayment = 5;
+        uint256 skipPeriodsFullRepayment = 10;
+
+        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT, autoRepayment);
+        freezeLoan(LENDER, loanId);
+
         repayLoan(
-            createFrozenLoan(LENDER, BORROWER, BORROW_AMOUNT, autoRepayment, 1),
+            loanId,
             autoRepayment,
             skipPeriodsBeforePartialRepayment,
             skipPeriodsFullRepayment);
@@ -911,10 +948,14 @@ contract LendingMarketTest is Test {
     function test_repayLoan_IfLoanIsDefaulted() public {
         configureMarket();
         bool autoRepayment = false;
-        uint256 skipPeriodsBeforePartialRepayment = 2;
-        uint256 skipPeriodsFullRepayment = 3;
+        uint256 skipPeriodsBeforePartialRepayment = 5;
+        uint256 skipPeriodsFullRepayment = 10;
+
+        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT, autoRepayment);
+        defaultLoan(loanId);
+
         repayLoan(
-            createDefaultedLoan(BORROWER, BORROW_AMOUNT, autoRepayment, 1),
+            loanId,
             autoRepayment,
             skipPeriodsBeforePartialRepayment,
             skipPeriodsFullRepayment);
@@ -923,10 +964,13 @@ contract LendingMarketTest is Test {
     function test_repayLoan_IfLoanIsActive_AutoRepayment() public {
         configureMarket();
         bool autoRepayment = true;
-        uint256 skipPeriodsBeforePartialRepayment = 2;
-        uint256 skipPeriodsFullRepayment = 3;
+        uint256 skipPeriodsBeforePartialRepayment = 5;
+        uint256 skipPeriodsFullRepayment = 10;
+
+        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT, autoRepayment);
+
         repayLoan(
-            createActiveLoan(BORROWER, BORROW_AMOUNT, autoRepayment, 1),
+            loanId,
             autoRepayment,
             skipPeriodsBeforePartialRepayment,
             skipPeriodsFullRepayment);
@@ -935,10 +979,14 @@ contract LendingMarketTest is Test {
     function test_repayLoan_IfLoanIsFrozen_AutoRepayment() public {
         configureMarket();
         bool autoRepayment = true;
-        uint256 skipPeriodsBeforePartialRepayment = 2;
-        uint256 skipPeriodsFullRepayment = 3;
+        uint256 skipPeriodsBeforePartialRepayment = 5;
+        uint256 skipPeriodsFullRepayment = 10;
+
+        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT, autoRepayment);
+        freezeLoan(LENDER, loanId);
+
         repayLoan(
-            createFrozenLoan(LENDER, BORROWER, BORROW_AMOUNT, autoRepayment, 1),
+            loanId,
             autoRepayment,
             skipPeriodsBeforePartialRepayment,
             skipPeriodsFullRepayment);
@@ -947,10 +995,14 @@ contract LendingMarketTest is Test {
     function test_repayLoan_IfLoanIsDefaulted_AutoRepayment() public {
         configureMarket();
         bool autoRepayment = true;
-        uint256 skipPeriodsBeforePartialRepayment = 2;
-        uint256 skipPeriodsFullRepayment = 3;
+        uint256 skipPeriodsBeforePartialRepayment = 5;
+        uint256 skipPeriodsFullRepayment = 10;
+
+        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT, autoRepayment);
+        defaultLoan(loanId);
+
         repayLoan(
-            createDefaultedLoan(BORROWER, BORROW_AMOUNT, autoRepayment, 1),
+            loanId,
             autoRepayment,
             skipPeriodsBeforePartialRepayment,
             skipPeriodsFullRepayment);
