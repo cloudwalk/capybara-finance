@@ -45,23 +45,12 @@ contract LendingMarketTest is Test {
     event CreditLineRegistered(address indexed lender, address indexed creditLine);
 
     event LiquidityPoolLenderUpdated(
-        address indexed liquidityPool,
-        address indexed newLender,
-        address indexed oldLender
+        address indexed liquidityPool, address indexed newLender, address indexed oldLender
     );
 
-    event CreditLineLenderUpdated(
-        address indexed creditLine,
-        address indexed newLender,
-        address indexed oldLender
-    );
+    event CreditLineLenderUpdated(address indexed creditLine, address indexed newLender, address indexed oldLender);
 
-    event LoanTaken(
-        uint256 indexed loanId,
-        address indexed borrower,
-        uint256 borrowAmount,
-        uint256 durationInPeriods
-    );
+    event LoanTaken(uint256 indexed loanId, address indexed borrower, uint256 borrowAmount, uint256 durationInPeriods);
     event LoanRepayment(
         uint256 indexed loanId,
         address indexed repayer,
@@ -74,32 +63,18 @@ contract LendingMarketTest is Test {
     event LoanFrozen(uint256 indexed loanId);
     event LoanUnfrozen(uint256 indexed loanId);
 
-    event LoanDurationUpdated(
-        uint256 indexed loanId,
-        uint256 indexed newDuration,
-        uint256 indexed oldDuration
-    );
+    event LoanDurationUpdated(uint256 indexed loanId, uint256 indexed newDuration, uint256 indexed oldDuration);
     event LoanInterestRatePrimaryUpdated(
-        uint256 indexed loanId,
-        uint256 indexed newInterestRate,
-        uint256 indexed oldInterestRate
+        uint256 indexed loanId, uint256 indexed newInterestRate, uint256 indexed oldInterestRate
     );
     event LoanInterestRateSecondaryUpdated(
-        uint256 indexed loanId,
-        uint256 indexed newInterestRate,
-        uint256 indexed oldInterestRate
+        uint256 indexed loanId, uint256 indexed newInterestRate, uint256 indexed oldInterestRate
     );
 
     event LiquidityPoolAssignedToCreditLine(
-        address indexed creditLine,
-        address indexed newLiquidityPool,
-        address indexed oldLiquidityPool
+        address indexed creditLine, address indexed newLiquidityPool, address indexed oldLiquidityPool
     );
-    event LenderAliasConfigured(
-        address indexed lender,
-        address indexed account,
-        bool isAlias
-    );
+    event LenderAliasConfigured(address indexed lender, address indexed account, bool isAlias);
 
     // -------------------------------------------- //
     //  Storage variables                           //
@@ -256,7 +231,11 @@ contract LendingMarketTest is Test {
         });
     }
 
-    function mockLoanTerms(address borrower, uint256 borrowAmount, bool autoRepayment) private returns (Loan.Terms memory) {
+    function mockLoanTerms(
+        address borrower,
+        uint256 borrowAmount,
+        bool autoRepayment
+    ) private returns (Loan.Terms memory) {
         ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = initCreditLineConfig();
         ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(0);
 
@@ -311,7 +290,12 @@ contract LendingMarketTest is Test {
         market.unfreeze(loanId);
     }
 
-    function createActiveLoan(address borrower, uint256 borrowAmount, bool autoRepayment, uint256 skipPeriods) private returns (uint256) {
+    function createActiveLoan(
+        address borrower,
+        uint256 borrowAmount,
+        bool autoRepayment,
+        uint256 skipPeriods
+    ) private returns (uint256) {
         Loan.Terms memory terms = mockLoanTerms(borrower, borrowAmount, autoRepayment);
         token.mint(address(liquidityPool), borrowAmount + terms.addonAmount);
 
@@ -323,7 +307,13 @@ contract LendingMarketTest is Test {
         return loanId;
     }
 
-    function createFrozenLoan(address lender, address borrower, uint256 borrowAmount, bool autoRepayment, uint256 skipPeriods) private returns (uint256) {
+    function createFrozenLoan(
+        address lender,
+        address borrower,
+        uint256 borrowAmount,
+        bool autoRepayment,
+        uint256 skipPeriods
+    ) private returns (uint256) {
         uint256 loanId = createActiveLoan(borrower, borrowAmount, autoRepayment, skipPeriods);
 
         vm.prank(lender);
@@ -332,7 +322,12 @@ contract LendingMarketTest is Test {
         return loanId;
     }
 
-    function createDefaultedLoan(address borrower, uint256 borrowAmount, bool autoRepayment, uint256 skipPeriods) private returns (uint256) {
+    function createDefaultedLoan(
+        address borrower,
+        uint256 borrowAmount,
+        bool autoRepayment,
+        uint256 skipPeriods
+    ) private returns (uint256) {
         uint256 loanId = createActiveLoan(borrower, borrowAmount, autoRepayment, 0);
         Loan.State memory loan = market.getLoanState(loanId);
 
@@ -342,7 +337,12 @@ contract LendingMarketTest is Test {
         return loanId;
     }
 
-    function createRepaidLoan(address borrower, uint256 borrowAmount, bool autoRepayment, uint256 skipPeriods) private returns (uint256) {
+    function createRepaidLoan(
+        address borrower,
+        uint256 borrowAmount,
+        bool autoRepayment,
+        uint256 skipPeriods
+    ) private returns (uint256) {
         uint256 loanId = createActiveLoan(borrower, borrowAmount, autoRepayment, skipPeriods);
 
         uint256 outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
@@ -865,7 +865,8 @@ contract LendingMarketTest is Test {
         uint256 loanId,
         bool autoRepaymnet,
         uint256 skipPeriodsBeforePartialRepayment,
-        uint256 skipPeriodsFullRepayment) private {
+        uint256 skipPeriodsFullRepayment
+    ) private {
         Loan.State memory loan = market.getLoanState(loanId);
 
         if (!autoRepaymnet) {
@@ -926,11 +927,7 @@ contract LendingMarketTest is Test {
 
         uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT, autoRepayment);
 
-        repayLoan(
-            loanId,
-            autoRepayment,
-            skipPeriodsBeforePartialRepayment,
-            skipPeriodsFullRepayment);
+        repayLoan(loanId, autoRepayment, skipPeriodsBeforePartialRepayment, skipPeriodsFullRepayment);
     }
 
     function test_repayLoan_CanBeRepaid_IfLoanIsFrozen() public {
@@ -943,11 +940,7 @@ contract LendingMarketTest is Test {
         uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT, autoRepayment);
         freezeLoan(LENDER, loanId);
 
-        repayLoan(
-            loanId,
-            autoRepayment,
-            skipPeriodsBeforePartialRepayment,
-            skipPeriodsFullRepayment);
+        repayLoan(loanId, autoRepayment, skipPeriodsBeforePartialRepayment, skipPeriodsFullRepayment);
     }
 
     function test_repayLoan_CanBeRepaid_IfLoanIsDefaulted() public {
@@ -960,11 +953,7 @@ contract LendingMarketTest is Test {
         uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT, autoRepayment);
         defaultLoan(loanId);
 
-        repayLoan(
-            loanId,
-            autoRepayment,
-            skipPeriodsBeforePartialRepayment,
-            skipPeriodsFullRepayment);
+        repayLoan(loanId, autoRepayment, skipPeriodsBeforePartialRepayment, skipPeriodsFullRepayment);
     }
 
     function test_repayLoan_CanBeRepaid_IfLoanIsActive_AutoRepayment() public {
@@ -976,11 +965,7 @@ contract LendingMarketTest is Test {
 
         uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT, autoRepayment);
 
-        repayLoan(
-            loanId,
-            autoRepayment,
-            skipPeriodsBeforePartialRepayment,
-            skipPeriodsFullRepayment);
+        repayLoan(loanId, autoRepayment, skipPeriodsBeforePartialRepayment, skipPeriodsFullRepayment);
     }
 
     function test_repayLoan_CanBeRepaid_IfLoanIsFrozen_AutoRepayment() public {
@@ -993,11 +978,7 @@ contract LendingMarketTest is Test {
         uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT, autoRepayment);
         freezeLoan(LENDER, loanId);
 
-        repayLoan(
-            loanId,
-            autoRepayment,
-            skipPeriodsBeforePartialRepayment,
-            skipPeriodsFullRepayment);
+        repayLoan(loanId, autoRepayment, skipPeriodsBeforePartialRepayment, skipPeriodsFullRepayment);
     }
 
     function test_repayLoan_CanBeRepaid_IfLoanIsDefaulted_AutoRepayment() public {
@@ -1009,11 +990,7 @@ contract LendingMarketTest is Test {
         uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT, autoRepayment);
         defaultLoan(loanId);
 
-        repayLoan(
-            loanId,
-            autoRepayment,
-            skipPeriodsBeforePartialRepayment,
-            skipPeriodsFullRepayment);
+        repayLoan(loanId, autoRepayment, skipPeriodsBeforePartialRepayment, skipPeriodsFullRepayment);
     }
 
     function test_repayLoan_IfRepaymentAmountIsUint256Max() public {

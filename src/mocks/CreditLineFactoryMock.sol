@@ -14,11 +14,7 @@ contract CreditLineFactoryMock is ICreditLineFactory {
     // -------------------------------------------- //
 
     event CreateCreditLineCalled(
-        address indexed market,
-        address indexed lender,
-        address indexed token,
-        uint16 kind,
-        bytes data
+        address indexed market, address indexed lender, address indexed token, uint16 kind, bytes data
     );
 
     // -------------------------------------------- //

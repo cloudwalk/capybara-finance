@@ -13,7 +13,8 @@ library Interest {
     /// - Simple --- Simple interest rate is linear and is only calculated on the initial principal amount.
     /// - Compound - Compound interest rate is calculated by including interests of previous periods.
     enum Formula {
-        Simple,  // 0
+        Simple, // 0
         Compound // 1
+
     }
 }

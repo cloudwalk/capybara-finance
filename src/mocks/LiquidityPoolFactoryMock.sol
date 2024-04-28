@@ -13,12 +13,7 @@ contract LiquidityPoolFactoryMock is ILiquidityPoolFactory {
     //  Events                                      //
     // -------------------------------------------- //
 
-    event CreateLiquidityPoolCalled(
-        address indexed market, 
-        address indexed lender, 
-        uint16 indexed kind, 
-        bytes data
-    );
+    event CreateLiquidityPoolCalled(address indexed market, address indexed lender, uint16 indexed kind, bytes data);
 
     // -------------------------------------------- //
     //  Storage variables                           //

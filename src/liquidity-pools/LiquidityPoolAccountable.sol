@@ -224,7 +224,10 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
     }
 
     /// @inheritdoc ILiquidityPool
-    function onBeforeLoanPayment(uint256 loanId, uint256 amount) external view whenNotPaused onlyMarket returns (bool) {
+    function onBeforeLoanPayment(
+        uint256 loanId,
+        uint256 amount
+    ) external view whenNotPaused onlyMarket returns (bool) {
         loanId; // To prevent compiler warning about unused variable
         amount; // To prevent compiler warning about unused variable
         return true;
