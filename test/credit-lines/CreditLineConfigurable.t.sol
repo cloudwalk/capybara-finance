@@ -14,8 +14,6 @@ import { Interest } from "src/common/libraries/Interest.sol";
 import { SafeCast } from "src/common/libraries/SafeCast.sol";
 import { Constants } from "src/common/libraries/Constants.sol";
 
-import { LendingMarketMock } from "src/mocks/LendingMarketMock.sol";
-
 import { ICreditLineConfigurable } from "src/common/interfaces/ICreditLineConfigurable.sol";
 import { CreditLineConfigurable } from "src/credit-lines/CreditLineConfigurable.sol";
 
@@ -38,10 +36,10 @@ contract CreditLineConfigurableTest is Test {
     //  Storage variables                           //
     // -------------------------------------------- //
 
-    LendingMarketMock private market;
     CreditLineConfigurable private creditLine;
 
     address private constant ADMIN = address(bytes20(keccak256("admin")));
+    address private constant MARKET = address(bytes20(keccak256("market")));
     address private constant TOKEN_1 = address(bytes20(keccak256("token_1")));
     address private constant TOKEN_2 = address(bytes20(keccak256("token_2")));
     address private constant LENDER_1 = address(bytes20(keccak256("lender_1")));
@@ -92,9 +90,8 @@ contract CreditLineConfigurableTest is Test {
     // -------------------------------------------- //
 
     function setUp() public {
-        market = new LendingMarketMock();
         creditLine = new CreditLineConfigurable();
-        creditLine.initialize(address(market), LENDER_1, TOKEN_1);
+        creditLine.initialize(MARKET, LENDER_1, TOKEN_1);
     }
 
     function configureCreditLine() public returns (ICreditLineConfigurable.CreditLineConfig memory) {
@@ -259,8 +256,8 @@ contract CreditLineConfigurableTest is Test {
 
     function test_initializer() public {
         creditLine = new CreditLineConfigurable();
-        creditLine.initialize(address(market), LENDER_1, TOKEN_1);
-        assertEq(creditLine.market(), address(market));
+        creditLine.initialize(MARKET, LENDER_1, TOKEN_1);
+        assertEq(creditLine.market(), MARKET);
         assertEq(creditLine.lender(), LENDER_1);
         assertEq(creditLine.owner(), LENDER_1);
         assertEq(creditLine.token(), TOKEN_1);
@@ -275,20 +272,20 @@ contract CreditLineConfigurableTest is Test {
     function test_initializer_Revert_IfLenderIsZeroAddress() public {
         creditLine = new CreditLineConfigurable();
         vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableInvalidOwner.selector, address(0)));
-        creditLine.initialize(address(market), address(0), TOKEN_1);
+        creditLine.initialize(MARKET, address(0), TOKEN_1);
     }
 
     function test_initializer_Revert_IfTokenIsZeroAddress() public {
         creditLine = new CreditLineConfigurable();
         vm.expectRevert(Error.ZeroAddress.selector);
-        creditLine.initialize(address(market), LENDER_1, address(0));
+        creditLine.initialize(MARKET, LENDER_1, address(0));
     }
 
     function test_initialize_Revert_IfCalledSecondTime() public {
         creditLine = new CreditLineConfigurable();
-        creditLine.initialize(address(market), LENDER_1, TOKEN_1);
+        creditLine.initialize(MARKET, LENDER_1, TOKEN_1);
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        creditLine.initialize(address(market), LENDER_2, TOKEN_2);
+        creditLine.initialize(MARKET, LENDER_2, TOKEN_2);
     }
 
     // -------------------------------------------- //
@@ -777,7 +774,7 @@ contract CreditLineConfigurableTest is Test {
 
         assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, config.maxBorrowAmount);
 
-        vm.prank(address(market));
+        vm.prank(MARKET);
         creditLine.onBeforeLoanTaken(BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS, 1);
 
         assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, config.maxBorrowAmount);
@@ -794,7 +791,7 @@ contract CreditLineConfigurableTest is Test {
 
         assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, config.maxBorrowAmount);
 
-        vm.prank(address(market));
+        vm.prank(MARKET);
         creditLine.onBeforeLoanTaken(BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS, 1);
 
         assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, 0);
@@ -811,7 +808,7 @@ contract CreditLineConfigurableTest is Test {
 
         assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, config.maxBorrowAmount);
 
-        vm.prank(address(market));
+        vm.prank(MARKET);
         creditLine.onBeforeLoanTaken(BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS, 1);
 
         assertEq(
@@ -1073,7 +1070,7 @@ contract CreditLineConfigurableTest is Test {
     }
 
     function test_market() public {
-        assertEq(creditLine.market(), address(market));
+        assertEq(creditLine.market(), MARKET);
     }
 
     function test_token() public {
