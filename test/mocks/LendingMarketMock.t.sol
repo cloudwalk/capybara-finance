@@ -197,7 +197,8 @@ contract LendingMarketMockTest is Test {
                 trackedBorrowBalance: STATE_TRACKED_BORROW_BALANCE,
                 autoRepayment: STATE_AUTO_REPAYMENT,
                 cooldownPeriods: STATE_COOLDOWN_PERIODS,
-                addonAmount: STATE_ADDON_AMOUNT
+                addonAmount: STATE_ADDON_AMOUNT,
+                _reserved: 0
             })
         );
 

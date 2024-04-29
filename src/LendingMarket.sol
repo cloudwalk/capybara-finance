@@ -279,7 +279,8 @@ contract LendingMarket is
             freezeTimestamp: 0,
             autoRepayment: terms.autoRepayment,
             cooldownPeriods: terms.cooldownPeriods,
-            addonAmount: terms.addonAmount
+            addonAmount: terms.addonAmount,
+            _reserved: 0
         });
 
         ILiquidityPool(liquidityPool).onBeforeLoanTaken(id, creditLine);

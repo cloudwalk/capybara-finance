@@ -21,8 +21,9 @@ library Loan {
         // Slot 3
         address treasury;                 // The address of the loan treasury.
         Interest.Formula interestFormula; // The formula used for interest calculation on the loan.
-        uint8 cooldownPeriods;            // The number of periods during which the loan can be revoked.
         bool autoRepayment;               // The flag that indicates whether the loan can be repaid automatically.
+        uint8 cooldownPeriods;            // The number of periods during which the loan can be revoked.
+        uint72 _reserved;                 // Reserved for future use.
         // Slot 4
         uint32 interestRatePrimary;       // The primary interest rate that is applied to the loan.
         uint32 interestRateSecondary;     // The secondary interest rate that is applied to the loan.
@@ -41,8 +42,8 @@ library Loan {
         // Slot 2
         address treasury;                 // The address of the loan treasury.
         Interest.Formula interestFormula; // The formula to be used for interest calculation on the loan.
-        uint8 cooldownPeriods;            // The number of periods during which the loan can be revoked.
         bool autoRepayment;               // The flag that indicates whether the loan can be repaid automatically.
+        uint8 cooldownPeriods;            // The number of periods during which the loan can be revoked.
         uint64 addonAmount;               // The amount of the loan addon (extra charges or fees).
     }
 
