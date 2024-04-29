@@ -323,7 +323,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     /// @param durationInPeriods The duration of the loan in periods.
     /// @param addonFixedRate The fixed rate of the loan addon (extra charges or fees).
     /// @param addonPeriodRate The rate per period of the loan addon (extra charges or fees).
-    /// @param interestRateFactor // The rate factor used together with interest rate.
+    /// @param interestRateFactor The rate factor used together with interest rate.
     /// @return The amount of the addon.
     function calculateAddonAmount(
         uint256 amount,
