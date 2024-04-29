@@ -9,8 +9,8 @@ library Constants {
     /// @dev The loan period duration in seconds.
     uint256 internal constant PERIOD_IN_SECONDS = 24 hours;
 
-    /// @dev The negative time shift applied to the loan period.
-    uint256 internal constant NEGATIVE_TIME_SHIFT = 3 hours;
+    /// @dev The negative time offset applied to the loan period.
+    uint256 internal constant NEGATIVE_TIME_OFFSET = 3 hours;
 
     /// @dev The rate factor used for the interest rate calculations.
     uint256 internal constant INTEREST_RATE_FACTOR = 10 ** 9;

@@ -153,7 +153,7 @@ contract LendingMarketMock is ILendingMarket {
         revert Error.NotImplemented();
     }
 
-    function timeShift() external view returns (uint256, bool) {
+    function timeOffset() external view returns (uint256, bool) {
         revert Error.NotImplemented();
     }
 

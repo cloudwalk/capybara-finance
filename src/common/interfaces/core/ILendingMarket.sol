@@ -258,8 +258,9 @@ interface ILendingMarket {
     /// @dev Returns the duration of a loan period specified in seconds.
     function periodInSeconds() external view returns (uint256);
 
-    /// @dev Returns the details of the lending market time shift.
-    function timeShift() external view returns (uint256, bool);
+    /// @dev Returns time offset and whether it's positive or negative.
+    /// The time offset is used to adjust current period of the loan.
+    function timeOffset() external view returns (uint256, bool);
 
     /// @dev Returns the address of the lending market registry.
     function registry() external view returns (address);

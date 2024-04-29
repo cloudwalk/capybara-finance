@@ -241,9 +241,9 @@ contract LendingMarketMockTest is Test {
         mock.periodInSeconds();
     }
 
-    function test_timeShift() public {
+    function test_timeOffset() public {
         vm.expectRevert(Error.NotImplemented.selector);
-        mock.timeShift();
+        mock.timeOffset();
     }
 
     function test_registry() public {

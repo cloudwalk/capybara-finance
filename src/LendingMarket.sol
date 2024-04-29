@@ -534,8 +534,8 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ILendingMarket
-    function timeShift() external view returns (uint256, bool) {
-        return (Constants.NEGATIVE_TIME_SHIFT, false);
+    function timeOffset() external view returns (uint256, bool) {
+        return (Constants.NEGATIVE_TIME_OFFSET, false);
     }
 
     /// @inheritdoc ILendingMarket
@@ -651,7 +651,7 @@ contract LendingMarket is
 
     /// @dev Returns the current block timestamp.
     function _blockTimestamp() internal view virtual returns (uint256) {
-        return block.timestamp - Constants.NEGATIVE_TIME_SHIFT;
+        return block.timestamp - Constants.NEGATIVE_TIME_OFFSET;
     }
 
     // -------------------------------------------- //

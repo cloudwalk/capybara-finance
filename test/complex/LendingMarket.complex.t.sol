@@ -88,7 +88,7 @@ contract LendingMarketComplexTest is Test {
 
         // Skip negative time shift
 
-        skip(Constants.NEGATIVE_TIME_SHIFT);
+        skip(Constants.NEGATIVE_TIME_OFFSET);
     }
 
     function configureScenario(LoanComplexScenarios.Scenario memory scenario) private {

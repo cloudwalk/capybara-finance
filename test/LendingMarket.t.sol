@@ -1833,9 +1833,9 @@ contract LendingMarketTest is Test {
         assertEq(market.periodInSeconds(), Constants.PERIOD_IN_SECONDS);
     }
 
-    function test_timeShift() public {
-        (uint256 timeShift, bool isPositive) = market.timeShift();
-        assertEq(timeShift, Constants.NEGATIVE_TIME_SHIFT);
+    function test_timeOffset() public {
+        (uint256 timeOffset, bool isPositive) = market.timeOffset();
+        assertEq(timeOffset, Constants.NEGATIVE_TIME_OFFSET);
         assertEq(isPositive, false);
     }
 
