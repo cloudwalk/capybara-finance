@@ -39,7 +39,8 @@ library InterestMath {
                 originalBalance,
                 numberOfPeriods,
                 interestRate,
-                interestRateFactor);
+                interestRateFactor
+            );
         } else {
             revert InterestFormulaNotImplemented();
         }
