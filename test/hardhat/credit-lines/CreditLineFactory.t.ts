@@ -17,7 +17,7 @@ const CREATION_DATA = ethers.encodeBytes32String("random");
 const NONCE = 2;
 
 describe("Contract 'CreditLineFactory'", async () => {
-  let creditLineFactory: ContractFactory;
+  let factoryForCreditLineFactory: ContractFactory;
 
   let factory: Contract;
 
@@ -31,12 +31,13 @@ describe("Contract 'CreditLineFactory'", async () => {
   before(async () => {
     [deployer, registry, market, lender, token, attacker] = await ethers.getSigners();
 
-    creditLineFactory = await ethers.getContractFactory("CreditLineFactory");
-    creditLineFactory = creditLineFactory.connect(deployer); // Explicitly specifying the deployer account
+    factoryForCreditLineFactory = await ethers.getContractFactory("CreditLineFactory");
+    // Explicitly specifying the deployer account
+    factoryForCreditLineFactory = factoryForCreditLineFactory.connect(deployer);
   });
 
   async function deployCreditLineFactory(): Promise<{ factory: Contract }> {
-    factory = await upgrades.deployProxy(creditLineFactory, [
+    factory = await upgrades.deployProxy(factoryForCreditLineFactory, [
       registry.address
     ]);
 

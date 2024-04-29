@@ -10,7 +10,7 @@ const ERROR_NAME_OWNABLE_UNAUTHORIZED = "OwnableUnauthorizedAccount";
 const LIQUIDITY_POOL_KIND = 1;
 
 describe("Contract 'LiquidityPoolFactoryUUPS'", async () => {
-  let liquidityPoolFactory: ContractFactory;
+  let factoryForLiquidityPoolFactory: ContractFactory;
 
   let factory: Contract;
 
@@ -20,13 +20,14 @@ describe("Contract 'LiquidityPoolFactoryUUPS'", async () => {
   before(async () => {
     [deployer, attacker] = await ethers.getSigners();
 
-    liquidityPoolFactory = await ethers.getContractFactory("LiquidityPoolFactoryUUPS");
-    liquidityPoolFactory = liquidityPoolFactory.connect(deployer); // Explicitly specifying the deployer account
+    factoryForLiquidityPoolFactory = await ethers.getContractFactory("LiquidityPoolFactoryUUPS");
+    // Explicitly specifying the deployer account
+    factoryForLiquidityPoolFactory = factoryForLiquidityPoolFactory.connect(deployer);
   });
 
   async function deployLiquidityPoolFactory(): Promise<{ factory: Contract }> {
     factory = await upgrades.deployProxy(
-      liquidityPoolFactory,
+      factoryForLiquidityPoolFactory,
       [deployer.address],
       { kind: "uups" }
     );
@@ -51,15 +52,15 @@ describe("Contract 'LiquidityPoolFactoryUUPS'", async () => {
   describe("Upgrading", async () => {
     it("Executes as expected", async () => {
       const { factory } = await loadFixture(deployLiquidityPoolFactory);
-      await checkContractUupsUpgrading(factory, liquidityPoolFactory);
+      await checkContractUupsUpgrading(factory, factoryForLiquidityPoolFactory);
     });
 
     it("Is reverted if caller is not the owner", async () => {
       const { factory } = await loadFixture(deployLiquidityPoolFactory);
 
-      liquidityPoolFactory = liquidityPoolFactory.connect(attacker);
+      factoryForLiquidityPoolFactory = factoryForLiquidityPoolFactory.connect(attacker);
 
-      await expect(upgrades.upgradeProxy(factory, liquidityPoolFactory))
+      await expect(upgrades.upgradeProxy(factory, factoryForLiquidityPoolFactory))
         .to.be.revertedWithCustomError(factory, ERROR_NAME_OWNABLE_UNAUTHORIZED);
     });
   });

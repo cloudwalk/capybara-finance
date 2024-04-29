@@ -17,7 +17,7 @@ const CREATION_DATA = ethers.encodeBytes32String("random");
 const NONCE = 2;
 
 describe("Contract 'LiquidityPoolFactory'", async () => {
-  let liquidityPoolFactory: ContractFactory;
+  let factoryForLiquidityPoolFactory: ContractFactory;
 
   let factory: Contract;
 
@@ -30,12 +30,13 @@ describe("Contract 'LiquidityPoolFactory'", async () => {
   before(async () => {
     [deployer, registry, market, lender, attacker] = await ethers.getSigners();
 
-    liquidityPoolFactory = await ethers.getContractFactory("LiquidityPoolFactory");
-    liquidityPoolFactory = liquidityPoolFactory.connect(deployer); // Explicitly specifying the deployer account
+    factoryForLiquidityPoolFactory = await ethers.getContractFactory("LiquidityPoolFactory");
+    // Explicitly specifying the deployer account
+    factoryForLiquidityPoolFactory = factoryForLiquidityPoolFactory.connect(deployer);
   });
 
   async function deployLiquidityPoolFactory(): Promise<{ factory: Contract }> {
-    factory = await upgrades.deployProxy(liquidityPoolFactory, [
+    factory = await upgrades.deployProxy(factoryForLiquidityPoolFactory, [
       registry.address
     ]);
 

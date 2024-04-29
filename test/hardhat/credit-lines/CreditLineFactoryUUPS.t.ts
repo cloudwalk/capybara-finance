@@ -10,7 +10,7 @@ const ERROR_NAME_OWNABLE_UNAUTHORIZED = "OwnableUnauthorizedAccount";
 const CREDIT_LINE_KIND = 1;
 
 describe("Contract 'CreditLineFactoryUUPS'", async () => {
-  let creditLineFactory: ContractFactory;
+  let factoryForCreditLineFactory: ContractFactory;
 
   let factory: Contract;
 
@@ -20,13 +20,14 @@ describe("Contract 'CreditLineFactoryUUPS'", async () => {
   before(async () => {
     [deployer, attacker] = await ethers.getSigners();
 
-    creditLineFactory = await ethers.getContractFactory("CreditLineFactoryUUPS");
-    creditLineFactory = creditLineFactory.connect(deployer); // Explicitly specifying the deployer account
+    factoryForCreditLineFactory = await ethers.getContractFactory("CreditLineFactoryUUPS");
+    // Explicitly specifying the deployer account
+    factoryForCreditLineFactory = factoryForCreditLineFactory.connect(deployer);
   });
 
   async function deployCreditLineFactory(): Promise<{ factory: Contract }> {
     factory = await upgrades.deployProxy(
-      creditLineFactory,
+      factoryForCreditLineFactory,
       [deployer.address],
       { kind: "uups" }
     );
@@ -51,15 +52,15 @@ describe("Contract 'CreditLineFactoryUUPS'", async () => {
   describe("Upgrading", async () => {
     it("Executes as expected", async () => {
       const { factory } = await loadFixture(deployCreditLineFactory);
-      await checkContractUupsUpgrading(factory, creditLineFactory);
+      await checkContractUupsUpgrading(factory, factoryForCreditLineFactory);
     });
 
     it("Is reverted if caller is not the owner", async () => {
       const { factory } = await loadFixture(deployCreditLineFactory);
 
-      creditLineFactory = creditLineFactory.connect(attacker);
+      factoryForCreditLineFactory = factoryForCreditLineFactory.connect(attacker);
 
-      await expect(upgrades.upgradeProxy(factory, creditLineFactory))
+      await expect(upgrades.upgradeProxy(factory, factoryForCreditLineFactory))
         .to.be.revertedWithCustomError(factory, ERROR_NAME_OWNABLE_UNAUTHORIZED);
     });
   });
