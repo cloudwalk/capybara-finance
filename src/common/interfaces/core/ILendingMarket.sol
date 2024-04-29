@@ -252,6 +252,16 @@ interface ILendingMarket {
     /// @return True if the account is an alias for the lender, otherwise false.
     function hasAlias(address lender, address account) external view returns (bool);
 
+    /// @dev Returns the rate factor used to for interest rate calculations.
+    function interestRateFactor() external view returns (uint256);
+
+    /// @dev Returns the duration of a loan period specified in seconds.
+    function periodInSeconds() external view returns (uint256);
+
+    /// @dev Returns time offset and whether it's positive or negative.
+    /// The time offset is used to adjust current period of the loan.
+    function timeOffset() external view returns (uint256, bool);
+
     /// @dev Returns the address of the lending market registry.
     function registry() external view returns (address);
 }

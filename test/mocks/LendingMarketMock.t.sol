@@ -43,10 +43,8 @@ contract LendingMarketMockTest is Test {
     uint256 private constant REPAY_AMOUNT = 200;
     uint256 private constant LOAN_ID = 1;
 
-    uint16 private constant STATE_REVOCATION_PERIODS = 10;
-    uint32 private constant STATE_PERIOD_IN_SECONDS = 100;
+    uint8 private constant STATE_COOLDOWN_PERIODS = 10;
     uint32 private constant STATE_DURATION_IN_PERIODS = 200;
-    uint32 private constant STATE_INTEREST_RATE_FACTOR = 300;
     uint32 private constant STATE_INTEREST_RATE_PRIMARY = 400;
     uint32 private constant STATE_INTEREST_RATE_SECONDARY = 500;
     Interest.Formula private constant STATE_INTEREST_FORMULA = Interest.Formula.Compound;
@@ -169,9 +167,7 @@ contract LendingMarketMockTest is Test {
         assertEq(loan.token, address(0));
         assertEq(loan.borrower, address(0));
         assertEq(loan.treasury, address(0));
-        assertEq(loan.periodInSeconds, 0);
         assertEq(loan.durationInPeriods, 0);
-        assertEq(loan.interestRateFactor, 0);
         assertEq(loan.interestRatePrimary, 0);
         assertEq(loan.interestRateSecondary, 0);
         assertEq(uint256(loan.interestFormula), uint256(Interest.Formula.Simple));
@@ -181,7 +177,7 @@ contract LendingMarketMockTest is Test {
         assertEq(loan.initialBorrowAmount, 0);
         assertEq(loan.trackedBorrowBalance, 0);
         assertEq(loan.autoRepayment, false);
-        assertEq(loan.revocationPeriods, 0);
+        assertEq(loan.cooldownPeriods, 0);
         assertEq(loan.addonAmount, 0);
 
         mock.mockLoanState(
@@ -190,9 +186,7 @@ contract LendingMarketMockTest is Test {
                 token: TOKEN,
                 borrower: BORROWER,
                 treasury: TREASURY,
-                periodInSeconds: STATE_PERIOD_IN_SECONDS,
                 durationInPeriods: STATE_DURATION_IN_PERIODS,
-                interestRateFactor: STATE_INTEREST_RATE_FACTOR,
                 interestRatePrimary: STATE_INTEREST_RATE_PRIMARY,
                 interestRateSecondary: STATE_INTEREST_RATE_SECONDARY,
                 interestFormula: STATE_INTEREST_FORMULA,
@@ -202,8 +196,9 @@ contract LendingMarketMockTest is Test {
                 initialBorrowAmount: STATE_INITIAL_BORROW_AMOUNT,
                 trackedBorrowBalance: STATE_TRACKED_BORROW_BALANCE,
                 autoRepayment: STATE_AUTO_REPAYMENT,
-                revocationPeriods: STATE_REVOCATION_PERIODS,
-                addonAmount: STATE_ADDON_AMOUNT
+                cooldownPeriods: STATE_COOLDOWN_PERIODS,
+                addonAmount: STATE_ADDON_AMOUNT,
+                _reserved: 0
             })
         );
 
@@ -212,9 +207,7 @@ contract LendingMarketMockTest is Test {
         assertEq(loan.token, TOKEN);
         assertEq(loan.borrower, BORROWER);
         assertEq(loan.treasury, TREASURY);
-        assertEq(loan.periodInSeconds, STATE_PERIOD_IN_SECONDS);
         assertEq(loan.durationInPeriods, STATE_DURATION_IN_PERIODS);
-        assertEq(loan.interestRateFactor, STATE_INTEREST_RATE_FACTOR);
         assertEq(loan.interestRatePrimary, STATE_INTEREST_RATE_PRIMARY);
         assertEq(loan.interestRateSecondary, STATE_INTEREST_RATE_SECONDARY);
         assertEq(uint256(loan.interestFormula), uint256(STATE_INTEREST_FORMULA));
@@ -224,7 +217,7 @@ contract LendingMarketMockTest is Test {
         assertEq(loan.initialBorrowAmount, STATE_INITIAL_BORROW_AMOUNT);
         assertEq(loan.trackedBorrowBalance, STATE_TRACKED_BORROW_BALANCE);
         assertEq(loan.autoRepayment, STATE_AUTO_REPAYMENT);
-        assertEq(loan.revocationPeriods, STATE_REVOCATION_PERIODS);
+        assertEq(loan.cooldownPeriods, STATE_COOLDOWN_PERIODS);
         assertEq(loan.addonAmount, STATE_ADDON_AMOUNT);
     }
 
@@ -236,6 +229,21 @@ contract LendingMarketMockTest is Test {
     function test_hasAlias() public {
         vm.expectRevert(Error.NotImplemented.selector);
         mock.hasAlias(LENDER_1, LENDER_2);
+    }
+
+    function test_interestRateFactor() public {
+        vm.expectRevert(Error.NotImplemented.selector);
+        mock.interestRateFactor();
+    }
+
+    function test_periodInSeconds() public {
+        vm.expectRevert(Error.NotImplemented.selector);
+        mock.periodInSeconds();
+    }
+
+    function test_timeOffset() public {
+        vm.expectRevert(Error.NotImplemented.selector);
+        mock.timeOffset();
     }
 
     function test_registry() public {

@@ -14,6 +14,7 @@ import { ERC721EnumerableUpgradeable } from
 import { Loan } from "src/common/libraries/Loan.sol";
 import { Error } from "src/common/libraries/Error.sol";
 import { Interest } from "src/common/libraries/Interest.sol";
+import { Constants } from "src/common/libraries/Constants.sol";
 import { InterestMath } from "src/common/libraries/InterestMath.sol";
 import { SafeCast } from "src/common/libraries/SafeCast.sol";
 
@@ -75,8 +76,8 @@ contract LendingMarket is
     /// @dev Thrown when loan auto repayment is not allowed.
     error AutoRepaymentNotAllowed();
 
-    /// @dev Thrown when the revocation period has passed.
-    error RevocationPeriodHasPassed();
+    /// @dev Thrown when the cooldown period has passed.
+    error CooldownPeriodHasPassed();
 
     /// @dev Thrown when loan revocation is prohibited.
     error RevocationIsProhibited();
@@ -261,16 +262,14 @@ contract LendingMarket is
             id
         );
         uint64 totalBorrowAmount = (borrowAmount + terms.addonAmount).toUint64();
-        uint32 blockTimestamp = _blockTimestamp(id).toUint32();
+        uint32 blockTimestamp = _blockTimestamp().toUint32();
 
         _loans[id] = Loan.State({
             token: terms.token,
             borrower: msg.sender,
             treasury: terms.treasury,
             startTimestamp: blockTimestamp,
-            periodInSeconds: terms.periodInSeconds,
             durationInPeriods: terms.durationInPeriods,
-            interestRateFactor: terms.interestRateFactor,
             interestRatePrimary: terms.interestRatePrimary,
             interestRateSecondary: terms.interestRateSecondary,
             interestFormula: terms.interestFormula,
@@ -279,8 +278,9 @@ contract LendingMarket is
             trackedTimestamp: blockTimestamp,
             freezeTimestamp: 0,
             autoRepayment: terms.autoRepayment,
-            revocationPeriods: terms.revocationPeriods,
-            addonAmount: terms.addonAmount
+            cooldownPeriods: terms.cooldownPeriods,
+            addonAmount: terms.addonAmount,
+            _reserved: 0
         });
 
         ILiquidityPool(liquidityPool).onBeforeLoanTaken(id, creditLine);
@@ -305,7 +305,7 @@ contract LendingMarket is
             revert Error.NotImplemented();
         }
 
-        (uint256 outstandingBalance,) = _outstandingBalance(loan, _blockTimestamp(loanId));
+        (uint256 outstandingBalance,) = _outstandingBalance(loan, _blockTimestamp());
 
         if (repayAmount == type(uint256).max) {
             repayAmount = outstandingBalance;
@@ -322,7 +322,7 @@ contract LendingMarket is
         address payer = autoRepayment ? loan.borrower : msg.sender;
 
         outstandingBalance -= repayAmount;
-        loan.trackedTimestamp = _blockTimestamp(loanId).toUint32();
+        loan.trackedTimestamp = _blockTimestamp().toUint32();
         loan.trackedBorrowBalance = outstandingBalance.toUint64();
 
         ILiquidityPool(loan.treasury).onBeforeLoanPayment(loanId, repayAmount);
@@ -344,10 +344,10 @@ contract LendingMarket is
             revert RevocationIsProhibited();
         }
 
-        uint256 currentPeriodIndex = _periodIndex(_blockTimestamp(loanId), loan.periodInSeconds);
-        uint256 startPeriodIndex = _periodIndex(loan.startTimestamp, loan.periodInSeconds);
-        if (loan.revocationPeriods <= currentPeriodIndex - startPeriodIndex ) {
-            revert RevocationPeriodHasPassed();
+        uint256 currentPeriodIndex = _periodIndex(_blockTimestamp(), Constants.PERIOD_IN_SECONDS);
+        uint256 startPeriodIndex = _periodIndex(loan.startTimestamp, Constants.PERIOD_IN_SECONDS);
+        if (loan.cooldownPeriods <= currentPeriodIndex - startPeriodIndex) {
+            revert CooldownPeriodHasPassed();
         }
 
         loan.trackedBorrowBalance = 0;
@@ -371,7 +371,7 @@ contract LendingMarket is
             revert LoanAlreadyFrozen();
         }
 
-        loan.freezeTimestamp = _blockTimestamp(loanId).toUint32();
+        loan.freezeTimestamp = _blockTimestamp().toUint32();
 
         emit LoanFrozen(loanId);
     }
@@ -384,12 +384,12 @@ contract LendingMarket is
             revert LoanNotFrozen();
         }
 
-        uint256 currentPeriodIndex = _periodIndex(_blockTimestamp(loanId), loan.periodInSeconds);
-        uint256 freezePeriodIndex = _periodIndex(loan.freezeTimestamp, loan.periodInSeconds);
+        uint256 currentPeriodIndex = _periodIndex(_blockTimestamp(), Constants.PERIOD_IN_SECONDS);
+        uint256 freezePeriodIndex = _periodIndex(loan.freezeTimestamp, Constants.PERIOD_IN_SECONDS);
         uint256 frozenPeriods = currentPeriodIndex - freezePeriodIndex;
 
         if (frozenPeriods > 0) {
-            loan.trackedTimestamp += (frozenPeriods * loan.periodInSeconds).toUint32();
+            loan.trackedTimestamp += (frozenPeriods * Constants.PERIOD_IN_SECONDS).toUint32();
             loan.durationInPeriods += frozenPeriods.toUint32();
         }
 
@@ -507,7 +507,7 @@ contract LendingMarket is
     /// @inheritdoc ILendingMarket
     function getLoanPreview(uint256 loanId, uint256 timestamp) external view returns (Loan.Preview memory) {
         if (timestamp == 0) {
-            timestamp = _blockTimestamp(loanId);
+            timestamp = _blockTimestamp();
         }
 
         Loan.Preview memory preview;
@@ -521,6 +521,21 @@ contract LendingMarket is
     /// @inheritdoc ILendingMarket
     function hasAlias(address lender, address account) external view returns (bool) {
         return _hasAlias[lender][account];
+    }
+
+    /// @inheritdoc ILendingMarket
+    function interestRateFactor() external view returns (uint256) {
+        return Constants.INTEREST_RATE_FACTOR;
+    }
+
+    /// @inheritdoc ILendingMarket
+    function periodInSeconds() external view returns (uint256) {
+        return Constants.PERIOD_IN_SECONDS;
+    }
+
+    /// @inheritdoc ILendingMarket
+    function timeOffset() external view returns (uint256, bool) {
+        return (Constants.NEGATIVE_TIME_OFFSET, false);
     }
 
     /// @inheritdoc ILendingMarket
@@ -577,18 +592,18 @@ contract LendingMarket is
             timestamp = loan.freezeTimestamp;
         }
 
-        periodIndex = _periodIndex(timestamp, loan.periodInSeconds);
-        uint256 trackedPeriodIndex = _periodIndex(loan.trackedTimestamp, loan.periodInSeconds);
+        periodIndex = _periodIndex(timestamp, Constants.PERIOD_IN_SECONDS);
+        uint256 trackedPeriodIndex = _periodIndex(loan.trackedTimestamp, Constants.PERIOD_IN_SECONDS);
 
         if (periodIndex > trackedPeriodIndex) {
-            uint256 startPeriodIndex = _periodIndex(loan.startTimestamp, loan.periodInSeconds);
+            uint256 startPeriodIndex = _periodIndex(loan.startTimestamp, Constants.PERIOD_IN_SECONDS);
             uint256 duePeriodIndex = startPeriodIndex + loan.durationInPeriods;
             if (periodIndex < duePeriodIndex) {
                 outstandingBalance = InterestMath.calculateOutstandingBalance(
                     outstandingBalance,
                     periodIndex - trackedPeriodIndex,
                     loan.interestRatePrimary,
-                    loan.interestRateFactor,
+                    Constants.INTEREST_RATE_FACTOR,
                     loan.interestFormula
                 );
             } else if (trackedPeriodIndex >= duePeriodIndex) {
@@ -596,7 +611,7 @@ contract LendingMarket is
                     outstandingBalance,
                     periodIndex - trackedPeriodIndex,
                     loan.interestRateSecondary,
-                    loan.interestRateFactor,
+                    Constants.INTEREST_RATE_FACTOR,
                     loan.interestFormula
                 );
             } else {
@@ -604,7 +619,7 @@ contract LendingMarket is
                     outstandingBalance,
                     duePeriodIndex - trackedPeriodIndex,
                     loan.interestRatePrimary,
-                    loan.interestRateFactor,
+                    Constants.INTEREST_RATE_FACTOR,
                     loan.interestFormula
                 );
                 if (periodIndex > duePeriodIndex) {
@@ -612,7 +627,7 @@ contract LendingMarket is
                         outstandingBalance,
                         periodIndex - duePeriodIndex,
                         loan.interestRateSecondary,
-                        loan.interestRateFactor,
+                        Constants.INTEREST_RATE_FACTOR,
                         loan.interestFormula
                     );
                 }
@@ -635,9 +650,8 @@ contract LendingMarket is
     }
 
     /// @dev Returns the current block timestamp.
-    function _blockTimestamp(uint256 loanId) internal view virtual returns (uint256) {
-        loanId; // To prevent compiler warning about unused variable
-        return block.timestamp;
+    function _blockTimestamp() internal view virtual returns (uint256) {
+        return block.timestamp - Constants.NEGATIVE_TIME_OFFSET;
     }
 
     // -------------------------------------------- //

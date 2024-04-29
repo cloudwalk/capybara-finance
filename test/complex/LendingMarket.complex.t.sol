@@ -12,6 +12,7 @@ import { IERC721Receiver } from "@openzeppelin/contracts/token/ERC721/IERC721Rec
 
 import { Loan } from "src/common/libraries/Loan.sol";
 import { Interest } from "src/common/libraries/Interest.sol";
+import { Constants } from "src/common/libraries/Constants.sol";
 
 import { ICreditLineConfigurable } from "src/common/interfaces/ICreditLineConfigurable.sol";
 import { ERC20Mock } from "src/mocks/ERC20Mock.sol";
@@ -84,6 +85,10 @@ contract LendingMarketComplexTest is Test {
         lendingMarket.assignLiquidityPoolToCreditLine(address(creditLine), address(liquidityPool));
 
         vm.stopPrank();
+
+        // Skip negative time shift
+
+        skip(Constants.NEGATIVE_TIME_OFFSET);
     }
 
     function configureScenario(LoanComplexScenarios.Scenario memory scenario) private {
@@ -129,7 +134,7 @@ contract LendingMarketComplexTest is Test {
             borrowPolicy: ICreditLineConfigurable.BorrowPolicy.Keep,
             autoRepayment: false,
             expiration: type(uint32).max,
-            revocationPeriods: 0
+            cooldownPeriods: 0
         });
     }
 
@@ -140,7 +145,6 @@ contract LendingMarketComplexTest is Test {
     {
         return ICreditLineConfigurable.CreditLineConfig({
             treasury: address(liquidityPool),
-            periodInSeconds: scenario.periodInSeconds,
             minDurationInPeriods: 0,
             maxDurationInPeriods: type(uint32).max,
             minBorrowAmount: 0,
@@ -149,13 +153,12 @@ contract LendingMarketComplexTest is Test {
             maxInterestRatePrimary: type(uint32).max,
             minInterestRateSecondary: 0,
             maxInterestRateSecondary: type(uint32).max,
-            interestRateFactor: scenario.interestRateFactor,
             minAddonFixedRate: 0,
             maxAddonFixedRate: type(uint32).max,
             minAddonPeriodRate: 0,
             maxAddonPeriodRate: type(uint32).max,
-            minRevocationPeriods: 0,
-            maxRevocationPeriods: type(uint16).max
+            minCooldownPeriods: 0,
+            maxCooldownPeriods: type(uint8).max
         });
     }
 
@@ -215,7 +218,7 @@ contract LendingMarketComplexTest is Test {
         uint256 loanId = lendingMarket.takeLoan(address(creditLine), scenario.borrowAmount, scenario.durationInPeriods);
 
         for (uint256 i = 0; i < scenario.repaymentAmounts.length; i++) {
-            skip(scenario.periodInSeconds * scenario.iterationStep);
+            skip(Constants.PERIOD_IN_SECONDS * scenario.iterationStep);
 
             Loan.Preview memory previewBefore = lendingMarket.getLoanPreview(loanId, 0);
 

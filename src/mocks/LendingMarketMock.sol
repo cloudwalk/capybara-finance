@@ -145,6 +145,18 @@ contract LendingMarketMock is ILendingMarket {
         revert Error.NotImplemented();
     }
 
+    function interestRateFactor() external view returns (uint256) {
+        revert Error.NotImplemented();
+    }
+
+    function periodInSeconds() external view returns (uint256) {
+        revert Error.NotImplemented();
+    }
+
+    function timeOffset() external view returns (uint256, bool) {
+        revert Error.NotImplemented();
+    }
+
     function registry() external pure returns (address) {
         revert Error.NotImplemented();
     }

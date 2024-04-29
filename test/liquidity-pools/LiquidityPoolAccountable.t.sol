@@ -99,9 +99,7 @@ contract LiquidityPoolAccountableTest is Test {
             token: address(token),
             borrower: address(0),
             treasury: address(0),
-            periodInSeconds: 0,
             durationInPeriods: 0,
-            interestRateFactor: 0,
             interestRatePrimary: 0,
             interestRateSecondary: 0,
             interestFormula: Interest.Formula.Simple,
@@ -111,8 +109,9 @@ contract LiquidityPoolAccountableTest is Test {
             initialBorrowAmount: 0,
             trackedBorrowBalance: 0,
             autoRepayment: false,
-            revocationPeriods: 0,
-            addonAmount: 0
+            cooldownPeriods: 0,
+            addonAmount: 0,
+            _reserved: 0
         });
     }
 

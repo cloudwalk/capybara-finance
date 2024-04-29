@@ -12,6 +12,7 @@ import { Loan } from "src/common/libraries/Loan.sol";
 import { Error } from "src/common/libraries/Error.sol";
 import { Interest } from "src/common/libraries/Interest.sol";
 import { SafeCast } from "src/common/libraries/SafeCast.sol";
+import { Constants } from "src/common/libraries/Constants.sol";
 
 import { ERC20Mock } from "src/mocks/ERC20Mock.sol";
 import { CreditLineMock } from "src/mocks/CreditLineMock.sol";
@@ -126,8 +127,9 @@ contract LendingMarketTest is Test {
     uint64 private constant ADDON_AMOUNT = 100;
     uint64 private constant BORROW_AMOUNT = 100;
     uint32 private constant DURATION_IN_PERIODS = 30;
-    uint256 private constant LOAN_ID_NONEXISTENT = 999_999_999;
-    uint256 private constant INIT_BLOCK_TIMESTAMP = CREDIT_LINE_CONFIG_PERIOD_IN_SECONDS + 1;
+    uint256 private constant LOAN_ID_NONEXISTENT = 111_111_111;
+    uint256 private constant INIT_BLOCK_TIMESTAMP = 999_999_999;
+    uint256 private constant NEGAVIVE_TIME_SHIFT = 3 hours;
 
     uint64 private constant CREDIT_LINE_CONFIG_MIN_BORROW_AMOUNT = 400;
     uint64 private constant CREDIT_LINE_CONFIG_MAX_BORROW_AMOUNT = 900;
@@ -135,16 +137,14 @@ contract LendingMarketTest is Test {
     uint32 private constant CREDIT_LINE_CONFIG_MAX_INTEREST_RATE_PRIMARY = 7;
     uint32 private constant CREDIT_LINE_CONFIG_MIN_INTEREST_RATE_SECONDARY = 4;
     uint32 private constant CREDIT_LINE_CONFIG_MAX_INTEREST_RATE_SECONDARY = 8;
-    uint32 private constant CREDIT_LINE_CONFIG_INTEREST_RATE_FACTOR = 1000;
-    uint32 private constant CREDIT_LINE_CONFIG_PERIOD_IN_SECONDS = 600;
     uint32 private constant CREDIT_LINE_CONFIG_MIN_DURATION_IN_PERIODS = 50;
     uint32 private constant CREDIT_LINE_CONFIG_MAX_DURATION_IN_PERIODS = 200;
     uint32 private constant CREDIT_LINE_CONFIG_MIN_ADDON_FIXED_RATE = 10;
     uint32 private constant CREDIT_LINE_CONFIG_MAX_ADDON_FIXED_RATE = 50;
     uint32 private constant CREDIT_LINE_CONFIG_MIN_ADDON_PERIOD_RATE = 10;
     uint32 private constant CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_RATE = 50;
-    uint16 private constant CREDIT_LINE_CONFIG_MIN_REVOCATION_PERIODS = 2;
-    uint16 private constant CREDIT_LINE_CONFIG_MAX_REVOCATION_PERIODS = 4;
+    uint8 private constant CREDIT_LINE_CONFIG_MIN_COOLDOWN_PERIODS = 2;
+    uint8 private constant CREDIT_LINE_CONFIG_MAX_COOLDOWN_PERIODS = 4;
 
     uint32 private constant BORROWER_CONFIG_ADDON_FIXED_RATE = 15;
     uint32 private constant BORROWER_CONFIG_ADDON_PERIOD_RATE = 20;
@@ -155,7 +155,7 @@ contract LendingMarketTest is Test {
     uint64 private constant BORROWER_CONFIG_MAX_BORROW_AMOUNT = 800;
     uint32 private constant BORROWER_CONFIG_INTEREST_RATE_PRIMARY = 5;
     uint32 private constant BORROWER_CONFIG_INTEREST_RATE_SECONDARY = 6;
-    uint16 private constant BORROWER_CONFIG_REVOCATION_PERIODS = 3;
+    uint8 private constant BORROWER_CONFIG_COOLDOWN_PERIODS = 3;
     bool private constant BORROWER_CONFIG_AUTOREPAYMENT = true;
     Interest.Formula private constant BORROWER_CONFIG_INTEREST_FORMULA_COMPOUND = Interest.Formula.Compound;
     ICreditLineConfigurable.BorrowPolicy private constant BORROWER_CONFIG_BORROW_POLICY_DECREASE =
@@ -214,7 +214,7 @@ contract LendingMarketTest is Test {
             interestFormula: BORROWER_CONFIG_INTEREST_FORMULA_COMPOUND,
             borrowPolicy: BORROWER_CONFIG_BORROW_POLICY_DECREASE,
             autoRepayment: BORROWER_CONFIG_AUTOREPAYMENT,
-            revocationPeriods: BORROWER_CONFIG_REVOCATION_PERIODS
+            cooldownPeriods: BORROWER_CONFIG_COOLDOWN_PERIODS
         });
     }
 
@@ -239,7 +239,6 @@ contract LendingMarketTest is Test {
     function initCreditLineConfig() private pure returns (ICreditLineConfigurable.CreditLineConfig memory) {
         return ICreditLineConfigurable.CreditLineConfig({
             treasury: LOAN_TREASURY,
-            periodInSeconds: CREDIT_LINE_CONFIG_PERIOD_IN_SECONDS,
             minDurationInPeriods: CREDIT_LINE_CONFIG_MIN_DURATION_IN_PERIODS,
             maxDurationInPeriods: CREDIT_LINE_CONFIG_MAX_DURATION_IN_PERIODS,
             minBorrowAmount: CREDIT_LINE_CONFIG_MIN_BORROW_AMOUNT,
@@ -248,13 +247,12 @@ contract LendingMarketTest is Test {
             maxInterestRatePrimary: CREDIT_LINE_CONFIG_MAX_INTEREST_RATE_PRIMARY,
             minInterestRateSecondary: CREDIT_LINE_CONFIG_MIN_INTEREST_RATE_SECONDARY,
             maxInterestRateSecondary: CREDIT_LINE_CONFIG_MAX_INTEREST_RATE_SECONDARY,
-            interestRateFactor: CREDIT_LINE_CONFIG_INTEREST_RATE_FACTOR,
             minAddonFixedRate: CREDIT_LINE_CONFIG_MIN_ADDON_FIXED_RATE,
             maxAddonFixedRate: CREDIT_LINE_CONFIG_MAX_ADDON_FIXED_RATE,
             minAddonPeriodRate: CREDIT_LINE_CONFIG_MIN_ADDON_PERIOD_RATE,
             maxAddonPeriodRate: CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_RATE,
-            minRevocationPeriods: CREDIT_LINE_CONFIG_MIN_REVOCATION_PERIODS,
-            maxRevocationPeriods: CREDIT_LINE_CONFIG_MAX_REVOCATION_PERIODS
+            minCooldownPeriods: CREDIT_LINE_CONFIG_MIN_COOLDOWN_PERIODS,
+            maxCooldownPeriods: CREDIT_LINE_CONFIG_MAX_COOLDOWN_PERIODS
         });
     }
 
@@ -265,15 +263,13 @@ contract LendingMarketTest is Test {
         Loan.Terms memory terms = Loan.Terms({
             token: address(token),
             treasury: address(liquidityPool),
-            periodInSeconds: creditLineConfig.periodInSeconds,
             durationInPeriods: DURATION_IN_PERIODS,
-            interestRateFactor: creditLineConfig.interestRateFactor,
             interestRatePrimary: borrowerConfig.interestRatePrimary,
             interestRateSecondary: borrowerConfig.interestRateSecondary,
             interestFormula: borrowerConfig.interestFormula,
             autoRepayment: autoRepayment,
             addonAmount: ADDON_AMOUNT,
-            revocationPeriods: borrowerConfig.revocationPeriods
+            cooldownPeriods: borrowerConfig.cooldownPeriods
         });
 
         creditLine.mockLoanTerms(borrower, borrowAmount, terms);
@@ -302,7 +298,7 @@ contract LendingMarketTest is Test {
 
     function defaultLoan(uint256 loanId) private {
         Loan.State memory loan = market.getLoanState(loanId);
-        skip(loan.periodInSeconds * loan.durationInPeriods);
+        skip(Constants.PERIOD_IN_SECONDS * loan.durationInPeriods);
     }
 
     function freezeLoan(address lender, uint256 loanId) private {
@@ -315,20 +311,30 @@ contract LendingMarketTest is Test {
         market.unfreeze(loanId);
     }
 
-    function createActiveLoan(address borrower, uint256 borrowAmount, bool autoRepayment, uint256 skipPeriods) private returns (uint256) {
+    function createActiveLoan(
+        address borrower,
+        uint256 borrowAmount,
+        bool autoRepayment,
+        uint256 skipPeriods
+    ) private returns (uint256) {
         Loan.Terms memory terms = mockLoanTerms(borrower, borrowAmount, autoRepayment);
         token.mint(address(liquidityPool), borrowAmount + terms.addonAmount);
 
         vm.prank(borrower);
         uint256 loanId = market.takeLoan(address(creditLine), borrowAmount, terms.durationInPeriods);
 
-        Loan.State memory loan = market.getLoanState(loanId);
-        skip(loan.periodInSeconds * skipPeriods);
+        skip(Constants.PERIOD_IN_SECONDS * skipPeriods);
 
         return loanId;
     }
 
-    function createFrozenLoan(address lender, address borrower, uint256 borrowAmount, bool autoRepayment, uint256 skipPeriods) private returns (uint256) {
+    function createFrozenLoan(
+        address lender,
+        address borrower,
+        uint256 borrowAmount,
+        bool autoRepayment,
+        uint256 skipPeriods
+    ) private returns (uint256) {
         uint256 loanId = createActiveLoan(borrower, borrowAmount, autoRepayment, skipPeriods);
 
         vm.prank(lender);
@@ -337,17 +343,27 @@ contract LendingMarketTest is Test {
         return loanId;
     }
 
-    function createDefaultedLoan(address borrower, uint256 borrowAmount, bool autoRepayment, uint256 skipPeriods) private returns (uint256) {
+    function createDefaultedLoan(
+        address borrower,
+        uint256 borrowAmount,
+        bool autoRepayment,
+        uint256 skipPeriods
+    ) private returns (uint256) {
         uint256 loanId = createActiveLoan(borrower, borrowAmount, autoRepayment, 0);
         Loan.State memory loan = market.getLoanState(loanId);
 
-        skip(loan.periodInSeconds * loan.durationInPeriods);
-        skip(loan.periodInSeconds * skipPeriods);
+        skip(Constants.PERIOD_IN_SECONDS * loan.durationInPeriods);
+        skip(Constants.PERIOD_IN_SECONDS * skipPeriods);
 
         return loanId;
     }
 
-    function createRepaidLoan(address borrower, uint256 borrowAmount, bool autoRepayment, uint256 skipPeriods) private returns (uint256) {
+    function createRepaidLoan(
+        address borrower,
+        uint256 borrowAmount,
+        bool autoRepayment,
+        uint256 skipPeriods
+    ) private returns (uint256) {
         uint256 loanId = createActiveLoan(borrower, borrowAmount, autoRepayment, skipPeriods);
 
         uint256 outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
@@ -357,6 +373,10 @@ contract LendingMarketTest is Test {
         market.repayLoan(loanId, outstandingBalance);
 
         return loanId;
+    }
+
+    function blockTimestamp() private view returns (uint256) {
+        return block.timestamp - NEGAVIVE_TIME_SHIFT;
     }
 
     // -------------------------------------------- //
@@ -795,17 +815,15 @@ contract LendingMarketTest is Test {
         assertEq(loan.token, terms.token);
         assertEq(loan.borrower, BORROWER);
         assertEq(loan.treasury, terms.treasury);
-        assertEq(loan.startTimestamp, block.timestamp);
-        assertEq(loan.trackedTimestamp, block.timestamp);
+        assertEq(loan.startTimestamp, blockTimestamp());
+        assertEq(loan.trackedTimestamp, blockTimestamp());
         assertEq(loan.freezeTimestamp, 0);
         assertEq(loan.initialBorrowAmount, totalBorrowAmount);
         assertEq(loan.trackedBorrowBalance, totalBorrowAmount);
         assertEq(loan.addonAmount, terms.addonAmount);
         assertEq(loan.autoRepayment, terms.autoRepayment);
-        assertEq(loan.periodInSeconds, terms.periodInSeconds);
         assertEq(loan.durationInPeriods, terms.durationInPeriods);
-        assertEq(loan.revocationPeriods, terms.revocationPeriods);
-        assertEq(loan.interestRateFactor, terms.interestRateFactor);
+        assertEq(loan.cooldownPeriods, terms.cooldownPeriods);
         assertEq(loan.interestRatePrimary, terms.interestRatePrimary);
         assertEq(loan.interestRateSecondary, terms.interestRateSecondary);
         assertEq(uint256(loan.interestFormula), uint256(terms.interestFormula));
@@ -868,7 +886,8 @@ contract LendingMarketTest is Test {
         uint256 loanId,
         bool autoRepaymnet,
         uint256 skipPeriodsBeforePartialRepayment,
-        uint256 skipPeriodsFullRepayment) private {
+        uint256 skipPeriodsFullRepayment
+    ) private {
         Loan.State memory loan = market.getLoanState(loanId);
 
         if (!autoRepaymnet) {
@@ -881,7 +900,7 @@ contract LendingMarketTest is Test {
 
         // Partial repayment
 
-        skip(loan.periodInSeconds * skipPeriodsBeforePartialRepayment);
+        skip(Constants.PERIOD_IN_SECONDS * skipPeriodsBeforePartialRepayment);
 
         uint256 outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
         uint256 repayAmount = outstandingBalance / 2;
@@ -902,7 +921,7 @@ contract LendingMarketTest is Test {
 
         // Full repayment
 
-        skip(loan.periodInSeconds * skipPeriodsFullRepayment);
+        skip(Constants.PERIOD_IN_SECONDS * skipPeriodsFullRepayment);
 
         outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
         token.mint(loan.borrower, outstandingBalance);
@@ -929,11 +948,7 @@ contract LendingMarketTest is Test {
 
         uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT, autoRepayment);
 
-        repayLoan(
-            loanId,
-            autoRepayment,
-            skipPeriodsBeforePartialRepayment,
-            skipPeriodsFullRepayment);
+        repayLoan(loanId, autoRepayment, skipPeriodsBeforePartialRepayment, skipPeriodsFullRepayment);
     }
 
     function test_repayLoan_CanBeRepaid_IfLoanIsFrozen() public {
@@ -946,11 +961,7 @@ contract LendingMarketTest is Test {
         uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT, autoRepayment);
         freezeLoan(LENDER, loanId);
 
-        repayLoan(
-            loanId,
-            autoRepayment,
-            skipPeriodsBeforePartialRepayment,
-            skipPeriodsFullRepayment);
+        repayLoan(loanId, autoRepayment, skipPeriodsBeforePartialRepayment, skipPeriodsFullRepayment);
     }
 
     function test_repayLoan_CanBeRepaid_IfLoanIsDefaulted() public {
@@ -963,11 +974,7 @@ contract LendingMarketTest is Test {
         uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT, autoRepayment);
         defaultLoan(loanId);
 
-        repayLoan(
-            loanId,
-            autoRepayment,
-            skipPeriodsBeforePartialRepayment,
-            skipPeriodsFullRepayment);
+        repayLoan(loanId, autoRepayment, skipPeriodsBeforePartialRepayment, skipPeriodsFullRepayment);
     }
 
     function test_repayLoan_CanBeRepaid_IfLoanIsActive_AutoRepayment() public {
@@ -979,11 +986,7 @@ contract LendingMarketTest is Test {
 
         uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT, autoRepayment);
 
-        repayLoan(
-            loanId,
-            autoRepayment,
-            skipPeriodsBeforePartialRepayment,
-            skipPeriodsFullRepayment);
+        repayLoan(loanId, autoRepayment, skipPeriodsBeforePartialRepayment, skipPeriodsFullRepayment);
     }
 
     function test_repayLoan_CanBeRepaid_IfLoanIsFrozen_AutoRepayment() public {
@@ -996,11 +999,7 @@ contract LendingMarketTest is Test {
         uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT, autoRepayment);
         freezeLoan(LENDER, loanId);
 
-        repayLoan(
-            loanId,
-            autoRepayment,
-            skipPeriodsBeforePartialRepayment,
-            skipPeriodsFullRepayment);
+        repayLoan(loanId, autoRepayment, skipPeriodsBeforePartialRepayment, skipPeriodsFullRepayment);
     }
 
     function test_repayLoan_CanBeRepaid_IfLoanIsDefaulted_AutoRepayment() public {
@@ -1012,11 +1011,7 @@ contract LendingMarketTest is Test {
         uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT, autoRepayment);
         defaultLoan(loanId);
 
-        repayLoan(
-            loanId,
-            autoRepayment,
-            skipPeriodsBeforePartialRepayment,
-            skipPeriodsFullRepayment);
+        repayLoan(loanId, autoRepayment, skipPeriodsBeforePartialRepayment, skipPeriodsFullRepayment);
     }
 
     function test_repayLoan_IfRepaymentAmountIsUint256Max() public {
@@ -1170,7 +1165,7 @@ contract LendingMarketTest is Test {
         uint256 treasuryBalance = token.balanceOf(loan.treasury);
         uint256 borrowAmount = loan.initialBorrowAmount - loan.addonAmount;
 
-        skip(loan.periodInSeconds * (loan.revocationPeriods - 1));
+        skip(Constants.PERIOD_IN_SECONDS * (loan.cooldownPeriods - 1));
 
         vm.expectEmit(true, true, true, true, address(liquidityPool));
         emit OnBeforeLoanRevocationCalled(loanId);
@@ -1192,7 +1187,6 @@ contract LendingMarketTest is Test {
         configureMarket();
 
         uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 0);
-        Loan.State memory loan = market.getLoanState(loanId);
 
         vm.startPrank(OWNER);
         market.pause();
@@ -1228,17 +1222,17 @@ contract LendingMarketTest is Test {
         market.revokeLoan(loanId);
     }
 
-    function test_revokeLoan_Revert_IfRevocationPeriodHasPassed() public {
+    function test_revokeLoan_Revert_IfCooldownPeriodHasPassed() public {
         configureMarket();
 
         uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 1);
         Loan.State memory loan = market.getLoanState(loanId);
         assertEq(loan.trackedTimestamp, loan.startTimestamp);
 
-        skip(loan.periodInSeconds * loan.revocationPeriods);
+        skip(Constants.PERIOD_IN_SECONDS * loan.cooldownPeriods);
 
         vm.prank(BORROWER);
-        vm.expectRevert(LendingMarket.RevocationPeriodHasPassed.selector);
+        vm.expectRevert(LendingMarket.CooldownPeriodHasPassed.selector);
         market.revokeLoan(loanId);
     }
 
@@ -1251,7 +1245,7 @@ contract LendingMarketTest is Test {
         uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 1);
 
         Loan.State memory loan = market.getLoanState(loanId);
-        assertNotEq(loan.freezeTimestamp, block.timestamp);
+        assertNotEq(loan.freezeTimestamp, blockTimestamp());
         assertEq(loan.freezeTimestamp, 0);
 
         vm.expectEmit(true, true, true, true, address(market));
@@ -1261,7 +1255,7 @@ contract LendingMarketTest is Test {
         market.freeze(loanId);
 
         loan = market.getLoanState(loanId);
-        assertEq(loan.freezeTimestamp, block.timestamp);
+        assertEq(loan.freezeTimestamp, blockTimestamp());
     }
 
     function test_freeze_IfLender() public {
@@ -1371,7 +1365,7 @@ contract LendingMarketTest is Test {
         preview = market.getLoanPreview(loanId, 0);
 
         assertEq(loan.freezeTimestamp, 0);
-        assertEq(loan.trackedTimestamp, block.timestamp);
+        assertEq(loan.trackedTimestamp, blockTimestamp());
         assertEq(loan.durationInPeriods, oldDurationInPeriods);
         assertEq(preview.outstandingBalance, oldOutstandingBalance);
     }
@@ -1386,11 +1380,11 @@ contract LendingMarketTest is Test {
         uint256 oldDurationInPeriods = loan.durationInPeriods;
         uint256 oldOutstandingBalance = preview.outstandingBalance;
 
-        assertEq(loan.freezeTimestamp, block.timestamp);
-        assertEq(loan.trackedTimestamp, block.timestamp);
+        assertEq(loan.freezeTimestamp, blockTimestamp());
+        assertEq(loan.trackedTimestamp, blockTimestamp());
 
         uint256 skipPeriods = 2;
-        skip(loan.periodInSeconds * skipPeriods);
+        skip(Constants.PERIOD_IN_SECONDS * skipPeriods);
 
         vm.prank(LENDER);
         market.unfreeze(loanId);
@@ -1399,7 +1393,7 @@ contract LendingMarketTest is Test {
         preview = market.getLoanPreview(loanId, 0);
 
         assertEq(loan.freezeTimestamp, 0);
-        assertEq(loan.trackedTimestamp, block.timestamp);
+        assertEq(loan.trackedTimestamp, blockTimestamp());
         assertEq(loan.durationInPeriods, oldDurationInPeriods + skipPeriods);
         assertEq(preview.outstandingBalance, oldOutstandingBalance);
     }
@@ -1522,7 +1516,7 @@ contract LendingMarketTest is Test {
 
         vm.prank(LENDER);
         vm.expectRevert(LendingMarket.LoanNotExist.selector);
-        market.updateLoanDuration(newDurationInPeriods, newDurationInPeriods);
+        market.updateLoanDuration(nonExistentLoanId, newDurationInPeriods);
     }
 
     function test_updateLoanDuration_Revert_IfRepaidLoan() public {
@@ -1831,20 +1825,34 @@ contract LendingMarketTest is Test {
         assertEq(market.getLiquidityPoolLender(address(liquidityPool)), LENDER);
     }
 
-    function test_calculatePeriodIndex() public {
-        uint256 timestamp = 10 ** 6 - 1;
-        uint256 periodInSeconds = 1 seconds;
-        uint256 expectedCurrentPeriod = timestamp / periodInSeconds;
-
-        assertEq(market.calculatePeriodIndex(timestamp, periodInSeconds), expectedCurrentPeriod);
-
-        periodInSeconds = 19 seconds;
-        for (uint256 i = 0; i <= periodInSeconds; ++i) {
-            expectedCurrentPeriod = timestamp / periodInSeconds;
-            assertEq(market.calculatePeriodIndex(timestamp, periodInSeconds), expectedCurrentPeriod);
-            timestamp += 1;
-        }
+    function test_interestRateFactor() public {
+        assertEq(market.interestRateFactor(), Constants.INTEREST_RATE_FACTOR);
     }
+
+    function test_periodInSeconds() public {
+        assertEq(market.periodInSeconds(), Constants.PERIOD_IN_SECONDS);
+    }
+
+    function test_timeOffset() public {
+        (uint256 timeOffset, bool isPositive) = market.timeOffset();
+        assertEq(timeOffset, Constants.NEGATIVE_TIME_OFFSET);
+        assertEq(isPositive, false);
+    }
+
+    // function test_calculatePeriodIndex() public {
+    //     uint256 timestamp = 10 ** 6 - 1;
+    //     uint256 periodInSeconds = 1 seconds;
+    //     uint256 expectedCurrentPeriod = timestamp / periodInSeconds;
+
+    //     assertEq(market.calculatePeriodIndex(timestamp, periodInSeconds), expectedCurrentPeriod);
+
+    //     periodInSeconds = 19 seconds;
+    //     for (uint256 i = 0; i <= periodInSeconds; ++i) {
+    //         expectedCurrentPeriod = timestamp / periodInSeconds;
+    //         assertEq(market.calculatePeriodIndex(timestamp, periodInSeconds), expectedCurrentPeriod);
+    //         timestamp += 1;
+    //     }
+    // }
 
     // -------------------------------------------- //
     //  ERC165 support                              //

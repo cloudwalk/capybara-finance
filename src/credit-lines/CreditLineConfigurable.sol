@@ -8,6 +8,7 @@ import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/P
 import { Loan } from "../common/libraries/Loan.sol";
 import { Error } from "../common/libraries/Error.sol";
 import { SafeCast } from "../common/libraries/SafeCast.sol";
+import { Constants } from "../common/libraries/Constants.sol";
 
 import { ICreditLine } from "../common/interfaces/core/ICreditLine.sol";
 import { ICreditLineConfigurable } from "../common/interfaces/ICreditLineConfigurable.sol";
@@ -17,6 +18,7 @@ import { ICreditLineConfigurable } from "../common/interfaces/ICreditLineConfigu
 /// @dev Implementation of the configurable credit line contract.
 contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICreditLineConfigurable {
     using SafeCast for uint256;
+
     // -------------------------------------------- //
     //  Storage variables                           //
     // -------------------------------------------- //
@@ -150,12 +152,6 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
 
     /// @inheritdoc ICreditLineConfigurable
     function configureCreditLine(CreditLineConfig memory config) external onlyOwner {
-        if (config.periodInSeconds == 0) {
-            revert InvalidCreditLineConfiguration();
-        }
-        if (config.interestRateFactor == 0) {
-            revert InvalidCreditLineConfiguration();
-        }
         if (config.minBorrowAmount > config.maxBorrowAmount) {
             revert InvalidCreditLineConfiguration();
         }
@@ -174,7 +170,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         if (config.minAddonPeriodRate > config.maxAddonPeriodRate) {
             revert InvalidCreditLineConfiguration();
         }
-        if (config.minRevocationPeriods > config.maxRevocationPeriods) {
+        if (config.minCooldownPeriods > config.maxCooldownPeriods) {
             revert InvalidCreditLineConfiguration();
         }
 
@@ -272,19 +268,18 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
 
         terms.token = _token;
         terms.treasury = _config.treasury;
-        terms.periodInSeconds = _config.periodInSeconds;
-        terms.interestRateFactor = _config.interestRateFactor;
         terms.durationInPeriods = durationInPeriods.toUint32();
         terms.interestRatePrimary = borrowerConfig.interestRatePrimary;
         terms.interestRateSecondary = borrowerConfig.interestRateSecondary;
         terms.interestFormula = borrowerConfig.interestFormula;
         terms.autoRepayment = borrowerConfig.autoRepayment;
-        terms.revocationPeriods = borrowerConfig.revocationPeriods;
+        terms.cooldownPeriods = borrowerConfig.cooldownPeriods;
         terms.addonAmount = calculateAddonAmount(
             borrowAmount,
             durationInPeriods,
             borrowerConfig.addonFixedRate,
-            borrowerConfig.addonPeriodRate
+            borrowerConfig.addonPeriodRate,
+            Constants.INTEREST_RATE_FACTOR
         ).toUint64();
     }
 
@@ -328,12 +323,15 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     /// @param durationInPeriods The duration of the loan in periods.
     /// @param addonFixedRate The fixed rate of the loan addon (extra charges or fees).
     /// @param addonPeriodRate The rate per period of the loan addon (extra charges or fees).
+    /// @param interestRateFactor The rate factor used together with interest rate.
+    /// @return The amount of the addon.
     function calculateAddonAmount(
         uint256 amount,
         uint256 durationInPeriods,
         uint256 addonFixedRate,
-        uint256 addonPeriodRate
-    ) public view returns (uint256) {
+        uint256 addonPeriodRate,
+        uint256 interestRateFactor
+    ) public pure returns (uint256) {
         /// The initial formula for calculating the amount of the loan addon (extra charges or fees) is:
         /// E = (A + E) * r (1)
         /// where `A` -- the borrow amount, `E` -- addon, `r` -- the result addon rate (e.g. `1 %` => `0.01`),
@@ -341,7 +339,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         /// E = A * r / (1 - r) = A * (R / F) / (1 - R / F) = A * R (F - R) (2)
         /// where `R` -- the addon rate in units of the rate factor, `F` -- the interest rate factor.
         uint256 addonRate = addonPeriodRate * durationInPeriods + addonFixedRate;
-        return (amount * addonRate) / (_config.interestRateFactor - addonRate);
+        return (amount * addonRate) / (interestRateFactor - addonRate);
     }
 
     // -------------------------------------------- //
@@ -407,10 +405,10 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
             revert InvalidBorrowerConfiguration();
         }
 
-        if (config.revocationPeriods < _config.minRevocationPeriods) {
+        if (config.cooldownPeriods < _config.minCooldownPeriods) {
             revert InvalidBorrowerConfiguration();
         }
-        if (config.revocationPeriods > _config.maxRevocationPeriods) {
+        if (config.cooldownPeriods > _config.maxCooldownPeriods) {
             revert InvalidBorrowerConfiguration();
         }
 
