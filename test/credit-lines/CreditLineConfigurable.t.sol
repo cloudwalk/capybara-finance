@@ -108,16 +108,18 @@ contract CreditLineConfigurableTest is Test {
         ICreditLineConfigurable.BorrowerConfig memory config2
     ) internal {
         assertTrue(
-            config1.expiration == config2.expiration && config1.minBorrowAmount == config2.minBorrowAmount
-                && config1.maxBorrowAmount == config2.maxBorrowAmount
-                && config1.minDurationInPeriods == config2.minDurationInPeriods
-                && config1.maxDurationInPeriods == config2.maxDurationInPeriods
-                && config1.interestRatePrimary == config2.interestRatePrimary
-                && config1.interestRateSecondary == config2.interestRateSecondary
-                && config1.addonFixedRate == config2.addonFixedRate && config1.addonPeriodRate == config2.addonPeriodRate
-                && uint256(config1.interestFormula) == uint256(config2.interestFormula)
-                && uint256(config1.borrowPolicy) == uint256(config2.borrowPolicy)
-                && config1.autoRepayment == config2.autoRepayment
+            config1.expiration == config2.expiration &&
+            config1.minBorrowAmount == config2.minBorrowAmount &&
+            config1.maxBorrowAmount == config2.maxBorrowAmount &&
+            config1.minDurationInPeriods == config2.minDurationInPeriods &&
+            config1.maxDurationInPeriods == config2.maxDurationInPeriods &&
+            config1.interestRatePrimary == config2.interestRatePrimary &&
+            config1.interestRateSecondary == config2.interestRateSecondary &&
+            config1.addonFixedRate == config2.addonFixedRate &&
+            config1.addonPeriodRate == config2.addonPeriodRate &&
+            uint256(config1.interestFormula) == uint256(config2.interestFormula) &&
+            uint256(config1.borrowPolicy) == uint256(config2.borrowPolicy) &&
+            config1.autoRepayment == config2.autoRepayment
         );
     }
 
@@ -126,16 +128,19 @@ contract CreditLineConfigurableTest is Test {
         ICreditLineConfigurable.BorrowerConfig memory config2
     ) internal {
         assertFalse(
-            config1.expiration == config2.expiration && config1.minBorrowAmount == config2.minBorrowAmount
-                && config1.maxBorrowAmount == config2.maxBorrowAmount
-                && config1.minDurationInPeriods == config2.minDurationInPeriods
-                && config1.maxDurationInPeriods == config2.maxDurationInPeriods
-                && config1.interestRatePrimary == config2.interestRatePrimary
-                && config1.interestRateSecondary == config2.interestRateSecondary
-                && config1.addonFixedRate == config2.addonFixedRate && config1.addonPeriodRate == config2.addonPeriodRate
-                && uint256(config1.interestFormula) == uint256(config2.interestFormula)
-                && uint256(config1.borrowPolicy) == uint256(config2.borrowPolicy)
-                && config1.autoRepayment == config2.autoRepayment && config1.cooldownPeriods == config2.cooldownPeriods
+            config1.expiration == config2.expiration &&
+            config1.minBorrowAmount == config2.minBorrowAmount &&
+            config1.maxBorrowAmount == config2.maxBorrowAmount &&
+            config1.minDurationInPeriods == config2.minDurationInPeriods &&
+            config1.maxDurationInPeriods == config2.maxDurationInPeriods &&
+            config1.interestRatePrimary == config2.interestRatePrimary &&
+            config1.interestRateSecondary == config2.interestRateSecondary &&
+            config1.addonFixedRate == config2.addonFixedRate &&
+            config1.addonPeriodRate == config2.addonPeriodRate &&
+            uint256(config1.interestFormula) == uint256(config2.interestFormula) &&
+            uint256(config1.borrowPolicy) == uint256(config2.borrowPolicy) &&
+            config1.autoRepayment == config2.autoRepayment &&
+            config1.cooldownPeriods == config2.cooldownPeriods
         );
     }
 
@@ -144,19 +149,21 @@ contract CreditLineConfigurableTest is Test {
         ICreditLineConfigurable.CreditLineConfig memory config2
     ) internal {
         assertTrue(
-            config1.treasury == config2.treasury && config1.minDurationInPeriods == config2.minDurationInPeriods
-                && config1.maxDurationInPeriods == config2.maxDurationInPeriods
-                && config1.minBorrowAmount == config2.minBorrowAmount && config1.maxBorrowAmount == config2.maxBorrowAmount
-                && config1.minInterestRatePrimary == config2.minInterestRatePrimary
-                && config1.maxInterestRatePrimary == config2.maxInterestRatePrimary
-                && config1.minInterestRateSecondary == config2.minInterestRateSecondary
-                && config1.maxInterestRateSecondary == config2.maxInterestRateSecondary
-                && config1.minAddonFixedRate == config2.minAddonFixedRate
-                && config1.maxAddonFixedRate == config2.maxAddonFixedRate
-                && config1.minAddonPeriodRate == config2.minAddonPeriodRate
-                && config1.maxAddonPeriodRate == config2.maxAddonPeriodRate
-                && config1.minCooldownPeriods == config2.minCooldownPeriods
-                && config1.maxCooldownPeriods == config2.maxCooldownPeriods
+            config1.treasury == config2.treasury &&
+            config1.minDurationInPeriods == config2.minDurationInPeriods &&
+            config1.maxDurationInPeriods == config2.maxDurationInPeriods &&
+            config1.minBorrowAmount == config2.minBorrowAmount &&
+            config1.maxBorrowAmount == config2.maxBorrowAmount  &&
+            config1.minInterestRatePrimary == config2.minInterestRatePrimary &&
+            config1.maxInterestRatePrimary == config2.maxInterestRatePrimary &&
+            config1.minInterestRateSecondary == config2.minInterestRateSecondary &&
+            config1.maxInterestRateSecondary == config2.maxInterestRateSecondary &&
+            config1.minAddonFixedRate == config2.minAddonFixedRate &&
+            config1.maxAddonFixedRate == config2.maxAddonFixedRate &&
+            config1.minAddonPeriodRate == config2.minAddonPeriodRate &&
+            config1.maxAddonPeriodRate == config2.maxAddonPeriodRate &&
+            config1.minCooldownPeriods == config2.minCooldownPeriods &&
+            config1.maxCooldownPeriods == config2.maxCooldownPeriods
         );
     }
 
@@ -165,19 +172,21 @@ contract CreditLineConfigurableTest is Test {
         ICreditLineConfigurable.CreditLineConfig memory config2
     ) internal {
         assertFalse(
-            config1.treasury == config2.treasury && config1.minDurationInPeriods == config2.minDurationInPeriods
-                && config1.maxDurationInPeriods == config2.maxDurationInPeriods
-                && config1.minBorrowAmount == config2.minBorrowAmount && config1.maxBorrowAmount == config2.maxBorrowAmount
-                && config1.minInterestRatePrimary == config2.minInterestRatePrimary
-                && config1.maxInterestRatePrimary == config2.maxInterestRatePrimary
-                && config1.minInterestRateSecondary == config2.minInterestRateSecondary
-                && config1.maxInterestRateSecondary == config2.maxInterestRateSecondary
-                && config1.minAddonFixedRate == config2.minAddonFixedRate
-                && config1.maxAddonFixedRate == config2.maxAddonFixedRate
-                && config1.minAddonPeriodRate == config2.minAddonPeriodRate
-                && config1.maxAddonPeriodRate == config2.maxAddonPeriodRate
-                && config1.minCooldownPeriods == config2.minCooldownPeriods
-                && config1.maxCooldownPeriods == config2.maxCooldownPeriods
+            config1.treasury == config2.treasury &&
+            config1.minDurationInPeriods == config2.minDurationInPeriods &&
+            config1.maxDurationInPeriods == config2.maxDurationInPeriods &&
+            config1.minBorrowAmount == config2.minBorrowAmount &&
+            config1.maxBorrowAmount == config2.maxBorrowAmount  &&
+            config1.minInterestRatePrimary == config2.minInterestRatePrimary &&
+            config1.maxInterestRatePrimary == config2.maxInterestRatePrimary &&
+            config1.minInterestRateSecondary == config2.minInterestRateSecondary &&
+            config1.maxInterestRateSecondary == config2.maxInterestRateSecondary &&
+            config1.minAddonFixedRate == config2.minAddonFixedRate &&
+            config1.maxAddonFixedRate == config2.maxAddonFixedRate &&
+            config1.minAddonPeriodRate == config2.minAddonPeriodRate &&
+            config1.maxAddonPeriodRate == config2.maxAddonPeriodRate &&
+            config1.minCooldownPeriods == config2.minCooldownPeriods &&
+            config1.maxCooldownPeriods == config2.maxCooldownPeriods
         );
     }
 
@@ -589,9 +598,7 @@ contract CreditLineConfigurableTest is Test {
         creditLine.configureBorrower(BORROWER_1, borrowerConfig);
     }
 
-    function test_configureBorrower_Revert_IfInterestRatePrimaryIsGreaterThanCreditLineMaxInterestRatePrimary()
-        public
-    {
+    function test_configureBorrower_Revert_IfInterestRatePrimaryIsGreaterThanCreditLineMaxInterestRatePrimary() public {
         ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = configureCreditLine();
 
         ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(block.timestamp);
@@ -851,8 +858,11 @@ contract CreditLineConfigurableTest is Test {
         vm.prank(ADMIN);
         creditLine.configureBorrower(BORROWER_1, borrowerConfig);
 
-        Loan.Terms memory terms =
-            creditLine.determineLoanTerms(BORROWER_1, borrowerConfig.minBorrowAmount, DURATION_IN_PERIODS);
+        Loan.Terms memory terms = creditLine.determineLoanTerms(
+            BORROWER_1,
+            borrowerConfig.minBorrowAmount,
+            DURATION_IN_PERIODS
+        );
 
         assertEq(terms.token, creditLine.token());
         assertEq(terms.treasury, creditLineConfig.treasury);
@@ -888,8 +898,11 @@ contract CreditLineConfigurableTest is Test {
         vm.prank(ADMIN);
         creditLine.configureBorrower(BORROWER_1, borrowerConfig);
 
-        Loan.Terms memory terms =
-            creditLine.determineLoanTerms(BORROWER_1, borrowerConfig.minBorrowAmount, DURATION_IN_PERIODS);
+        Loan.Terms memory terms = creditLine.determineLoanTerms(
+            BORROWER_1,
+            borrowerConfig.minBorrowAmount,
+            DURATION_IN_PERIODS
+        );
         assertEq(terms.addonAmount, 0);
     }
 
@@ -1002,8 +1015,11 @@ contract CreditLineConfigurableTest is Test {
         );
         assertEq(actualAddonAmount, expectedAddonAmount);
 
-        Loan.Terms memory terms =
-            creditLine.determineLoanTerms(BORROWER_1, borrowerConfig.minBorrowAmount, DURATION_IN_PERIODS);
+        Loan.Terms memory terms = creditLine.determineLoanTerms(
+            BORROWER_1,
+            borrowerConfig.minBorrowAmount,
+            DURATION_IN_PERIODS
+        );
         assertEq(terms.addonAmount, expectedAddonAmount);
     }
 

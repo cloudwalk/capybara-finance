@@ -21,51 +21,50 @@ interface ICreditLineConfigurable is ICreditLine {
     /// - Decrease - Decrease the borrow allowance after each loan taken.
     /// - Keep ----- Do not change anything about the borrow allowance.
     enum BorrowPolicy {
-        Reset, // 0
+        Reset,    // 0
         Decrease, // 1
-        Keep // 2
-
+        Keep      // 2
     }
 
     /// @dev A struct that defines credit line configuration.
     struct CreditLineConfig {
         // Slot 1
-        address treasury; // The address of the loan treasury.
-        uint32 minDurationInPeriods; // The minimum duration of the loan determined in periods.
-        uint32 maxDurationInPeriods; // The maximum duration of the loan determined in periods.
-        uint8 minCooldownPeriods; // The minimum number of periods during which the loan can be revoked.
-        uint8 maxCooldownPeriods; // The maximum number of periods during which the loan can be revoked.
+        address treasury;                // The address of the loan treasury.
+        uint32 minDurationInPeriods;     // The minimum duration of the loan determined in periods.
+        uint32 maxDurationInPeriods;     // The maximum duration of the loan determined in periods.
+        uint8 minCooldownPeriods;        // The minimum number of periods during which the loan can be revoked.
+        uint8 maxCooldownPeriods;        // The maximum number of periods during which the loan can be revoked.
         // Slot 2
-        uint64 minBorrowAmount; // The minimum amount of tokens the borrower can take as a loan.
-        uint64 maxBorrowAmount; // The maximum amount of tokens the borrower can take as a loan.
-        uint32 minInterestRatePrimary; // The minimum primary interest rate to be applied to the loan.
-        uint32 maxInterestRatePrimary; // The maximum primary interest rate to be applied to the loan.
+        uint64 minBorrowAmount;          // The minimum amount of tokens the borrower can take as a loan.
+        uint64 maxBorrowAmount;          // The maximum amount of tokens the borrower can take as a loan.
+        uint32 minInterestRatePrimary;   // The minimum primary interest rate to be applied to the loan.
+        uint32 maxInterestRatePrimary;   // The maximum primary interest rate to be applied to the loan.
         uint32 minInterestRateSecondary; // The minimum secondary interest rate to be applied to the loan.
         uint32 maxInterestRateSecondary; // The maximum secondary interest rate to be applied to the loan.
         // Slot 3
-        uint32 minAddonFixedRate; // The minimum fixed rate for the loan addon calculation.
-        uint32 maxAddonFixedRate; // The maximum fixed rate for the loan addon calculation.
-        uint32 minAddonPeriodRate; // The minimum period rate for the loan addon calculation.
-        uint32 maxAddonPeriodRate; // The maximum period rate for the loan addon calculation.
+        uint32 minAddonFixedRate;        // The minimum fixed rate for the loan addon calculation.
+        uint32 maxAddonFixedRate;        // The maximum fixed rate for the loan addon calculation.
+        uint32 minAddonPeriodRate;       // The minimum period rate for the loan addon calculation.
+        uint32 maxAddonPeriodRate;       // The maximum period rate for the loan addon calculation.
     }
 
     /// @dev A struct that defines borrower configuration.
     struct BorrowerConfig {
         // Slot 1
-        uint64 minBorrowAmount; // The minimum amount of tokens the borrower can take as a loan.
-        uint64 maxBorrowAmount; // The maximum amount of tokens the borrower can take as a loan.
-        uint32 interestRatePrimary; // The primary interest rate to be applied to the loan.
-        uint32 interestRateSecondary; // The secondary interest rate to be applied to the loan.
-        uint32 addonFixedRate; // The fixed rate for the loan addon calculation (extra charges or fees).
-        uint32 addonPeriodRate; // The period rate for the loan addon calculation (extra charges or fees).
+        uint64 minBorrowAmount;           // The minimum amount of tokens the borrower can take as a loan.
+        uint64 maxBorrowAmount;           // The maximum amount of tokens the borrower can take as a loan.
+        uint32 interestRatePrimary;       // The primary interest rate to be applied to the loan.
+        uint32 interestRateSecondary;     // The secondary interest rate to be applied to the loan.
+        uint32 addonFixedRate;            // The fixed rate for the loan addon calculation (extra charges or fees).
+        uint32 addonPeriodRate;           // The period rate for the loan addon calculation (extra charges or fees).
         // Slot 2
-        uint32 expiration; // The expiration date of the configuration.
-        uint32 minDurationInPeriods; // The minimum duration of the loan determined in periods.
-        uint32 maxDurationInPeriods; // The maximum duration of the loan determined in periods.
+        uint32 expiration;                // The expiration date of the configuration.
+        uint32 minDurationInPeriods;      // The minimum duration of the loan determined in periods.
+        uint32 maxDurationInPeriods;      // The maximum duration of the loan determined in periods.
         Interest.Formula interestFormula; // The formula to be used for interest calculation on the loan.
-        BorrowPolicy borrowPolicy; // The borrow policy to be applied to the borrower.
-        uint8 cooldownPeriods; // The number of periods during which the loan can be revoked.
-        bool autoRepayment; // Whether the loan can be repaid automatically.
+        BorrowPolicy borrowPolicy;        // The borrow policy to be applied to the borrower.
+        uint8 cooldownPeriods;            // The number of periods during which the loan can be revoked.
+        bool autoRepayment;               // Whether the loan can be repaid automatically.
     }
 
     // -------------------------------------------- //

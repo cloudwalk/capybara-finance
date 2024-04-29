@@ -255,8 +255,12 @@ contract LendingMarket is
         }
 
         uint256 id = _safeMint(lender);
-        Loan.Terms memory terms =
-            ICreditLine(creditLine).onBeforeLoanTaken(msg.sender, borrowAmount, durationInPeriods, id);
+        Loan.Terms memory terms = ICreditLine(creditLine).onBeforeLoanTaken(
+            msg.sender,
+            borrowAmount,
+            durationInPeriods,
+            id
+        );
         uint64 totalBorrowAmount = (borrowAmount + terms.addonAmount).toUint64();
         uint32 blockTimestamp = _blockTimestamp().toUint32();
 
@@ -558,9 +562,14 @@ contract LendingMarket is
         uint256 interestRateFactor,
         Interest.Formula interestFormula
     ) external pure returns (uint256) {
-        return InterestMath.calculateOutstandingBalance(
-            originalBalance, numberOfPeriods, interestRate, interestRateFactor, interestFormula
-        );
+        return
+            InterestMath.calculateOutstandingBalance(
+                originalBalance,
+                numberOfPeriods,
+                interestRate,
+                interestRateFactor,
+                interestFormula
+            );
     }
 
     // -------------------------------------------- //

@@ -45,12 +45,23 @@ contract LendingMarketTest is Test {
     event CreditLineRegistered(address indexed lender, address indexed creditLine);
 
     event LiquidityPoolLenderUpdated(
-        address indexed liquidityPool, address indexed newLender, address indexed oldLender
+        address indexed liquidityPool,
+        address indexed newLender,
+        address indexed oldLender
     );
 
-    event CreditLineLenderUpdated(address indexed creditLine, address indexed newLender, address indexed oldLender);
+    event CreditLineLenderUpdated(
+        address indexed creditLine,
+        address indexed newLender,
+        address indexed oldLender
+    );
 
-    event LoanTaken(uint256 indexed loanId, address indexed borrower, uint256 borrowAmount, uint256 durationInPeriods);
+    event LoanTaken(
+        uint256 indexed loanId,
+        address indexed borrower,
+        uint256 borrowAmount,
+        uint256 durationInPeriods
+    );
     event LoanRepayment(
         uint256 indexed loanId,
         address indexed repayer,
@@ -63,18 +74,32 @@ contract LendingMarketTest is Test {
     event LoanFrozen(uint256 indexed loanId);
     event LoanUnfrozen(uint256 indexed loanId);
 
-    event LoanDurationUpdated(uint256 indexed loanId, uint256 indexed newDuration, uint256 indexed oldDuration);
+    event LoanDurationUpdated(
+        uint256 indexed loanId,
+        uint256 indexed newDuration,
+        uint256 indexed oldDuration
+    );
     event LoanInterestRatePrimaryUpdated(
-        uint256 indexed loanId, uint256 indexed newInterestRate, uint256 indexed oldInterestRate
+        uint256 indexed loanId,
+        uint256 indexed newInterestRate,
+        uint256 indexed oldInterestRate
     );
     event LoanInterestRateSecondaryUpdated(
-        uint256 indexed loanId, uint256 indexed newInterestRate, uint256 indexed oldInterestRate
+        uint256 indexed loanId,
+        uint256 indexed newInterestRate,
+        uint256 indexed oldInterestRate
     );
 
     event LiquidityPoolAssignedToCreditLine(
-        address indexed creditLine, address indexed newLiquidityPool, address indexed oldLiquidityPool
+        address indexed creditLine,
+        address indexed newLiquidityPool,
+        address indexed oldLiquidityPool
     );
-    event LenderAliasConfigured(address indexed lender, address indexed account, bool isAlias);
+    event LenderAliasConfigured(
+        address indexed lender,
+        address indexed account,
+        bool isAlias
+    );
 
     // -------------------------------------------- //
     //  Storage variables                           //
@@ -231,11 +256,7 @@ contract LendingMarketTest is Test {
         });
     }
 
-    function mockLoanTerms(
-        address borrower,
-        uint256 borrowAmount,
-        bool autoRepayment
-    ) private returns (Loan.Terms memory) {
+    function mockLoanTerms(address borrower, uint256 borrowAmount, bool autoRepayment) private returns (Loan.Terms memory) {
         ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = initCreditLineConfig();
         ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(0);
 

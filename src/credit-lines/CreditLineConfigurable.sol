@@ -85,7 +85,11 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     /// @param market_ The address of the lending market.
     /// @param lender_ The address of the lender.
     /// @param token_ The address of the token.
-    function initialize(address market_, address lender_, address token_) external initializer {
+    function initialize(
+        address market_,
+        address lender_,
+        address token_
+    ) external initializer {
         __CreditLineConfigurable_init(market_, lender_, token_);
     }
 
