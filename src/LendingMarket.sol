@@ -75,6 +75,12 @@ contract LendingMarket is
     /// @dev Thrown when loan auto repayment is not allowed.
     error AutoRepaymentNotAllowed();
 
+    /// @dev Thrown when the revocation period has passed.
+    error RevocationPeriodHasPassed();
+
+    /// @dev Thrown when loan revocation is prohibited.
+    error RevocationIsProhibited();
+
     // -------------------------------------------- //
     //  Modifiers                                   //
     // -------------------------------------------- //
@@ -160,8 +166,36 @@ contract LendingMarket is
         _registry = newRegistry;
     }
 
+    /// @inheritdoc ILendingMarket
+    function updateCreditLineLender(address creditLine, address newLender) external onlyOwner {
+        if (creditLine == address(0) || newLender == address(0)) {
+            revert Error.ZeroAddress();
+        }
+        if (_creditLineLenders[creditLine] == newLender) {
+            revert Error.AlreadyConfigured();
+        }
+
+        emit CreditLineLenderUpdated(creditLine, newLender, _creditLineLenders[creditLine]);
+
+        _creditLineLenders[creditLine] = newLender;
+    }
+
+    /// @inheritdoc ILendingMarket
+    function updateLiquidityPoolLender(address liquidityPool, address newLender) external onlyOwner {
+        if (liquidityPool == address(0) || newLender == address(0)) {
+            revert Error.ZeroAddress();
+        }
+        if (_liquidityPoolLenders[liquidityPool] == newLender) {
+            revert Error.AlreadyConfigured();
+        }
+
+        emit LiquidityPoolLenderUpdated(liquidityPool, newLender, _liquidityPoolLenders[liquidityPool]);
+
+        _liquidityPoolLenders[liquidityPool] = newLender;
+    }
+
     // -------------------------------------------- //
-    //  Registry functions                          //
+    //  Registry & owner functions                  //
     // -------------------------------------------- //
 
     /// @inheritdoc ILendingMarket
@@ -190,57 +224,6 @@ contract LendingMarket is
         emit LiquidityPoolRegistered(lender, liquidityPool);
 
         _liquidityPoolLenders[liquidityPool] = lender;
-    }
-
-    /// @inheritdoc ILendingMarket
-    function updateCreditLineLender(address creditLine, address newLender) external onlyOwner {
-        if (creditLine == address(0) || newLender == address(0)) {
-            revert Error.ZeroAddress();
-        }
-        if (_creditLineLenders[creditLine] == newLender) {
-            revert Error.AlreadyConfigured();
-        }
-
-        emit CreditLineLenderUpdated(creditLine, newLender, _creditLineLenders[creditLine]);
-
-        _creditLineLenders[creditLine] = newLender;
-    }
-
-    function updateLiquidityPoolLender(address liquidityPool, address newLender) external onlyOwner {
-        if (liquidityPool == address(0) || newLender == address(0)) {
-            revert Error.ZeroAddress();
-        }
-        if (_liquidityPoolLenders[liquidityPool] == newLender) {
-            revert Error.AlreadyConfigured();
-        }
-
-        emit LiquidityPoolLenderUpdated(liquidityPool, newLender, _liquidityPoolLenders[liquidityPool]);
-
-        _liquidityPoolLenders[liquidityPool] = newLender;
-    }
-
-    /// @inheritdoc ILendingMarket
-    function assignLiquidityPoolToCreditLine(address creditLine, address liquidityPool) external whenNotPaused {
-        if (creditLine == address(0)) {
-            revert Error.ZeroAddress();
-        }
-        if (liquidityPool == address(0)) {
-            revert Error.ZeroAddress();
-        }
-
-        if (_liquidityPoolByCreditLine[creditLine] != address(0)) {
-            // TBD Check if updating the liquidity pool associated with the credit line
-            // can have any unexpected side effects during the loan lifecycle.
-            revert Error.NotImplemented();
-        }
-
-        if (_creditLineLenders[creditLine] != msg.sender || _liquidityPoolLenders[liquidityPool] != msg.sender) {
-            revert Error.Unauthorized();
-        }
-
-        emit LiquidityPoolAssignedToCreditLine(creditLine, liquidityPool, _liquidityPoolByCreditLine[creditLine]);
-
-        _liquidityPoolByCreditLine[creditLine] = liquidityPool;
     }
 
     // -------------------------------------------- //
@@ -295,16 +278,13 @@ contract LendingMarket is
             trackedBorrowBalance: totalBorrowAmount,
             trackedTimestamp: blockTimestamp,
             freezeTimestamp: 0,
-            autoRepayment: terms.autoRepayment
+            autoRepayment: terms.autoRepayment,
+            revocationPeriods: terms.revocationPeriods,
+            addonAmount: terms.addonAmount
         });
 
         ILiquidityPool(liquidityPool).onBeforeLoanTaken(id, creditLine);
-
         IERC20(terms.token).safeTransferFrom(liquidityPool, msg.sender, borrowAmount);
-        if (terms.addonAmount != 0) {
-            IERC20(terms.token).safeTransferFrom(liquidityPool, terms.addonRecipient, terms.addonAmount);
-        }
-
         ILiquidityPool(liquidityPool).onAfterLoanTaken(id, creditLine);
 
         emit LoanTaken(id, msg.sender, totalBorrowAmount, terms.durationInPeriods);
@@ -354,6 +334,29 @@ contract LendingMarket is
         if (outstandingBalance == 0) {
             _safeTransfer(ownerOf(loanId), loan.borrower, loanId, "");
         }
+    }
+
+    /// @inheritdoc ILendingMarket
+    function revokeLoan(uint256 loanId) external whenNotPaused onlyOngoingLoan(loanId) {
+        Loan.State storage loan = _loans[loanId];
+
+        if (loan.startTimestamp != loan.trackedTimestamp) {
+            revert RevocationIsProhibited();
+        }
+
+        uint256 currentPeriodIndex = _periodIndex(_blockTimestamp(loanId), loan.periodInSeconds);
+        uint256 startPeriodIndex = _periodIndex(loan.startTimestamp, loan.periodInSeconds);
+        if (loan.revocationPeriods <= currentPeriodIndex - startPeriodIndex ) {
+            revert RevocationPeriodHasPassed();
+        }
+
+        loan.trackedBorrowBalance = 0;
+
+        ILiquidityPool(loan.treasury).onBeforeLoanRevocation(loanId);
+        IERC20(loan.token).transferFrom(loan.borrower, loan.treasury, loan.initialBorrowAmount - loan.addonAmount);
+        ILiquidityPool(loan.treasury).onAfterLoanRevocation(loanId);
+
+        emit LoanRevoked(loanId);
     }
 
     // -------------------------------------------- //
@@ -455,6 +458,26 @@ contract LendingMarket is
         emit LenderAliasConfigured(msg.sender, account, isAlias);
 
         _hasAlias[msg.sender][account] = isAlias;
+    }
+
+    /// @inheritdoc ILendingMarket
+    function assignLiquidityPoolToCreditLine(address creditLine, address liquidityPool) external whenNotPaused {
+        if (creditLine == address(0) || liquidityPool == address(0)) {
+            revert Error.ZeroAddress();
+        }
+        if (_liquidityPoolByCreditLine[creditLine] != address(0)) {
+            // TBD Check if updating the liquidity pool associated with the credit line
+            // will have any unexpected side effects during the loan lifecycle.
+            revert Error.NotImplemented();
+        }
+
+        if (_creditLineLenders[creditLine] != msg.sender || _liquidityPoolLenders[liquidityPool] != msg.sender) {
+            revert Error.Unauthorized();
+        }
+
+        emit LiquidityPoolAssignedToCreditLine(creditLine, liquidityPool, _liquidityPoolByCreditLine[creditLine]);
+
+        _liquidityPoolByCreditLine[creditLine] = liquidityPool;
     }
 
     // -------------------------------------------- //

@@ -45,6 +45,11 @@ contract LendingMarketMock is ILendingMarket {
         emit RepayLoanCalled(loanId, repayAmount);
     }
 
+    function revokeLoan(uint256 loanId) external pure {
+        loanId; // To prevent compiler warning about unused variable
+        revert Error.NotImplemented();
+    }
+
     function freeze(uint256 loanId) external pure {
         loanId; // To prevent compiler warning about unused variable
         revert Error.NotImplemented();

@@ -43,6 +43,7 @@ contract LendingMarketMockTest is Test {
     uint256 private constant REPAY_AMOUNT = 200;
     uint256 private constant LOAN_ID = 1;
 
+    uint16 private constant STATE_REVOCATION_PERIODS = 10;
     uint32 private constant STATE_PERIOD_IN_SECONDS = 100;
     uint32 private constant STATE_DURATION_IN_PERIODS = 200;
     uint32 private constant STATE_INTEREST_RATE_FACTOR = 300;
@@ -54,6 +55,7 @@ contract LendingMarketMockTest is Test {
     uint32 private constant STATE_TRACKED_TIMESTAMP = 800;
     uint64 private constant STATE_INITIAL_BORROW_AMOUNT = 900;
     uint64 private constant STATE_TRACKED_BORROW_BALANCE = 1000;
+    uint64 private constant STATE_ADDON_AMOUNT = 1100;
     bool private constant STATE_AUTO_REPAYMENT = true;
 
     uint256 private constant UPDATE_LOAN_DURATION = 100;
@@ -82,6 +84,11 @@ contract LendingMarketMockTest is Test {
         vm.expectEmit(true, true, true, true, address(mock));
         emit RepayLoanCalled(LOAN_ID, REPAY_AMOUNT);
         mock.repayLoan(LOAN_ID, REPAY_AMOUNT);
+    }
+
+    function test_revokeLoan() public {
+        vm.expectRevert(Error.NotImplemented.selector);
+        mock.revokeLoan(LOAN_ID);
     }
 
     function test_freeze() public {
@@ -174,6 +181,8 @@ contract LendingMarketMockTest is Test {
         assertEq(loan.initialBorrowAmount, 0);
         assertEq(loan.trackedBorrowBalance, 0);
         assertEq(loan.autoRepayment, false);
+        assertEq(loan.revocationPeriods, 0);
+        assertEq(loan.addonAmount, 0);
 
         mock.mockLoanState(
             1,
@@ -192,7 +201,9 @@ contract LendingMarketMockTest is Test {
                 trackedTimestamp: STATE_TRACKED_TIMESTAMP,
                 initialBorrowAmount: STATE_INITIAL_BORROW_AMOUNT,
                 trackedBorrowBalance: STATE_TRACKED_BORROW_BALANCE,
-                autoRepayment: STATE_AUTO_REPAYMENT
+                autoRepayment: STATE_AUTO_REPAYMENT,
+                revocationPeriods: STATE_REVOCATION_PERIODS,
+                addonAmount: STATE_ADDON_AMOUNT
             })
         );
 
@@ -213,6 +224,8 @@ contract LendingMarketMockTest is Test {
         assertEq(loan.initialBorrowAmount, STATE_INITIAL_BORROW_AMOUNT);
         assertEq(loan.trackedBorrowBalance, STATE_TRACKED_BORROW_BALANCE);
         assertEq(loan.autoRepayment, STATE_AUTO_REPAYMENT);
+        assertEq(loan.revocationPeriods, STATE_REVOCATION_PERIODS);
+        assertEq(loan.addonAmount, STATE_ADDON_AMOUNT);
     }
 
     function test_getLoanPreview() public {

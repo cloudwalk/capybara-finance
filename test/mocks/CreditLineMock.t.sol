@@ -27,13 +27,13 @@ contract CreditLineMockTest is Test {
 
     address private constant TERMS_TOKEN = address(bytes20(keccak256("token")));
     address private constant TERMS_TREASURY = address(bytes20(keccak256("treasury")));
-    address private constant TERMS_ADDON_RECIPIENT = address(bytes20(keccak256("addon")));
 
     uint32 private constant TERMS_PERIOD_IN_SECONDS = 100;
     uint32 private constant TERMS_DURATION_IN_PERIODS = 200;
     uint32 private constant TERMS_INTEREST_RATE_FACTOR = 300;
     uint32 private constant TERMS_INTEREST_RATE_PRIMARY = 400;
     uint32 private constant TERMS_INTEREST_RATE_SECONDARY = 500;
+    uint16 private constant TERMS_REVOCATION_PERIODS = 25;
     uint32 private constant TERMS_ADDON_AMOUNT = 600;
 
     Interest.Formula private constant TERMS_INTEREST_FORMULA = Interest.Formula.Compound;
@@ -62,8 +62,8 @@ contract CreditLineMockTest is Test {
         assertEq(terms.interestRatePrimary, 0);
         assertEq(terms.interestRateSecondary, 0);
         assertEq(uint256(terms.interestFormula), uint256(Interest.Formula.Simple));
-        assertEq(terms.addonRecipient, address(0));
         assertEq(terms.autoRepayment, false);
+        assertEq(terms.revocationPeriods, 0);
         assertEq(terms.addonAmount, 0);
 
         mock.mockLoanTerms(
@@ -78,8 +78,8 @@ contract CreditLineMockTest is Test {
                 interestRatePrimary: TERMS_INTEREST_RATE_PRIMARY,
                 interestRateSecondary: TERMS_INTEREST_RATE_SECONDARY,
                 interestFormula: TERMS_INTEREST_FORMULA,
-                addonRecipient: TERMS_ADDON_RECIPIENT,
                 autoRepayment: TERMS_AUTO_REPAYMENT,
+                revocationPeriods: TERMS_REVOCATION_PERIODS,
                 addonAmount: TERMS_ADDON_AMOUNT
             })
         );
@@ -94,8 +94,8 @@ contract CreditLineMockTest is Test {
         assertEq(terms.interestRatePrimary, TERMS_INTEREST_RATE_PRIMARY);
         assertEq(terms.interestRateSecondary, TERMS_INTEREST_RATE_SECONDARY);
         assertEq(uint256(terms.interestFormula), uint256(TERMS_INTEREST_FORMULA));
-        assertEq(terms.addonRecipient, TERMS_ADDON_RECIPIENT);
         assertEq(terms.autoRepayment, TERMS_AUTO_REPAYMENT);
+        assertEq(terms.revocationPeriods, TERMS_REVOCATION_PERIODS);
         assertEq(terms.addonAmount, TERMS_ADDON_AMOUNT);
     }
 
@@ -110,8 +110,8 @@ contract CreditLineMockTest is Test {
         assertEq(terms.interestRatePrimary, 0);
         assertEq(terms.interestRateSecondary, 0);
         assertEq(uint256(terms.interestFormula), uint256(Interest.Formula.Simple));
-        assertEq(terms.addonRecipient, address(0));
         assertEq(terms.autoRepayment, false);
+        assertEq(terms.revocationPeriods, 0);
         assertEq(terms.addonAmount, 0);
 
         mock.mockLoanTerms(
@@ -126,8 +126,8 @@ contract CreditLineMockTest is Test {
                 interestRatePrimary: TERMS_INTEREST_RATE_PRIMARY,
                 interestRateSecondary: TERMS_INTEREST_RATE_SECONDARY,
                 interestFormula: TERMS_INTEREST_FORMULA,
-                addonRecipient: TERMS_ADDON_RECIPIENT,
                 autoRepayment: TERMS_AUTO_REPAYMENT,
+                revocationPeriods: TERMS_REVOCATION_PERIODS,
                 addonAmount: TERMS_ADDON_AMOUNT
             })
         );
@@ -142,8 +142,8 @@ contract CreditLineMockTest is Test {
         assertEq(terms.interestRatePrimary, TERMS_INTEREST_RATE_PRIMARY);
         assertEq(terms.interestRateSecondary, TERMS_INTEREST_RATE_SECONDARY);
         assertEq(uint256(terms.interestFormula), uint256(TERMS_INTEREST_FORMULA));
-        assertEq(terms.addonRecipient, TERMS_ADDON_RECIPIENT);
         assertEq(terms.autoRepayment, TERMS_AUTO_REPAYMENT);
+        assertEq(terms.revocationPeriods, TERMS_REVOCATION_PERIODS);
         assertEq(terms.addonAmount, TERMS_ADDON_AMOUNT);
     }
 

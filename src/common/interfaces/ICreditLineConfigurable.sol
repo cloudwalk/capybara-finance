@@ -42,12 +42,12 @@ interface ICreditLineConfigurable is ICreditLine {
         uint32 maxInterestRateSecondary; // The maximum secondary interest rate to be applied to the loan.
         // Slot 3
         uint32 interestRateFactor;       // The interest rate factor used for interest calculation.
-        address addonRecipient;          // The address of the loan addon recipient (extra charges or fees).
         uint32 minAddonFixedRate;        // The minimum fixed rate for the loan addon calculation.
         uint32 maxAddonFixedRate;        // The maximum fixed rate for the loan addon calculation.
-        // Slot 4
         uint32 minAddonPeriodRate;       // The minimum period rate for the loan addon calculation.
         uint32 maxAddonPeriodRate;       // The maximum period rate for the loan addon calculation.
+        uint16 minRevocationPeriods;     // The minimum number of periods during which the loan can be revoked.
+        uint16 maxRevocationPeriods;     // The maximum number of periods during which the loan can be revoked.
     }
 
     /// @dev A struct that defines borrower configuration.
@@ -66,6 +66,7 @@ interface ICreditLineConfigurable is ICreditLine {
         BorrowPolicy borrowPolicy;        // The borrow policy to be applied to the borrower.
         bool autoRepayment;               // Whether the loan can be repaid automatically.
         uint32 expiration;                // The expiration date of the configuration.
+        uint16 revocationPeriods;         // The number of periods during which the loan can be revoked.
     }
 
     // -------------------------------------------- //

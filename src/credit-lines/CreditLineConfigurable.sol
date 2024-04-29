@@ -174,6 +174,9 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         if (config.minAddonPeriodRate > config.maxAddonPeriodRate) {
             revert InvalidCreditLineConfiguration();
         }
+        if (config.minRevocationPeriods > config.maxRevocationPeriods) {
+            revert InvalidCreditLineConfiguration();
+        }
 
         _config = config;
 
@@ -269,7 +272,6 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
 
         terms.token = _token;
         terms.treasury = _config.treasury;
-        terms.addonRecipient = _config.addonRecipient;
         terms.periodInSeconds = _config.periodInSeconds;
         terms.interestRateFactor = _config.interestRateFactor;
         terms.durationInPeriods = durationInPeriods.toUint32();
@@ -277,15 +279,13 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         terms.interestRateSecondary = borrowerConfig.interestRateSecondary;
         terms.interestFormula = borrowerConfig.interestFormula;
         terms.autoRepayment = borrowerConfig.autoRepayment;
-
-        if (terms.addonRecipient != address(0)) {
-            terms.addonAmount = calculateAddonAmount(
-                borrowAmount,
-                durationInPeriods,
-                borrowerConfig.addonFixedRate,
-                borrowerConfig.addonPeriodRate
-            ).toUint64();
-        }
+        terms.revocationPeriods = borrowerConfig.revocationPeriods;
+        terms.addonAmount = calculateAddonAmount(
+            borrowAmount,
+            durationInPeriods,
+            borrowerConfig.addonFixedRate,
+            borrowerConfig.addonPeriodRate
+        ).toUint64();
     }
 
     /// @inheritdoc ICreditLineConfigurable
@@ -404,6 +404,13 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
             revert InvalidBorrowerConfiguration();
         }
         if (config.addonPeriodRate > _config.maxAddonPeriodRate) {
+            revert InvalidBorrowerConfiguration();
+        }
+
+        if (config.revocationPeriods < _config.minRevocationPeriods) {
+            revert InvalidBorrowerConfiguration();
+        }
+        if (config.revocationPeriods > _config.maxRevocationPeriods) {
             revert InvalidBorrowerConfiguration();
         }
 

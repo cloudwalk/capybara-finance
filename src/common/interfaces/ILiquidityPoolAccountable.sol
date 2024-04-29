@@ -9,6 +9,16 @@ import "./core/ILiquidityPool.sol";
 /// @dev Defines the accountable liquidity pool contract functions and events.
 interface ILiquidityPoolAccountable is ILiquidityPool {
     // -------------------------------------------- //
+    //  Structs and enums                           //
+    // -------------------------------------------- //
+
+    /// @dev A struct that defines the credit line balance.
+    struct CreditLineBalance {
+        uint64 borrowable; // The amount of tokens that can be borrowed.
+        uint64 addons;     // The amount of tokens that are locked as addons.
+    }
+
+    // -------------------------------------------- //
     //  Events                                      //
     // -------------------------------------------- //
 
@@ -23,9 +33,15 @@ interface ILiquidityPoolAccountable is ILiquidityPool {
     event Deposit(address indexed creditLine, uint256 amount);
 
     /// @dev Emitted when tokens are withdrawn from the liquidity pool.
-    /// @param tokenSource The address of the token source.
-    /// @param amount The amount of tokens withdrawn.
-    event Withdrawal(address indexed tokenSource, uint256 amount);
+    /// @param creditLine The address of the credit line.
+    /// @param borrowableAmount The amount of tokens withdrawn from the borrowable balance.
+    /// @param addonAmount The amount of tokens withdrawn from the addons balance.
+    event Withdrawal(address indexed creditLine, uint256 borrowableAmount, uint256 addonAmount);
+
+    /// @dev Emitted when tokens are rescued from the liquidity pool.
+    /// @param token The address of the token rescued.
+    /// @param amount The amount of tokens rescued.
+    event Rescue(address indexed token, uint256 amount);
 
     /// @dev Emitted when loan auto repayment was initiated.
     /// @param numberOfLoans The number of loans repaid.
@@ -46,19 +62,25 @@ interface ILiquidityPoolAccountable is ILiquidityPool {
     function deposit(address creditLine, uint256 amount) external;
 
     /// @dev Withdraws tokens from the liquidity pool.
-    /// @param tokenSource The address of the token source.
-    /// @param amount The amount of tokens to withdraw.
-    function withdraw(address tokenSource, uint256 amount) external;
+    /// @param creditLine The address of the credit line.
+    /// @param borrowableAmount The amount of tokens to withdraw from the borrowable balance.
+    /// @param addonAmount The amount of tokens to withdraw from the addons balance.
+    function withdraw(address creditLine, uint256 borrowableAmount, uint256 addonAmount) external;
+
+    /// @dev Rescues tokens from the liquidity pool.
+    /// @param token The address of the token to rescue.
+    /// @param amount The amount of tokens to rescue.
+    function rescue(address token, uint256 amount) external;
 
     /// @dev Executes auto repayment of loans in the batch mode.
     /// @param loanIds The unique identifiers of the loans to repay.
     /// @param amounts The payment amounts that correspond with given loan ids.
     function autoRepay(uint256[] memory loanIds, uint256[] memory amounts) external;
 
-    /// @dev Retrieves the token balance of a given token source.
-    /// @param tokenSource The address of the token source.
+    /// @dev Retrieves the token balance of the credit line.
+    /// @param creditLine The address of the credit line.
     /// @return The token balance of the token source.
-    function getTokenBalance(address tokenSource) external view returns (uint256);
+    function getCreditLineBalance(address creditLine) external view returns (CreditLineBalance memory);
 
     /// @dev Retrieves the credit line associated with a loan.
     /// @param loanId The unique identifier of the loan.

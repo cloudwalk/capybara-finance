@@ -16,6 +16,7 @@ import { ERC20Mock } from "src/mocks/ERC20Mock.sol";
 import { CreditLineMock } from "src/mocks/CreditLineMock.sol";
 import { LendingMarketMock } from "src/mocks/LendingMarketMock.sol";
 
+import { ILiquidityPoolAccountable } from "src/common/interfaces/ILiquidityPoolAccountable.sol";
 import { LiquidityPoolAccountable } from "src/liquidity-pools/LiquidityPoolAccountable.sol";
 
 /// @title LiquidityPoolAccountableTest contract
@@ -28,7 +29,8 @@ contract LiquidityPoolAccountableTest is Test {
 
     event AdminConfigured(address indexed account, bool adminStatus);
     event Deposit(address indexed creditLine, uint256 amount);
-    event Withdrawal(address indexed tokenSource, uint256 amount);
+    event Withdrawal(address indexed creditLine, uint256 borrowableAmount, uint256 addonAmount);
+    event Rescue(address indexed token, uint256 amount);
     event AutoRepayment(uint256 numberOfLoans);
     event RepayLoanCalled(uint256 indexed loanId, uint256 repayAmount);
 
@@ -54,6 +56,7 @@ contract LiquidityPoolAccountableTest is Test {
     uint64 private constant DEPOSIT_AMOUNT_1 = 100;
     uint64 private constant DEPOSIT_AMOUNT_2 = 200;
     uint64 private constant DEPOSIT_AMOUNT_3 = 300;
+    uint64 private constant ADDON_AMOUNT = 25;
 
     uint16 private constant KIND_1 = 1;
 
@@ -70,10 +73,10 @@ contract LiquidityPoolAccountableTest is Test {
         liquidityPool.initialize(address(lendingMarket), LENDER);
     }
 
-    function configureLender() private {
+    function configureLender(uint256 amount) private {
         vm.startPrank(LENDER);
-        token.mint(LENDER, DEPOSIT_AMOUNT_1);
-        token.approve(address(liquidityPool), DEPOSIT_AMOUNT_1);
+        token.mint(LENDER, amount);
+        token.approve(address(liquidityPool), amount);
         vm.stopPrank();
     }
 
@@ -107,7 +110,9 @@ contract LiquidityPoolAccountableTest is Test {
             trackedTimestamp: 0,
             initialBorrowAmount: 0,
             trackedBorrowBalance: 0,
-            autoRepayment: false
+            autoRepayment: false,
+            revocationPeriods: 0,
+            addonAmount: 0
         });
     }
 
@@ -240,11 +245,15 @@ contract LiquidityPoolAccountableTest is Test {
     // -------------------------------------------- //
 
     function test_deposit() public {
-        configureLender();
+        configureLender(DEPOSIT_AMOUNT_1);
 
         assertEq(token.balanceOf(address(liquidityPool)), 0);
         assertEq(token.allowance(address(liquidityPool), address(lendingMarket)), 0);
-        assertEq(liquidityPool.getTokenBalance(address(creditLine)), 0);
+
+        ILiquidityPoolAccountable.CreditLineBalance memory creditLineBalance =
+            liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, 0);
+        assertEq(creditLineBalance.addons, 0);
 
         vm.prank(LENDER);
         vm.expectEmit(true, true, true, true, address(liquidityPool));
@@ -253,7 +262,10 @@ contract LiquidityPoolAccountableTest is Test {
 
         assertEq(token.balanceOf(address(liquidityPool)), DEPOSIT_AMOUNT_1);
         assertEq(token.allowance(address(liquidityPool), address(lendingMarket)), type(uint256).max);
-        assertEq(liquidityPool.getTokenBalance(address(creditLine)), DEPOSIT_AMOUNT_1);
+
+        creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
+        assertEq(creditLineBalance.addons, 0);
     }
 
     function test_deposit_Revert_IfCallerNotOwner() public {
@@ -278,88 +290,113 @@ contract LiquidityPoolAccountableTest is Test {
     //  Test `withdraw` function                    //
     // -------------------------------------------- //
 
-    function test_withdraw_CreditLineBalance() public {
-        configureLender();
+    function prepareWithdraw() private returns (uint256, uint256) {
+        uint256 depositAmount = DEPOSIT_AMOUNT_1 + DEPOSIT_AMOUNT_2 + ADDON_AMOUNT;
+        configureLender(depositAmount);
 
-        vm.startPrank(LENDER);
+        Loan.State memory loan = initLoanState();
+        loan.initialBorrowAmount = DEPOSIT_AMOUNT_1 + ADDON_AMOUNT;
+        loan.addonAmount = ADDON_AMOUNT;
+        lendingMarket.mockLoanState(LOAN_ID_1, loan);
 
-        liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT_1);
+        vm.prank(LENDER);
+        liquidityPool.deposit(address(creditLine), depositAmount);
 
-        assertEq(token.balanceOf(LENDER), 0);
-        assertEq(token.balanceOf(address(liquidityPool)), DEPOSIT_AMOUNT_1);
-        assertEq(liquidityPool.getTokenBalance(address(token)), DEPOSIT_AMOUNT_1);
-        assertEq(liquidityPool.getTokenBalance(address(creditLine)), DEPOSIT_AMOUNT_1);
+        vm.prank(address(lendingMarket));
+        liquidityPool.onAfterLoanTaken(LOAN_ID_1, address(creditLine));
 
-        vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit Withdrawal(address(creditLine), DEPOSIT_AMOUNT_1 - 1);
-        liquidityPool.withdraw(address(creditLine), DEPOSIT_AMOUNT_1 - 1);
-
-        assertEq(token.balanceOf(LENDER), DEPOSIT_AMOUNT_1 - 1);
-        assertEq(token.balanceOf(address(liquidityPool)), 1);
-        assertEq(liquidityPool.getTokenBalance(address(token)), 1);
-        assertEq(liquidityPool.getTokenBalance(address(creditLine)), 1);
+        return (DEPOSIT_AMOUNT_2, ADDON_AMOUNT);
     }
 
-    function test_withdraw_TokenBalance() public {
-        configureLender();
+    function test_withdraw() public {
+        (uint256 borrowable, uint256 addons) = prepareWithdraw();
 
-        vm.startPrank(LENDER);
-
-        liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT_1);
-
+        ILiquidityPoolAccountable.CreditLineBalance memory creditLineBalance =
+            liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, borrowable);
+        assertEq(creditLineBalance.addons, addons);
         assertEq(token.balanceOf(LENDER), 0);
-        assertEq(token.balanceOf(address(liquidityPool)), DEPOSIT_AMOUNT_1);
-        assertEq(liquidityPool.getTokenBalance(address(token)), DEPOSIT_AMOUNT_1);
-        assertEq(liquidityPool.getTokenBalance(address(creditLine)), DEPOSIT_AMOUNT_1);
 
+        vm.prank(LENDER);
         vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit Withdrawal(address(token), DEPOSIT_AMOUNT_1 - 1);
-        liquidityPool.withdraw(address(token), DEPOSIT_AMOUNT_1 - 1);
+        emit Withdrawal(address(creditLine), 0, 1);
+        liquidityPool.withdraw(address(creditLine), 0, 1);
 
-        assertEq(token.balanceOf(LENDER), DEPOSIT_AMOUNT_1 - 1);
-        assertEq(token.balanceOf(address(liquidityPool)), 1);
-        assertEq(liquidityPool.getTokenBalance(address(token)), 1);
-        assertEq(liquidityPool.getTokenBalance(address(creditLine)), DEPOSIT_AMOUNT_1);
+        creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, borrowable);
+        assertEq(creditLineBalance.addons, addons - 1);
+        assertEq(token.balanceOf(LENDER), 1);
+
+        vm.prank(LENDER);
+        vm.expectEmit(true, true, true, true, address(liquidityPool));
+        emit Withdrawal(address(creditLine), 1, 0);
+        liquidityPool.withdraw(address(creditLine), 1, 0);
+
+        creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, borrowable - 1);
+        assertEq(creditLineBalance.addons, addons - 1);
+        assertEq(token.balanceOf(LENDER), 2);
     }
 
     function test_withdraw_Revert_IfCallerNotOwner() public {
+        (uint256 borrowable, uint256 addons) = prepareWithdraw();
         vm.prank(ATTACKER);
         vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
-        liquidityPool.withdraw(address(creditLine), DEPOSIT_AMOUNT_1);
+        liquidityPool.withdraw(address(creditLine), borrowable, addons);
     }
 
-    function test_withdraw_Revert_IfTokenSourceIsZeroAddress() public {
+    function test_withdraw_Revert_IfCreditLineIsZeroAddress() public {
+        (uint256 borrowable, uint256 addons) = prepareWithdraw();
         vm.prank(LENDER);
         vm.expectRevert(Error.ZeroAddress.selector);
-        liquidityPool.withdraw(address(0), DEPOSIT_AMOUNT_1);
+        liquidityPool.withdraw(address(0), borrowable, addons);
     }
 
     function test_withdraw_Revert_IfWithdrawAmountIsZero() public {
+        prepareWithdraw();
         vm.prank(LENDER);
         vm.expectRevert(Error.InvalidAmount.selector);
-        liquidityPool.withdraw(address(creditLine), 0);
+        liquidityPool.withdraw(address(creditLine), 0, 0);
     }
 
-    function test_withdraw_Revert_CreditLineBalance_InsufficientBalance() public {
-        configureLender();
-        vm.startPrank(LENDER);
-        liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT_1);
-        vm.expectRevert(LiquidityPoolAccountable.InsufficientBalance.selector);
-        liquidityPool.withdraw(address(creditLine), DEPOSIT_AMOUNT_1 + 1);
-    }
-
-    function test_withdraw_Revert_TokenBalance_InsufficientBalance() public {
-        configureLender();
-        vm.startPrank(LENDER);
-        liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT_1);
-        vm.expectRevert(LiquidityPoolAccountable.InsufficientBalance.selector);
-        liquidityPool.withdraw(address(token), DEPOSIT_AMOUNT_1 + 1);
-    }
-
-    function test_withdraw_Revert_ZeroBalance() public {
+    function test_withdraw_Revert_CreditLineBalance_InsufficientBalance_Borrowable() public {
+        (uint256 borrowable, uint256 addons) = prepareWithdraw();
         vm.prank(LENDER);
-        vm.expectRevert(LiquidityPoolAccountable.ZeroBalance.selector);
-        liquidityPool.withdraw(address(creditLine), DEPOSIT_AMOUNT_1);
+        vm.expectRevert(LiquidityPoolAccountable.InsufficientBalance.selector);
+        liquidityPool.withdraw(address(creditLine), borrowable + 1, addons);
+    }
+
+    function test_withdraw_Revert_CreditLineBalance_InsufficientBalance_Addons() public {
+        (uint256 borrowable, uint256 addons) = prepareWithdraw();
+        vm.prank(LENDER);
+        vm.expectRevert(LiquidityPoolAccountable.InsufficientBalance.selector);
+        liquidityPool.withdraw(address(creditLine), borrowable, addons + 1);
+    }
+
+    // -------------------------------------------- //
+    //  Test `rescue` function                      //
+    // -------------------------------------------- //
+
+    function test_rescue() public {
+        token.mint(address(liquidityPool), DEPOSIT_AMOUNT_1);
+
+        assertEq(token.balanceOf(LENDER), 0);
+        assertEq(token.balanceOf(address(liquidityPool)), DEPOSIT_AMOUNT_1);
+
+        vm.prank(LENDER);
+        vm.expectEmit(true, true, true, true, address(liquidityPool));
+        emit Rescue(address(token), DEPOSIT_AMOUNT_1);
+        liquidityPool.rescue(address(token), DEPOSIT_AMOUNT_1);
+
+        assertEq(token.balanceOf(LENDER), DEPOSIT_AMOUNT_1);
+        assertEq(token.balanceOf(address(liquidityPool)), 0);
+    }
+
+    function test_rescue_Revert_IfCallerNotOwner() public {
+        token.mint(address(liquidityPool), DEPOSIT_AMOUNT_1);
+        vm.prank(ATTACKER);
+        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
+        liquidityPool.rescue(address(token), DEPOSIT_AMOUNT_1);
     }
 
     // -------------------------------------------- //
@@ -434,22 +471,29 @@ contract LiquidityPoolAccountableTest is Test {
     // -------------------------------------------- //
 
     function test_onAfterLoanTaken() public {
-        configureLender();
+        configureLender(DEPOSIT_AMOUNT_1);
+
         Loan.State memory loan = initLoanState();
         loan.initialBorrowAmount = DEPOSIT_AMOUNT_1;
+        loan.addonAmount = ADDON_AMOUNT;
         lendingMarket.mockLoanState(LOAN_ID_1, loan);
 
         vm.prank(LENDER);
         liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT_1);
 
         assertEq(liquidityPool.getCreditLine(LOAN_ID_1), address(0));
-        assertEq(liquidityPool.getTokenBalance(address(creditLine)), DEPOSIT_AMOUNT_1);
+        ILiquidityPoolAccountable.CreditLineBalance memory creditLineBalance =
+            liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
+        assertEq(creditLineBalance.addons, 0);
 
         vm.prank(address(lendingMarket));
         assertEq(liquidityPool.onAfterLoanTaken(LOAN_ID_1, address(creditLine)), true);
 
         assertEq(liquidityPool.getCreditLine(LOAN_ID_1), address(creditLine));
-        assertEq(liquidityPool.getTokenBalance(address(creditLine)), 0);
+        creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, 0);
+        assertEq(creditLineBalance.addons, ADDON_AMOUNT);
     }
 
     function test_onAfterLoanTaken_Revert_IfContractIsPaused() public {
@@ -495,40 +539,55 @@ contract LiquidityPoolAccountableTest is Test {
     //  Test `onAfterLoanPayment` function          //
     // -------------------------------------------- //
 
-    function test_onAfterLoanPayment_CreditLineBalance() public {
-        configureLender();
-        Loan.State memory loan = initLoanState();
-        loan.initialBorrowAmount = DEPOSIT_AMOUNT_1;
-        lendingMarket.mockLoanState(LOAN_ID_1, loan);
+    function prepareRepayment() private {
+        configureLender(DEPOSIT_AMOUNT_1);
 
         vm.prank(LENDER);
         liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT_1);
 
-        assertEq(liquidityPool.getTokenBalance(address(creditLine)), DEPOSIT_AMOUNT_1);
-
-        vm.startPrank(address(lendingMarket));
-        assertEq(liquidityPool.onAfterLoanTaken(LOAN_ID_1, address(creditLine)), true);
-        assertEq(liquidityPool.getTokenBalance(address(creditLine)), 0);
-        assertEq(liquidityPool.onAfterLoanPayment(LOAN_ID_1, DEPOSIT_AMOUNT_1), true);
-
-        assertEq(liquidityPool.getTokenBalance(address(creditLine)), DEPOSIT_AMOUNT_1);
+        Loan.State memory loan = initLoanState();
+        loan.initialBorrowAmount = DEPOSIT_AMOUNT_1;
+        loan.addonAmount = ADDON_AMOUNT;
+        lendingMarket.mockLoanState(LOAN_ID_1, loan);
     }
 
-    function test_onAfterLoanPayment_NonCreditLineBalance() public {
-        configureLender();
-        Loan.State memory loan = initLoanState();
-        loan.initialBorrowAmount = DEPOSIT_AMOUNT_1;
-        lendingMarket.mockLoanState(LOAN_ID_1, loan);
+    function test_onAfterLoanPayment_ExistentLoan() public {
+        prepareRepayment();
 
-        vm.prank(LENDER);
-        liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT_1);
+        ILiquidityPoolAccountable.CreditLineBalance memory creditLineBalance =
+            liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
+        assertEq(creditLineBalance.addons, 0);
 
-        assertEq(liquidityPool.getTokenBalance(address(creditLine)), DEPOSIT_AMOUNT_1);
+        vm.prank(address(lendingMarket));
+        assertEq(liquidityPool.onAfterLoanTaken(LOAN_ID_1, address(creditLine)), true);
+
+        creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, 0);
+        assertEq(creditLineBalance.addons, ADDON_AMOUNT);
+
+        vm.prank(address(lendingMarket));
+        assertEq(liquidityPool.onAfterLoanPayment(LOAN_ID_1, DEPOSIT_AMOUNT_1), true);
+
+        creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
+        assertEq(creditLineBalance.addons, ADDON_AMOUNT);
+    }
+
+    function test_onAfterLoanPayment_NonNonExistentLoan() public {
+        prepareRepayment();
+
+        ILiquidityPoolAccountable.CreditLineBalance memory creditLineBalance =
+            liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
+        assertEq(creditLineBalance.addons, 0);
 
         vm.prank(address(lendingMarket));
         assertEq(liquidityPool.onAfterLoanPayment(LOAN_ID_NONEXISTENT, DEPOSIT_AMOUNT_1), true);
 
-        assertEq(liquidityPool.getTokenBalance(address(creditLine)), DEPOSIT_AMOUNT_1);
+        creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
+        assertEq(creditLineBalance.addons, 0);
     }
 
     function test_onAfterLoanPayment_Revert_IfContractIsPaused() public {
@@ -547,27 +606,124 @@ contract LiquidityPoolAccountableTest is Test {
     }
 
     // -------------------------------------------- //
+    //  Test `onBeforeLoanRevocation` function      //
+    // -------------------------------------------- //
+
+    function test_onBeforeLoanRevocation() public {
+        vm.prank(address(lendingMarket));
+        assertEq(liquidityPool.onBeforeLoanRevocation(LOAN_ID_1), true);
+    }
+
+    function test_onBeforeLoanRevocation_Revert_IfContractIsPaused() public {
+        vm.prank(LENDER);
+        liquidityPool.pause();
+
+        vm.prank(address(lendingMarket));
+        vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
+        liquidityPool.onBeforeLoanRevocation(LOAN_ID_1);
+    }
+
+    function test_onBeforeLoanRevocation_Revert_IfCallerNotMarket() public {
+        vm.prank(ATTACKER);
+        vm.expectRevert(Error.Unauthorized.selector);
+        liquidityPool.onBeforeLoanRevocation(LOAN_ID_1);
+    }
+
+    // -------------------------------------------- //
+    //  Test `onAfterLoanRevocation` function       //
+    // -------------------------------------------- //
+
+    function test_onAfterLoanRevocation_ExistentLoan() public {
+        prepareRepayment();
+
+        ILiquidityPoolAccountable.CreditLineBalance memory creditLineBalance =
+            liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
+        assertEq(creditLineBalance.addons, 0);
+
+        vm.prank(address(lendingMarket));
+        assertEq(liquidityPool.onAfterLoanTaken(LOAN_ID_1, address(creditLine)), true);
+
+        creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, 0);
+        assertEq(creditLineBalance.addons, ADDON_AMOUNT);
+
+        vm.prank(address(lendingMarket));
+        assertEq(liquidityPool.onAfterLoanRevocation(LOAN_ID_1), true);
+
+        creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
+        assertEq(creditLineBalance.addons, 0);
+    }
+
+    function test_onAfterLoanRevocation_NonExistentLoan() public {
+        prepareRepayment();
+
+        ILiquidityPoolAccountable.CreditLineBalance memory creditLineBalance =
+            liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
+        assertEq(creditLineBalance.addons, 0);
+
+        vm.prank(address(lendingMarket));
+        assertEq(liquidityPool.onAfterLoanRevocation(LOAN_ID_NONEXISTENT), true);
+
+        creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
+        assertEq(creditLineBalance.addons, 0);
+    }
+
+    function test_onAfterLoanRevocation_Revert_IfContractIsPaused() public {
+        vm.prank(LENDER);
+        liquidityPool.pause();
+
+        vm.prank(address(lendingMarket));
+        vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
+        liquidityPool.onAfterLoanRevocation(LOAN_ID_1);
+    }
+
+    function test_onAfterLoanRevocation_Revert_IfCallerNotMarket() public {
+        vm.prank(ATTACKER);
+        vm.expectRevert(Error.Unauthorized.selector);
+        liquidityPool.onAfterLoanRevocation(LOAN_ID_1);
+    }
+
+    // -------------------------------------------- //
     //  Test view functions                         //
     // -------------------------------------------- //
 
-    function test_getTokenBalance() public {
-        assertEq(liquidityPool.getTokenBalance(address(creditLine)), 0);
-        assertEq(liquidityPool.getTokenBalance(address(token)), 0);
-        assertEq(liquidityPool.getTokenBalance(TOKEN_SOURCE_NONEXISTENT), 0);
+    function test_getCreditLineBalance() public {
+        configureLender(DEPOSIT_AMOUNT_1);
 
-        vm.startPrank(LENDER);
-        token.mint(LENDER, DEPOSIT_AMOUNT_1 + 1);
-        token.approve(address(liquidityPool), DEPOSIT_AMOUNT_1 + 1);
-        liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT_1 + 1);
-        token.mint(address(liquidityPool), DEPOSIT_AMOUNT_1 + 2);
+        ILiquidityPoolAccountable.CreditLineBalance memory creditLineBalance =
+            liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, 0);
+        assertEq(creditLineBalance.addons, 0);
+        assertEq(token.balanceOf(address(liquidityPool)), 0);
 
-        assertEq(liquidityPool.getTokenBalance(address(creditLine)), DEPOSIT_AMOUNT_1 + 1);
-        assertEq(liquidityPool.getTokenBalance(address(token)), DEPOSIT_AMOUNT_1 * 2 + 3);
-        assertEq(liquidityPool.getTokenBalance(TOKEN_SOURCE_NONEXISTENT), 0);
+        vm.prank(LENDER);
+        liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT_1);
+
+        creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
+        assertEq(creditLineBalance.addons, 0);
+        assertEq(token.balanceOf(address(liquidityPool)), DEPOSIT_AMOUNT_1);
+
+        Loan.State memory loan = initLoanState();
+        loan.initialBorrowAmount = DEPOSIT_AMOUNT_1;
+        loan.addonAmount = ADDON_AMOUNT;
+        lendingMarket.mockLoanState(LOAN_ID_1, loan);
+
+        vm.prank(address(lendingMarket));
+        liquidityPool.onAfterLoanTaken(LOAN_ID_1, address(creditLine));
+
+        creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, 0);
+        assertEq(creditLineBalance.addons, ADDON_AMOUNT);
     }
 
     function test_getCreditLine() public {
-        configureLender();
+        configureLender(DEPOSIT_AMOUNT_1);
+
         Loan.State memory loan = initLoanState();
         loan.initialBorrowAmount = DEPOSIT_AMOUNT_1;
         lendingMarket.mockLoanState(LOAN_ID_1, loan);

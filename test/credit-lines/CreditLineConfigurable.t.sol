@@ -48,7 +48,6 @@ contract CreditLineConfigurableTest is Test {
     address private constant BORROWER_2 = address(bytes20(keccak256("borrower_2")));
     address private constant BORROWER_3 = address(bytes20(keccak256("borrower_3")));
     address private constant LOAN_TREASURY = address(bytes20(keccak256("loan_treasury")));
-    address private constant ADDON_RECIPIENT = address(bytes20(keccak256("addon_recipient")));
 
     uint64 private constant CREDIT_LINE_CONFIG_MIN_BORROW_AMOUNT = 400;
     uint64 private constant CREDIT_LINE_CONFIG_MAX_BORROW_AMOUNT = 900;
@@ -64,6 +63,8 @@ contract CreditLineConfigurableTest is Test {
     uint32 private constant CREDIT_LINE_CONFIG_MAX_ADDON_FIXED_RATE = 50;
     uint32 private constant CREDIT_LINE_CONFIG_MIN_ADDON_PERIOD_RATE = 10;
     uint32 private constant CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_RATE = 50;
+    uint16 private constant CREDIT_LINE_CONFIG_MIN_REVOCATION_PERIODS = 2;
+    uint16 private constant CREDIT_LINE_CONFIG_MAX_REVOCATION_PERIODS = 4;
 
     uint32 private constant BORROWER_CONFIG_EXPIRATION = 1000;
     uint64 private constant BORROWER_CONFIG_MIN_BORROW_AMOUNT = 500;
@@ -74,6 +75,7 @@ contract CreditLineConfigurableTest is Test {
     uint32 private constant BORROWER_CONFIG_INTEREST_RATE_SECONDARY = 6;
     uint32 private constant BORROWER_CONFIG_ADDON_FIXED_RATE = 15;
     uint32 private constant BORROWER_CONFIG_ADDON_PERIOD_RATE = 20;
+    uint16 private constant BORROWER_CONFIG_REVOCATION_PERIODS = 3;
     bool private constant BORROWER_CONFIG_AUTOREPAYMENT = true;
     Interest.Formula private constant BORROWER_CONFIG_INTEREST_FORMULA_COMPOUND = Interest.Formula.Compound;
     ICreditLineConfigurable.BorrowPolicy private constant BORROWER_CONFIG_BORROW_POLICY_DECREASE =
@@ -136,7 +138,8 @@ contract CreditLineConfigurableTest is Test {
             config1.addonPeriodRate == config2.addonPeriodRate &&
             uint256(config1.interestFormula) == uint256(config2.interestFormula) &&
             uint256(config1.borrowPolicy) == uint256(config2.borrowPolicy) &&
-            config1.autoRepayment == config2.autoRepayment
+            config1.autoRepayment == config2.autoRepayment &&
+            config1.revocationPeriods == config2.revocationPeriods
         );
     }
 
@@ -156,11 +159,12 @@ contract CreditLineConfigurableTest is Test {
             config1.minInterestRateSecondary == config2.minInterestRateSecondary &&
             config1.maxInterestRateSecondary == config2.maxInterestRateSecondary &&
             config1.interestRateFactor == config2.interestRateFactor &&
-            config1.addonRecipient == config2.addonRecipient &&
             config1.minAddonFixedRate == config2.minAddonFixedRate &&
             config1.maxAddonFixedRate == config2.maxAddonFixedRate &&
             config1.minAddonPeriodRate == config2.minAddonPeriodRate &&
-            config1.maxAddonPeriodRate == config2.maxAddonPeriodRate
+            config1.maxAddonPeriodRate == config2.maxAddonPeriodRate &&
+            config1.minRevocationPeriods == config2.minRevocationPeriods &&
+            config1.maxRevocationPeriods == config2.maxRevocationPeriods
         );
     }
 
@@ -180,11 +184,12 @@ contract CreditLineConfigurableTest is Test {
             config1.minInterestRateSecondary == config2.minInterestRateSecondary &&
             config1.maxInterestRateSecondary == config2.maxInterestRateSecondary &&
             config1.interestRateFactor == config2.interestRateFactor &&
-            config1.addonRecipient == config2.addonRecipient &&
             config1.minAddonFixedRate == config2.minAddonFixedRate &&
             config1.maxAddonFixedRate == config2.maxAddonFixedRate &&
             config1.minAddonPeriodRate == config2.minAddonPeriodRate &&
-            config1.maxAddonPeriodRate == config2.maxAddonPeriodRate
+            config1.maxAddonPeriodRate == config2.maxAddonPeriodRate &&
+            config1.minRevocationPeriods == config2.minRevocationPeriods &&
+            config1.maxRevocationPeriods == config2.maxRevocationPeriods
         );
     }
 
@@ -205,7 +210,8 @@ contract CreditLineConfigurableTest is Test {
             addonPeriodRate: BORROWER_CONFIG_ADDON_PERIOD_RATE,
             interestFormula: BORROWER_CONFIG_INTEREST_FORMULA_COMPOUND,
             borrowPolicy: BORROWER_CONFIG_BORROW_POLICY_DECREASE,
-            autoRepayment: BORROWER_CONFIG_AUTOREPAYMENT
+            autoRepayment: BORROWER_CONFIG_AUTOREPAYMENT,
+            revocationPeriods: BORROWER_CONFIG_REVOCATION_PERIODS
         });
     }
 
@@ -240,11 +246,12 @@ contract CreditLineConfigurableTest is Test {
             minInterestRateSecondary: CREDIT_LINE_CONFIG_MIN_INTEREST_RATE_SECONDARY,
             maxInterestRateSecondary: CREDIT_LINE_CONFIG_MAX_INTEREST_RATE_SECONDARY,
             interestRateFactor: CREDIT_LINE_CONFIG_INTEREST_RATE_FACTOR,
-            addonRecipient: ADDON_RECIPIENT,
             minAddonFixedRate: CREDIT_LINE_CONFIG_MIN_ADDON_FIXED_RATE,
             maxAddonFixedRate: CREDIT_LINE_CONFIG_MAX_ADDON_FIXED_RATE,
             minAddonPeriodRate: CREDIT_LINE_CONFIG_MIN_ADDON_PERIOD_RATE,
-            maxAddonPeriodRate: CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_RATE
+            maxAddonPeriodRate: CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_RATE,
+            minRevocationPeriods: CREDIT_LINE_CONFIG_MIN_REVOCATION_PERIODS,
+            maxRevocationPeriods: CREDIT_LINE_CONFIG_MAX_REVOCATION_PERIODS
         });
     }
 
@@ -476,6 +483,15 @@ contract CreditLineConfigurableTest is Test {
         creditLine.configureCreditLine(config);
     }
 
+    function test_configureCreditLine_Revert_IfMinRevocationPeriodsIsGreaterThanMaxRevocationPeriods() public {
+        ICreditLineConfigurable.CreditLineConfig memory config = initCreditLineConfig();
+        config.minRevocationPeriods = config.maxRevocationPeriods + 1;
+
+        vm.prank(LENDER_1);
+        vm.expectRevert(CreditLineConfigurable.InvalidCreditLineConfiguration.selector);
+        creditLine.configureCreditLine(config);
+    }
+
     // -------------------------------------------- //
     //  Test `configureBorrower` function           //
     // -------------------------------------------- //
@@ -682,6 +698,28 @@ contract CreditLineConfigurableTest is Test {
         creditLine.configureBorrower(BORROWER_1, borrowerConfig);
     }
 
+    function test_configureBorrower_Revert_IfRevocationPeriodsIsLessThanCreditLineMinRevocationPeriods() public {
+        ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = configureCreditLine();
+
+        ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(block.timestamp);
+        borrowerConfig.revocationPeriods = creditLineConfig.minRevocationPeriods - 1;
+
+        vm.prank(ADMIN);
+        vm.expectRevert(CreditLineConfigurable.InvalidBorrowerConfiguration.selector);
+        creditLine.configureBorrower(BORROWER_1, borrowerConfig);
+    }
+
+    function test_configureBorrower_Revert_IfRevocationPeriodsIsGreaterThanCreditLineMaxRevocationPeriods() public {
+        ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = configureCreditLine();
+
+        ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(block.timestamp);
+        borrowerConfig.revocationPeriods = creditLineConfig.maxRevocationPeriods + 1;
+
+        vm.prank(ADMIN);
+        vm.expectRevert(CreditLineConfigurable.InvalidBorrowerConfiguration.selector);
+        creditLine.configureBorrower(BORROWER_1, borrowerConfig);
+    }
+
     // -------------------------------------------- //
     //  Test `configureBorrowers` function          //
     // -------------------------------------------- //
@@ -861,7 +899,6 @@ contract CreditLineConfigurableTest is Test {
         assertEq(uint256(terms.interestFormula), uint256(borrowerConfig.interestFormula));
         assertEq(terms.autoRepayment, borrowerConfig.autoRepayment);
 
-        assertEq(terms.addonRecipient, creditLineConfig.addonRecipient);
         assertEq(
             terms.addonAmount,
             creditLine.calculateAddonAmount(
@@ -884,26 +921,6 @@ contract CreditLineConfigurableTest is Test {
         ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(block.timestamp);
         borrowerConfig.addonFixedRate = 0;
         borrowerConfig.addonPeriodRate = 0;
-
-        vm.prank(ADMIN);
-        creditLine.configureBorrower(BORROWER_1, borrowerConfig);
-
-        Loan.Terms memory terms = creditLine.determineLoanTerms(
-            BORROWER_1,
-            borrowerConfig.minBorrowAmount,
-            DURATION_IN_PERIODS
-        );
-        assertEq(terms.addonAmount, 0);
-    }
-
-    function test_determineLoanTerms_WithoutAddon_ZeroAddonRecipient() public {
-        ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = configureCreditLine();
-        creditLineConfig.addonRecipient = address(0);
-
-        vm.prank(LENDER_1);
-        creditLine.configureCreditLine(creditLineConfig);
-
-        ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(block.timestamp);
 
         vm.prank(ADMIN);
         creditLine.configureBorrower(BORROWER_1, borrowerConfig);

@@ -9,6 +9,7 @@ import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/P
 
 import { Loan } from "../common/libraries/Loan.sol";
 import { Error } from "../common/libraries/Error.sol";
+import { SafeCast } from "../common/libraries/SafeCast.sol";
 
 import { ICreditLine } from "../common/interfaces/core/ICreditLine.sol";
 import { ILendingMarket } from "../common/interfaces/core/ILendingMarket.sol";
@@ -20,6 +21,7 @@ import { ILiquidityPoolAccountable } from "../common/interfaces/ILiquidityPoolAc
 /// @dev Implementation of the accountable liquidity pool contract.
 contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, ILiquidityPoolAccountable {
     using SafeERC20 for IERC20;
+    using SafeCast for uint256;
 
     // -------------------------------------------- //
     //  Storage variables                           //
@@ -35,14 +37,11 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
     mapping(uint256 => address) internal _creditLines;
 
     /// @dev Mapping of a credit line to its token balance.
-    mapping(address => uint256) internal _creditLineBalances;
+    mapping(address => CreditLineBalance) internal _creditLineBalances;
 
     // -------------------------------------------- //
     //  Errors                                      //
     // -------------------------------------------- //
-
-    /// @dev Thrown when the token source balance is zero.
-    error ZeroBalance();
 
     /// @dev Thrown when the token source balance is insufficient.
     error InsufficientBalance();
@@ -139,47 +138,49 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
             token.approve(_market, type(uint256).max);
         }
 
-        _creditLineBalances[creditLine] += amount;
+        _creditLineBalances[creditLine].borrowable += amount.toUint64();
         token.safeTransferFrom(msg.sender, address(this), amount);
+
         emit Deposit(creditLine, amount);
     }
 
     /// @inheritdoc ILiquidityPoolAccountable
-    function withdraw(address tokenSource, uint256 amount) external onlyOwner {
-        if (tokenSource == address(0)) {
+    function withdraw(address creditLine, uint256 borrowableAmount, uint256 addonAmount) external onlyOwner {
+        if (creditLine == address(0)) {
+            revert Error.ZeroAddress();
+        }
+        if (borrowableAmount == 0 && addonAmount == 0) {
+            revert Error.InvalidAmount();
+        }
+
+        CreditLineBalance storage balance = _creditLineBalances[creditLine];
+        if (balance.borrowable < borrowableAmount) {
+            revert InsufficientBalance();
+        }
+        if (balance.addons < addonAmount) {
+            revert InsufficientBalance();
+        }
+
+        balance.borrowable -= borrowableAmount.toUint64();
+        balance.addons -= addonAmount.toUint64();
+
+        IERC20(ICreditLine(creditLine).token()).safeTransfer(msg.sender, borrowableAmount + addonAmount);
+
+        emit Withdrawal(creditLine, borrowableAmount, addonAmount);
+    }
+
+    /// @inheritdoc ILiquidityPoolAccountable
+    function rescue(address token, uint256 amount) external onlyOwner {
+        if (token == address(0)) {
             revert Error.ZeroAddress();
         }
         if (amount == 0) {
             revert Error.InvalidAmount();
         }
 
-        // Withdraw credit line balance
-        uint256 balance = _creditLineBalances[tokenSource];
-        if (balance != 0) {
-            if (balance < amount) {
-                revert InsufficientBalance();
-            }
-            _creditLineBalances[tokenSource] -= amount;
-            IERC20(ICreditLine(tokenSource).token()).safeTransfer(msg.sender, amount);
-            emit Withdrawal(tokenSource, amount);
-            return;
-        }
+        IERC20(token).safeTransfer(msg.sender, amount);
 
-        // Withdraw token balance
-        bytes memory data = abi.encodeWithSelector(IERC20.balanceOf.selector, address(this));
-        (bool success, bytes memory returnData) = tokenSource.staticcall(data);
-        if (success && returnData.length == 32) {
-            balance = abi.decode(returnData, (uint256));
-            if (balance < amount) {
-                revert InsufficientBalance();
-            }
-            IERC20(tokenSource).safeTransfer(msg.sender, amount);
-            emit Withdrawal(tokenSource, amount);
-            return;
-        }
-
-        // Revert with zero balance error
-        revert ZeroBalance();
+        emit Rescue(token, amount);
     }
 
     /// @inheritdoc ILiquidityPoolAccountable
@@ -212,7 +213,11 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
 
     /// @inheritdoc ILiquidityPool
     function onAfterLoanTaken(uint256 loanId, address creditLine) external whenNotPaused onlyMarket returns (bool) {
-        _creditLineBalances[creditLine] -= ILendingMarket(_market).getLoanState(loanId).initialBorrowAmount;
+        Loan.State memory loan = ILendingMarket(_market).getLoanState(loanId);
+        CreditLineBalance storage balance = _creditLineBalances[creditLine];
+        balance.borrowable -= loan.initialBorrowAmount;
+        balance.addons += loan.addonAmount;
+
         _creditLines[loanId] = creditLine;
 
         return true;
@@ -229,7 +234,26 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
     function onAfterLoanPayment(uint256 loanId, uint256 amount) external whenNotPaused onlyMarket returns (bool) {
         address creditLine = _creditLines[loanId];
         if (creditLine != address(0)) {
-            _creditLineBalances[creditLine] += amount;
+            _creditLineBalances[creditLine].borrowable += amount.toUint64();
+        }
+
+        return true;
+    }
+
+    /// @inheritdoc ILiquidityPool
+    function onBeforeLoanRevocation(uint256 loanId) external view whenNotPaused onlyMarket returns (bool) {
+        loanId; // To prevent compiler warning about unused variable
+        return true;
+    }
+
+    /// @inheritdoc ILiquidityPool
+    function onAfterLoanRevocation(uint256 loanId) external whenNotPaused onlyMarket returns (bool) {
+        address creditLine = _creditLines[loanId];
+        if (creditLine != address(0)) {
+            Loan.State memory loan = ILendingMarket(_market).getLoanState(loanId);
+            CreditLineBalance storage balance = _creditLineBalances[creditLine];
+            balance.borrowable += loan.initialBorrowAmount;
+            balance.addons -= loan.addonAmount;
         }
 
         return true;
@@ -240,21 +264,8 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
     // -------------------------------------------- //
 
     /// @inheritdoc ILiquidityPoolAccountable
-    function getTokenBalance(address tokenSource) external view returns (uint256) {
-        // Return credit line balance
-        uint256 balance = _creditLineBalances[tokenSource];
-        if (balance != 0) {
-            return balance;
-        }
-
-        // Return token balance
-        bytes memory data = abi.encodeWithSelector(IERC20.balanceOf.selector, address(this));
-        (bool success, bytes memory returnData) = tokenSource.staticcall(data);
-        if (success && returnData.length == 32) {
-            return abi.decode(returnData, (uint256));
-        }
-
-        return 0;
+    function getCreditLineBalance(address creditLine) external view returns (CreditLineBalance memory) {
+        return _creditLineBalances[creditLine];
     }
 
     /// @inheritdoc ILiquidityPoolAccountable
