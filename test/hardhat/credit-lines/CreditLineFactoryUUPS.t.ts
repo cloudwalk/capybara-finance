@@ -38,7 +38,7 @@ describe("Contract 'CreditLineFactoryUUPS'", async () => {
   }
 
   describe("Function 'initialize()'", async () => {
-    it("Configures contract as expected", async () => {
+    it("Configures the contract as expected", async () => {
       const { factory } = await loadFixture(deployCreditLineFactory);
 
       expect(await factory.owner()).to.eq(deployer.address);
@@ -53,7 +53,7 @@ describe("Contract 'CreditLineFactoryUUPS'", async () => {
       await checkContractUupsUpgrading(factory, factoryForCreditLineFactory);
     });
 
-    it("Is reverted if caller is not the owner", async () => {
+    it("Is reverted if the caller is not the owner", async () => {
       const { factory } = await loadFixture(deployCreditLineFactory);
 
       factoryForCreditLineFactory = factoryForCreditLineFactory.connect(attacker);

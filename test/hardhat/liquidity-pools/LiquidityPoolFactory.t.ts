@@ -45,7 +45,7 @@ describe("Contract 'LiquidityPoolFactory'", async () => {
   }
 
   describe("Function 'initialize()'", async () => {
-    it("Configures contract as expected", async () => {
+    it("Configures the contract as expected", async () => {
       const { factory } = await loadFixture(deployLiquidityPoolFactory);
 
       expect(await factory.owner()).to.eq(registry.address);
@@ -53,7 +53,7 @@ describe("Contract 'LiquidityPoolFactory'", async () => {
       expect(supportedKinds[0]).to.eq(LIQUIDITY_POOL_KIND);
     });
 
-    it("Is reverted if called second time", async () => {
+    it("Is reverted if called a second time", async () => {
       const { factory } = await loadFixture(deployLiquidityPoolFactory);
 
       await expect(factory.initialize(registry.address))
@@ -85,7 +85,7 @@ describe("Contract 'LiquidityPoolFactory'", async () => {
         );
     });
 
-    it("Is reverted if caller is not the owner", async () => {
+    it("Is reverted if the caller is not the owner", async () => {
       const { factory } = await loadFixture(deployLiquidityPoolFactory);
 
       await expect((factory.connect(attacker) as Contract).createLiquidityPool(
@@ -96,7 +96,7 @@ describe("Contract 'LiquidityPoolFactory'", async () => {
       )).to.be.revertedWithCustomError(factory, ERROR_NAME_OWNABLE_UNAUTHORIZED);
     });
 
-    it("Is reverted if liquidity pool kind is unsupported", async () => {
+    it("Is reverted if the liquidity pool kind is unsupported", async () => {
       const { factory } = await loadFixture(deployLiquidityPoolFactory);
 
       await expect(factory.createLiquidityPool(

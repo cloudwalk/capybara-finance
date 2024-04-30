@@ -318,7 +318,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       ])).to.be.revertedWithCustomError(creditLineFactory, ERROR_NAME_ZERO_ADDRESS);
     });
 
-    it("Is reverted if called second time", async () => {
+    it("Is reverted if called a second time", async () => {
       const { creditLine } = await loadFixture(deployCreditLine);
 
       await expect(creditLine.initialize(market.address, lender.address, token.address))
@@ -584,7 +584,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       )).to.be.revertedWithCustomError(creditLine, ERROR_NAME_ZERO_ADDRESS);
     });
 
-    it("Is reverted if the min borrow amount is bigger than max one", async () => {
+    it("Is reverted if the min borrow amount is greater than the max one", async () => {
       const { creditLine } = await loadFixture(deployAndConfigureCreditLine);
       const config = createDefaultBorrowerConfiguration();
 
@@ -604,7 +604,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
         .to.be.revertedWithCustomError(creditLine, ERROR_NAME_INVALID_BORROWER_CONFIGURATION);
     });
 
-    it("Is reverted if the max borrow amount is bigger than credit line`s one", async () => {
+    it("Is reverted if the max borrow amount is greater than credit line`s one", async () => {
       const { creditLine } = await loadFixture(deployAndConfigureCreditLine);
       const config = createDefaultBorrowerConfiguration();
 
@@ -614,7 +614,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
         .to.be.revertedWithCustomError(creditLine, ERROR_NAME_INVALID_BORROWER_CONFIGURATION);
     });
 
-    it("Is reverted if the min duration in periods is bigger than the max one", async () => {
+    it("Is reverted if the min duration in periods is greater than the max one", async () => {
       const { creditLine } = await loadFixture(deployAndConfigureCreditLine);
       const config = createDefaultBorrowerConfiguration();
 

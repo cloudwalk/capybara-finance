@@ -38,7 +38,7 @@ describe("Contract 'LiquidityPoolFactoryUUPS'", async () => {
   }
 
   describe("Function 'initialize()'", async () => {
-    it("Configures contract as expected", async () => {
+    it("Configures the contract as expected", async () => {
       const { factory } = await loadFixture(deployLiquidityPoolFactory);
 
       expect(await factory.owner()).to.eq(deployer.address);
@@ -53,7 +53,7 @@ describe("Contract 'LiquidityPoolFactoryUUPS'", async () => {
       await checkContractUupsUpgrading(factory, factoryForLiquidityPoolFactory);
     });
 
-    it("Is reverted if caller is not the owner", async () => {
+    it("Is reverted if the caller is not the owner", async () => {
       const { factory } = await loadFixture(deployLiquidityPoolFactory);
 
       factoryForLiquidityPoolFactory = factoryForLiquidityPoolFactory.connect(attacker);

@@ -36,7 +36,7 @@ describe("Contract 'LendingRegistryUUPS'", async () => {
   }
 
   describe("Function 'initialize()'", async () => {
-    it("Configures contract as expected", async () => {
+    it("Configures the contract as expected", async () => {
       const { registry } = await loadFixture(deployLendingRegistry);
 
       expect(await registry.owner()).to.eq(deployer.address);
@@ -50,7 +50,7 @@ describe("Contract 'LendingRegistryUUPS'", async () => {
       await checkContractUupsUpgrading(registry, registryFactory);
     });
 
-    it("Is reverted if caller is not the owner", async () => {
+    it("Is reverted if the caller is not the owner", async () => {
       const { registry } = await loadFixture(deployLendingRegistry);
 
       registryFactory = registryFactory.connect(attacker);
