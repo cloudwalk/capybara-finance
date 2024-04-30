@@ -12,8 +12,6 @@ const LIQUIDITY_POOL_KIND = 1;
 describe("Contract 'LiquidityPoolFactoryUUPS'", async () => {
   let factoryForLiquidityPoolFactory: ContractFactory;
 
-  let factory: Contract;
-
   let deployer: HardhatEthersSigner;
   let attacker: HardhatEthersSigner;
 
@@ -26,7 +24,7 @@ describe("Contract 'LiquidityPoolFactoryUUPS'", async () => {
   });
 
   async function deployLiquidityPoolFactory(): Promise<{ factory: Contract }> {
-    factory = await upgrades.deployProxy(
+    let factory = await upgrades.deployProxy(
       factoryForLiquidityPoolFactory,
       [deployer.address],
       { kind: "uups" }

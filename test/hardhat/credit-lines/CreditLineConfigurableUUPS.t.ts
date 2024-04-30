@@ -10,8 +10,6 @@ const ERROR_NAME_OWNABLE_UNAUTHORIZED = "OwnableUnauthorizedAccount";
 describe("Contract 'CreditLineFactoryUUPS'", async () => {
   let creditLineFactory: ContractFactory;
 
-  let creditLine: Contract;
-
   let deployer: HardhatEthersSigner;
   let lender: HardhatEthersSigner;
   let market: HardhatEthersSigner;
@@ -26,7 +24,7 @@ describe("Contract 'CreditLineFactoryUUPS'", async () => {
   });
 
   async function deployCreditLine(): Promise<{ creditLine: Contract }> {
-    creditLine = await upgrades.deployProxy(
+    let creditLine = await upgrades.deployProxy(
       creditLineFactory,
       [market.address, lender.address, token.address],
       { kind: "uups" }

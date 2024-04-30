@@ -18,9 +18,6 @@ const NONCE = 2;
 
 describe("Contract 'LiquidityPoolFactory'", async () => {
   let factoryForLiquidityPoolFactory: ContractFactory;
-
-  let factory: Contract;
-
   let deployer: HardhatEthersSigner;
   let registry: HardhatEthersSigner;
   let market: HardhatEthersSigner;
@@ -36,7 +33,7 @@ describe("Contract 'LiquidityPoolFactory'", async () => {
   });
 
   async function deployLiquidityPoolFactory(): Promise<{ factory: Contract }> {
-    factory = await upgrades.deployProxy(factoryForLiquidityPoolFactory, [
+    let factory = await upgrades.deployProxy(factoryForLiquidityPoolFactory, [
       registry.address
     ]);
 

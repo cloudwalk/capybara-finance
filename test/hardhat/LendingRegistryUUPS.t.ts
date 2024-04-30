@@ -10,8 +10,6 @@ const ERROR_NAME_OWNABLE_UNAUTHORIZED = "OwnableUnauthorizedAccount";
 describe("Contract 'LendingRegistryUUPS'", async () => {
   let registryFactory: ContractFactory;
 
-  let registry: Contract;
-
   let deployer: HardhatEthersSigner;
   let market: HardhatEthersSigner;
   let attacker: HardhatEthersSigner;
@@ -24,7 +22,7 @@ describe("Contract 'LendingRegistryUUPS'", async () => {
   });
 
   async function deployLendingRegistry(): Promise<{ registry: Contract }> {
-    registry = await upgrades.deployProxy(
+    let registry = await upgrades.deployProxy(
       registryFactory,
       [market.address],
       { kind: "uups" }

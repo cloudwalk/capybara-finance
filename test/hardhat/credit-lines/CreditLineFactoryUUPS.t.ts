@@ -12,8 +12,6 @@ const CREDIT_LINE_KIND = 1;
 describe("Contract 'CreditLineFactoryUUPS'", async () => {
   let factoryForCreditLineFactory: ContractFactory;
 
-  let factory: Contract;
-
   let deployer: HardhatEthersSigner;
   let attacker: HardhatEthersSigner;
 
@@ -26,7 +24,7 @@ describe("Contract 'CreditLineFactoryUUPS'", async () => {
   });
 
   async function deployCreditLineFactory(): Promise<{ factory: Contract }> {
-    factory = await upgrades.deployProxy(
+    let factory = await upgrades.deployProxy(
       factoryForCreditLineFactory,
       [deployer.address],
       { kind: "uups" }
