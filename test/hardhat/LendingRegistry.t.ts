@@ -292,4 +292,3 @@ describe("Contract 'LendingRegistry'", async () => {
     });
   });
 });
-
