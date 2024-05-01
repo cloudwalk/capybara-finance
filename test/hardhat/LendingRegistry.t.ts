@@ -6,9 +6,9 @@ import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { proveTx } from "../../test-utils/eth";
 
 const ERROR_NAME_ALREADY_CONFIGURED = "AlreadyConfigured";
-const ERROR_NAME_ALREADY_PAUSED = "EnforcedPause";
 const ERROR_NAME_ALREADY_INITIALIZED = "InvalidInitialization";
 const ERROR_NAME_CREDIT_LINE_FACTORY_NOT_CONFIGURED = "CreditLineFactoryNotConfigured";
+const ERROR_NAME_ENFORCED_PAUSED = "EnforcedPause";
 const ERROR_NAME_NOT_PAUSED = "ExpectedPause";
 const ERROR_NAME_OWNABLE_UNAUTHORIZED = "OwnableUnauthorizedAccount";
 const ERROR_NAME_LIQUIDITY_POOL_FACTORY_NOT_CONFIGURED = "LiquidityPoolFactoryNotConfigured";
@@ -131,7 +131,7 @@ describe("Contract 'LendingRegistry'", async () => {
 
       await proveTx(registry.pause());
       await expect(registry.pause())
-        .to.be.revertedWithCustomError(registry, ERROR_NAME_ALREADY_PAUSED);
+        .to.be.revertedWithCustomError(registry, ERROR_NAME_ENFORCED_PAUSED);
     });
   });
 
@@ -235,7 +235,7 @@ describe("Contract 'LendingRegistry'", async () => {
       await proveTx(registry.pause());
 
       await expect(registry.createCreditLine(KIND, token.address))
-        .to.be.revertedWithCustomError(registry, ERROR_NAME_ALREADY_PAUSED);
+        .to.be.revertedWithCustomError(registry, ERROR_NAME_ENFORCED_PAUSED);
     });
 
     it("Is reverted if a credit line factory is not configured", async () => {
@@ -262,7 +262,7 @@ describe("Contract 'LendingRegistry'", async () => {
       await proveTx(registry.pause());
 
       await expect(registry.createLiquidityPool(KIND))
-        .to.be.revertedWithCustomError(registry, ERROR_NAME_ALREADY_PAUSED);
+        .to.be.revertedWithCustomError(registry, ERROR_NAME_ENFORCED_PAUSED);
     });
 
     it("Is reverted if a liquidity pool factory is not configured", async () => {

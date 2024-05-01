@@ -70,11 +70,11 @@ enum BorrowPolicy {
   Keep = 2
 }
 
-const ERROR_NAME_ALREADY_PAUSED = "EnforcedPause";
 const ERROR_NAME_ALREADY_INITIALIZED = "InvalidInitialization";
 const ERROR_NAME_ALREADY_CONFIGURED = "AlreadyConfigured";
 const ERROR_NAME_ARRAYS_LENGTH_MISMATCH = "ArrayLengthMismatch";
 const ERROR_NAME_BORROWER_CONFIGURATION_EXPIRED = "BorrowerConfigurationExpired";
+const ERROR_NAME_ENFORCED_PAUSED = "EnforcedPause";
 const ERROR_NAME_INVALID_AMOUNT = "InvalidAmount";
 const ERROR_NAME_INVALID_BORROWER_CONFIGURATION = "InvalidBorrowerConfiguration";
 const ERROR_NAME_INVALID_CREDIT_LINE_CONFIGURATION = "InvalidCreditLineConfiguration";
@@ -349,7 +349,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
 
       await proveTx(creditLine.pause());
       await expect(creditLine.pause())
-        .to.be.revertedWithCustomError(creditLine, ERROR_NAME_ALREADY_PAUSED);
+        .to.be.revertedWithCustomError(creditLine, ERROR_NAME_ENFORCED_PAUSED);
     });
   });
 
@@ -571,7 +571,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       await proveTx(creditLine.pause());
 
       await expect(creditLine.configureBorrower(borrower.address, config))
-        .to.be.revertedWithCustomError(creditLine, ERROR_NAME_ALREADY_PAUSED);
+        .to.be.revertedWithCustomError(creditLine, ERROR_NAME_ENFORCED_PAUSED);
     });
 
     it("Is reverted if the borrower address is zero", async () => {
@@ -769,7 +769,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       await proveTx(creditLine.pause());
 
       await expect(creditLine.configureBorrowers(borrowers, configs))
-        .to.be.revertedWithCustomError(creditLine, ERROR_NAME_ALREADY_PAUSED);
+        .to.be.revertedWithCustomError(creditLine, ERROR_NAME_ENFORCED_PAUSED);
     });
 
     it("Is reverted if the length of arrays is different", async () => {
@@ -871,7 +871,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
         borrowerConfig.minBorrowAmount,
         borrowerConfig.minDurationInPeriods,
         0 // loanId
-      )).to.be.revertedWithCustomError(creditLine, ERROR_NAME_ALREADY_PAUSED);
+      )).to.be.revertedWithCustomError(creditLine, ERROR_NAME_ENFORCED_PAUSED);
     });
   });
 

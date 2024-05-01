@@ -9,7 +9,7 @@ import { TransactionReceipt } from "@ethersproject/abstract-provider";
 const ERROR_NAME_ALREADY_CONFIGURED = "AlreadyConfigured";
 const ERROR_NAME_ALREADY_INITIALIZED = "InvalidInitialization";
 const ERROR_NAME_ARRAY_LENGTH_MISMATCH = "ArrayLengthMismatch";
-const ERROR_NAME_ALREADY_PAUSED = "EnforcedPause";
+const ERROR_NAME_ENFORCED_PAUSED = "EnforcedPause";
 const ERROR_NAME_INSUFFICIENT_BALANCE = "InsufficientBalance";
 const ERROR_NAME_INVALID_AMOUNT = "InvalidAmount";
 const ERROR_NAME_NOT_PAUSED = "ExpectedPause";
@@ -148,7 +148,7 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
 
       await proveTx(liquidityPool.pause());
       await expect(liquidityPool.pause())
-        .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_ALREADY_PAUSED);
+        .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_ENFORCED_PAUSED);
     });
   });
 
@@ -411,7 +411,7 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
       await proveTx(liquidityPool.pause());
 
       await expect(market.callOnBeforeLoanTaken(liquidityPoolAddress, DEFAULT_LOAN_ID, creditLineAddress))
-        .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_ALREADY_PAUSED);
+        .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_ENFORCED_PAUSED);
     });
 
     it("Is reverted if the caller is not the market", async () => {
@@ -438,7 +438,7 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
       await proveTx(liquidityPool.pause());
 
       await expect(market.callOnAfterLoanTaken(liquidityPoolAddress, DEFAULT_LOAN_ID, creditLineAddress))
-        .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_ALREADY_PAUSED);
+        .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_ENFORCED_PAUSED);
     });
 
     it("Is reverted if the caller is not the market", async () => {
@@ -462,7 +462,7 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
       await proveTx(liquidityPool.pause());
 
       await expect(market.callOnBeforeLoanPayment(liquidityPoolAddress, DEFAULT_LOAN_ID, DEFAULT_REPAY_AMOUNT))
-        .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_ALREADY_PAUSED);
+        .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_ENFORCED_PAUSED);
     });
 
     it("Is reverted if the caller is not the market", async () => {
@@ -497,7 +497,7 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
       await proveTx(liquidityPool.pause());
 
       await expect(market.callOnAfterLoanPayment(liquidityPoolAddress, DEFAULT_LOAN_ID, DEFAULT_REPAY_AMOUNT))
-        .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_ALREADY_PAUSED);
+        .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_ENFORCED_PAUSED);
     });
 
     it("Is reverted if the caller is not the market", async () => {
