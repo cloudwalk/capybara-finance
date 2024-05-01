@@ -193,6 +193,12 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
         .withArgs(admin.address, true);
 
       expect(await liquidityPool.isAdmin(admin.address)).to.eq(true);
+
+      expect(await liquidityPool.configureAdmin(admin.address, false))
+        .to.emit(liquidityPool, EVENT_NAME_ADMIN_CONFIGURED)
+        .withArgs(admin.address, false);
+
+      expect(await liquidityPool.isAdmin(admin.address)).to.eq(false);
     });
 
     it("Is reverted if the caller is not the owner", async () => {
@@ -214,6 +220,9 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
 
     it("Is reverted if the admin is already configured", async () => {
       const { liquidityPool } = await loadFixture(deployLiquidityPool);
+
+      await expect(liquidityPool.configureAdmin(admin.address, false))
+        .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_ALREADY_CONFIGURED);
 
       await proveTx(liquidityPool.configureAdmin(admin.address, true));
 
