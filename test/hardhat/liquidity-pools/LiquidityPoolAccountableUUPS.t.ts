@@ -50,7 +50,8 @@ describe("Contract 'LiquidityPoolAccountableUUPS'", async () => {
   describe("Upgrading", async () => {
     it("Executes as expected", async () => {
       const { liquidityPool } = await loadFixture(deployLiquidityPool);
-      await checkContractUupsUpgrading(liquidityPool, liquidityPoolFactory);
+      const newContract = await liquidityPoolFactory.deploy();
+      await checkContractUupsUpgrading(liquidityPool, await newContract.getAddress());
     });
 
     it("Is reverted if caller is not the owner", async () => {
@@ -58,7 +59,7 @@ describe("Contract 'LiquidityPoolAccountableUUPS'", async () => {
 
       liquidityPoolFactory = liquidityPoolFactory.connect(attacker);
 
-      await expect(upgrades.upgradeProxy(liquidityPool, liquidityPoolFactory))
+      await expect((liquidityPool.connect(attacker) as Contract).upgradeToAndCall(attacker.address, "0x"))
         .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_OWNABLE_UNAUTHORIZED);
     });
   });

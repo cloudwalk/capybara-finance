@@ -7,7 +7,7 @@ import { checkContractUupsUpgrading } from "../../../test-utils/eth";
 
 const ERROR_NAME_OWNABLE_UNAUTHORIZED = "OwnableUnauthorizedAccount";
 
-describe("Contract 'CreditLineFactoryUUPS'", async () => {
+describe("Contract 'CreditLineConfigurableUUPS'", async () => {
   let creditLineFactory: ContractFactory;
 
   let creditLine: Contract;
@@ -53,7 +53,8 @@ describe("Contract 'CreditLineFactoryUUPS'", async () => {
   describe("Upgrading", async () => {
     it("Executes as expected", async () => {
       const { creditLine } = await loadFixture(deployCreditLine);
-      await checkContractUupsUpgrading(creditLine, creditLineFactory.connect(lender));
+      const newContract = await creditLineFactory.deploy();
+      await checkContractUupsUpgrading(creditLine, await newContract.getAddress());
     });
 
     it("Is reverted if caller is not the owner", async () => {
@@ -61,7 +62,7 @@ describe("Contract 'CreditLineFactoryUUPS'", async () => {
 
       creditLineFactory = creditLineFactory.connect(attacker);
 
-      await expect(upgrades.upgradeProxy(creditLine, creditLineFactory))
+      await expect((creditLine.connect(attacker) as Contract).upgradeToAndCall(attacker.address, "0x"))
         .to.be.revertedWithCustomError(creditLine, ERROR_NAME_OWNABLE_UNAUTHORIZED);
     });
   });

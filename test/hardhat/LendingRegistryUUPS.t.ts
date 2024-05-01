@@ -49,7 +49,8 @@ describe("Contract 'LendingRegistryUUPS'", async () => {
   describe("Upgrading", async () => {
     it("Executes as expected", async () => {
       const { registry } = await loadFixture(deployLendingRegistry);
-      await checkContractUupsUpgrading(registry, registryFactory);
+      const newContract = await registryFactory.deploy();
+      await checkContractUupsUpgrading(registry, await newContract.getAddress());
     });
 
     it("Is reverted if caller is not the owner", async () => {
@@ -57,7 +58,7 @@ describe("Contract 'LendingRegistryUUPS'", async () => {
 
       registryFactory = registryFactory.connect(attacker);
 
-      await expect(upgrades.upgradeProxy(registry, registryFactory))
+      await expect((registry.connect(attacker) as Contract).upgradeToAndCall(attacker.address, "0x"))
         .to.be.revertedWithCustomError(registry, ERROR_NAME_OWNABLE_UNAUTHORIZED);
     });
   });

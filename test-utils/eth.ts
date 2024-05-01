@@ -10,17 +10,12 @@ export async function proveTx(txResponsePromise: Promise<TransactionResponse>): 
 
 export async function checkContractUupsUpgrading(
   contract: Contract,
-  contractFactory: ContractFactory
+  newAddress: string
 ) {
   const contractAddress = await contract.getAddress();
   const oldImplementationAddress = await upgrades.erc1967.getImplementationAddress(contractAddress);
 
-  const contractUpgraded: Contract = await upgrades.upgradeProxy(
-    contract,
-    contractFactory,
-    { kind: "uups", redeployImplementation: "always" }
-  );
-  await contractUpgraded.waitForDeployment();
+  await proveTx(contract.upgradeToAndCall(newAddress, "0x"));
 
   const newImplementationAddress = await upgrades.erc1967.getImplementationAddress(contractAddress);
   expect(newImplementationAddress).not.to.eq(ethers.ZeroAddress);
