@@ -167,7 +167,7 @@ describe("Contract 'LendingRegistry'", async () => {
   });
 
   describe("Function 'setCreditLineFactory()'", async () => {
-    it("Executes as expected and emits correct event", async () => {
+    it("Executes as expected and emits the correct event", async () => {
       const { registry } = await loadFixture(deployLendingRegistry);
 
       await expect(registry.setCreditLineFactory(lineFactoryAddress))
@@ -204,7 +204,7 @@ describe("Contract 'LendingRegistry'", async () => {
   });
 
   describe("Function 'setLiquidityPoolFactory()'", async () => {
-    it("Executes as expected and emits correct event", async () => {
+    it("Executes as expected and emits the correct event", async () => {
       const { registry } = await loadFixture(deployLendingRegistry);
 
       await expect(registry.setLiquidityPoolFactory(poolFactoryAddress))

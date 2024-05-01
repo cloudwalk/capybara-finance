@@ -64,7 +64,7 @@ describe("Contract 'CreditLineFactory'", async () => {
   });
 
   describe("Function 'createCreditLine()'", async () => {
-    it("Executes as expected and emits correct event", async () => {
+    it("Executes as expected and emits the correct event", async () => {
       const { factory } = await loadFixture(deployCreditLineFactory);
 
       const expectedCreditLineAddress = getContractAddress({

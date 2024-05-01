@@ -232,7 +232,7 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
   });
 
   describe("Function 'deposit()'", async () => {
-    it("Executes as expected and emits correct event", async () => {
+    it("Executes as expected and emits the correct event", async () => {
       const { liquidityPool, liquidityPoolAddress } = await loadFixture(deployLiquidityPool);
 
       const tx: TransactionReceipt = await proveTx(liquidityPool.deposit(creditLineAddress, DEPOSIT_AMOUNT));
@@ -361,7 +361,7 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
   });
 
   describe("Function 'autoRepay()'", async () => {
-    it("Executes as expected and emits correct event", async () => {
+    it("Executes as expected and emits the correct event", async () => {
       const { liquidityPool } = await loadFixture(deployLiquidityPool);
       await proveTx(liquidityPool.configureAdmin(admin.address, true));
 

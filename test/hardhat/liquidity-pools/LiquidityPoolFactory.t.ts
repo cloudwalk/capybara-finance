@@ -62,7 +62,7 @@ describe("Contract 'LiquidityPoolFactory'", async () => {
   });
 
   describe("Function 'createLiquidityPool()'", async () => {
-    it("Executes as expected and emits correct event", async () => {
+    it("Executes as expected and emits the correct event", async () => {
       const { factory } = await loadFixture(deployLiquidityPoolFactory);
       const factoryAddress = await factory.getAddress();
       const nextNonce = await ethers.provider.getTransactionCount(factoryAddress);
