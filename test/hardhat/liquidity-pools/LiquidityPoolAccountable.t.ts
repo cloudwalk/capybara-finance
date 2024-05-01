@@ -327,8 +327,9 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
     });
 
     it("Is reverted if a credit line balance is withdrawn with a greater amount", async () => {
-      const { liquidityPool } = await loadFixture(deployLiquidityPool);
+      const { liquidityPool, liquidityPoolAddress } = await loadFixture(deployLiquidityPool);
       await proveTx(liquidityPool.deposit(creditLineAddress, DEPOSIT_AMOUNT));
+      await proveTx(token.mint(liquidityPoolAddress, 1)); // Make the pool token balance enough for the withdrawal
 
       await expect(liquidityPool.withdraw(creditLineAddress, DEPOSIT_AMOUNT + 1))
         .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_INSUFFICIENT_BALANCE);
@@ -342,11 +343,20 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
         .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_INSUFFICIENT_BALANCE);
     });
 
-    it("Is reverted is balance is zero", async () => {
-      const { liquidityPool } = await loadFixture(deployLiquidityPool);
+    it("Is reverted if the credit line balance is zero", async () => {
+      const { liquidityPool, liquidityPoolAddress } = await loadFixture(deployLiquidityPool);
+      // Make the pool token balance enough for the withdrawal
+      await proveTx(token.mint(liquidityPoolAddress, DEPOSIT_AMOUNT));
 
       await expect(liquidityPool.withdraw(creditLineAddress, DEPOSIT_AMOUNT))
         .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_ZERO_BALANCE);
+    });
+
+    it("Is reverted if the pool token balance is zero", async () => {
+      const { liquidityPool } = await loadFixture(deployLiquidityPool);
+
+      await expect(liquidityPool.withdraw(tokenAddress, DEPOSIT_AMOUNT))
+        .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_INSUFFICIENT_BALANCE);
     });
   });
 
