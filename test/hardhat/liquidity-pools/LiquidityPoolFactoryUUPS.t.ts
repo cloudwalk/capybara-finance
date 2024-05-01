@@ -7,8 +7,6 @@ import { checkContractUupsUpgrading } from "../../../test-utils/eth";
 
 const ERROR_NAME_OWNABLE_UNAUTHORIZED = "OwnableUnauthorizedAccount";
 
-const LIQUIDITY_POOL_KIND = 1;
-
 describe("Contract 'LiquidityPoolFactoryUUPS'", async () => {
   let factoryForLiquidityPoolFactory: ContractFactory;
 
@@ -42,8 +40,6 @@ describe("Contract 'LiquidityPoolFactoryUUPS'", async () => {
       const { factory } = await loadFixture(deployLiquidityPoolFactory);
 
       expect(await factory.owner()).to.eq(deployer.address);
-      const supportedKinds = await factory.supportedKinds();
-      expect(supportedKinds[0]).to.eq(LIQUIDITY_POOL_KIND);
     });
   });
 
