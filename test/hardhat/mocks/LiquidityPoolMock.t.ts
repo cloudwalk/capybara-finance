@@ -28,7 +28,7 @@ describe("Contract 'LiquidityPoolMock'", async () => {
     };
   }
 
-  describe("Mock functions", async () => {
+  describe("Unimplemented mock functions are reverted as expected", async () => {
     it("Function 'market()'", async () => {
       const { liquidityPool } = await loadFixture(deployLiquidityPool);
 
