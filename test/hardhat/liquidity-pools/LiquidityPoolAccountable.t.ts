@@ -510,15 +510,17 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
 
   describe("Function 'getTokenBalance()'", async () => {
     it("Returns the correct balance for a credit line", async () => {
-      const { liquidityPool } = await loadFixture(deployLiquidityPool);
+      const { liquidityPool, liquidityPoolAddress } = await loadFixture(deployLiquidityPool);
       await proveTx(liquidityPool.deposit(creditLineAddress, DEPOSIT_AMOUNT));
+      // Mint some additional tokens to the pool that must not be included to the return value
+      await proveTx(token.mint(liquidityPoolAddress, 123));
 
       expect(await liquidityPool.getTokenBalance(creditLineAddress)).to.eq(DEPOSIT_AMOUNT);
     });
 
     it("Returns the correct balance for a token", async () => {
       const { liquidityPool, liquidityPoolAddress } = await loadFixture(deployLiquidityPool);
-      await proveTx((token.connect(lender) as Contract).transfer(liquidityPoolAddress, DEPOSIT_AMOUNT));
+      await proveTx(token.mint(liquidityPoolAddress, DEPOSIT_AMOUNT));
 
       expect(await liquidityPool.getTokenBalance(tokenAddress)).to.eq(DEPOSIT_AMOUNT);
     });
