@@ -107,6 +107,7 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
       expect(await liquidityPool.owner()).to.eq(lender.address);
       expect(await liquidityPool.market()).to.eq(marketAddress);
       expect(await liquidityPool.kind()).to.eq(LIQUIDITY_POOL_KIND);
+      expect(await liquidityPool.paused()).to.eq(false);
     });
 
     it("Is reverted if the market address is zero", async () => {
