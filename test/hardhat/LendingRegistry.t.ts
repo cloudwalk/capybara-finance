@@ -28,8 +28,8 @@ const KIND = 1;
 
 describe("Contract 'LendingRegistry'", async () => {
   let marketFactory: ContractFactory;
-  let creditLineFactory: ContractFactory;
-  let liquidityPoolFactory: ContractFactory;
+  let factoryForCreditLineFactory: ContractFactory;
+  let factoryForLiquidityPoolFactory: ContractFactory;
   let registryFactory: ContractFactory;
 
   let market: Contract;
@@ -50,10 +50,10 @@ describe("Contract 'LendingRegistry'", async () => {
     // Factories with an explicitly specified deployer account
     marketFactory = await ethers.getContractFactory("LendingMarketMock");
     marketFactory = marketFactory.connect(owner);
-    creditLineFactory = await ethers.getContractFactory("CreditLineFactoryMock");
-    creditLineFactory = creditLineFactory.connect(owner);
-    liquidityPoolFactory = await ethers.getContractFactory("LiquidityPoolFactoryMock");
-    liquidityPoolFactory = liquidityPoolFactory.connect(owner);
+    factoryForCreditLineFactory = await ethers.getContractFactory("CreditLineFactoryMock");
+    factoryForCreditLineFactory = factoryForCreditLineFactory.connect(owner);
+    factoryForLiquidityPoolFactory = await ethers.getContractFactory("LiquidityPoolFactoryMock");
+    factoryForLiquidityPoolFactory = factoryForLiquidityPoolFactory.connect(owner);
     registryFactory = await ethers.getContractFactory("LendingRegistry");
     registryFactory = registryFactory.connect(owner);
 
@@ -62,12 +62,12 @@ describe("Contract 'LendingRegistry'", async () => {
     market = market.connect(owner) as Contract; // Explicitly specifying the initial account
     marketAddress = await market.getAddress();
 
-    lineFactory = await creditLineFactory.deploy() as Contract;
+    lineFactory = await factoryForCreditLineFactory.deploy() as Contract;
     await lineFactory.waitForDeployment();
     lineFactory = lineFactory.connect(owner) as Contract; // Explicitly specifying the initial account
     lineFactoryAddress = await lineFactory.getAddress();
 
-    poolFactory = await liquidityPoolFactory.deploy() as Contract;
+    poolFactory = await factoryForLiquidityPoolFactory.deploy() as Contract;
     await poolFactory.waitForDeployment();
     poolFactory = poolFactory.connect(owner) as Contract; // Explicitly specifying the initial account
     poolFactoryAddress = await poolFactory.getAddress();
@@ -92,12 +92,13 @@ describe("Contract 'LendingRegistry'", async () => {
 
       expect(await registry.owner()).to.eq(owner.address);
       expect(await registry.market()).to.eq(marketAddress);
+      expect(await registry.paused()).to.eq(false);
     });
 
     it("Is reverted if the market address is zero", async () => {
-      await expect(upgrades.deployProxy(registryFactory, [
-        ZERO_ADDRESS
-      ])).to.be.revertedWithCustomError(registryFactory, ERROR_NAME_ZERO_ADDRESS);
+      await expect(
+        upgrades.deployProxy(registryFactory, [ZERO_ADDRESS])
+      ).to.be.revertedWithCustomError(registryFactory, ERROR_NAME_ZERO_ADDRESS);
     });
 
     it("Is reverted if called a second time", async () => {
@@ -170,9 +171,16 @@ describe("Contract 'LendingRegistry'", async () => {
       const { registry } = await loadFixture(deployLendingRegistry);
 
       await expect(registry.setCreditLineFactory(lineFactoryAddress))
-        .to.emit(registry, EVENT_NAME_CREDIT_LINE_FACTORY_CHANGED);
+        .to.emit(registry, EVENT_NAME_CREDIT_LINE_FACTORY_CHANGED)
+        .withArgs(lineFactoryAddress, ZERO_ADDRESS);
 
       expect(await registry.creditLineFactory()).to.eq(lineFactoryAddress);
+
+      await expect(registry.setCreditLineFactory(ZERO_ADDRESS))
+        .to.emit(registry, EVENT_NAME_CREDIT_LINE_FACTORY_CHANGED)
+        .withArgs(ZERO_ADDRESS, lineFactoryAddress);
+
+      expect(await registry.creditLineFactory()).to.eq(ZERO_ADDRESS);
     });
 
     it("Is reverted if the caller is not the owner", async () => {
@@ -184,6 +192,9 @@ describe("Contract 'LendingRegistry'", async () => {
 
     it("Is reverted if credit line factory is already configured", async () => {
       const { registry } = await loadFixture(deployLendingRegistry);
+
+      await expect(registry.setCreditLineFactory(ZERO_ADDRESS))
+        .to.be.revertedWithCustomError(registry, ERROR_NAME_ALREADY_CONFIGURED);
 
       await proveTx(registry.setCreditLineFactory(lineFactoryAddress));
 
@@ -197,9 +208,16 @@ describe("Contract 'LendingRegistry'", async () => {
       const { registry } = await loadFixture(deployLendingRegistry);
 
       await expect(registry.setLiquidityPoolFactory(poolFactoryAddress))
-        .to.emit(registry, EVENT_NAME_LIQUIDITY_POOL_FACTORY_CHANGED);
+        .to.emit(registry, EVENT_NAME_LIQUIDITY_POOL_FACTORY_CHANGED)
+        .withArgs(poolFactoryAddress, ZERO_ADDRESS);
 
       expect(await registry.liquidityPoolFactory()).to.eq(poolFactoryAddress);
+
+      await expect(registry.setLiquidityPoolFactory(ZERO_ADDRESS))
+        .to.emit(registry, EVENT_NAME_LIQUIDITY_POOL_FACTORY_CHANGED)
+        .withArgs(ZERO_ADDRESS, poolFactoryAddress);
+
+      expect(await registry.liquidityPoolFactory()).to.eq(ZERO_ADDRESS);
     });
 
     it("Is reverted if the caller is not the owner", async () => {
@@ -211,6 +229,9 @@ describe("Contract 'LendingRegistry'", async () => {
 
     it("Is reverted if the liquidity pool factory is already configured", async () => {
       const { registry } = await loadFixture(deployLendingRegistry);
+
+      await expect(registry.setLiquidityPoolFactory(ZERO_ADDRESS))
+        .to.be.revertedWithCustomError(registry, ERROR_NAME_ALREADY_CONFIGURED);
 
       await proveTx(registry.setLiquidityPoolFactory(poolFactoryAddress));
 
@@ -231,7 +252,6 @@ describe("Contract 'LendingRegistry'", async () => {
 
     it("Is reverted if the contract is paused", async () => {
       const { registry } = await loadFixture(deployLendingRegistry);
-      await proveTx(registry.setCreditLineFactory(lineFactoryAddress));
       await proveTx(registry.pause());
 
       await expect(registry.createCreditLine(KIND, token.address))
@@ -258,7 +278,6 @@ describe("Contract 'LendingRegistry'", async () => {
 
     it("Is reverted if the contract is paused", async () => {
       const { registry } = await loadFixture(deployLendingRegistry);
-      await proveTx(registry.setLiquidityPoolFactory(lineFactoryAddress));
       await proveTx(registry.pause());
 
       await expect(registry.createLiquidityPool(KIND))
