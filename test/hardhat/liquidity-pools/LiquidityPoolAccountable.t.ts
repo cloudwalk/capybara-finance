@@ -365,13 +365,15 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
       const { liquidityPool } = await loadFixture(deployLiquidityPool);
       await proveTx(liquidityPool.configureAdmin(admin.address, true));
 
-      const tx: TransactionReceipt = await proveTx((liquidityPool.connect(admin) as Contract)
-        .autoRepay(AUTO_REPAY_LOAN_IDS, AUTO_REPAY_AMOUNTS));
-      await expect(tx).to.emit(liquidityPool, EVENT_NAME_AUTO_REPAYMENT)
+      const tx: TransactionReceipt =
+        await proveTx((liquidityPool.connect(admin) as Contract).autoRepay(AUTO_REPAY_LOAN_IDS, AUTO_REPAY_AMOUNTS));
+      await expect(tx)
+        .to.emit(liquidityPool, EVENT_NAME_AUTO_REPAYMENT)
         .withArgs(AUTO_REPAY_LOAN_IDS.length);
 
       for (let i = 0; i < AUTO_REPAY_LOAN_IDS.length; i++) {
-        await expect(tx).to.emit(market, EVENT_NAME_REPAY_LOAN_CALLED)
+        await expect(tx)
+          .to.emit(market, EVENT_NAME_REPAY_LOAN_CALLED)
           .withArgs(AUTO_REPAY_LOAN_IDS[i], AUTO_REPAY_AMOUNTS[i]);
       }
     });
@@ -379,9 +381,9 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
     it("Is reverted if the caller is not an admin", async () => {
       const { liquidityPool } = await loadFixture(deployLiquidityPool);
 
-      await expect((liquidityPool.connect(attacker) as Contract)
-        .autoRepay(AUTO_REPAY_LOAN_IDS, AUTO_REPAY_AMOUNTS))
-        .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_UNAUTHORIZED);
+      await expect(
+        (liquidityPool.connect(attacker) as Contract).autoRepay(AUTO_REPAY_LOAN_IDS, AUTO_REPAY_AMOUNTS)
+      ).to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_UNAUTHORIZED);
     });
 
     it("Is reverted if the lengths of the arrays do not match", async () => {
@@ -390,9 +392,9 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
 
       AUTO_REPAY_LOAN_IDS.pop();
 
-      await expect((liquidityPool.connect(admin) as Contract)
-        .autoRepay(AUTO_REPAY_LOAN_IDS, AUTO_REPAY_AMOUNTS))
-        .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_ARRAY_LENGTH_MISMATCH);
+      await expect(
+        (liquidityPool.connect(admin) as Contract).autoRepay(AUTO_REPAY_LOAN_IDS, AUTO_REPAY_AMOUNTS)
+      ).to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_ARRAY_LENGTH_MISMATCH);
     });
   });
 
