@@ -1,5 +1,5 @@
 import { ethers, upgrades } from "hardhat";
-import { Contract, ContractFactory } from "ethers";
+import { Contract } from "ethers";
 import { expect } from "chai";
 import { TransactionReceipt, TransactionResponse } from "@ethersproject/abstract-provider";
 
