@@ -786,7 +786,7 @@ contract LendingMarketTest is Test {
         configureMarket();
 
         Loan.Terms memory terms = mockLoanTerms(BORROWER, BORROW_AMOUNT, false);
-        uint256 totalBorrowAmount = BORROW_AMOUNT + terms.addonAmount;
+        uint256 totalAmount = BORROW_AMOUNT + terms.addonAmount;
         uint256 loanId = 0;
 
         token.mint(address(liquidityPool), BORROW_AMOUNT);
@@ -800,7 +800,7 @@ contract LendingMarketTest is Test {
         vm.expectEmit(true, true, true, true, address(liquidityPool));
         emit OnAfterLoanTakenCalled(loanId, address(creditLine));
         vm.expectEmit(true, true, true, true, address(market));
-        emit LoanTaken(loanId, BORROWER, totalBorrowAmount, terms.durationInPeriods);
+        emit LoanTaken(loanId, BORROWER, totalAmount, terms.durationInPeriods);
 
         vm.prank(BORROWER);
         assertEq(market.takeLoan(address(creditLine), BORROW_AMOUNT, terms.durationInPeriods), loanId);
@@ -818,8 +818,8 @@ contract LendingMarketTest is Test {
         assertEq(loan.startTimestamp, blockTimestamp());
         assertEq(loan.trackedTimestamp, blockTimestamp());
         assertEq(loan.freezeTimestamp, 0);
-        assertEq(loan.initialBorrowAmount, totalBorrowAmount);
-        assertEq(loan.trackedBorrowBalance, totalBorrowAmount);
+        assertEq(loan.totalAmount, totalAmount);
+        assertEq(loan.trackedBorrowBalance, totalAmount);
         assertEq(loan.trackedPaymentBalance, 0);
         assertEq(loan.addonAmount, terms.addonAmount);
         assertEq(loan.autoRepayment, terms.autoRepayment);
@@ -1169,7 +1169,7 @@ contract LendingMarketTest is Test {
 
         uint256 borrowerBalance = token.balanceOf(loan.borrower);
         uint256 treasuryBalance = token.balanceOf(loan.treasury);
-        uint256 borrowAmount = loan.initialBorrowAmount - loan.addonAmount;
+        uint256 borrowAmount = loan.totalAmount - loan.addonAmount;
 
         skip(Constants.PERIOD_IN_SECONDS * (loan.cooldownPeriods - 1));
 
@@ -1199,7 +1199,7 @@ contract LendingMarketTest is Test {
 
         skip(Constants.PERIOD_IN_SECONDS * (loan.cooldownPeriods - 1));
 
-        uint256 borrowAmount = loan.initialBorrowAmount - loan.addonAmount;
+        uint256 borrowAmount = loan.totalAmount - loan.addonAmount;
         uint256 borrowerBalance = token.balanceOf(loan.borrower);
         uint256 treasuryBalance = token.balanceOf(loan.treasury);
 
@@ -1229,7 +1229,7 @@ contract LendingMarketTest is Test {
 
         skip(Constants.PERIOD_IN_SECONDS * (loan.cooldownPeriods - 1));
 
-        uint256 borrowAmount = loan.initialBorrowAmount - loan.addonAmount;
+        uint256 borrowAmount = loan.totalAmount - loan.addonAmount;
         uint256 repayAmount = borrowAmount / 3;
         uint256 revokeAmount = borrowAmount - repayAmount;
 
@@ -1268,7 +1268,7 @@ contract LendingMarketTest is Test {
 
         skip(Constants.PERIOD_IN_SECONDS * (loan.cooldownPeriods - 1));
 
-        uint256 borrowAmount = loan.initialBorrowAmount - loan.addonAmount;
+        uint256 borrowAmount = loan.totalAmount - loan.addonAmount;
         uint256 repayAmount = borrowAmount  +  loan.addonAmount / 2;
         uint256 revokeAmount = repayAmount - borrowAmount;
 

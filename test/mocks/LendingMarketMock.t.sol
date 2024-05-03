@@ -51,7 +51,7 @@ contract LendingMarketMockTest is Test {
     uint32 private constant STATE_START_TIMESTAMP = 600;
     uint32 private constant STATE_FREEZE_TIMESTAMP = 700;
     uint32 private constant STATE_TRACKED_TIMESTAMP = 800;
-    uint64 private constant STATE_INITIAL_BORROW_AMOUNT = 900;
+    uint64 private constant STATE_TOTAL_BORROW_AMOUNT = 900;
     uint64 private constant STATE_TRACKED_PAYMENT_BALANCE = 1000;
     uint64 private constant STATE_TRACKED_BORROW_BALANCE = 1100;
     uint64 private constant STATE_ADDON_AMOUNT = 1200;
@@ -175,7 +175,7 @@ contract LendingMarketMockTest is Test {
         assertEq(loan.startTimestamp, 0);
         assertEq(loan.freezeTimestamp, 0);
         assertEq(loan.trackedTimestamp, 0);
-        assertEq(loan.initialBorrowAmount, 0);
+        assertEq(loan.totalAmount, 0);
         assertEq(loan.trackedBorrowBalance, 0);
         assertEq(loan.trackedPaymentBalance, 0);
         assertEq(loan.autoRepayment, false);
@@ -195,7 +195,7 @@ contract LendingMarketMockTest is Test {
                 startTimestamp: STATE_START_TIMESTAMP,
                 freezeTimestamp: STATE_FREEZE_TIMESTAMP,
                 trackedTimestamp: STATE_TRACKED_TIMESTAMP,
-                initialBorrowAmount: STATE_INITIAL_BORROW_AMOUNT,
+                totalAmount: STATE_TOTAL_BORROW_AMOUNT,
                 trackedBorrowBalance: STATE_TRACKED_BORROW_BALANCE,
                 trackedPaymentBalance: STATE_TRACKED_PAYMENT_BALANCE,
                 autoRepayment: STATE_AUTO_REPAYMENT,
@@ -217,7 +217,7 @@ contract LendingMarketMockTest is Test {
         assertEq(loan.startTimestamp, STATE_START_TIMESTAMP);
         assertEq(loan.freezeTimestamp, STATE_FREEZE_TIMESTAMP);
         assertEq(loan.trackedTimestamp, STATE_TRACKED_TIMESTAMP);
-        assertEq(loan.initialBorrowAmount, STATE_INITIAL_BORROW_AMOUNT);
+        assertEq(loan.totalAmount, STATE_TOTAL_BORROW_AMOUNT);
         assertEq(loan.trackedBorrowBalance, STATE_TRACKED_BORROW_BALANCE);
         assertEq(loan.trackedPaymentBalance, STATE_TRACKED_PAYMENT_BALANCE);
         assertEq(loan.autoRepayment, STATE_AUTO_REPAYMENT);
