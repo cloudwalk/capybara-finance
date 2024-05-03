@@ -107,7 +107,7 @@ contract LiquidityPoolAccountableTest is Test {
             freezeTimestamp: 0,
             trackedTimestamp: 0,
             totalAmount: 0,
-            trackedBorrowBalance: 0,
+            trackedAmount: 0,
             repaidAmount: 0,
             autoRepayment: false,
             cooldownPeriods: 0,

@@ -819,7 +819,7 @@ contract LendingMarketTest is Test {
         assertEq(loan.trackedTimestamp, blockTimestamp());
         assertEq(loan.freezeTimestamp, 0);
         assertEq(loan.totalAmount, totalAmount);
-        assertEq(loan.trackedBorrowBalance, totalAmount);
+        assertEq(loan.trackedAmount, totalAmount);
         assertEq(loan.repaidAmount, 0);
         assertEq(loan.addonAmount, terms.addonAmount);
         assertEq(loan.autoRepayment, terms.autoRepayment);
@@ -1184,7 +1184,7 @@ contract LendingMarketTest is Test {
         market.revokeLoan(loanId);
 
         loan = market.getLoanState(loanId);
-        assertEq(loan.trackedBorrowBalance, 0);
+        assertEq(loan.trackedAmount, 0);
         assertEq(loan.repaidAmount, 0);
         assertEq(token.balanceOf(loan.borrower), borrowerBalance - borrowAmount);
         assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance + borrowAmount);
@@ -1214,7 +1214,7 @@ contract LendingMarketTest is Test {
         market.revokeLoan(loanId);
 
         loan = market.getLoanState(loanId);
-        assertEq(loan.trackedBorrowBalance, 0);
+        assertEq(loan.trackedAmount, 0);
         assertEq(loan.repaidAmount, 0);
         assertEq(token.balanceOf(loan.borrower), borrowerBalance - borrowAmount);
         assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance + borrowAmount);
@@ -1251,7 +1251,7 @@ contract LendingMarketTest is Test {
         market.revokeLoan(loanId);
 
         loan = market.getLoanState(loanId);
-        assertEq(loan.trackedBorrowBalance, 0);
+        assertEq(loan.trackedAmount, 0);
         assertEq(loan.repaidAmount, 0);
         assertEq(token.balanceOf(loan.borrower), borrowerBalance - revokeAmount);
         assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance + revokeAmount);
@@ -1290,7 +1290,7 @@ contract LendingMarketTest is Test {
         market.revokeLoan(loanId);
 
         loan = market.getLoanState(loanId);
-        assertEq(loan.trackedBorrowBalance, 0);
+        assertEq(loan.trackedAmount, 0);
         assertEq(loan.repaidAmount, 0);
         assertEq(token.balanceOf(loan.borrower), borrowerBalance + revokeAmount);
         assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance - revokeAmount);

@@ -107,7 +107,7 @@ contract LendingMarket is
         if (_loans[loanId].token == address(0)) {
             revert LoanNotExist();
         }
-        if (_loans[loanId].trackedBorrowBalance == 0) {
+        if (_loans[loanId].trackedAmount == 0) {
             revert LoanAlreadyRepaid();
         }
         _;
@@ -271,7 +271,7 @@ contract LendingMarket is
             interestRateSecondary: terms.interestRateSecondary,
             interestFormula: terms.interestFormula,
             totalAmount: totalAmount,
-            trackedBorrowBalance: totalAmount,
+            trackedAmount: totalAmount,
             repaidAmount: 0,
             trackedTimestamp: blockTimestamp,
             freezeTimestamp: 0,
@@ -321,7 +321,7 @@ contract LendingMarket is
 
         outstandingBalance -= repayAmount;
         loan.trackedTimestamp = _blockTimestamp().toUint32();
-        loan.trackedBorrowBalance = outstandingBalance.toUint64();
+        loan.trackedAmount = outstandingBalance.toUint64();
         loan.repaidAmount += repayAmount.toUint64();
 
         ILiquidityPool(loan.treasury).onBeforeLoanPayment(loanId, repayAmount);
@@ -348,7 +348,7 @@ contract LendingMarket is
         uint256 borrowAmount = loan.totalAmount - loan.addonAmount;
         uint256 repaidAmount = loan.repaidAmount;
 
-        loan.trackedBorrowBalance = 0;
+        loan.trackedAmount = 0;
         loan.repaidAmount = 0;
 
         ILiquidityPool(loan.treasury).onBeforeLoanRevocation(loanId);
@@ -593,7 +593,7 @@ contract LendingMarket is
         Loan.State storage loan,
         uint256 timestamp
     ) internal view returns (uint256 outstandingBalance, uint256 periodIndex) {
-        outstandingBalance = loan.trackedBorrowBalance;
+        outstandingBalance = loan.trackedAmount;
 
         if (loan.freezeTimestamp != 0) {
             timestamp = loan.freezeTimestamp;

@@ -53,7 +53,7 @@ contract LendingMarketMockTest is Test {
     uint32 private constant STATE_TRACKED_TIMESTAMP = 800;
     uint64 private constant STATE_TOTAL_BORROW_AMOUNT = 900;
     uint64 private constant STATE_REPAID_AMOUNT = 1000;
-    uint64 private constant STATE_TRACKED_BORROW_BALANCE = 1100;
+    uint64 private constant STATE_TRACKED_AMOUNT = 1100;
     uint64 private constant STATE_ADDON_AMOUNT = 1200;
     bool private constant STATE_AUTO_REPAYMENT = true;
 
@@ -176,7 +176,7 @@ contract LendingMarketMockTest is Test {
         assertEq(loan.freezeTimestamp, 0);
         assertEq(loan.trackedTimestamp, 0);
         assertEq(loan.totalAmount, 0);
-        assertEq(loan.trackedBorrowBalance, 0);
+        assertEq(loan.trackedAmount, 0);
         assertEq(loan.repaidAmount, 0);
         assertEq(loan.autoRepayment, false);
         assertEq(loan.cooldownPeriods, 0);
@@ -196,7 +196,7 @@ contract LendingMarketMockTest is Test {
                 freezeTimestamp: STATE_FREEZE_TIMESTAMP,
                 trackedTimestamp: STATE_TRACKED_TIMESTAMP,
                 totalAmount: STATE_TOTAL_BORROW_AMOUNT,
-                trackedBorrowBalance: STATE_TRACKED_BORROW_BALANCE,
+                trackedAmount: STATE_TRACKED_AMOUNT,
                 repaidAmount: STATE_REPAID_AMOUNT,
                 autoRepayment: STATE_AUTO_REPAYMENT,
                 cooldownPeriods: STATE_COOLDOWN_PERIODS,
@@ -218,7 +218,7 @@ contract LendingMarketMockTest is Test {
         assertEq(loan.freezeTimestamp, STATE_FREEZE_TIMESTAMP);
         assertEq(loan.trackedTimestamp, STATE_TRACKED_TIMESTAMP);
         assertEq(loan.totalAmount, STATE_TOTAL_BORROW_AMOUNT);
-        assertEq(loan.trackedBorrowBalance, STATE_TRACKED_BORROW_BALANCE);
+        assertEq(loan.trackedAmount, STATE_TRACKED_AMOUNT);
         assertEq(loan.repaidAmount, STATE_REPAID_AMOUNT);
         assertEq(loan.autoRepayment, STATE_AUTO_REPAYMENT);
         assertEq(loan.cooldownPeriods, STATE_COOLDOWN_PERIODS);
