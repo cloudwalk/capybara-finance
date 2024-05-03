@@ -51,10 +51,10 @@ interface ILiquidityPoolAccountable is ILiquidityPool {
     //  Functions                                   //
     // -------------------------------------------- //
 
-    /// @dev Configures the admin status for an account.
-    /// @param account The address of the account to configure as an admin.
-    /// @param adminStatus True whether the account is an admin.
-    function configureAdmin(address account, bool adminStatus) external;
+    /// @dev Configures a batch of accounts as admins.
+    /// @param accounts The array of addresses of the accounts to configure as an admin.
+    /// @param adminStatuses The array of statuses: true whether the account is an admin.
+    function configureAdmins(address[] memory accounts, bool[] memory adminStatuses) external;
 
     /// @dev Deposits tokens to the liquidity pool.
     /// @param creditLine The address of the credit line.

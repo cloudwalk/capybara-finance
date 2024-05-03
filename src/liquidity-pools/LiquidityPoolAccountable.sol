@@ -111,17 +111,13 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
     }
 
     /// @inheritdoc ILiquidityPoolAccountable
-    function configureAdmin(address account, bool adminStatus) external onlyOwner {
-        if (account == address(0)) {
-            revert Error.ZeroAddress();
+    function configureAdmins(address[] memory accounts, bool[] memory adminStatuses) external onlyOwner {
+        if (accounts.length != adminStatuses.length) {
+            revert Error.ArrayLengthMismatch();
         }
-        if (_admins[account] == adminStatus) {
-            revert Error.AlreadyConfigured();
+        for (uint256 i; i < accounts.length; i++) {
+            _configureAdmin(accounts[i], adminStatuses[i]);
         }
-
-        _admins[account] = adminStatus;
-
-        emit AdminConfigured(account, adminStatus);
     }
 
     /// @inheritdoc ILiquidityPoolAccountable
@@ -291,5 +287,25 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
     /// @inheritdoc ILiquidityPool
     function kind() external pure returns (uint16) {
         return 1;
+    }
+
+    // -------------------------------------------- //
+    //  Internal functions                          //
+    // -------------------------------------------- //
+
+    /// @dev Updates the configuration of an admin.
+    /// @param account The address of the account to configure admin status.
+    /// @param adminStatus The new adminStatus of the account.
+    function _configureAdmin(address account, bool adminStatus) internal {
+        if (account == address(0)) {
+            revert Error.ZeroAddress();
+        }
+        if (_admins[account] == adminStatus) {
+            revert Error.AlreadyConfigured();
+        }
+
+        _admins[account] = adminStatus;
+
+        emit AdminConfigured(account, adminStatus);
     }
 }

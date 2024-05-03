@@ -89,10 +89,10 @@ interface ICreditLineConfigurable is ICreditLine {
     //  Functions                                   //
     // -------------------------------------------- //
 
-    /// @dev Configures an account as an admin.
-    /// @param account The address of the account to configure as an admin.
-    /// @param adminStatus True whether the account is an admin.
-    function configureAdmin(address account, bool adminStatus) external;
+    /// @dev Configures a batch of accounts as admins.
+    /// @param accounts The array of addresses of the accounts to configure as an admin.
+    /// @param adminStatuses The array of statuses: true whether the account is an admin.
+    function configureAdmins(address[] memory accounts, bool[] memory adminStatuses) external;
 
     /// @dev Updates the credit line configuration.
     /// @param config The structure containing the credit line configuration.
