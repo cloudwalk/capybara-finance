@@ -272,7 +272,7 @@ contract LendingMarket is
             interestFormula: terms.interestFormula,
             totalAmount: totalAmount,
             trackedBorrowBalance: totalAmount,
-            trackedPaymentBalance: 0,
+            repaidAmount: 0,
             trackedTimestamp: blockTimestamp,
             freezeTimestamp: 0,
             autoRepayment: terms.autoRepayment,
@@ -322,7 +322,7 @@ contract LendingMarket is
         outstandingBalance -= repayAmount;
         loan.trackedTimestamp = _blockTimestamp().toUint32();
         loan.trackedBorrowBalance = outstandingBalance.toUint64();
-        loan.trackedPaymentBalance += repayAmount.toUint64();
+        loan.repaidAmount += repayAmount.toUint64();
 
         ILiquidityPool(loan.treasury).onBeforeLoanPayment(loanId, repayAmount);
         IERC20(loan.token).transferFrom(payer, loan.treasury, repayAmount);
@@ -346,10 +346,10 @@ contract LendingMarket is
         }
 
         uint256 borrowAmount = loan.totalAmount - loan.addonAmount;
-        uint256 repaidAmount = loan.trackedPaymentBalance;
+        uint256 repaidAmount = loan.repaidAmount;
 
         loan.trackedBorrowBalance = 0;
-        loan.trackedPaymentBalance = 0;
+        loan.repaidAmount = 0;
 
         ILiquidityPool(loan.treasury).onBeforeLoanRevocation(loanId);
 
