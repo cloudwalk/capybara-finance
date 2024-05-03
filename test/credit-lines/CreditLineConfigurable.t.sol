@@ -78,12 +78,15 @@ contract CreditLineConfigurableTest is Test {
     bool private constant BORROWER_CONFIG_AUTOREPAYMENT = true;
     Interest.Formula private constant BORROWER_CONFIG_INTEREST_FORMULA_COMPOUND = Interest.Formula.Compound;
     ICreditLineConfigurable.BorrowPolicy private constant BORROWER_CONFIG_BORROW_POLICY_DECREASE =
-        ICreditLineConfigurable.BorrowPolicy.Decrease;
+    ICreditLineConfigurable.BorrowPolicy.Decrease;
 
     uint32 private constant DURATION_IN_PERIODS = 30;
     uint16 private constant KIND_1 = 1;
 
     uint256 private constant INTEREST_RATE_FACTOR = 1_000_000_000;
+
+    address[] private admins;
+    bool[] private statuses;
 
     // -------------------------------------------- //
     //  Setup and configuration                     //
@@ -92,12 +95,15 @@ contract CreditLineConfigurableTest is Test {
     function setUp() public {
         creditLine = new CreditLineConfigurable();
         creditLine.initialize(MARKET, LENDER_1, TOKEN_1);
+
+        admins.push(ADMIN);
+        statuses.push(true);
     }
 
     function configureCreditLine() public returns (ICreditLineConfigurable.CreditLineConfig memory) {
         vm.startPrank(LENDER_1);
         ICreditLineConfigurable.CreditLineConfig memory config = initCreditLineConfig();
-        creditLine.configureAdmin(ADMIN, true);
+        creditLine.configureAdmins(admins, statuses);
         creditLine.configureCreditLine(config);
         vm.stopPrank();
         return config;
@@ -191,9 +197,9 @@ contract CreditLineConfigurableTest is Test {
     }
 
     function initBorrowerConfig(uint256 blockTimestamp)
-        private
-        pure
-        returns (ICreditLineConfigurable.BorrowerConfig memory)
+    private
+    pure
+    returns (ICreditLineConfigurable.BorrowerConfig memory)
     {
         return ICreditLineConfigurable.BorrowerConfig({
             expiration: (blockTimestamp + BORROWER_CONFIG_EXPIRATION).toUint32(),
@@ -213,9 +219,9 @@ contract CreditLineConfigurableTest is Test {
     }
 
     function initBorrowerConfigs(uint256 blockTimestamp)
-        private
-        pure
-        returns (address[] memory, ICreditLineConfigurable.BorrowerConfig[] memory)
+    private
+    pure
+    returns (address[] memory, ICreditLineConfigurable.BorrowerConfig[] memory)
     {
         address[] memory borrowers = new address[](3);
         borrowers[0] = BORROWER_1;
@@ -341,44 +347,53 @@ contract CreditLineConfigurableTest is Test {
     }
 
     // -------------------------------------------- //
-    //  Test `configureAdmin` function              //
+    //  Test `configureAdmins` function              //
     // -------------------------------------------- //
 
-    function test_configureAdmin() public {
+    function test_configureAdmins() public {
         assertEq(creditLine.isAdmin(ADMIN), false);
 
         vm.startPrank(LENDER_1);
 
         vm.expectEmit(true, true, true, true, address(creditLine));
         emit AdminConfigured(ADMIN, true);
-        creditLine.configureAdmin(ADMIN, true);
+        creditLine.configureAdmins(admins, statuses);
 
         assertEq(creditLine.isAdmin(ADMIN), true);
 
+        statuses[0] = false;
         vm.expectEmit(true, true, true, true, address(creditLine));
         emit AdminConfigured(ADMIN, false);
-        creditLine.configureAdmin(ADMIN, false);
+        creditLine.configureAdmins(admins, statuses);
 
         assertEq(creditLine.isAdmin(ADMIN), false);
     }
 
-    function test_configureAdmin_Revert_IfCallerNotOwner() public {
+    function test_configureAdmins_Revert_IfCallerNotOwner() public {
         vm.prank(ATTACKER);
         vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
-        creditLine.configureAdmin(ADMIN, true);
+        creditLine.configureAdmins(admins, statuses);
     }
 
-    function test_configureAdmin_Revert_IfAdminIsZeroAddress() public {
+    function test_configureAdmins_Revert_IfAdminIsZeroAddress() public {
+        admins[0] = address(0);
         vm.prank(LENDER_1);
         vm.expectRevert(Error.ZeroAddress.selector);
-        creditLine.configureAdmin(address(0), true);
+        creditLine.configureAdmins(admins, statuses);
     }
 
-    function test_configureAdmin_Revert_IfAdminIsAlreadyConfigured() public {
+    function test_configureAdmins_Revert_IfAdminIsAlreadyConfigured() public {
         vm.startPrank(LENDER_1);
-        creditLine.configureAdmin(ADMIN, true);
+        creditLine.configureAdmins(admins, statuses);
         vm.expectRevert(Error.AlreadyConfigured.selector);
-        creditLine.configureAdmin(ADMIN, true);
+        creditLine.configureAdmins(admins, statuses);
+    }
+
+    function test_configureAdmins_Revert_IfArrayLengthMismatch() public {
+        admins.push(LENDER_1);
+        vm.startPrank(LENDER_1);
+        vm.expectRevert(Error.ArrayLengthMismatch.selector);
+        creditLine.configureAdmins(admins, statuses);
     }
 
     // -------------------------------------------- //
@@ -705,7 +720,7 @@ contract CreditLineConfigurableTest is Test {
         configureCreditLine();
 
         (address[] memory borrowers, ICreditLineConfigurable.BorrowerConfig[] memory configs) =
-            initBorrowerConfigs(block.timestamp);
+                        initBorrowerConfigs(block.timestamp);
 
         for (uint256 i = 0; i < borrowers.length; i++) {
             vm.expectEmit(true, true, true, true, address(creditLine));
@@ -725,7 +740,7 @@ contract CreditLineConfigurableTest is Test {
         configureCreditLine();
 
         (address[] memory borrowers, ICreditLineConfigurable.BorrowerConfig[] memory configs) =
-            initBorrowerConfigs(block.timestamp);
+                        initBorrowerConfigs(block.timestamp);
 
         vm.prank(LENDER_1);
         creditLine.pause();
@@ -739,7 +754,7 @@ contract CreditLineConfigurableTest is Test {
         configureCreditLine();
 
         (address[] memory borrowers, ICreditLineConfigurable.BorrowerConfig[] memory configs) =
-            initBorrowerConfigs(block.timestamp);
+                        initBorrowerConfigs(block.timestamp);
 
         vm.prank(ATTACKER);
         vm.expectRevert(Error.Unauthorized.selector);
@@ -1055,12 +1070,14 @@ contract CreditLineConfigurableTest is Test {
         assertFalse(creditLine.isAdmin(ADMIN));
 
         vm.prank(LENDER_1);
-        creditLine.configureAdmin(ADMIN, true);
+        creditLine.configureAdmins(admins, statuses);
 
         assertTrue(creditLine.isAdmin(ADMIN));
 
+        statuses[0] = false;
+
         vm.prank(LENDER_1);
-        creditLine.configureAdmin(ADMIN, false);
+        creditLine.configureAdmins(admins, statuses);
 
         assertFalse(creditLine.isAdmin(ADMIN));
     }

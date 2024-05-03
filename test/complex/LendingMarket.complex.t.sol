@@ -46,6 +46,9 @@ contract LendingMarketComplexTest is Test {
     uint256 private constant ZERO_VALUE = 0;
     uint256 private constant PERMISSIBLE_ERROR = 1;
 
+    address[] private admins;
+    bool[] private statuses;
+
     // -------------------------------------------- //
     //  Setup and configuration                     //
     // -------------------------------------------- //
@@ -81,7 +84,11 @@ contract LendingMarketComplexTest is Test {
 
         vm.startPrank(LENDER);
 
-        creditLine.configureAdmin(ADMIN, true);
+        admins.push(ADMIN);
+        statuses.push(true);
+
+        creditLine.configureAdmins(admins, statuses);
+
         lendingMarket.assignLiquidityPoolToCreditLine(address(creditLine), address(liquidityPool));
 
         vm.stopPrank();

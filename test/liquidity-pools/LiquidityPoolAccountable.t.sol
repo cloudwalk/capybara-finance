@@ -60,6 +60,9 @@ contract LiquidityPoolAccountableTest is Test {
 
     uint16 private constant KIND_1 = 1;
 
+    address[] private admins;
+    bool[] private statuses;
+
     // -------------------------------------------- //
     //  Setup and configuration                     //
     // -------------------------------------------- //
@@ -71,6 +74,8 @@ contract LiquidityPoolAccountableTest is Test {
         lendingMarket = new LendingMarketMock();
         liquidityPool = new LiquidityPoolAccountable();
         liquidityPool.initialize(address(lendingMarket), LENDER);
+        admins.push(ADMIN);
+        statuses.push(true);
     }
 
     function configureLender(uint256 amount) private {
@@ -202,20 +207,22 @@ contract LiquidityPoolAccountableTest is Test {
     //  Test `configureAdmin` function              //
     // -------------------------------------------- //
 
-    function test_configureAdmin() public {
+    function test_configureAdmins() public {
         assertEq(liquidityPool.isAdmin(ADMIN), false);
 
         vm.startPrank(LENDER);
 
         vm.expectEmit(true, true, true, true, address(liquidityPool));
         emit AdminConfigured(ADMIN, true);
-        liquidityPool.configureAdmin(ADMIN, true);
+        liquidityPool.configureAdmins(admins, statuses);
 
         assertEq(liquidityPool.isAdmin(ADMIN), true);
 
+        statuses[0] = false;
+
         vm.expectEmit(true, true, true, true, address(liquidityPool));
         emit AdminConfigured(ADMIN, false);
-        liquidityPool.configureAdmin(ADMIN, false);
+        liquidityPool.configureAdmins(admins, statuses);
 
         assertEq(liquidityPool.isAdmin(ADMIN), false);
     }
@@ -223,20 +230,28 @@ contract LiquidityPoolAccountableTest is Test {
     function test_configureAdmin_Revert_IfCallerNotOwner() public {
         vm.prank(ATTACKER);
         vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
-        liquidityPool.configureAdmin(ADMIN, true);
+        liquidityPool.configureAdmins(admins, statuses);
     }
 
     function test_configureAdmin_Revert_IfAdminIsZeroAddress() public {
+        admins[0] = address(0);
         vm.prank(LENDER);
         vm.expectRevert(Error.ZeroAddress.selector);
-        liquidityPool.configureAdmin(address(0), true);
+        liquidityPool.configureAdmins(admins, statuses);
     }
 
     function test_configureAdmin_Revert_IfAdminIsAlreadyConfigured() public {
         vm.startPrank(LENDER);
-        liquidityPool.configureAdmin(ADMIN, true);
+        liquidityPool.configureAdmins(admins, statuses);
         vm.expectRevert(Error.AlreadyConfigured.selector);
-        liquidityPool.configureAdmin(ADMIN, true);
+        liquidityPool.configureAdmins(admins, statuses);
+    }
+
+    function test_configureAdmins_Revert_IfArrayLengthMismatch() public {
+        admins.push(LENDER);
+        vm.startPrank(LENDER);
+        vm.expectRevert(Error.ArrayLengthMismatch.selector);
+        liquidityPool.configureAdmins(admins, statuses);
     }
 
     // -------------------------------------------- //
@@ -250,7 +265,7 @@ contract LiquidityPoolAccountableTest is Test {
         assertEq(token.allowance(address(liquidityPool), address(lendingMarket)), 0);
 
         ILiquidityPoolAccountable.CreditLineBalance memory creditLineBalance =
-            liquidityPool.getCreditLineBalance(address(creditLine));
+                            liquidityPool.getCreditLineBalance(address(creditLine));
         assertEq(creditLineBalance.borrowable, 0);
         assertEq(creditLineBalance.addons, 0);
 
@@ -311,7 +326,7 @@ contract LiquidityPoolAccountableTest is Test {
         (uint256 borrowable, uint256 addons) = prepareWithdraw();
 
         ILiquidityPoolAccountable.CreditLineBalance memory creditLineBalance =
-            liquidityPool.getCreditLineBalance(address(creditLine));
+                            liquidityPool.getCreditLineBalance(address(creditLine));
         assertEq(creditLineBalance.borrowable, borrowable);
         assertEq(creditLineBalance.addons, addons);
         assertEq(token.balanceOf(LENDER), 0);
@@ -404,7 +419,7 @@ contract LiquidityPoolAccountableTest is Test {
 
     function test_autoRepay() public {
         vm.prank(LENDER);
-        liquidityPool.configureAdmin(ADMIN, true);
+        liquidityPool.configureAdmins(admins, statuses);
         (uint256[] memory loanIds, uint256[] memory amounts) = getBatchLoanData();
 
         vm.expectEmit(true, true, true, true, address(liquidityPool));
@@ -429,7 +444,7 @@ contract LiquidityPoolAccountableTest is Test {
 
     function test_autoRepay_Revert_IfArrayLengthMismatch() public {
         vm.prank(LENDER);
-        liquidityPool.configureAdmin(ADMIN, true);
+        liquidityPool.configureAdmins(admins, statuses);
 
         (uint256[] memory loanIds, uint256[] memory amounts) = getBatchLoanData();
         uint256[] memory amountsIncorrectLength = new uint256[](2);
@@ -482,7 +497,7 @@ contract LiquidityPoolAccountableTest is Test {
 
         assertEq(liquidityPool.getCreditLine(LOAN_ID_1), address(0));
         ILiquidityPoolAccountable.CreditLineBalance memory creditLineBalance =
-            liquidityPool.getCreditLineBalance(address(creditLine));
+                            liquidityPool.getCreditLineBalance(address(creditLine));
         assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
         assertEq(creditLineBalance.addons, 0);
 
@@ -554,7 +569,7 @@ contract LiquidityPoolAccountableTest is Test {
         prepareRepayment();
 
         ILiquidityPoolAccountable.CreditLineBalance memory creditLineBalance =
-            liquidityPool.getCreditLineBalance(address(creditLine));
+                            liquidityPool.getCreditLineBalance(address(creditLine));
         assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
         assertEq(creditLineBalance.addons, 0);
 
@@ -577,7 +592,7 @@ contract LiquidityPoolAccountableTest is Test {
         prepareRepayment();
 
         ILiquidityPoolAccountable.CreditLineBalance memory creditLineBalance =
-            liquidityPool.getCreditLineBalance(address(creditLine));
+                            liquidityPool.getCreditLineBalance(address(creditLine));
         assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
         assertEq(creditLineBalance.addons, 0);
 
@@ -636,7 +651,7 @@ contract LiquidityPoolAccountableTest is Test {
         prepareRepayment();
 
         ILiquidityPoolAccountable.CreditLineBalance memory creditLineBalance =
-            liquidityPool.getCreditLineBalance(address(creditLine));
+                            liquidityPool.getCreditLineBalance(address(creditLine));
         assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
         assertEq(creditLineBalance.addons, 0);
 
@@ -659,7 +674,7 @@ contract LiquidityPoolAccountableTest is Test {
         prepareRepayment();
 
         ILiquidityPoolAccountable.CreditLineBalance memory creditLineBalance =
-            liquidityPool.getCreditLineBalance(address(creditLine));
+                            liquidityPool.getCreditLineBalance(address(creditLine));
         assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
         assertEq(creditLineBalance.addons, 0);
 
@@ -694,7 +709,7 @@ contract LiquidityPoolAccountableTest is Test {
         configureLender(DEPOSIT_AMOUNT_1);
 
         ILiquidityPoolAccountable.CreditLineBalance memory creditLineBalance =
-            liquidityPool.getCreditLineBalance(address(creditLine));
+                            liquidityPool.getCreditLineBalance(address(creditLine));
         assertEq(creditLineBalance.borrowable, 0);
         assertEq(creditLineBalance.addons, 0);
         assertEq(token.balanceOf(address(liquidityPool)), 0);
@@ -742,12 +757,14 @@ contract LiquidityPoolAccountableTest is Test {
         assertFalse(liquidityPool.isAdmin(ADMIN));
 
         vm.prank(LENDER);
-        liquidityPool.configureAdmin(ADMIN, true);
+        liquidityPool.configureAdmins(admins, statuses);
 
         assertTrue(liquidityPool.isAdmin(ADMIN));
 
+        statuses[0] = false;
+
         vm.prank(LENDER);
-        liquidityPool.configureAdmin(ADMIN, false);
+        liquidityPool.configureAdmins(admins, statuses);
 
         assertFalse(liquidityPool.isAdmin(ADMIN));
     }
