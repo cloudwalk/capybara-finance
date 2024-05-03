@@ -79,9 +79,6 @@ contract LendingMarket is
     /// @dev Thrown when the cooldown period has passed.
     error CooldownPeriodHasPassed();
 
-    /// @dev Thrown when loan revocation is prohibited.
-    error RevocationIsProhibited();
-
     // -------------------------------------------- //
     //  Modifiers                                   //
     // -------------------------------------------- //
@@ -275,6 +272,7 @@ contract LendingMarket is
             interestFormula: terms.interestFormula,
             initialBorrowAmount: totalBorrowAmount,
             trackedBorrowBalance: totalBorrowAmount,
+            trackedPaymentBalance: 0,
             trackedTimestamp: blockTimestamp,
             freezeTimestamp: 0,
             autoRepayment: terms.autoRepayment,
@@ -324,6 +322,7 @@ contract LendingMarket is
         outstandingBalance -= repayAmount;
         loan.trackedTimestamp = _blockTimestamp().toUint32();
         loan.trackedBorrowBalance = outstandingBalance.toUint64();
+        loan.trackedPaymentBalance += repayAmount.toUint64();
 
         ILiquidityPool(loan.treasury).onBeforeLoanPayment(loanId, repayAmount);
         IERC20(loan.token).transferFrom(payer, loan.treasury, repayAmount);
@@ -340,20 +339,28 @@ contract LendingMarket is
     function revokeLoan(uint256 loanId) external whenNotPaused onlyOngoingLoan(loanId) {
         Loan.State storage loan = _loans[loanId];
 
-        if (loan.startTimestamp != loan.trackedTimestamp) {
-            revert RevocationIsProhibited();
-        }
-
         uint256 currentPeriodIndex = _periodIndex(_blockTimestamp(), Constants.PERIOD_IN_SECONDS);
         uint256 startPeriodIndex = _periodIndex(loan.startTimestamp, Constants.PERIOD_IN_SECONDS);
         if (loan.cooldownPeriods <= currentPeriodIndex - startPeriodIndex) {
             revert CooldownPeriodHasPassed();
         }
 
+        uint256 borrowAmount = loan.initialBorrowAmount - loan.addonAmount;
+        uint256 repaidAmount = loan.trackedPaymentBalance;
+
         loan.trackedBorrowBalance = 0;
+        loan.trackedPaymentBalance = 0;
 
         ILiquidityPool(loan.treasury).onBeforeLoanRevocation(loanId);
-        IERC20(loan.token).transferFrom(loan.borrower, loan.treasury, loan.initialBorrowAmount - loan.addonAmount);
+
+        if (repaidAmount == 0) {
+            IERC20(loan.token).transferFrom(loan.borrower, loan.treasury, borrowAmount);
+        } else if (repaidAmount < borrowAmount) {
+            IERC20(loan.token).transferFrom(loan.borrower, loan.treasury, borrowAmount - repaidAmount);
+        } else if (repaidAmount != borrowAmount) {
+            IERC20(loan.token).transferFrom(loan.treasury, loan.borrower, repaidAmount - borrowAmount);
+        }
+
         ILiquidityPool(loan.treasury).onAfterLoanRevocation(loanId);
 
         emit LoanRevoked(loanId);
