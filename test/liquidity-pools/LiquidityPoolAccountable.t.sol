@@ -294,7 +294,7 @@ contract LiquidityPoolAccountableTest is Test {
         configureLender(depositAmount);
 
         Loan.State memory loan = initLoanState();
-        loan.initialBorrowAmount = DEPOSIT_AMOUNT_1 + ADDON_AMOUNT;
+        loan.initialBorrowAmount = DEPOSIT_AMOUNT_1;
         loan.addonAmount = ADDON_AMOUNT;
         lendingMarket.mockLoanState(LOAN_ID_1, loan);
 
@@ -473,7 +473,7 @@ contract LiquidityPoolAccountableTest is Test {
         configureLender(DEPOSIT_AMOUNT_1);
 
         Loan.State memory loan = initLoanState();
-        loan.initialBorrowAmount = DEPOSIT_AMOUNT_1;
+        loan.initialBorrowAmount = DEPOSIT_AMOUNT_1 - ADDON_AMOUNT;
         loan.addonAmount = ADDON_AMOUNT;
         lendingMarket.mockLoanState(LOAN_ID_1, loan);
 
@@ -545,7 +545,7 @@ contract LiquidityPoolAccountableTest is Test {
         liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT_1);
 
         Loan.State memory loan = initLoanState();
-        loan.initialBorrowAmount = DEPOSIT_AMOUNT_1;
+        loan.initialBorrowAmount = DEPOSIT_AMOUNT_1 - ADDON_AMOUNT;
         loan.addonAmount = ADDON_AMOUNT;
         lendingMarket.mockLoanState(LOAN_ID_1, loan);
     }
@@ -708,7 +708,7 @@ contract LiquidityPoolAccountableTest is Test {
         assertEq(token.balanceOf(address(liquidityPool)), DEPOSIT_AMOUNT_1);
 
         Loan.State memory loan = initLoanState();
-        loan.initialBorrowAmount = DEPOSIT_AMOUNT_1;
+        loan.initialBorrowAmount = DEPOSIT_AMOUNT_1 - ADDON_AMOUNT;
         loan.addonAmount = ADDON_AMOUNT;
         lendingMarket.mockLoanState(LOAN_ID_1, loan);
 

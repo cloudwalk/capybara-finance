@@ -818,7 +818,7 @@ contract LendingMarketTest is Test {
         assertEq(loan.startTimestamp, blockTimestamp());
         assertEq(loan.trackedTimestamp, blockTimestamp());
         assertEq(loan.freezeTimestamp, 0);
-        assertEq(loan.initialBorrowAmount, totalBorrowAmount);
+        assertEq(loan.initialBorrowAmount, BORROW_AMOUNT);
         assertEq(loan.trackedBorrowBalance, totalBorrowAmount);
         assertEq(loan.addonAmount, terms.addonAmount);
         assertEq(loan.autoRepayment, terms.autoRepayment);
@@ -1163,7 +1163,6 @@ contract LendingMarketTest is Test {
 
         uint256 borrowerBalance = token.balanceOf(loan.borrower);
         uint256 treasuryBalance = token.balanceOf(loan.treasury);
-        uint256 borrowAmount = loan.initialBorrowAmount - loan.addonAmount;
 
         skip(Constants.PERIOD_IN_SECONDS * (loan.cooldownPeriods - 1));
 
@@ -1179,8 +1178,8 @@ contract LendingMarketTest is Test {
 
         loan = market.getLoanState(loanId);
         assertEq(loan.trackedBorrowBalance, 0);
-        assertEq(token.balanceOf(loan.borrower), borrowerBalance - borrowAmount);
-        assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance + borrowAmount);
+        assertEq(token.balanceOf(loan.borrower), borrowerBalance - loan.initialBorrowAmount);
+        assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance + loan.initialBorrowAmount);
     }
 
     function test_revokeLoan_Revert_IfContractIsPaused() public {

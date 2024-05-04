@@ -261,7 +261,7 @@ contract LendingMarket is
             durationInPeriods,
             id
         );
-        uint64 totalBorrowAmount = (borrowAmount + terms.addonAmount).toUint64();
+        uint256 totalBorrowAmount = borrowAmount + terms.addonAmount;
         uint32 blockTimestamp = _blockTimestamp().toUint32();
 
         _loans[id] = Loan.State({
@@ -273,8 +273,8 @@ contract LendingMarket is
             interestRatePrimary: terms.interestRatePrimary,
             interestRateSecondary: terms.interestRateSecondary,
             interestFormula: terms.interestFormula,
-            initialBorrowAmount: totalBorrowAmount,
-            trackedBorrowBalance: totalBorrowAmount,
+            initialBorrowAmount: borrowAmount.toUint64(),
+            trackedBorrowBalance: totalBorrowAmount.toUint64(),
             trackedTimestamp: blockTimestamp,
             freezeTimestamp: 0,
             autoRepayment: terms.autoRepayment,
@@ -353,7 +353,7 @@ contract LendingMarket is
         loan.trackedBorrowBalance = 0;
 
         ILiquidityPool(loan.treasury).onBeforeLoanRevocation(loanId);
-        IERC20(loan.token).transferFrom(loan.borrower, loan.treasury, loan.initialBorrowAmount - loan.addonAmount);
+        IERC20(loan.token).transferFrom(loan.borrower, loan.treasury, loan.initialBorrowAmount);
         ILiquidityPool(loan.treasury).onAfterLoanRevocation(loanId);
 
         emit LoanRevoked(loanId);

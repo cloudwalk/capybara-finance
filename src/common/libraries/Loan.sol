@@ -13,7 +13,7 @@ library Loan {
         // Slot 1
         address token;                    // The address of the token used for the loan.
         uint32 startTimestamp;            // The timestamp when the loan was created (stated).
-        uint64 initialBorrowAmount;       // The initial total amount of the loan, including the addon.
+        uint64 initialBorrowAmount;       // The initial borrow amount of the loan, excluding the addon.
         // Slot 2
         address borrower;                 // The address of the borrower.
         uint32 durationInPeriods;         // The total duration of the loan determined by the number of periods.
