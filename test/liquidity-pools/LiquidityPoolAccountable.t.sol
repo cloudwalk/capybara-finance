@@ -106,7 +106,7 @@ contract LiquidityPoolAccountableTest is Test {
             startTimestamp: 0,
             freezeTimestamp: 0,
             trackedTimestamp: 0,
-            totalAmount: 0,
+            borrowAmount: 0,
             trackedAmount: 0,
             repaidAmount: 0,
             autoRepayment: false,
@@ -295,7 +295,7 @@ contract LiquidityPoolAccountableTest is Test {
         configureLender(depositAmount);
 
         Loan.State memory loan = initLoanState();
-        loan.totalAmount = DEPOSIT_AMOUNT_1 + ADDON_AMOUNT;
+        loan.borrowAmount = DEPOSIT_AMOUNT_1;
         loan.addonAmount = ADDON_AMOUNT;
         lendingMarket.mockLoanState(LOAN_ID_1, loan);
 
@@ -474,7 +474,7 @@ contract LiquidityPoolAccountableTest is Test {
         configureLender(DEPOSIT_AMOUNT_1);
 
         Loan.State memory loan = initLoanState();
-        loan.totalAmount = DEPOSIT_AMOUNT_1;
+        loan.borrowAmount = DEPOSIT_AMOUNT_1 - ADDON_AMOUNT;
         loan.addonAmount = ADDON_AMOUNT;
         lendingMarket.mockLoanState(LOAN_ID_1, loan);
 
@@ -546,7 +546,7 @@ contract LiquidityPoolAccountableTest is Test {
         liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT_1);
 
         Loan.State memory loan = initLoanState();
-        loan.totalAmount = DEPOSIT_AMOUNT_1;
+        loan.borrowAmount = DEPOSIT_AMOUNT_1 - ADDON_AMOUNT;
         loan.addonAmount = ADDON_AMOUNT;
         lendingMarket.mockLoanState(LOAN_ID_1, loan);
     }
@@ -709,7 +709,7 @@ contract LiquidityPoolAccountableTest is Test {
         assertEq(token.balanceOf(address(liquidityPool)), DEPOSIT_AMOUNT_1);
 
         Loan.State memory loan = initLoanState();
-        loan.totalAmount = DEPOSIT_AMOUNT_1;
+        loan.borrowAmount = DEPOSIT_AMOUNT_1 - ADDON_AMOUNT;
         loan.addonAmount = ADDON_AMOUNT;
         lendingMarket.mockLoanState(LOAN_ID_1, loan);
 
@@ -725,7 +725,7 @@ contract LiquidityPoolAccountableTest is Test {
         configureLender(DEPOSIT_AMOUNT_1);
 
         Loan.State memory loan = initLoanState();
-        loan.totalAmount = DEPOSIT_AMOUNT_1;
+        loan.borrowAmount = DEPOSIT_AMOUNT_1;
         lendingMarket.mockLoanState(LOAN_ID_1, loan);
 
         vm.prank(LENDER);

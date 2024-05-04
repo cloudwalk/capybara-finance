@@ -818,7 +818,7 @@ contract LendingMarketTest is Test {
         assertEq(loan.startTimestamp, blockTimestamp());
         assertEq(loan.trackedTimestamp, blockTimestamp());
         assertEq(loan.freezeTimestamp, 0);
-        assertEq(loan.totalAmount, totalAmount);
+        assertEq(loan.borrowAmount, BORROW_AMOUNT);
         assertEq(loan.trackedAmount, totalAmount);
         assertEq(loan.repaidAmount, 0);
         assertEq(loan.addonAmount, terms.addonAmount);
@@ -1169,7 +1169,6 @@ contract LendingMarketTest is Test {
 
         uint256 borrowerBalance = token.balanceOf(loan.borrower);
         uint256 treasuryBalance = token.balanceOf(loan.treasury);
-        uint256 borrowAmount = loan.totalAmount - loan.addonAmount;
 
         skip(Constants.PERIOD_IN_SECONDS * (loan.cooldownPeriods - 1));
 
@@ -1186,8 +1185,8 @@ contract LendingMarketTest is Test {
         loan = market.getLoanState(loanId);
         assertEq(loan.trackedAmount, 0);
         assertEq(loan.repaidAmount, 0);
-        assertEq(token.balanceOf(loan.borrower), borrowerBalance - borrowAmount);
-        assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance + borrowAmount);
+        assertEq(token.balanceOf(loan.borrower), borrowerBalance - loan.borrowAmount);
+        assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance + loan.borrowAmount);
     }
 
     function test_revokeLoan_IfRepaidAmountZero() public {
@@ -1199,7 +1198,6 @@ contract LendingMarketTest is Test {
 
         skip(Constants.PERIOD_IN_SECONDS * (loan.cooldownPeriods - 1));
 
-        uint256 borrowAmount = loan.totalAmount - loan.addonAmount;
         uint256 borrowerBalance = token.balanceOf(loan.borrower);
         uint256 treasuryBalance = token.balanceOf(loan.treasury);
 
@@ -1216,8 +1214,8 @@ contract LendingMarketTest is Test {
         loan = market.getLoanState(loanId);
         assertEq(loan.trackedAmount, 0);
         assertEq(loan.repaidAmount, 0);
-        assertEq(token.balanceOf(loan.borrower), borrowerBalance - borrowAmount);
-        assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance + borrowAmount);
+        assertEq(token.balanceOf(loan.borrower), borrowerBalance - loan.borrowAmount);
+        assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance + loan.borrowAmount);
     }
 
     function test_revokeLoan_IfRepaidAmountLessThanBorrowAmount() public {
@@ -1229,9 +1227,8 @@ contract LendingMarketTest is Test {
 
         skip(Constants.PERIOD_IN_SECONDS * (loan.cooldownPeriods - 1));
 
-        uint256 borrowAmount = loan.totalAmount - loan.addonAmount;
-        uint256 repayAmount = borrowAmount / 3;
-        uint256 revokeAmount = borrowAmount - repayAmount;
+        uint256 repayAmount = loan.borrowAmount / 3;
+        uint256 revokeAmount = loan.borrowAmount - repayAmount;
 
         token.mint(loan.borrower, repayAmount);
         vm.prank(loan.borrower);
@@ -1268,9 +1265,8 @@ contract LendingMarketTest is Test {
 
         skip(Constants.PERIOD_IN_SECONDS * (loan.cooldownPeriods - 1));
 
-        uint256 borrowAmount = loan.totalAmount - loan.addonAmount;
-        uint256 repayAmount = borrowAmount  +  loan.addonAmount / 2;
-        uint256 revokeAmount = repayAmount - borrowAmount;
+        uint256 repayAmount = loan.borrowAmount  +  loan.addonAmount / 2;
+        uint256 revokeAmount = repayAmount - loan.borrowAmount;
 
         token.mint(loan.borrower, repayAmount);
         vm.prank(loan.borrower);

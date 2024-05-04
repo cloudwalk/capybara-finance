@@ -258,7 +258,7 @@ contract LendingMarket is
             durationInPeriods,
             id
         );
-        uint64 totalAmount = (borrowAmount + terms.addonAmount).toUint64();
+        uint256 totalAmount = borrowAmount + terms.addonAmount;
         uint32 blockTimestamp = _blockTimestamp().toUint32();
 
         _loans[id] = Loan.State({
@@ -270,8 +270,8 @@ contract LendingMarket is
             interestRatePrimary: terms.interestRatePrimary,
             interestRateSecondary: terms.interestRateSecondary,
             interestFormula: terms.interestFormula,
-            totalAmount: totalAmount,
-            trackedAmount: totalAmount,
+            borrowAmount: borrowAmount.toUint64(),
+            trackedAmount: totalAmount.toUint64(),
             repaidAmount: 0,
             trackedTimestamp: blockTimestamp,
             freezeTimestamp: 0,
@@ -345,7 +345,7 @@ contract LendingMarket is
             revert CooldownPeriodHasPassed();
         }
 
-        uint256 borrowAmount = loan.totalAmount - loan.addonAmount;
+        uint256 borrowAmount = loan.borrowAmount;
         uint256 repaidAmount = loan.repaidAmount;
 
         loan.trackedAmount = 0;
