@@ -73,6 +73,7 @@ contract LendingMarketTest is Test {
 
     event LoanFrozen(uint256 indexed loanId);
     event LoanUnfrozen(uint256 indexed loanId);
+    event LoanTerminated(uint256 indexed loanId);
 
     event LoanDurationUpdated(
         uint256 indexed loanId,
@@ -1240,6 +1241,146 @@ contract LendingMarketTest is Test {
         vm.prank(BORROWER);
         vm.expectRevert(LendingMarket.CooldownPeriodHasPassed.selector);
         market.revokeLoan(loanId);
+    }
+
+    // -------------------------------------------- //
+    // Test `terminateLoan` function                //
+    // -------------------------------------------- //
+
+    function test_terminateLoan_IfRepaidAmountZero() public {
+        configureMarket();
+
+        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 0);
+        Loan.State memory loan = market.getLoanState(loanId);
+        assertTrue(loan.cooldownPeriods >= 2);
+
+        skip(Constants.PERIOD_IN_SECONDS * (loan.cooldownPeriods - 1));
+
+        uint256 borrowerBalance = token.balanceOf(loan.borrower);
+        uint256 treasuryBalance = token.balanceOf(loan.treasury);
+
+        vm.expectEmit(true, true, true, true, address(liquidityPool));
+        emit OnBeforeLoanRevocationCalled(loanId);
+        vm.expectEmit(true, true, true, true, address(liquidityPool));
+        emit OnAfterLoanRevocationCalled(loanId);
+        vm.expectEmit(true, true, true, true, address(market));
+        emit LoanTerminated(loanId);
+
+        vm.prank(LENDER);
+        market.terminateLoan(loanId);
+
+        loan = market.getLoanState(loanId);
+        assertEq(loan.trackedBorrowBalance, 0);
+        assertEq(loan.repaidBorrowAmount, 0);
+        assertEq(token.balanceOf(loan.borrower), borrowerBalance - loan.initialBorrowAmount);
+        assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance + loan.initialBorrowAmount);
+    }
+
+    function test_terminateLoan_IfRepaidAmountLessThanBorrowAmount() public {
+        configureMarket();
+
+        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 0);
+        Loan.State memory loan = market.getLoanState(loanId);
+        assertTrue(loan.cooldownPeriods >= 2);
+
+        skip(Constants.PERIOD_IN_SECONDS * (loan.cooldownPeriods - 1));
+
+        uint256 repayAmount = loan.initialBorrowAmount / 3;
+        uint256 revokeAmount = loan.initialBorrowAmount - repayAmount;
+
+        token.mint(loan.borrower, repayAmount);
+        vm.prank(loan.borrower);
+        market.repayLoan(loanId, repayAmount);
+
+        uint256 borrowerBalance = token.balanceOf(loan.borrower);
+        uint256 treasuryBalance = token.balanceOf(loan.treasury);
+
+        vm.expectEmit(true, true, true, true, address(liquidityPool));
+        emit OnBeforeLoanRevocationCalled(loanId);
+        vm.expectEmit(true, true, true, true, address(liquidityPool));
+        emit OnAfterLoanRevocationCalled(loanId);
+        vm.expectEmit(true, true, true, true, address(market));
+        emit LoanTerminated(loanId);
+
+        vm.prank(LENDER);
+        market.terminateLoan(loanId);
+
+        loan = market.getLoanState(loanId);
+        assertEq(loan.trackedBorrowBalance, 0);
+        assertEq(loan.repaidBorrowAmount, 0);
+        assertEq(token.balanceOf(loan.borrower), borrowerBalance - revokeAmount);
+        assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance + revokeAmount);
+    }
+
+    function test_terminateLoan_IfRepaidAmountGreaterThanBorrowAmount() public {
+        configureMarket();
+
+        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 0);
+        Loan.State memory loan = market.getLoanState(loanId);
+        assertTrue(loan.cooldownPeriods >= 2);
+        assertTrue(loan.addonAmount >= 2);
+
+        skip(Constants.PERIOD_IN_SECONDS * (loan.cooldownPeriods - 1));
+
+        uint256 repayAmount = loan.initialBorrowAmount  +  loan.addonAmount / 2;
+        uint256 revokeAmount = repayAmount - loan.initialBorrowAmount;
+
+        token.mint(loan.borrower, repayAmount);
+        vm.prank(loan.borrower);
+        market.repayLoan(loanId, repayAmount);
+
+        uint256 borrowerBalance = token.balanceOf(loan.borrower);
+        uint256 treasuryBalance = token.balanceOf(loan.treasury);
+
+        vm.expectEmit(true, true, true, true, address(liquidityPool));
+        emit OnBeforeLoanRevocationCalled(loanId);
+        vm.expectEmit(true, true, true, true, address(liquidityPool));
+        emit OnAfterLoanRevocationCalled(loanId);
+        vm.expectEmit(true, true, true, true, address(market));
+        emit LoanTerminated(loanId);
+
+        vm.prank(LENDER);
+        market.terminateLoan(loanId);
+
+        loan = market.getLoanState(loanId);
+        assertEq(loan.trackedBorrowBalance, 0);
+        assertEq(loan.repaidBorrowAmount, 0);
+        assertEq(token.balanceOf(loan.borrower), borrowerBalance + revokeAmount);
+        assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance - revokeAmount);
+    }
+
+    function test_terminateLoan_Revert_IfContractIsPaused() public {
+        configureMarket();
+
+        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 0);
+
+        vm.startPrank(OWNER);
+        market.pause();
+
+        vm.startPrank(LENDER);
+        vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
+        market.terminateLoan(loanId);
+    }
+
+    function test_terminateLoan_Revert_IfLoanNotExist() public {
+        configureMarket();
+
+        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 0);
+        uint256 nonExistentLoanId = loanId + 1;
+
+        vm.prank(LENDER);
+        vm.expectRevert(LendingMarket.LoanNotExist.selector);
+        market.terminateLoan(nonExistentLoanId);
+    }
+
+    function test_terminateLoan_Revert_IfCallerNotLender() public {
+        configureMarket();
+
+        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 0);
+
+        vm.prank(ATTACKER);
+        vm.expectRevert(Error.Unauthorized.selector);
+        market.terminateLoan(loanId);
     }
 
     // -------------------------------------------- //
