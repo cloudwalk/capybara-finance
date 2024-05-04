@@ -812,9 +812,9 @@ contract LendingMarketTest is Test {
         assertEq(loan.startTimestamp, blockTimestamp());
         assertEq(loan.trackedTimestamp, blockTimestamp());
         assertEq(loan.freezeTimestamp, 0);
-        assertEq(loan.initialBorrowAmount, BORROW_AMOUNT);
-        assertEq(loan.trackedBorrowBalance, totalBorrowAmount);
-        assertEq(loan.repaidBorrowAmount, 0);
+        assertEq(loan.borrowAmount, BORROW_AMOUNT);
+        assertEq(loan.trackedBalance, totalBorrowAmount);
+        assertEq(loan.repaidAmount, 0);
         assertEq(loan.addonAmount, terms.addonAmount);
         assertEq(loan.autoRepayment, terms.autoRepayment);
         assertEq(loan.durationInPeriods, terms.durationInPeriods);
@@ -912,7 +912,7 @@ contract LendingMarketTest is Test {
         market.repayLoan(loanId, partialRepayAmount);
 
         loan = market.getLoanState(loanId);
-        assertEq(loan.repaidBorrowAmount, partialRepayAmount);
+        assertEq(loan.repaidAmount, partialRepayAmount);
         assertEq(market.getLoanPreview(loanId, 0).outstandingBalance, outstandingBalance);
         assertNotEq(market.ownerOf(loanId), loan.borrower);
 
@@ -933,7 +933,7 @@ contract LendingMarketTest is Test {
         market.repayLoan(loanId, fullRepayAmount);
 
         loan = market.getLoanState(loanId);
-        assertEq(loan.repaidBorrowAmount, partialRepayAmount + fullRepayAmount);
+        assertEq(loan.repaidAmount, partialRepayAmount + fullRepayAmount);
         assertEq(market.getLoanPreview(loanId, 0).outstandingBalance, 0);
         assertEq(market.ownerOf(loanId), loan.borrower);
     }
@@ -1176,10 +1176,10 @@ contract LendingMarketTest is Test {
         market.revokeLoan(loanId);
 
         loan = market.getLoanState(loanId);
-        assertEq(loan.trackedBorrowBalance, 0);
-        assertEq(loan.repaidBorrowAmount, 0);
-        assertEq(token.balanceOf(loan.borrower), borrowerBalance - loan.initialBorrowAmount);
-        assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance + loan.initialBorrowAmount);
+        assertEq(loan.trackedBalance, 0);
+        assertEq(loan.repaidAmount, 0);
+        assertEq(token.balanceOf(loan.borrower), borrowerBalance - loan.borrowAmount);
+        assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance + loan.borrowAmount);
     }
 
     function test_revokeLoan_Revert_IfContractIsPaused() public {
@@ -1262,10 +1262,10 @@ contract LendingMarketTest is Test {
         market.terminateLoan(loanId);
 
         loan = market.getLoanState(loanId);
-        assertEq(loan.trackedBorrowBalance, 0);
-        assertEq(loan.repaidBorrowAmount, 0);
-        assertEq(token.balanceOf(loan.borrower), borrowerBalance - loan.initialBorrowAmount);
-        assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance + loan.initialBorrowAmount);
+        assertEq(loan.trackedBalance, 0);
+        assertEq(loan.repaidAmount, 0);
+        assertEq(token.balanceOf(loan.borrower), borrowerBalance - loan.borrowAmount);
+        assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance + loan.borrowAmount);
     }
 
     function test_terminateLoan_IfRepaidAmountLessThanBorrowAmount() public {
@@ -1277,8 +1277,8 @@ contract LendingMarketTest is Test {
 
         skip(Constants.PERIOD_IN_SECONDS * (Constants.COOLDOWN_IN_PERIODS - 1));
 
-        uint256 repayAmount = loan.initialBorrowAmount / 3;
-        uint256 revokeAmount = loan.initialBorrowAmount - repayAmount;
+        uint256 repayAmount = loan.borrowAmount / 3;
+        uint256 revokeAmount = loan.borrowAmount - repayAmount;
 
         token.mint(loan.borrower, repayAmount);
         vm.prank(loan.borrower);
@@ -1298,8 +1298,8 @@ contract LendingMarketTest is Test {
         market.terminateLoan(loanId);
 
         loan = market.getLoanState(loanId);
-        assertEq(loan.trackedBorrowBalance, 0);
-        assertEq(loan.repaidBorrowAmount, 0);
+        assertEq(loan.trackedBalance, 0);
+        assertEq(loan.repaidAmount, 0);
         assertEq(token.balanceOf(loan.borrower), borrowerBalance - revokeAmount);
         assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance + revokeAmount);
     }
@@ -1314,8 +1314,8 @@ contract LendingMarketTest is Test {
 
         skip(Constants.PERIOD_IN_SECONDS * (Constants.COOLDOWN_IN_PERIODS - 1));
 
-        uint256 repayAmount = loan.initialBorrowAmount  +  loan.addonAmount / 2;
-        uint256 revokeAmount = repayAmount - loan.initialBorrowAmount;
+        uint256 repayAmount = loan.borrowAmount  +  loan.addonAmount / 2;
+        uint256 revokeAmount = repayAmount - loan.borrowAmount;
 
         token.mint(loan.borrower, repayAmount);
         vm.prank(loan.borrower);
@@ -1335,8 +1335,8 @@ contract LendingMarketTest is Test {
         market.terminateLoan(loanId);
 
         loan = market.getLoanState(loanId);
-        assertEq(loan.trackedBorrowBalance, 0);
-        assertEq(loan.repaidBorrowAmount, 0);
+        assertEq(loan.trackedBalance, 0);
+        assertEq(loan.repaidAmount, 0);
         assertEq(token.balanceOf(loan.borrower), borrowerBalance + revokeAmount);
         assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance - revokeAmount);
     }

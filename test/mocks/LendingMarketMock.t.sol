@@ -174,9 +174,9 @@ contract LendingMarketMockTest is Test {
         assertEq(loan.startTimestamp, 0);
         assertEq(loan.freezeTimestamp, 0);
         assertEq(loan.trackedTimestamp, 0);
-        assertEq(loan.initialBorrowAmount, 0);
-        assertEq(loan.trackedBorrowBalance, 0);
-        assertEq(loan.repaidBorrowAmount, 0);
+        assertEq(loan.borrowAmount, 0);
+        assertEq(loan.trackedBalance, 0);
+        assertEq(loan.repaidAmount, 0);
         assertEq(loan.autoRepayment, false);
         assertEq(loan.addonAmount, 0);
 
@@ -193,9 +193,9 @@ contract LendingMarketMockTest is Test {
                 startTimestamp: STATE_START_TIMESTAMP,
                 freezeTimestamp: STATE_FREEZE_TIMESTAMP,
                 trackedTimestamp: STATE_TRACKED_TIMESTAMP,
-                initialBorrowAmount: STATE_INITIAL_BORROW_AMOUNT,
-                trackedBorrowBalance: STATE_TRACKED_BORROW_BALANCE,
-                repaidBorrowAmount: STATE_REPAID_BORROW_AMOUNT,
+                borrowAmount: STATE_INITIAL_BORROW_AMOUNT,
+                trackedBalance: STATE_TRACKED_BORROW_BALANCE,
+                repaidAmount: STATE_REPAID_BORROW_AMOUNT,
                 autoRepayment: STATE_AUTO_REPAYMENT,
                 addonAmount: STATE_ADDON_AMOUNT,
                 _reserved: 0
@@ -214,9 +214,9 @@ contract LendingMarketMockTest is Test {
         assertEq(loan.startTimestamp, STATE_START_TIMESTAMP);
         assertEq(loan.freezeTimestamp, STATE_FREEZE_TIMESTAMP);
         assertEq(loan.trackedTimestamp, STATE_TRACKED_TIMESTAMP);
-        assertEq(loan.initialBorrowAmount, STATE_INITIAL_BORROW_AMOUNT);
-        assertEq(loan.trackedBorrowBalance, STATE_TRACKED_BORROW_BALANCE);
-        assertEq(loan.repaidBorrowAmount, STATE_REPAID_BORROW_AMOUNT);
+        assertEq(loan.borrowAmount, STATE_INITIAL_BORROW_AMOUNT);
+        assertEq(loan.trackedBalance, STATE_TRACKED_BORROW_BALANCE);
+        assertEq(loan.repaidAmount, STATE_REPAID_BORROW_AMOUNT);
         assertEq(loan.autoRepayment, STATE_AUTO_REPAYMENT);
         assertEq(loan.addonAmount, STATE_ADDON_AMOUNT);
     }

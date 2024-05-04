@@ -215,7 +215,7 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
     function onAfterLoanTaken(uint256 loanId, address creditLine) external whenNotPaused onlyMarket returns (bool) {
         Loan.State memory loan = ILendingMarket(_market).getLoanState(loanId);
         CreditLineBalance storage balance = _creditLineBalances[creditLine];
-        balance.borrowable -= loan.initialBorrowAmount + loan.addonAmount;
+        balance.borrowable -= loan.borrowAmount + loan.addonAmount;
         balance.addons += loan.addonAmount;
 
         _creditLines[loanId] = creditLine;
@@ -252,7 +252,7 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
         if (creditLine != address(0)) {
             Loan.State memory loan = ILendingMarket(_market).getLoanState(loanId);
             CreditLineBalance storage balance = _creditLineBalances[creditLine];
-            balance.borrowable += loan.initialBorrowAmount + loan.addonAmount;
+            balance.borrowable += loan.borrowAmount + loan.addonAmount;
             balance.addons -= loan.addonAmount;
         }
 

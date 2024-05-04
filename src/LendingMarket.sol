@@ -110,7 +110,7 @@ contract LendingMarket is
         if (_loans[loanId].token == address(0)) {
             revert LoanNotExist();
         }
-        if (_loans[loanId].trackedBorrowBalance == 0) {
+        if (_loans[loanId].trackedBalance == 0) {
             revert LoanAlreadyRepaid();
         }
         _;
@@ -273,9 +273,9 @@ contract LendingMarket is
             interestRatePrimary: terms.interestRatePrimary,
             interestRateSecondary: terms.interestRateSecondary,
             interestFormula: terms.interestFormula,
-            initialBorrowAmount: borrowAmount.toUint64(),
-            trackedBorrowBalance: totalBorrowAmount.toUint64(),
-            repaidBorrowAmount: 0,
+            borrowAmount: borrowAmount.toUint64(),
+            trackedBalance: totalBorrowAmount.toUint64(),
+            repaidAmount: 0,
             trackedTimestamp: blockTimestamp,
             freezeTimestamp: 0,
             autoRepayment: terms.autoRepayment,
@@ -323,8 +323,8 @@ contract LendingMarket is
 
         outstandingBalance -= repayAmount;
         loan.trackedTimestamp = _blockTimestamp().toUint32();
-        loan.trackedBorrowBalance = outstandingBalance.toUint64();
-        loan.repaidBorrowAmount += repayAmount.toUint64();
+        loan.trackedBalance = outstandingBalance.toUint64();
+        loan.repaidAmount += repayAmount.toUint64();
 
         ILiquidityPool(loan.treasury).onBeforeLoanPayment(loanId, repayAmount);
         IERC20(loan.token).transferFrom(payer, loan.treasury, repayAmount);
@@ -341,7 +341,7 @@ contract LendingMarket is
     function revokeLoan(uint256 loanId) external whenNotPaused onlyOngoingLoan(loanId) {
         Loan.State storage loan = _loans[loanId];
 
-        if (loan.repaidBorrowAmount != 0) {
+        if (loan.repaidAmount != 0) {
             revert RevocationProhibited();
         }
 
@@ -351,10 +351,10 @@ contract LendingMarket is
             revert CooldownPeriodHasPassed();
         }
 
-        loan.trackedBorrowBalance = 0;
+        loan.trackedBalance = 0;
 
         ILiquidityPool(loan.treasury).onBeforeLoanRevocation(loanId);
-        IERC20(loan.token).transferFrom(loan.borrower, loan.treasury, loan.initialBorrowAmount);
+        IERC20(loan.token).transferFrom(loan.borrower, loan.treasury, loan.borrowAmount);
         ILiquidityPool(loan.treasury).onAfterLoanRevocation(loanId);
 
         emit LoanRevoked(loanId);
@@ -403,11 +403,11 @@ contract LendingMarket is
     function terminateLoan(uint256 loanId) external whenNotPaused onlyOngoingLoan(loanId) onlyLenderOrAlias(loanId) {
         Loan.State storage loan = _loans[loanId];
 
-        uint256 borrowAmount = loan.initialBorrowAmount;
-        uint256 repaidAmount = loan.repaidBorrowAmount;
+        uint256 borrowAmount = loan.borrowAmount;
+        uint256 repaidAmount = loan.repaidAmount;
 
-        loan.trackedBorrowBalance = 0;
-        loan.repaidBorrowAmount = 0;
+        loan.trackedBalance = 0;
+        loan.repaidAmount = 0;
 
         ILiquidityPool(loan.treasury).onBeforeLoanRevocation(loanId);
 
@@ -612,7 +612,7 @@ contract LendingMarket is
         Loan.State storage loan,
         uint256 timestamp
     ) internal view returns (uint256 outstandingBalance, uint256 periodIndex) {
-        outstandingBalance = loan.trackedBorrowBalance;
+        outstandingBalance = loan.trackedBalance;
 
         if (loan.freezeTimestamp != 0) {
             timestamp = loan.freezeTimestamp;
