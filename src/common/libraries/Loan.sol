@@ -28,6 +28,7 @@ library Loan {
         uint32 interestRatePrimary;       // The primary interest rate that is applied to the loan.
         uint32 interestRateSecondary;     // The secondary interest rate that is applied to the loan.
         uint64 trackedBorrowBalance;      // The borrow balance of the loan that is tracked over its lifetime.
+        uint64 repaidBorrowAmount;        // The amount that has been repaid on the loan over its lifetime.
         uint32 trackedTimestamp;          // The timestamp when the loan was last paid or its balance was updated.
         uint32 freezeTimestamp;           // The timestamp when the loan was frozen. Zero value for unfrozen loans.
     }

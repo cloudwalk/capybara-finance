@@ -820,6 +820,7 @@ contract LendingMarketTest is Test {
         assertEq(loan.freezeTimestamp, 0);
         assertEq(loan.initialBorrowAmount, BORROW_AMOUNT);
         assertEq(loan.trackedBorrowBalance, totalBorrowAmount);
+        assertEq(loan.repaidBorrowAmount, 0);
         assertEq(loan.addonAmount, terms.addonAmount);
         assertEq(loan.autoRepayment, terms.autoRepayment);
         assertEq(loan.durationInPeriods, terms.durationInPeriods);
@@ -903,19 +904,22 @@ contract LendingMarketTest is Test {
         skip(Constants.PERIOD_IN_SECONDS * skipPeriodsBeforePartialRepayment);
 
         uint256 outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
-        uint256 repayAmount = outstandingBalance / 2;
-        outstandingBalance -= repayAmount;
-        token.mint(loan.borrower, repayAmount);
+        uint256 partialRepayAmount = outstandingBalance / 2;
+        outstandingBalance -= partialRepayAmount;
+
+        token.mint(loan.borrower, partialRepayAmount);
 
         vm.expectEmit(true, true, true, true, loan.treasury);
-        emit OnBeforeLoanPaymentCalled(loanId, repayAmount);
+        emit OnBeforeLoanPaymentCalled(loanId, partialRepayAmount);
         vm.expectEmit(true, true, true, true, loan.treasury);
-        emit OnAfterLoanPaymentCalled(loanId, repayAmount);
+        emit OnAfterLoanPaymentCalled(loanId, partialRepayAmount);
         vm.expectEmit(true, true, true, true, address(market));
-        emit LoanRepayment(loanId, loan.borrower, loan.borrower, repayAmount, outstandingBalance);
+        emit LoanRepayment(loanId, loan.borrower, loan.borrower, partialRepayAmount, outstandingBalance);
 
-        market.repayLoan(loanId, repayAmount);
+        market.repayLoan(loanId, partialRepayAmount);
 
+        loan = market.getLoanState(loanId);
+        assertEq(loan.repaidBorrowAmount, partialRepayAmount);
         assertEq(market.getLoanPreview(loanId, 0).outstandingBalance, outstandingBalance);
         assertNotEq(market.ownerOf(loanId), loan.borrower);
 
@@ -923,18 +927,20 @@ contract LendingMarketTest is Test {
 
         skip(Constants.PERIOD_IN_SECONDS * skipPeriodsFullRepayment);
 
-        outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
-        token.mint(loan.borrower, outstandingBalance);
+        uint256 fullRepayAmount = market.getLoanPreview(loanId, 0).outstandingBalance;
+        token.mint(loan.borrower, fullRepayAmount);
 
         vm.expectEmit(true, true, true, true, loan.treasury);
-        emit OnBeforeLoanPaymentCalled(loanId, outstandingBalance);
+        emit OnBeforeLoanPaymentCalled(loanId, fullRepayAmount);
         vm.expectEmit(true, true, true, true, loan.treasury);
-        emit OnAfterLoanPaymentCalled(loanId, outstandingBalance);
+        emit OnAfterLoanPaymentCalled(loanId, fullRepayAmount);
         vm.expectEmit(true, true, true, true, address(market));
-        emit LoanRepayment(loanId, loan.borrower, loan.borrower, outstandingBalance, 0);
+        emit LoanRepayment(loanId, loan.borrower, loan.borrower, fullRepayAmount, 0);
 
-        market.repayLoan(loanId, outstandingBalance);
+        market.repayLoan(loanId, fullRepayAmount);
 
+        loan = market.getLoanState(loanId);
+        assertEq(loan.repaidBorrowAmount, partialRepayAmount + fullRepayAmount);
         assertEq(market.getLoanPreview(loanId, 0).outstandingBalance, 0);
         assertEq(market.ownerOf(loanId), loan.borrower);
     }
@@ -1178,6 +1184,7 @@ contract LendingMarketTest is Test {
 
         loan = market.getLoanState(loanId);
         assertEq(loan.trackedBorrowBalance, 0);
+        assertEq(loan.repaidBorrowAmount, 0);
         assertEq(token.balanceOf(loan.borrower), borrowerBalance - loan.initialBorrowAmount);
         assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance + loan.initialBorrowAmount);
     }

@@ -275,6 +275,7 @@ contract LendingMarket is
             interestFormula: terms.interestFormula,
             initialBorrowAmount: borrowAmount.toUint64(),
             trackedBorrowBalance: totalBorrowAmount.toUint64(),
+            repaidBorrowAmount: 0,
             trackedTimestamp: blockTimestamp,
             freezeTimestamp: 0,
             autoRepayment: terms.autoRepayment,
@@ -324,6 +325,7 @@ contract LendingMarket is
         outstandingBalance -= repayAmount;
         loan.trackedTimestamp = _blockTimestamp().toUint32();
         loan.trackedBorrowBalance = outstandingBalance.toUint64();
+        loan.repaidBorrowAmount += repayAmount.toUint64();
 
         ILiquidityPool(loan.treasury).onBeforeLoanPayment(loanId, repayAmount);
         IERC20(loan.token).transferFrom(payer, loan.treasury, repayAmount);
@@ -340,7 +342,7 @@ contract LendingMarket is
     function revokeLoan(uint256 loanId) external whenNotPaused onlyOngoingLoan(loanId) {
         Loan.State storage loan = _loans[loanId];
 
-        if (loan.startTimestamp != loan.trackedTimestamp) {
+        if (loan.repaidBorrowAmount != 0) {
             revert RevocationIsProhibited();
         }
 
