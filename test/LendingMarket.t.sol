@@ -1205,7 +1205,7 @@ contract LendingMarketTest is Test {
         market.revokeLoan(nonExistentLoanId);
     }
 
-    function test_revokeLoan_Revert_IfRevocationIsProhibited() public {
+    function test_revokeLoan_Revert_IfRevocationProhibited() public {
         configureMarket();
 
         uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 1);
@@ -1217,7 +1217,7 @@ contract LendingMarketTest is Test {
         vm.prank(BORROWER);
         market.repayLoan(loanId, 1);
 
-        vm.expectRevert(LendingMarket.RevocationIsProhibited.selector);
+        vm.expectRevert(LendingMarket.RevocationProhibited.selector);
         market.revokeLoan(loanId);
     }
 

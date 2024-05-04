@@ -80,7 +80,7 @@ contract LendingMarket is
     error CooldownPeriodHasPassed();
 
     /// @dev Thrown when loan revocation is prohibited.
-    error RevocationIsProhibited();
+    error RevocationProhibited();
 
     // -------------------------------------------- //
     //  Modifiers                                   //
@@ -342,7 +342,7 @@ contract LendingMarket is
         Loan.State storage loan = _loans[loanId];
 
         if (loan.repaidBorrowAmount != 0) {
-            revert RevocationIsProhibited();
+            revert RevocationProhibited();
         }
 
         uint256 currentPeriodIndex = _periodIndex(_blockTimestamp(), Constants.PERIOD_IN_SECONDS);
