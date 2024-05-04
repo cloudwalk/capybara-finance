@@ -110,7 +110,6 @@ contract LiquidityPoolAccountableTest is Test {
             trackedBorrowBalance: 0,
             repaidBorrowAmount: 0,
             autoRepayment: false,
-            cooldownPeriods: 0,
             addonAmount: 0,
             _reserved: 0
         });

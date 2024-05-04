@@ -279,7 +279,6 @@ contract LendingMarket is
             trackedTimestamp: blockTimestamp,
             freezeTimestamp: 0,
             autoRepayment: terms.autoRepayment,
-            cooldownPeriods: terms.cooldownPeriods,
             addonAmount: terms.addonAmount,
             _reserved: 0
         });
@@ -348,7 +347,7 @@ contract LendingMarket is
 
         uint256 currentPeriodIndex = _periodIndex(_blockTimestamp(), Constants.PERIOD_IN_SECONDS);
         uint256 startPeriodIndex = _periodIndex(loan.startTimestamp, Constants.PERIOD_IN_SECONDS);
-        if (loan.cooldownPeriods <= currentPeriodIndex - startPeriodIndex) {
+        if (currentPeriodIndex - startPeriodIndex > Constants.COOLDOWN_IN_PERIODS) {
             revert CooldownPeriodHasPassed();
         }
 

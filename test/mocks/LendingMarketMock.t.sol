@@ -43,7 +43,6 @@ contract LendingMarketMockTest is Test {
     uint256 private constant REPAY_AMOUNT = 200;
     uint256 private constant LOAN_ID = 1;
 
-    uint8 private constant STATE_COOLDOWN_PERIODS = 10;
     uint32 private constant STATE_DURATION_IN_PERIODS = 200;
     uint32 private constant STATE_INTEREST_RATE_PRIMARY = 400;
     uint32 private constant STATE_INTEREST_RATE_SECONDARY = 500;
@@ -179,7 +178,6 @@ contract LendingMarketMockTest is Test {
         assertEq(loan.trackedBorrowBalance, 0);
         assertEq(loan.repaidBorrowAmount, 0);
         assertEq(loan.autoRepayment, false);
-        assertEq(loan.cooldownPeriods, 0);
         assertEq(loan.addonAmount, 0);
 
         mock.mockLoanState(
@@ -199,7 +197,6 @@ contract LendingMarketMockTest is Test {
                 trackedBorrowBalance: STATE_TRACKED_BORROW_BALANCE,
                 repaidBorrowAmount: STATE_REPAID_BORROW_AMOUNT,
                 autoRepayment: STATE_AUTO_REPAYMENT,
-                cooldownPeriods: STATE_COOLDOWN_PERIODS,
                 addonAmount: STATE_ADDON_AMOUNT,
                 _reserved: 0
             })
@@ -221,7 +218,6 @@ contract LendingMarketMockTest is Test {
         assertEq(loan.trackedBorrowBalance, STATE_TRACKED_BORROW_BALANCE);
         assertEq(loan.repaidBorrowAmount, STATE_REPAID_BORROW_AMOUNT);
         assertEq(loan.autoRepayment, STATE_AUTO_REPAYMENT);
-        assertEq(loan.cooldownPeriods, STATE_COOLDOWN_PERIODS);
         assertEq(loan.addonAmount, STATE_ADDON_AMOUNT);
     }
 

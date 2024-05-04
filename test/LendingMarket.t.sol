@@ -144,8 +144,6 @@ contract LendingMarketTest is Test {
     uint32 private constant CREDIT_LINE_CONFIG_MAX_ADDON_FIXED_RATE = 50;
     uint32 private constant CREDIT_LINE_CONFIG_MIN_ADDON_PERIOD_RATE = 10;
     uint32 private constant CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_RATE = 50;
-    uint8 private constant CREDIT_LINE_CONFIG_MIN_COOLDOWN_PERIODS = 2;
-    uint8 private constant CREDIT_LINE_CONFIG_MAX_COOLDOWN_PERIODS = 4;
 
     uint32 private constant BORROWER_CONFIG_ADDON_FIXED_RATE = 15;
     uint32 private constant BORROWER_CONFIG_ADDON_PERIOD_RATE = 20;
@@ -156,7 +154,6 @@ contract LendingMarketTest is Test {
     uint64 private constant BORROWER_CONFIG_MAX_BORROW_AMOUNT = 800;
     uint32 private constant BORROWER_CONFIG_INTEREST_RATE_PRIMARY = 5;
     uint32 private constant BORROWER_CONFIG_INTEREST_RATE_SECONDARY = 6;
-    uint8 private constant BORROWER_CONFIG_COOLDOWN_PERIODS = 3;
     bool private constant BORROWER_CONFIG_AUTOREPAYMENT = true;
     Interest.Formula private constant BORROWER_CONFIG_INTEREST_FORMULA_COMPOUND = Interest.Formula.Compound;
     ICreditLineConfigurable.BorrowPolicy private constant BORROWER_CONFIG_BORROW_POLICY_DECREASE =
@@ -214,8 +211,7 @@ contract LendingMarketTest is Test {
             addonPeriodRate: BORROWER_CONFIG_ADDON_PERIOD_RATE,
             interestFormula: BORROWER_CONFIG_INTEREST_FORMULA_COMPOUND,
             borrowPolicy: BORROWER_CONFIG_BORROW_POLICY_DECREASE,
-            autoRepayment: BORROWER_CONFIG_AUTOREPAYMENT,
-            cooldownPeriods: BORROWER_CONFIG_COOLDOWN_PERIODS
+            autoRepayment: BORROWER_CONFIG_AUTOREPAYMENT
         });
     }
 
@@ -251,9 +247,7 @@ contract LendingMarketTest is Test {
             minAddonFixedRate: CREDIT_LINE_CONFIG_MIN_ADDON_FIXED_RATE,
             maxAddonFixedRate: CREDIT_LINE_CONFIG_MAX_ADDON_FIXED_RATE,
             minAddonPeriodRate: CREDIT_LINE_CONFIG_MIN_ADDON_PERIOD_RATE,
-            maxAddonPeriodRate: CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_RATE,
-            minCooldownPeriods: CREDIT_LINE_CONFIG_MIN_COOLDOWN_PERIODS,
-            maxCooldownPeriods: CREDIT_LINE_CONFIG_MAX_COOLDOWN_PERIODS
+            maxAddonPeriodRate: CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_RATE
         });
     }
 
@@ -269,8 +263,7 @@ contract LendingMarketTest is Test {
             interestRateSecondary: borrowerConfig.interestRateSecondary,
             interestFormula: borrowerConfig.interestFormula,
             autoRepayment: autoRepayment,
-            addonAmount: ADDON_AMOUNT,
-            cooldownPeriods: borrowerConfig.cooldownPeriods
+            addonAmount: ADDON_AMOUNT
         });
 
         creditLine.mockLoanTerms(borrower, borrowAmount, terms);
@@ -825,7 +818,6 @@ contract LendingMarketTest is Test {
         assertEq(loan.addonAmount, terms.addonAmount);
         assertEq(loan.autoRepayment, terms.autoRepayment);
         assertEq(loan.durationInPeriods, terms.durationInPeriods);
-        assertEq(loan.cooldownPeriods, terms.cooldownPeriods);
         assertEq(loan.interestRatePrimary, terms.interestRatePrimary);
         assertEq(loan.interestRateSecondary, terms.interestRateSecondary);
         assertEq(uint256(loan.interestFormula), uint256(terms.interestFormula));
@@ -1171,7 +1163,7 @@ contract LendingMarketTest is Test {
         uint256 borrowerBalance = token.balanceOf(loan.borrower);
         uint256 treasuryBalance = token.balanceOf(loan.treasury);
 
-        skip(Constants.PERIOD_IN_SECONDS * (loan.cooldownPeriods - 1));
+        skip(Constants.PERIOD_IN_SECONDS * (Constants.COOLDOWN_IN_PERIODS - 1));
 
         vm.expectEmit(true, true, true, true, address(liquidityPool));
         emit OnBeforeLoanRevocationCalled(loanId);
@@ -1236,7 +1228,7 @@ contract LendingMarketTest is Test {
         Loan.State memory loan = market.getLoanState(loanId);
         assertEq(loan.trackedTimestamp, loan.startTimestamp);
 
-        skip(Constants.PERIOD_IN_SECONDS * loan.cooldownPeriods);
+        skip(Constants.PERIOD_IN_SECONDS * Constants.COOLDOWN_IN_PERIODS);
 
         vm.prank(BORROWER);
         vm.expectRevert(LendingMarket.CooldownPeriodHasPassed.selector);
@@ -1252,9 +1244,9 @@ contract LendingMarketTest is Test {
 
         uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 0);
         Loan.State memory loan = market.getLoanState(loanId);
-        assertTrue(loan.cooldownPeriods >= 2);
+        assertTrue(Constants.COOLDOWN_IN_PERIODS >= 2);
 
-        skip(Constants.PERIOD_IN_SECONDS * (loan.cooldownPeriods - 1));
+        skip(Constants.PERIOD_IN_SECONDS * (Constants.COOLDOWN_IN_PERIODS - 1));
 
         uint256 borrowerBalance = token.balanceOf(loan.borrower);
         uint256 treasuryBalance = token.balanceOf(loan.treasury);
@@ -1281,9 +1273,9 @@ contract LendingMarketTest is Test {
 
         uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 0);
         Loan.State memory loan = market.getLoanState(loanId);
-        assertTrue(loan.cooldownPeriods >= 2);
+        assertTrue(Constants.COOLDOWN_IN_PERIODS >= 2);
 
-        skip(Constants.PERIOD_IN_SECONDS * (loan.cooldownPeriods - 1));
+        skip(Constants.PERIOD_IN_SECONDS * (Constants.COOLDOWN_IN_PERIODS - 1));
 
         uint256 repayAmount = loan.initialBorrowAmount / 3;
         uint256 revokeAmount = loan.initialBorrowAmount - repayAmount;
@@ -1317,10 +1309,10 @@ contract LendingMarketTest is Test {
 
         uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 0);
         Loan.State memory loan = market.getLoanState(loanId);
-        assertTrue(loan.cooldownPeriods >= 2);
+        assertTrue(Constants.COOLDOWN_IN_PERIODS >= 2);
         assertTrue(loan.addonAmount >= 2);
 
-        skip(Constants.PERIOD_IN_SECONDS * (loan.cooldownPeriods - 1));
+        skip(Constants.PERIOD_IN_SECONDS * (Constants.COOLDOWN_IN_PERIODS - 1));
 
         uint256 repayAmount = loan.initialBorrowAmount  +  loan.addonAmount / 2;
         uint256 revokeAmount = repayAmount - loan.initialBorrowAmount;
