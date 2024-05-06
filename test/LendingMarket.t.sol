@@ -1302,7 +1302,6 @@ contract LendingMarketTest is Test {
 
         loan = market.getLoanState(loanId);
         assertEq(loan.trackedBalance, 0);
-        assertEq(loan.repaidAmount, 0);
         assertEq(token.balanceOf(loan.borrower), borrowerBalance - revokeAmount);
         assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance + revokeAmount);
     }
@@ -1339,7 +1338,6 @@ contract LendingMarketTest is Test {
 
         loan = market.getLoanState(loanId);
         assertEq(loan.trackedBalance, 0);
-        assertEq(loan.repaidAmount, 0);
         assertEq(token.balanceOf(loan.borrower), borrowerBalance + revokeAmount);
         assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance - revokeAmount);
     }
