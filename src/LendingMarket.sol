@@ -261,8 +261,9 @@ contract LendingMarket is
             durationInPeriods,
             id
         );
-        uint256 totalBorrowAmount = borrowAmount + terms.addonAmount;
+
         uint32 blockTimestamp = _blockTimestamp().toUint32();
+        uint256 totalBorrowAmount = borrowAmount + terms.addonAmount;
 
         _loans[id] = Loan.State({
             token: terms.token,
@@ -284,7 +285,9 @@ contract LendingMarket is
         });
 
         ILiquidityPool(liquidityPool).onBeforeLoanTaken(id, creditLine);
+
         IERC20(terms.token).safeTransferFrom(liquidityPool, msg.sender, borrowAmount);
+
         ILiquidityPool(liquidityPool).onAfterLoanTaken(id, creditLine);
 
         emit LoanTaken(id, msg.sender, totalBorrowAmount, terms.durationInPeriods);
@@ -319,15 +322,17 @@ contract LendingMarket is
             revert AutoRepaymentNotAllowed();
         }
 
+        outstandingBalance -= repayAmount;
         address payer = autoRepayment ? loan.borrower : msg.sender;
 
-        outstandingBalance -= repayAmount;
-        loan.trackedTimestamp = _blockTimestamp().toUint32();
-        loan.trackedBalance = outstandingBalance.toUint64();
-        loan.repaidAmount += repayAmount.toUint64();
-
         ILiquidityPool(loan.treasury).onBeforeLoanPayment(loanId, repayAmount);
+
+        loan.repaidAmount += repayAmount.toUint64();
+        loan.trackedBalance = outstandingBalance.toUint64();
+        loan.trackedTimestamp = _blockTimestamp().toUint32();
+
         IERC20(loan.token).transferFrom(payer, loan.treasury, repayAmount);
+
         ILiquidityPool(loan.treasury).onAfterLoanPayment(loanId, repayAmount);
 
         emit LoanRepayment(loanId, payer, loan.borrower, repayAmount, outstandingBalance);
@@ -351,10 +356,13 @@ contract LendingMarket is
             revert CooldownPeriodHasPassed();
         }
 
-        loan.trackedBalance = 0;
-
         ILiquidityPool(loan.treasury).onBeforeLoanRevocation(loanId);
+
+        loan.trackedBalance = 0;
+        loan.trackedTimestamp = _blockTimestamp().toUint32();
+
         IERC20(loan.token).transferFrom(loan.borrower, loan.treasury, loan.borrowAmount);
+
         ILiquidityPool(loan.treasury).onAfterLoanRevocation(loanId);
 
         emit LoanRevoked(loanId);
@@ -406,10 +414,11 @@ contract LendingMarket is
         uint256 borrowAmount = loan.borrowAmount;
         uint256 repaidAmount = loan.repaidAmount;
 
-        loan.trackedBalance = 0;
-        loan.repaidAmount = 0;
-
         ILiquidityPool(loan.treasury).onBeforeLoanTermination(loanId);
+
+        loan.repaidAmount = 0;
+        loan.trackedBalance = 0;
+        loan.trackedTimestamp = _blockTimestamp().toUint32();
 
         if (repaidAmount < borrowAmount) {
             IERC20(loan.token).transferFrom(loan.borrower, loan.treasury, borrowAmount - repaidAmount);
