@@ -347,7 +347,7 @@ contract LendingMarket is
 
         uint256 currentPeriodIndex = _periodIndex(_blockTimestamp(), Constants.PERIOD_IN_SECONDS);
         uint256 startPeriodIndex = _periodIndex(loan.startTimestamp, Constants.PERIOD_IN_SECONDS);
-        if (currentPeriodIndex - startPeriodIndex > Constants.COOLDOWN_IN_PERIODS) {
+        if (currentPeriodIndex - startPeriodIndex >= Constants.COOLDOWN_IN_PERIODS) {
             revert CooldownPeriodHasPassed();
         }
 
