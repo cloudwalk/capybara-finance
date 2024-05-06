@@ -416,7 +416,6 @@ contract LendingMarket is
 
         ILiquidityPool(loan.treasury).onBeforeLoanTermination(loanId);
 
-        loan.repaidAmount = 0;
         loan.trackedBalance = 0;
         loan.trackedTimestamp = _blockTimestamp().toUint32();
 
