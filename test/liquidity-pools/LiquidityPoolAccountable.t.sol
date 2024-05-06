@@ -632,19 +632,74 @@ contract LiquidityPoolAccountableTest is Test {
     //  Test `onAfterLoanRevocation` function       //
     // -------------------------------------------- //
 
-    function test_onAfterLoanRevocation_ExistentLoan() public {
-        prepareRepayment();
+    function test_onAfterLoanRevocation_RepaidAmountLessThanBorrowAmount() public {
+        configureLender(DEPOSIT_AMOUNT_1);
+
+        vm.prank(LENDER);
+        liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT_1);
 
         ILiquidityPoolAccountable.CreditLineBalance memory creditLineBalance =
             liquidityPool.getCreditLineBalance(address(creditLine));
         assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
         assertEq(creditLineBalance.addons, 0);
 
+        Loan.State memory loan = initLoanState();
+        loan.borrowAmount = DEPOSIT_AMOUNT_1 - ADDON_AMOUNT;
+        loan.repaidAmount = DEPOSIT_AMOUNT_1 / 2;
+        loan.addonAmount = ADDON_AMOUNT;
+        lendingMarket.mockLoanState(LOAN_ID_1, loan);
+
         vm.prank(address(lendingMarket));
-        assertEq(liquidityPool.onAfterLoanTaken(LOAN_ID_1, address(creditLine)), true);
+        liquidityPool.onAfterLoanTaken(LOAN_ID_1, address(creditLine));
 
         creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
         assertEq(creditLineBalance.borrowable, 0);
+        assertEq(creditLineBalance.addons, ADDON_AMOUNT);
+
+        vm.prank(address(lendingMarket));
+        liquidityPool.onAfterLoanPayment(LOAN_ID_1, DEPOSIT_AMOUNT_1 / 2);
+
+        creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1 / 2);
+        assertEq(creditLineBalance.addons, ADDON_AMOUNT);
+
+        vm.prank(address(lendingMarket));
+        assertEq(liquidityPool.onAfterLoanRevocation(LOAN_ID_1), true);
+
+        creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
+        assertEq(creditLineBalance.addons, 0);
+    }
+
+    function test_onAfterLoanRevocation_RepaidAmountGreaterThanBorrowAmount() public {
+        configureLender(DEPOSIT_AMOUNT_1);
+
+        vm.prank(LENDER);
+        liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT_1);
+
+        ILiquidityPoolAccountable.CreditLineBalance memory creditLineBalance =
+            liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
+        assertEq(creditLineBalance.addons, 0);
+
+        Loan.State memory loan = initLoanState();
+        loan.borrowAmount = DEPOSIT_AMOUNT_1 - ADDON_AMOUNT;
+        loan.repaidAmount = DEPOSIT_AMOUNT_1 * 2;
+        loan.addonAmount = ADDON_AMOUNT;
+        lendingMarket.mockLoanState(LOAN_ID_1, loan);
+
+        vm.prank(address(lendingMarket));
+        liquidityPool.onAfterLoanTaken(LOAN_ID_1, address(creditLine));
+
+        creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, 0);
+        assertEq(creditLineBalance.addons, ADDON_AMOUNT);
+
+        vm.prank(address(lendingMarket));
+        liquidityPool.onAfterLoanPayment(LOAN_ID_1, DEPOSIT_AMOUNT_1 * 2);
+
+        creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1 * 2);
         assertEq(creditLineBalance.addons, ADDON_AMOUNT);
 
         vm.prank(address(lendingMarket));
@@ -684,6 +739,143 @@ contract LiquidityPoolAccountableTest is Test {
         vm.prank(ATTACKER);
         vm.expectRevert(Error.Unauthorized.selector);
         liquidityPool.onAfterLoanRevocation(LOAN_ID_1);
+    }
+
+    // -------------------------------------------- //
+    //  Test `onBeforeLoanTermination` function     //
+    // -------------------------------------------- //
+
+    function test_onBeforeLoanTermination() public {
+        vm.prank(address(lendingMarket));
+        assertEq(liquidityPool.onBeforeLoanTermination(LOAN_ID_1), true);
+    }
+
+    function test_onBeforeLoanTermination_Revert_IfContractIsPaused() public {
+        vm.prank(LENDER);
+        liquidityPool.pause();
+
+        vm.prank(address(lendingMarket));
+        vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
+        liquidityPool.onBeforeLoanTermination(LOAN_ID_1);
+    }
+
+    function test_onBeforeLoanTermination_Revert_IfCallerNotMarket() public {
+        vm.prank(ATTACKER);
+        vm.expectRevert(Error.Unauthorized.selector);
+        liquidityPool.onBeforeLoanTermination(LOAN_ID_1);
+    }
+
+    // -------------------------------------------- //
+    //  Test `onAfterLoanTermination` function       //
+    // -------------------------------------------- //
+
+    function test_onAfterLoanTermination_RepaidAmountLessThanBorrowAmount() public {
+        configureLender(DEPOSIT_AMOUNT_1);
+
+        vm.prank(LENDER);
+        liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT_1);
+
+        ILiquidityPoolAccountable.CreditLineBalance memory creditLineBalance =
+            liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
+        assertEq(creditLineBalance.addons, 0);
+
+        Loan.State memory loan = initLoanState();
+        loan.borrowAmount = DEPOSIT_AMOUNT_1 - ADDON_AMOUNT;
+        loan.repaidAmount = DEPOSIT_AMOUNT_1 / 2;
+        loan.addonAmount = ADDON_AMOUNT;
+        lendingMarket.mockLoanState(LOAN_ID_1, loan);
+
+        vm.prank(address(lendingMarket));
+        liquidityPool.onAfterLoanTaken(LOAN_ID_1, address(creditLine));
+
+        creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, 0);
+        assertEq(creditLineBalance.addons, ADDON_AMOUNT);
+
+        vm.prank(address(lendingMarket));
+        liquidityPool.onAfterLoanPayment(LOAN_ID_1, DEPOSIT_AMOUNT_1 / 2);
+
+        creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1 / 2);
+        assertEq(creditLineBalance.addons, ADDON_AMOUNT);
+
+        vm.prank(address(lendingMarket));
+        assertEq(liquidityPool.onAfterLoanTermination(LOAN_ID_1), true);
+
+        creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
+        assertEq(creditLineBalance.addons, 0);
+    }
+
+    function test_onAfterLoanTermination_RepaidAmountGreaterThanBorrowAmount() public {
+        configureLender(DEPOSIT_AMOUNT_1);
+
+        vm.prank(LENDER);
+        liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT_1);
+
+        ILiquidityPoolAccountable.CreditLineBalance memory creditLineBalance =
+            liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
+        assertEq(creditLineBalance.addons, 0);
+
+        Loan.State memory loan = initLoanState();
+        loan.borrowAmount = DEPOSIT_AMOUNT_1 - ADDON_AMOUNT;
+        loan.repaidAmount = DEPOSIT_AMOUNT_1 * 2;
+        loan.addonAmount = ADDON_AMOUNT;
+        lendingMarket.mockLoanState(LOAN_ID_1, loan);
+
+        vm.prank(address(lendingMarket));
+        liquidityPool.onAfterLoanTaken(LOAN_ID_1, address(creditLine));
+
+        creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, 0);
+        assertEq(creditLineBalance.addons, ADDON_AMOUNT);
+
+        vm.prank(address(lendingMarket));
+        liquidityPool.onAfterLoanPayment(LOAN_ID_1, DEPOSIT_AMOUNT_1 * 2);
+
+        creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1 * 2);
+        assertEq(creditLineBalance.addons, ADDON_AMOUNT);
+
+        vm.prank(address(lendingMarket));
+        assertEq(liquidityPool.onAfterLoanTermination(LOAN_ID_1), true);
+
+        creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
+        assertEq(creditLineBalance.addons, 0);
+    }
+
+    function test_onAfterLoanTermination_NonExistentLoan() public {
+        prepareRepayment();
+
+        ILiquidityPoolAccountable.CreditLineBalance memory creditLineBalance =
+            liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
+        assertEq(creditLineBalance.addons, 0);
+
+        vm.prank(address(lendingMarket));
+        assertEq(liquidityPool.onAfterLoanTermination(LOAN_ID_NONEXISTENT), true);
+
+        creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
+        assertEq(creditLineBalance.addons, 0);
+    }
+
+    function test_onAfterLoanTermination_Revert_IfContractIsPaused() public {
+        vm.prank(LENDER);
+        liquidityPool.pause();
+
+        vm.prank(address(lendingMarket));
+        vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
+        liquidityPool.onAfterLoanTermination(LOAN_ID_1);
+    }
+
+    function test_onAfterLoanTermination_Revert_IfCallerNotMarket() public {
+        vm.prank(ATTACKER);
+        vm.expectRevert(Error.Unauthorized.selector);
+        liquidityPool.onAfterLoanTermination(LOAN_ID_1);
     }
 
     // -------------------------------------------- //

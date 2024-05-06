@@ -38,6 +38,14 @@ interface ILiquidityPool {
     /// @param loanId The unique identifier of the loan being revoked.
     function onAfterLoanRevocation(uint256 loanId) external returns (bool);
 
+    /// @dev A hook that is triggered by the associated market before the loan termination.
+    /// @param loanId The unique identifier of the loan being terminated.
+    function onBeforeLoanTermination(uint256 loanId) external returns (bool);
+
+    /// @dev A hook that is triggered by the associated market after the loan termination.
+    /// @param loanId The unique identifier of the loan being terminated.
+    function onAfterLoanTermination(uint256 loanId) external returns (bool);
+
     /// @dev Returns the address of the associated lending market.
     function market() external view returns (address);
 

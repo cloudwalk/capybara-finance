@@ -40,6 +40,9 @@ contract LendingMarketTest is Test {
     event OnBeforeLoanRevocationCalled(uint256 indexed loanId);
     event OnAfterLoanRevocationCalled(uint256 indexed loanId);
 
+    event OnBeforeLoanTerminationCalled(uint256 indexed loanId);
+    event OnAfterLoanTerminationCalled(uint256 indexed loanId);
+
     event MarketRegistryChanged(address indexed newRegistry, address indexed oldRegistry);
     event LiquidityPoolRegistered(address indexed lender, address indexed liquidityPool);
     event CreditLineRegistered(address indexed lender, address indexed creditLine);
@@ -1252,9 +1255,9 @@ contract LendingMarketTest is Test {
         uint256 treasuryBalance = token.balanceOf(loan.treasury);
 
         vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit OnBeforeLoanRevocationCalled(loanId);
+        emit OnBeforeLoanTerminationCalled(loanId);
         vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit OnAfterLoanRevocationCalled(loanId);
+        emit OnAfterLoanTerminationCalled(loanId);
         vm.expectEmit(true, true, true, true, address(market));
         emit LoanTerminated(loanId);
 
@@ -1288,9 +1291,9 @@ contract LendingMarketTest is Test {
         uint256 treasuryBalance = token.balanceOf(loan.treasury);
 
         vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit OnBeforeLoanRevocationCalled(loanId);
+        emit OnBeforeLoanTerminationCalled(loanId);
         vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit OnAfterLoanRevocationCalled(loanId);
+        emit OnAfterLoanTerminationCalled(loanId);
         vm.expectEmit(true, true, true, true, address(market));
         emit LoanTerminated(loanId);
 
@@ -1325,9 +1328,9 @@ contract LendingMarketTest is Test {
         uint256 treasuryBalance = token.balanceOf(loan.treasury);
 
         vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit OnBeforeLoanRevocationCalled(loanId);
+        emit OnBeforeLoanTerminationCalled(loanId);
         vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit OnAfterLoanRevocationCalled(loanId);
+        emit OnAfterLoanTerminationCalled(loanId);
         vm.expectEmit(true, true, true, true, address(market));
         emit LoanTerminated(loanId);
 

@@ -409,7 +409,7 @@ contract LendingMarket is
         loan.trackedBalance = 0;
         loan.repaidAmount = 0;
 
-        ILiquidityPool(loan.treasury).onBeforeLoanRevocation(loanId);
+        ILiquidityPool(loan.treasury).onBeforeLoanTermination(loanId);
 
         if (repaidAmount < borrowAmount) {
             IERC20(loan.token).transferFrom(loan.borrower, loan.treasury, borrowAmount - repaidAmount);
@@ -417,7 +417,7 @@ contract LendingMarket is
             IERC20(loan.token).transferFrom(loan.treasury, loan.borrower, repaidAmount - borrowAmount);
         }
 
-        ILiquidityPool(loan.treasury).onAfterLoanRevocation(loanId);
+        ILiquidityPool(loan.treasury).onAfterLoanTermination(loanId);
 
         emit LoanTerminated(loanId);
     }

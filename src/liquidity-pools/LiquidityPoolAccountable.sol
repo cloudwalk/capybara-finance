@@ -248,14 +248,29 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
 
     /// @inheritdoc ILiquidityPool
     function onAfterLoanRevocation(uint256 loanId) external whenNotPaused onlyMarket returns (bool) {
+        return _cancelLoan(loanId);
+    }
+
+    /// @inheritdoc ILiquidityPool
+    function onBeforeLoanTermination(uint256 loanId) external view whenNotPaused onlyMarket returns (bool) {
+        loanId; // To prevent compiler warning about unused variable
+        return true;
+    }
+
+    /// @inheritdoc ILiquidityPool
+    function onAfterLoanTermination(uint256 loanId) external whenNotPaused onlyMarket returns (bool) {
+        return _cancelLoan(loanId);
+    }
+
+    function _cancelLoan(uint256 loanId) private returns (bool) {
         address creditLine = _creditLines[loanId];
         if (creditLine != address(0)) {
             CreditLineBalance storage balance = _creditLineBalances[creditLine];
             Loan.State memory loan = ILendingMarket(_market).getLoanState(loanId);
             if (loan.borrowAmount > loan.repaidAmount) {
-                balance.borrowable += loan.borrowAmount - loan.repaidAmount + loan.addonAmount;
+                balance.borrowable = balance.borrowable + (loan.borrowAmount - loan.repaidAmount) + loan.addonAmount;
             } else if (loan.borrowAmount != loan.repaidAmount) {
-                balance.borrowable -= loan.repaidAmount - loan.borrowAmount + loan.addonAmount;
+                balance.borrowable = balance.borrowable - (loan.repaidAmount - loan.borrowAmount) + loan.addonAmount;
             }
             balance.addons -= loan.addonAmount;
         }
