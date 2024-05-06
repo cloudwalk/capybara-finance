@@ -411,9 +411,7 @@ contract LendingMarket is
 
         ILiquidityPool(loan.treasury).onBeforeLoanRevocation(loanId);
 
-        if (repaidAmount == 0) {
-            IERC20(loan.token).transferFrom(loan.borrower, loan.treasury, borrowAmount);
-        } else if (repaidAmount < borrowAmount) {
+        if (repaidAmount < borrowAmount) {
             IERC20(loan.token).transferFrom(loan.borrower, loan.treasury, borrowAmount - repaidAmount);
         } else if (repaidAmount != borrowAmount) {
             IERC20(loan.token).transferFrom(loan.treasury, loan.borrower, repaidAmount - borrowAmount);
