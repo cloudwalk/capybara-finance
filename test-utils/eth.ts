@@ -1,5 +1,5 @@
-import { ethers, upgrades } from "hardhat";
-import { Contract } from "ethers";
+import { upgrades } from "hardhat";
+import { Contract, ContractFactory } from "ethers";
 import { expect } from "chai";
 import { TransactionReceipt, TransactionResponse } from "@ethersproject/abstract-provider";
 
@@ -10,15 +10,17 @@ export async function proveTx(txResponsePromise: Promise<TransactionResponse>): 
 
 export async function checkContractUupsUpgrading(
   contract: Contract,
-  newAddress: string
+  contractFactory: ContractFactory
 ) {
   const contractAddress = await contract.getAddress();
   const oldImplementationAddress = await upgrades.erc1967.getImplementationAddress(contractAddress);
+  const newImplementation = await contractFactory.deploy();
+  await newImplementation.waitForDeployment();
+  const expectedNewImplementationAddress = await newImplementation.getAddress();
 
-  await proveTx(contract.upgradeToAndCall(newAddress, "0x"));
+  await proveTx(contract.upgradeToAndCall(expectedNewImplementationAddress, "0x"));
 
-  const newImplementationAddress = await upgrades.erc1967.getImplementationAddress(contractAddress);
-  expect(newImplementationAddress).not.to.eq(ethers.ZeroAddress);
-  expect(newImplementationAddress.length).to.eq(ethers.ZeroAddress.length);
-  expect(newImplementationAddress).not.to.eq(oldImplementationAddress);
+  const actualNewImplementationAddress = await upgrades.erc1967.getImplementationAddress(contractAddress);
+  expect(actualNewImplementationAddress).to.eq(expectedNewImplementationAddress);
+  expect(actualNewImplementationAddress).not.to.eq(oldImplementationAddress);
 }

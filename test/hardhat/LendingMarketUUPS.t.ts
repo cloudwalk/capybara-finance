@@ -48,17 +48,14 @@ describe("Contract 'LendingMarketUUPS'", async () => {
     });
   });
 
-  describe("Upgrading", async () => {
+  describe("Function 'upgradeToAndCall()'", async () => {
     it("Executes as expected", async () => {
       const { market } = await loadFixture(deployLendingMarket);
-      const newContract = await marketFactory.deploy();
-      await checkContractUupsUpgrading(market, await newContract.getAddress());
+      await checkContractUupsUpgrading(market, marketFactory);
     });
 
     it("Is reverted if caller is not the owner", async () => {
       const { market } = await loadFixture(deployLendingMarket);
-
-      marketFactory = marketFactory.connect(attacker);
 
       await expect((market.connect(attacker) as Contract).upgradeToAndCall(attacker.address, "0x"))
         .to.be.revertedWithCustomError(market, ERROR_NAME_OWNABLE_UNAUTHORIZED);

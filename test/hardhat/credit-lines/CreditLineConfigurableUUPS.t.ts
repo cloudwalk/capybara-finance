@@ -50,17 +50,14 @@ describe("Contract 'CreditLineConfigurableUUPS'", async () => {
     });
   });
 
-  describe("Upgrading", async () => {
+  describe("Function 'upgradeToAndCall()'", async () => {
     it("Executes as expected", async () => {
       const { creditLine } = await loadFixture(deployCreditLine);
-      const newContract = await creditLineFactory.deploy();
-      await checkContractUupsUpgrading(creditLine, await newContract.getAddress());
+      await checkContractUupsUpgrading(creditLine, creditLineFactory);
     });
 
     it("Is reverted if caller is not the owner", async () => {
       const { creditLine } = await loadFixture(deployCreditLine);
-
-      creditLineFactory = creditLineFactory.connect(attacker);
 
       await expect((creditLine.connect(attacker) as Contract).upgradeToAndCall(attacker.address, "0x"))
         .to.be.revertedWithCustomError(creditLine, ERROR_NAME_OWNABLE_UNAUTHORIZED);
