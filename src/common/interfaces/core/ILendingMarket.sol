@@ -213,7 +213,7 @@ interface ILendingMarket {
     function configureAlias(address account, bool isAlias) external;
 
     // -------------------------------------------- //
-    //  Borrower and lender functions               //
+    //  Borrower OR Lender functions                //
     // -------------------------------------------- //
 
     /// @dev Cancels a loan.

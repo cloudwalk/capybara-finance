@@ -192,7 +192,7 @@ contract LendingMarket is
     }
 
     // -------------------------------------------- //
-    //  Registry & owner functions                  //
+    //  Registry OR Owner functions                 //
     // -------------------------------------------- //
 
     /// @inheritdoc ILendingMarket

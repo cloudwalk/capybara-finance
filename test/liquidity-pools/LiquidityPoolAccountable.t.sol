@@ -604,8 +604,8 @@ contract LiquidityPoolAccountableTest is Test {
         liquidityPool.onAfterLoanPayment(LOAN_ID_1, DEPOSIT_AMOUNT_1);
     }
 
-// -------------------------------------------- //
-    //  Test `onBeforeLoanCancellation` function     //
+    // -------------------------------------------- //
+    //  Test `onBeforeLoanCancellation` function    //
     // -------------------------------------------- //
 
     function test_onBeforeLoanCancellation() public {
@@ -629,7 +629,7 @@ contract LiquidityPoolAccountableTest is Test {
     }
 
     // -------------------------------------------- //
-    //  Test `onAfterLoanCancellation` function       //
+    //  Test `onAfterLoanCancellation` function     //
     // -------------------------------------------- //
 
     function test_onAfterLoanCancellation_RepaidAmountLessThanBorrowAmount() public {
