@@ -79,9 +79,6 @@ contract LendingMarket is
     /// @dev Thrown when the cooldown period has passed.
     error CooldownPeriodHasPassed();
 
-    /// @dev Thrown when loan revocation is prohibited.
-    error RevocationProhibited();
-
     // -------------------------------------------- //
     //  Modifiers                                   //
     // -------------------------------------------- //
