@@ -512,6 +512,46 @@ contract LendingMarket is
     }
 
     // -------------------------------------------- //
+    //  Borrower and lender functions               //
+    // -------------------------------------------- //
+
+    /// @inheritdoc ILendingMarket
+    function cancelLoan(uint256 loanId) external whenNotPaused onlyOngoingLoan(loanId) {
+        Loan.State storage loan = _loans[loanId];
+        address sender = msg.sender;
+
+        if (sender == loan.borrower) {
+            uint256 currentPeriodIndex = _periodIndex(_blockTimestamp(), Constants.PERIOD_IN_SECONDS);
+            uint256 startPeriodIndex = _periodIndex(loan.startTimestamp, Constants.PERIOD_IN_SECONDS);
+            if (currentPeriodIndex - startPeriodIndex >= Constants.COOLDOWN_IN_PERIODS) {
+                revert CooldownPeriodHasPassed();
+            }
+            _cancelLoan(loanId, loan);
+        } else if (isLenderOrAlias(loanId, msg.sender)) {
+            _cancelLoan(loanId, loan);
+        } else {
+            revert Error.Unauthorized();
+        }
+    }
+
+    function _cancelLoan(uint256 loanId, Loan.State storage loan) internal {
+        ILiquidityPool(loan.treasury).onBeforeLoanCancellation(loanId);
+
+        loan.trackedBalance = 0;
+        loan.trackedTimestamp = _blockTimestamp().toUint32();
+
+        if (loan.repaidAmount < loan.borrowAmount) {
+            IERC20(loan.token).transferFrom(loan.borrower, loan.treasury, loan.borrowAmount - loan.repaidAmount);
+        } else if (loan.repaidAmount != loan.borrowAmount) {
+            IERC20(loan.token).transferFrom(loan.treasury, loan.borrower, loan.repaidAmount - loan.borrowAmount);
+        }
+
+        emit LoanCancelled(loanId);
+
+        ILiquidityPool(loan.treasury).onAfterLoanCancellation(loanId);
+    }
+
+    // -------------------------------------------- //
     //  View functions                              //
     // -------------------------------------------- //
 

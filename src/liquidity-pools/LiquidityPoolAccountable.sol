@@ -262,6 +262,17 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
         return _cancelLoan(loanId);
     }
 
+    /// @inheritdoc ILiquidityPool
+    function onBeforeLoanCancellation(uint256 loanId) external view whenNotPaused onlyMarket returns (bool) {
+        loanId; // To prevent compiler warning about unused variable
+        return true;
+    }
+
+    /// @inheritdoc ILiquidityPool
+    function onAfterLoanCancellation(uint256 loanId) external whenNotPaused onlyMarket returns (bool) {
+        return _cancelLoan(loanId);
+    }
+
     function _cancelLoan(uint256 loanId) private returns (bool) {
         address creditLine = _creditLines[loanId];
         if (creditLine != address(0)) {

@@ -25,6 +25,9 @@ contract LiquidityPoolMock is ILiquidityPool {
     event OnBeforeLoanTerminationCalled(uint256 indexed loanId);
     event OnAfterLoanTerminationCalled(uint256 indexed loanId);
 
+    event OnBeforeLoanCancellationCalled(uint256 indexed loanId);
+    event OnAfterLoanCancellationCalled(uint256 indexed loanId);
+
     // -------------------------------------------- //
     //  Storage variables                           //
     // -------------------------------------------- //
@@ -40,6 +43,9 @@ contract LiquidityPoolMock is ILiquidityPool {
 
     bool private _onBeforeLoanTerminationResult;
     bool private _onAfterLoanTerminationResult;
+
+    bool private _onBeforeLoanCancellationResult;
+    bool private _onAfterLoanCancellationResult;
 
     // -------------------------------------------- //
     //  ILiquidityPoolFactory functions             //
@@ -83,6 +89,16 @@ contract LiquidityPoolMock is ILiquidityPool {
     function onAfterLoanTermination(uint256 loanId) external returns (bool) {
         emit OnAfterLoanTerminationCalled(loanId);
         return _onAfterLoanTerminationResult;
+    }
+
+    function onBeforeLoanCancellation(uint256 loanId) external returns (bool) {
+        emit OnBeforeLoanCancellationCalled(loanId);
+        return _onBeforeLoanCancellationResult;
+    }
+
+    function onAfterLoanCancellation(uint256 loanId) external returns (bool) {
+        emit OnAfterLoanCancellationCalled(loanId);
+        return _onAfterLoanCancellationResult;
     }
 
     function market() external pure returns (address) {
@@ -131,5 +147,13 @@ contract LiquidityPoolMock is ILiquidityPool {
 
     function mockOnAfterLoanTerminationResult(bool result) external {
         _onAfterLoanTerminationResult = result;
+    }
+
+    function mockOnBeforeLoanCancellationResult(bool result) external {
+        _onBeforeLoanCancellationResult = result;
+    }
+
+    function mockOnAfterLoanCancellationResult(bool result) external {
+        _onAfterLoanCancellationResult = result;
     }
 }

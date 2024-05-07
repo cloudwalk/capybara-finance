@@ -89,6 +89,10 @@ interface ILendingMarket {
     /// @param loanId The unique identifier of the loan.
     event LoanTerminated(uint256 indexed loanId);
 
+    /// @dev Emitted when a loan is cancelled.
+    /// @param loanId The unique identifier of the loan.
+    event LoanCancelled(uint256 indexed loanId);
+
     /// @dev Emitted when the duration of the loan is updated.
     /// @param loanId The unique identifier of the loan.
     /// @param newDuration The new duration of the loan in periods.
@@ -223,6 +227,14 @@ interface ILendingMarket {
     /// @param account The address to configure as an alias.
     /// @param isAlias True if the account is an alias, otherwise false.
     function configureAlias(address account, bool isAlias) external;
+
+    // -------------------------------------------- //
+    //  Borrower and lender functions               //
+    // -------------------------------------------- //
+
+    /// @dev Cancels a loan.
+    /// @param loanId The unique identifier of the loan to cancel.
+    function cancelLoan(uint256 loanId) external;
 
     // -------------------------------------------- //
     //  View functions                              //
