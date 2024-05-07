@@ -55,11 +55,6 @@ contract LendingMarketMock is ILendingMarket {
         revert Error.NotImplemented();
     }
 
-    function revokeLoan(uint256 loanId) external pure {
-        loanId; // To prevent compiler warning about unused variable
-        revert Error.NotImplemented();
-    }
-
     function terminateLoan(uint256 loanId) external pure {
         loanId; // To prevent compiler warning about unused variable
         revert Error.NotImplemented();

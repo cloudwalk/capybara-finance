@@ -341,32 +341,6 @@ contract LendingMarket is
         }
     }
 
-    /// @inheritdoc ILendingMarket
-    function revokeLoan(uint256 loanId) external whenNotPaused onlyOngoingLoan(loanId) {
-        Loan.State storage loan = _loans[loanId];
-
-        if (loan.repaidAmount != 0) {
-            revert RevocationProhibited();
-        }
-
-        uint256 currentPeriodIndex = _periodIndex(_blockTimestamp(), Constants.PERIOD_IN_SECONDS);
-        uint256 startPeriodIndex = _periodIndex(loan.startTimestamp, Constants.PERIOD_IN_SECONDS);
-        if (currentPeriodIndex - startPeriodIndex >= Constants.COOLDOWN_IN_PERIODS) {
-            revert CooldownPeriodHasPassed();
-        }
-
-        ILiquidityPool(loan.treasury).onBeforeLoanRevocation(loanId);
-
-        loan.trackedBalance = 0;
-        loan.trackedTimestamp = _blockTimestamp().toUint32();
-
-        IERC20(loan.token).transferFrom(loan.borrower, loan.treasury, loan.borrowAmount);
-
-        ILiquidityPool(loan.treasury).onAfterLoanRevocation(loanId);
-
-        emit LoanRevoked(loanId);
-    }
-
     // -------------------------------------------- //
     //  Lender functions                            //
     // -------------------------------------------- //

@@ -37,9 +37,6 @@ contract LendingMarketTest is Test {
     event OnBeforeLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
     event OnAfterLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
 
-    event OnBeforeLoanRevocationCalled(uint256 indexed loanId);
-    event OnAfterLoanRevocationCalled(uint256 indexed loanId);
-
     event OnBeforeLoanTerminationCalled(uint256 indexed loanId);
     event OnAfterLoanTerminationCalled(uint256 indexed loanId);
 
@@ -75,7 +72,6 @@ contract LendingMarketTest is Test {
         uint256 repayAmount,
         uint256 outstandingBalance
     );
-    event LoanRevoked(uint256 indexed loanId);
 
     event LoanFrozen(uint256 indexed loanId);
     event LoanUnfrozen(uint256 indexed loanId);
@@ -1155,91 +1151,6 @@ contract LendingMarketTest is Test {
         vm.prank(loan.treasury);
         vm.expectRevert(LendingMarket.AutoRepaymentNotAllowed.selector);
         market.repayLoan(loanId, repayAmount);
-    }
-
-    // -------------------------------------------- //
-    //  Test `revokeLoan` function                  //
-    // -------------------------------------------- //
-
-    function test_revokeLoan() public {
-        configureMarket();
-
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 0);
-        Loan.State memory loan = market.getLoanState(loanId);
-
-        uint256 borrowerBalance = token.balanceOf(loan.borrower);
-        uint256 treasuryBalance = token.balanceOf(loan.treasury);
-
-        skip(Constants.PERIOD_IN_SECONDS * (Constants.COOLDOWN_IN_PERIODS - 1));
-
-        vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit OnBeforeLoanRevocationCalled(loanId);
-        vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit OnAfterLoanRevocationCalled(loanId);
-        vm.expectEmit(true, true, true, true, address(market));
-        emit LoanRevoked(loanId);
-
-        vm.prank(loan.borrower);
-        market.revokeLoan(loanId);
-
-        loan = market.getLoanState(loanId);
-        assertEq(loan.trackedBalance, 0);
-        assertEq(loan.repaidAmount, 0);
-        assertEq(token.balanceOf(loan.borrower), borrowerBalance - loan.borrowAmount);
-        assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance + loan.borrowAmount);
-    }
-
-    function test_revokeLoan_Revert_IfContractIsPaused() public {
-        configureMarket();
-
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 0);
-
-        vm.startPrank(OWNER);
-        market.pause();
-
-        vm.startPrank(BORROWER);
-        vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
-        market.revokeLoan(loanId);
-    }
-
-    function test_revokeLoan_Revert_IfLoanNotExist() public {
-        configureMarket();
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 0);
-        uint256 nonExistentLoanId = loanId + 1;
-
-        vm.prank(BORROWER);
-        vm.expectRevert(LendingMarket.LoanNotExist.selector);
-        market.revokeLoan(nonExistentLoanId);
-    }
-
-    function test_revokeLoan_Revert_IfRevocationProhibited() public {
-        configureMarket();
-
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 1);
-        Loan.State memory loan = market.getLoanState(loanId);
-        assertEq(loan.trackedTimestamp, loan.startTimestamp);
-
-        skip(1);
-
-        vm.prank(BORROWER);
-        market.repayLoan(loanId, 1);
-
-        vm.expectRevert(LendingMarket.RevocationProhibited.selector);
-        market.revokeLoan(loanId);
-    }
-
-    function test_revokeLoan_Revert_IfCooldownPeriodHasPassed() public {
-        configureMarket();
-
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 1);
-        Loan.State memory loan = market.getLoanState(loanId);
-        assertEq(loan.trackedTimestamp, loan.startTimestamp);
-
-        skip(Constants.PERIOD_IN_SECONDS * Constants.COOLDOWN_IN_PERIODS);
-
-        vm.prank(BORROWER);
-        vm.expectRevert(LendingMarket.CooldownPeriodHasPassed.selector);
-        market.revokeLoan(loanId);
     }
 
     // -------------------------------------------- //

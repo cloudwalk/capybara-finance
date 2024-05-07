@@ -81,10 +81,6 @@ interface ILendingMarket {
     /// @param loanId The unique identifier of the loan.
     event LoanUnfrozen(uint256 indexed loanId);
 
-    /// @dev Emitted when a loan is revoked.
-    /// @param loanId The unique identifier of the loan.
-    event LoanRevoked(uint256 indexed loanId);
-
     /// @dev Emitted when a loan is terminated.
     /// @param loanId The unique identifier of the loan.
     event LoanTerminated(uint256 indexed loanId);
@@ -162,10 +158,6 @@ interface ILendingMarket {
     /// @param loanId The unique identifier of the loan to repay.
     /// @param repayAmount The amount to repay or `type(uint256).max` to repay the remaining balance of the loan.
     function repayLoan(uint256 loanId, uint256 repayAmount) external;
-
-    /// @dev Revokes a loan.
-    /// @param loanId The unique identifier of the loan to revoke.
-    function revokeLoan(uint256 loanId) external;
 
     // -------------------------------------------- //
     //  Lender functions                            //
