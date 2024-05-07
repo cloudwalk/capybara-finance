@@ -5,9 +5,9 @@ import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { getContractAddress } from "@ethersproject/address";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 
+const ERROR_NAME_ALREADY_INITIALIZED = "InvalidInitialization";
 const ERROR_NAME_OWNABLE_UNAUTHORIZED = "OwnableUnauthorizedAccount";
 const ERROR_NAME_UNSUPPORTED_KIND = "UnsupportedKind";
-const ERROR_NAME_ALREADY_INITIALIZED = "InvalidInitialization";
 
 const EVENT_NAME_CREDIT_LINE_CREATED = "CreditLineCreated";
 

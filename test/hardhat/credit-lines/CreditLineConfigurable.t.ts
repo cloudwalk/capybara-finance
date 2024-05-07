@@ -70,7 +70,6 @@ enum BorrowPolicy {
   Keep = 2
 }
 
-const ERROR_NAME_ALREADY_PAUSED = "EnforcedPause";
 const ERROR_NAME_ALREADY_INITIALIZED = "InvalidInitialization";
 const ERROR_NAME_ALREADY_CONFIGURED = "AlreadyConfigured";
 const ERROR_NAME_ARRAYS_LENGTH_MISMATCH = "ArrayLengthMismatch";

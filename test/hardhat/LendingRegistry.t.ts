@@ -6,7 +6,6 @@ import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { proveTx } from "../../test-utils/eth";
 
 const ERROR_NAME_ALREADY_CONFIGURED = "AlreadyConfigured";
-const ERROR_NAME_ALREADY_PAUSED = "EnforcedPause";
 const ERROR_NAME_ALREADY_INITIALIZED = "InvalidInitialization";
 const ERROR_NAME_CREDIT_LINE_FACTORY_NOT_CONFIGURED = "CreditLineFactoryNotConfigured";
 const ERROR_NAME_ENFORCED_PAUSED = "EnforcedPause";
@@ -15,14 +14,14 @@ const ERROR_NAME_OWNABLE_UNAUTHORIZED = "OwnableUnauthorizedAccount";
 const ERROR_NAME_LIQUIDITY_POOL_FACTORY_NOT_CONFIGURED = "LiquidityPoolFactoryNotConfigured";
 const ERROR_NAME_ZERO_ADDRESS = "ZeroAddress";
 
-const EVENT_NAME_PAUSED = "Paused";
-const EVENT_NAME_UNPAUSED = "Unpaused";
-const EVENT_NAME_CREDIT_LINE_FACTORY_CHANGED = "CreditLineFactoryChanged";
-const EVENT_NAME_LIQUIDITY_POOL_FACTORY_CHANGED = "LiquidityPoolFactoryChanged";
 const EVENT_NAME_CREATE_CREDIT_LINE_CALLED = "CreateCreditLineCalled";
 const EVENT_NAME_CREATE_LIQUIDITY_POOL_CALLED = "CreateLiquidityPoolCalled";
+const EVENT_NAME_CREDIT_LINE_FACTORY_CHANGED = "CreditLineFactoryChanged";
+const EVENT_NAME_LIQUIDITY_POOL_FACTORY_CHANGED = "LiquidityPoolFactoryChanged";
+const EVENT_NAME_PAUSED = "Paused";
 const EVENT_NAME_REGISTER_CREDIT_LINE_CALLED = "RegisterCreditLineCalled";
 const EVENT_NAME_REGISTER_LIQUIDITY_POOL_CALLED = "RegisterLiquidityPoolCalled";
+const EVENT_NAME_UNPAUSED = "Unpaused";
 
 const ZERO_ADDRESS = ethers.ZeroAddress;
 const KIND = 1;
