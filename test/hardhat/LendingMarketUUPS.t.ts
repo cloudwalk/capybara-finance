@@ -40,7 +40,7 @@ describe("Contract 'LendingMarketUUPS'", async () => {
   }
 
   describe("Function 'initialize()'", async () => {
-    it("Configures contract as expected", async () => {
+    it("Configures the contract as expected", async () => {
       const { market } = await loadFixture(deployLendingMarket);
 
       expect(await market.name()).to.eq(TOKEN_NAME);
@@ -54,7 +54,7 @@ describe("Contract 'LendingMarketUUPS'", async () => {
       await checkContractUupsUpgrading(market, marketFactory);
     });
 
-    it("Is reverted if caller is not the owner", async () => {
+    it("Is reverted if the caller is not the owner", async () => {
       const { market } = await loadFixture(deployLendingMarket);
 
       await expect((market.connect(attacker) as Contract).upgradeToAndCall(attacker.address, "0x"))
