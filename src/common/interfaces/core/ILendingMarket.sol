@@ -81,10 +81,6 @@ interface ILendingMarket {
     /// @param loanId The unique identifier of the loan.
     event LoanUnfrozen(uint256 indexed loanId);
 
-    /// @dev Emitted when a loan is terminated.
-    /// @param loanId The unique identifier of the loan.
-    event LoanTerminated(uint256 indexed loanId);
-
     /// @dev Emitted when a loan is cancelled.
     /// @param loanId The unique identifier of the loan.
     event LoanCancelled(uint256 indexed loanId);
@@ -170,10 +166,6 @@ interface ILendingMarket {
     /// @dev Unfreezes a loan.
     /// @param loanId The unique identifier of the loan to unfreeze.
     function unfreeze(uint256 loanId) external;
-
-    /// @dev Terminates a loan.
-    /// @param loanId The unique identifier of the loan to terminate.
-    function terminateLoan(uint256 loanId) external;
 
     /// @dev Updates the duration of a loan.
     /// @param loanId The unique identifier of the loan whose duration is to update.

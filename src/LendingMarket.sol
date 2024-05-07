@@ -381,29 +381,6 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ILendingMarket
-    function terminateLoan(uint256 loanId) external whenNotPaused onlyOngoingLoan(loanId) onlyLenderOrAlias(loanId) {
-        Loan.State storage loan = _loans[loanId];
-
-        uint256 borrowAmount = loan.borrowAmount;
-        uint256 repaidAmount = loan.repaidAmount;
-
-        ILiquidityPool(loan.treasury).onBeforeLoanTermination(loanId);
-
-        loan.trackedBalance = 0;
-        loan.trackedTimestamp = _blockTimestamp().toUint32();
-
-        if (repaidAmount < borrowAmount) {
-            IERC20(loan.token).transferFrom(loan.borrower, loan.treasury, borrowAmount - repaidAmount);
-        } else if (repaidAmount != borrowAmount) {
-            IERC20(loan.token).transferFrom(loan.treasury, loan.borrower, repaidAmount - borrowAmount);
-        }
-
-        ILiquidityPool(loan.treasury).onAfterLoanTermination(loanId);
-
-        emit LoanTerminated(loanId);
-    }
-
-    /// @inheritdoc ILendingMarket
     function updateLoanDuration(
         uint256 loanId,
         uint256 newDurationInPeriods

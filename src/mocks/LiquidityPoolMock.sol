@@ -19,9 +19,6 @@ contract LiquidityPoolMock is ILiquidityPool {
     event OnBeforeLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
     event OnAfterLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
 
-    event OnBeforeLoanTerminationCalled(uint256 indexed loanId);
-    event OnAfterLoanTerminationCalled(uint256 indexed loanId);
-
     event OnBeforeLoanCancellationCalled(uint256 indexed loanId);
     event OnAfterLoanCancellationCalled(uint256 indexed loanId);
 
@@ -34,9 +31,6 @@ contract LiquidityPoolMock is ILiquidityPool {
 
     bool private _onBeforeLoanPaymentResult;
     bool private _onAfterLoanPaymentResult;
-
-    bool private _onBeforeLoanTerminationResult;
-    bool private _onAfterLoanTerminationResult;
 
     bool private _onBeforeLoanCancellationResult;
     bool private _onAfterLoanCancellationResult;
@@ -63,16 +57,6 @@ contract LiquidityPoolMock is ILiquidityPool {
     function onAfterLoanPayment(uint256 loanId, uint256 repayAmount) external returns (bool) {
         emit OnAfterLoanPaymentCalled(loanId, repayAmount);
         return _onAfterLoanPaymentResult;
-    }
-
-    function onBeforeLoanTermination(uint256 loanId) external returns (bool) {
-        emit OnBeforeLoanTerminationCalled(loanId);
-        return _onBeforeLoanTerminationResult;
-    }
-
-    function onAfterLoanTermination(uint256 loanId) external returns (bool) {
-        emit OnAfterLoanTerminationCalled(loanId);
-        return _onAfterLoanTerminationResult;
     }
 
     function onBeforeLoanCancellation(uint256 loanId) external returns (bool) {
@@ -115,14 +99,6 @@ contract LiquidityPoolMock is ILiquidityPool {
 
     function mockOnAfterLoanPaymentResult(bool result) external {
         _onAfterLoanPaymentResult = result;
-    }
-
-    function mockOnBeforeLoanTerminationResult(bool result) external {
-        _onBeforeLoanTerminationResult = result;
-    }
-
-    function mockOnAfterLoanTerminationResult(bool result) external {
-        _onAfterLoanTerminationResult = result;
     }
 
     function mockOnBeforeLoanCancellationResult(bool result) external {

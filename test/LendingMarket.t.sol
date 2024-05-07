@@ -37,9 +37,6 @@ contract LendingMarketTest is Test {
     event OnBeforeLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
     event OnAfterLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
 
-    event OnBeforeLoanTerminationCalled(uint256 indexed loanId);
-    event OnAfterLoanTerminationCalled(uint256 indexed loanId);
-
     event OnBeforeLoanCancellationCalled(uint256 indexed loanId);
     event OnAfterLoanCancellationCalled(uint256 indexed loanId);
 
@@ -75,7 +72,6 @@ contract LendingMarketTest is Test {
 
     event LoanFrozen(uint256 indexed loanId);
     event LoanUnfrozen(uint256 indexed loanId);
-    event LoanTerminated(uint256 indexed loanId);
     event LoanCancelled(uint256 indexed loanId);
 
     event LoanDurationUpdated(
@@ -1151,144 +1147,6 @@ contract LendingMarketTest is Test {
         vm.prank(loan.treasury);
         vm.expectRevert(LendingMarket.AutoRepaymentNotAllowed.selector);
         market.repayLoan(loanId, repayAmount);
-    }
-
-    // -------------------------------------------- //
-    // Test `terminateLoan` function                //
-    // -------------------------------------------- //
-
-    function test_terminateLoan_IfRepaidAmountZero() public {
-        configureMarket();
-
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 0);
-        Loan.State memory loan = market.getLoanState(loanId);
-        assertTrue(Constants.COOLDOWN_IN_PERIODS >= 2);
-
-        skip(Constants.PERIOD_IN_SECONDS * (Constants.COOLDOWN_IN_PERIODS - 1));
-
-        uint256 borrowerBalance = token.balanceOf(loan.borrower);
-        uint256 treasuryBalance = token.balanceOf(loan.treasury);
-
-        vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit OnBeforeLoanTerminationCalled(loanId);
-        vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit OnAfterLoanTerminationCalled(loanId);
-        vm.expectEmit(true, true, true, true, address(market));
-        emit LoanTerminated(loanId);
-
-        vm.prank(LENDER);
-        market.terminateLoan(loanId);
-
-        loan = market.getLoanState(loanId);
-        assertEq(loan.trackedBalance, 0);
-        assertEq(loan.repaidAmount, 0);
-        assertEq(token.balanceOf(loan.borrower), borrowerBalance - loan.borrowAmount);
-        assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance + loan.borrowAmount);
-    }
-
-    function test_terminateLoan_IfRepaidAmountLessThanBorrowAmount() public {
-        configureMarket();
-
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 0);
-        Loan.State memory loan = market.getLoanState(loanId);
-        assertTrue(Constants.COOLDOWN_IN_PERIODS >= 2);
-
-        skip(Constants.PERIOD_IN_SECONDS * (Constants.COOLDOWN_IN_PERIODS - 1));
-
-        uint256 repayAmount = loan.borrowAmount / 3;
-        uint256 revokeAmount = loan.borrowAmount - repayAmount;
-
-        token.mint(loan.borrower, repayAmount);
-        vm.prank(loan.borrower);
-        market.repayLoan(loanId, repayAmount);
-
-        uint256 borrowerBalance = token.balanceOf(loan.borrower);
-        uint256 treasuryBalance = token.balanceOf(loan.treasury);
-
-        vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit OnBeforeLoanTerminationCalled(loanId);
-        vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit OnAfterLoanTerminationCalled(loanId);
-        vm.expectEmit(true, true, true, true, address(market));
-        emit LoanTerminated(loanId);
-
-        vm.prank(LENDER);
-        market.terminateLoan(loanId);
-
-        loan = market.getLoanState(loanId);
-        assertEq(loan.trackedBalance, 0);
-        assertEq(token.balanceOf(loan.borrower), borrowerBalance - revokeAmount);
-        assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance + revokeAmount);
-    }
-
-    function test_terminateLoan_IfRepaidAmountGreaterThanBorrowAmount() public {
-        configureMarket();
-
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 0);
-        Loan.State memory loan = market.getLoanState(loanId);
-        assertTrue(Constants.COOLDOWN_IN_PERIODS >= 2);
-        assertTrue(loan.addonAmount >= 2);
-
-        skip(Constants.PERIOD_IN_SECONDS * (Constants.COOLDOWN_IN_PERIODS - 1));
-
-        uint256 repayAmount = loan.borrowAmount  +  loan.addonAmount / 2;
-        uint256 revokeAmount = repayAmount - loan.borrowAmount;
-
-        token.mint(loan.borrower, repayAmount);
-        vm.prank(loan.borrower);
-        market.repayLoan(loanId, repayAmount);
-
-        uint256 borrowerBalance = token.balanceOf(loan.borrower);
-        uint256 treasuryBalance = token.balanceOf(loan.treasury);
-
-        vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit OnBeforeLoanTerminationCalled(loanId);
-        vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit OnAfterLoanTerminationCalled(loanId);
-        vm.expectEmit(true, true, true, true, address(market));
-        emit LoanTerminated(loanId);
-
-        vm.prank(LENDER);
-        market.terminateLoan(loanId);
-
-        loan = market.getLoanState(loanId);
-        assertEq(loan.trackedBalance, 0);
-        assertEq(token.balanceOf(loan.borrower), borrowerBalance + revokeAmount);
-        assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance - revokeAmount);
-    }
-
-    function test_terminateLoan_Revert_IfContractIsPaused() public {
-        configureMarket();
-
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 0);
-
-        vm.startPrank(OWNER);
-        market.pause();
-
-        vm.startPrank(LENDER);
-        vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
-        market.terminateLoan(loanId);
-    }
-
-    function test_terminateLoan_Revert_IfLoanNotExist() public {
-        configureMarket();
-
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 0);
-        uint256 nonExistentLoanId = loanId + 1;
-
-        vm.prank(LENDER);
-        vm.expectRevert(LendingMarket.LoanNotExist.selector);
-        market.terminateLoan(nonExistentLoanId);
-    }
-
-    function test_terminateLoan_Revert_IfCallerNotLender() public {
-        configureMarket();
-
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 0);
-
-        vm.prank(ATTACKER);
-        vm.expectRevert(Error.Unauthorized.selector);
-        market.terminateLoan(loanId);
     }
 
     // -------------------------------------------- //
