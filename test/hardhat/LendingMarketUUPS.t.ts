@@ -8,7 +8,7 @@ import { checkContractUupsUpgrading } from "../../test-utils/eth";
 const ERROR_NAME_OWNABLE_UNAUTHORIZED = "OwnableUnauthorizedAccount";
 
 const TOKEN_NAME = "TEST";
-const TOKEN_SYMBOL = "TST"
+const TOKEN_SYMBOL = "TST";
 
 describe("Contract 'LendingMarketUUPS'", async () => {
   let marketFactory: ContractFactory;

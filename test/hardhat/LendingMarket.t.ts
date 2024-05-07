@@ -1,10 +1,9 @@
 import { ethers, network, upgrades } from "hardhat";
 import { expect } from "chai";
-import { Contract, ContractFactory} from "ethers";
+import { Contract, ContractFactory } from "ethers";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
-import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
+import { loadFixture, time } from "@nomicfoundation/hardhat-network-helpers";
 import { proveTx } from "../../test-utils/eth";
-import { time } from "@nomicfoundation/hardhat-network-helpers";
 
 async function setUpFixture<T>(func: () => Promise<T>): Promise<T> {
   if (network.name === "hardhat") {
@@ -118,7 +117,7 @@ describe("Contract 'LendingMarket'", async () => {
   let lendingMarketFactory: ContractFactory;
   let creditLineFactory: ContractFactory;
   let liquidityPoolFactory: ContractFactory;
-  let tokenFactory: ContractFactory
+  let tokenFactory: ContractFactory;
 
   let creditLine: Contract;
   let liquidityPool: Contract;
@@ -170,7 +169,7 @@ describe("Contract 'LendingMarket'", async () => {
       autoRepayment: true,
       addonRecipient: addonRecipient.address,
       addonAmount: DEFAULT_ADDON_AMOUNT
-    }
+    };
   }
 
   function createExpectedLoanState(timestamp: number): LoanState {
@@ -187,7 +186,7 @@ describe("Contract 'LendingMarket'", async () => {
       durationInPeriods: DEFAULT_DURATION_IN_PERIODS,
       interestFormula: InterestFormula.Compound,
       autoRepayment: true
-    }
+    };
   }
 
   function compareLoanStates(actualState: LoanState, expectedState: LoanState) {
@@ -231,7 +230,7 @@ describe("Contract 'LendingMarket'", async () => {
 
     return {
       market
-    }
+    };
   }
 
   async function deployLendingMarketAndConfigureItForLoan(): Promise<{ market: Contract }> {
@@ -255,7 +254,7 @@ describe("Contract 'LendingMarket'", async () => {
 
     return {
       market
-    }
+    };
   }
 
   async function deployLendingMarketAndTakeLoan(): Promise<{
@@ -273,7 +272,7 @@ describe("Contract 'LendingMarket'", async () => {
     return {
       market,
       marketConnectedToLender
-    }
+    };
   }
 
   describe("Function initialize()", async () => {
@@ -604,7 +603,7 @@ describe("Contract 'LendingMarket'", async () => {
       await proveTx(market.registerCreditLine(lender.address, creditLineAddress));
       await proveTx(market.registerLiquidityPool(lender.address, liquidityPoolAddress));
 
-      const marketConnectedToLender = market.connect(lender) as Contract
+      const marketConnectedToLender = market.connect(lender) as Contract;
 
       await proveTx(marketConnectedToLender.assignLiquidityPoolToCreditLine(creditLineAddress, liquidityPoolAddress));
 
@@ -645,14 +644,14 @@ describe("Contract 'LendingMarket'", async () => {
 
       compareLoanStates(submittedLoan, expectedLoan);
 
-        await expect(tx).to.changeTokenBalances(
-          token,
-          [liquidityPool, borrower, addonRecipient],
-          [-TOTAL_BORROW_AMOUNT, +BORROW_AMOUNT, +DEFAULT_ADDON_AMOUNT]
-        );
+      await expect(tx).to.changeTokenBalances(
+        token,
+        [liquidityPool, borrower, addonRecipient],
+        [-TOTAL_BORROW_AMOUNT, +BORROW_AMOUNT, +DEFAULT_ADDON_AMOUNT]
+      );
 
-        await expect(tx).to.emit(market, EVENT_NAME_LOAN_TAKEN)
-          .withArgs(DEFAULT_LOAN_ID, borrower.address, TOTAL_BORROW_AMOUNT, DEFAULT_DURATION_IN_PERIODS)
+      await expect(tx).to.emit(market, EVENT_NAME_LOAN_TAKEN)
+        .withArgs(DEFAULT_LOAN_ID, borrower.address, TOTAL_BORROW_AMOUNT, DEFAULT_DURATION_IN_PERIODS);
     });
 
     it("Is reverted if contract is paused", async () => {
@@ -743,11 +742,11 @@ describe("Contract 'LendingMarket'", async () => {
     it("Executes as expected if loan is not defaulted", async () => {
       const { market } = await setUpFixture(deployLendingMarketAndTakeLoan);
       const timestamp = await time.latest();
-      const futureTimestamp = timestamp + DEFAULT_DURATION_IN_PERIODS / 2 * DEFAULT_PERIOD_IN_SECONDS
-      const expectedLoan: LoanPreview = await market.getLoanPreview(DEFAULT_LOAN_ID, futureTimestamp)
+      const futureTimestamp = timestamp + DEFAULT_DURATION_IN_PERIODS / 2 * DEFAULT_PERIOD_IN_SECONDS;
+      const expectedLoan: LoanPreview = await market.getLoanPreview(DEFAULT_LOAN_ID, futureTimestamp);
 
       await time.increaseTo(futureTimestamp);
-      const currentLoan: LoanPreview = await market.getLoanPreview(DEFAULT_LOAN_ID, 0)
+      const currentLoan: LoanPreview = await market.getLoanPreview(DEFAULT_LOAN_ID, 0);
 
       expect(expectedLoan.outstandingBalance).to.eq(currentLoan.outstandingBalance);
 
@@ -766,10 +765,10 @@ describe("Contract 'LendingMarket'", async () => {
       const { market } = await setUpFixture(deployLendingMarketAndTakeLoan);
       const timestamp = await time.latest();
       const futureTimestamp = timestamp + (DEFAULT_DURATION_IN_PERIODS + 1) * DEFAULT_PERIOD_IN_SECONDS;
-      const expectedLoan: LoanPreview = await market.getLoanPreview(DEFAULT_LOAN_ID, futureTimestamp)
+      const expectedLoan: LoanPreview = await market.getLoanPreview(DEFAULT_LOAN_ID, futureTimestamp);
 
       await time.increaseTo(futureTimestamp);
-      const currentLoan: LoanPreview = await market.getLoanPreview(DEFAULT_LOAN_ID, 0)
+      const currentLoan: LoanPreview = await market.getLoanPreview(DEFAULT_LOAN_ID, 0);
 
       expect(expectedLoan.outstandingBalance).to.eq(currentLoan.outstandingBalance);
 
@@ -830,7 +829,7 @@ describe("Contract 'LendingMarket'", async () => {
       await proveTx(creditLine.mockLoanTerms(borrower.address, BORROW_AMOUNT, terms));
 
       await proveTx((market.connect(borrower) as Contract)
-        .takeLoan(creditLineAddress, BORROW_AMOUNT, DEFAULT_DURATION_IN_PERIODS))
+        .takeLoan(creditLineAddress, BORROW_AMOUNT, DEFAULT_DURATION_IN_PERIODS));
 
       await expect(liquidityPool.autoRepay(await market.getAddress(), DEFAULT_LOAN_ID, FULL_REPAY_AMOUNT))
         .to.be.revertedWithCustomError(market, ERROR_NAME_AUTO_REPAYMENT_NOT_ALLOWED);
@@ -882,7 +881,7 @@ describe("Contract 'LendingMarket'", async () => {
 
       await expect(marketConnectedToLender.freeze(DEFAULT_LOAN_ID))
         .to.be.revertedWithCustomError(market, ERROR_NAME_LOAN_ALREADY_FROZEN);
-    })
+    });
   });
 
   describe("Function 'unfreeze()'", async () => {
@@ -942,7 +941,7 @@ describe("Contract 'LendingMarket'", async () => {
   });
 
   describe("Function 'updateLoanDuration()'", async () => {
-    it("Executes as expected and emits correct event", async() => {
+    it("Executes as expected and emits correct event", async () => {
       const { market, marketConnectedToLender } = await loadFixture(deployLendingMarketAndTakeLoan);
 
       await expect(marketConnectedToLender.updateLoanDuration(DEFAULT_LOAN_ID, DEFAULT_DURATION_IN_PERIODS + 1))
@@ -1127,7 +1126,7 @@ describe("Contract 'LendingMarket'", async () => {
       const expectedState: LoanPreview = {
         periodIndex: index,
         outstandingBalance: BORROW_AMOUNT + DEFAULT_ADDON_AMOUNT
-      }
+      };
 
       compareLoanPreview(actualState, expectedState);
     });
@@ -1155,7 +1154,7 @@ describe("Contract 'LendingMarket'", async () => {
 
       const difference = BigInt(Math.abs(Number(actualBalance) - Number(expectedBalance)));
       const percentageDifference = difference * BigInt(100) / expectedBalance;
-      const threshold = BigInt('1'); // 1%
+      const threshold = BigInt("1"); // 1%
 
       expect(percentageDifference).to.be.at.most(threshold);
     });
