@@ -3,7 +3,7 @@ import { expect } from "chai";
 import { Contract, ContractFactory } from "ethers";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
-import { proveTx } from "../../test-utils/eth";
+import { getAddress, proveTx } from "../../test-utils/eth";
 
 const ERROR_NAME_ALREADY_CONFIGURED = "AlreadyConfigured";
 const ERROR_NAME_ALREADY_INITIALIZED = "InvalidInitialization";
@@ -60,17 +60,17 @@ describe("Contract 'LendingRegistry'", async () => {
     market = await marketFactory.deploy() as Contract;
     await market.waitForDeployment();
     market = market.connect(owner) as Contract; // Explicitly specifying the initial account
-    marketAddress = await market.getAddress();
+    marketAddress = getAddress(market);
 
     lineFactory = await factoryForCreditLineFactory.deploy() as Contract;
     await lineFactory.waitForDeployment();
     lineFactory = lineFactory.connect(owner) as Contract; // Explicitly specifying the initial account
-    lineFactoryAddress = await lineFactory.getAddress();
+    lineFactoryAddress = getAddress(lineFactory);
 
     poolFactory = await factoryForLiquidityPoolFactory.deploy() as Contract;
     await poolFactory.waitForDeployment();
     poolFactory = poolFactory.connect(owner) as Contract; // Explicitly specifying the initial account
-    poolFactoryAddress = await poolFactory.getAddress();
+    poolFactoryAddress = getAddress(poolFactory);
   });
 
   async function deployLendingRegistry(): Promise<{ registry: Contract }> {

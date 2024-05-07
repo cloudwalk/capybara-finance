@@ -3,7 +3,7 @@ import { expect } from "chai";
 import { Contract, ContractFactory } from "ethers";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { loadFixture, time } from "@nomicfoundation/hardhat-network-helpers";
-import { proveTx } from "../../test-utils/eth";
+import { getAddress, proveTx } from "../../test-utils/eth";
 
 async function setUpFixture<T>(func: () => Promise<T>): Promise<T> {
   if (network.name === "hardhat") {
@@ -143,15 +143,15 @@ describe("Contract 'LendingMarket'", async () => {
 
     creditLine = await creditLineFactory.deploy() as Contract;
     await creditLine.waitForDeployment();
-    creditLineAddress = await creditLine.getAddress();
+    creditLineAddress = getAddress(creditLine);
 
     liquidityPool = await liquidityPoolFactory.deploy() as Contract;
     await liquidityPool.waitForDeployment();
-    liquidityPoolAddress = await liquidityPool.getAddress();
+    liquidityPoolAddress = getAddress(liquidityPool);
 
     token = await tokenFactory.deploy() as Contract;
     await token.waitForDeployment();
-    tokenAddress = await token.getAddress();
+    tokenAddress = getAddress(token);
 
     [owner, registry, lender, borrower, addonRecipient, alias, attacker] = await ethers.getSigners();
   });
@@ -249,8 +249,8 @@ describe("Contract 'LendingMarket'", async () => {
     // supply tokens
     await proveTx(token.mint(lender.address, MINT_AMOUNT));
     await proveTx((token.connect(lender) as Contract).transfer(liquidityPoolAddress, DEPOSIT_AMOUNT));
-    await proveTx(liquidityPool.approveMarket(await market.getAddress(), tokenAddress));
-    await proveTx((token.connect(borrower) as Contract).approve(await market.getAddress(), ethers.MaxUint256));
+    await proveTx(liquidityPool.approveMarket(getAddress(market), tokenAddress));
+    await proveTx((token.connect(borrower) as Contract).approve(getAddress(market), ethers.MaxUint256));
 
     return {
       market
@@ -831,7 +831,7 @@ describe("Contract 'LendingMarket'", async () => {
       await proveTx((market.connect(borrower) as Contract)
         .takeLoan(creditLineAddress, BORROW_AMOUNT, DEFAULT_DURATION_IN_PERIODS));
 
-      await expect(liquidityPool.autoRepay(await market.getAddress(), DEFAULT_LOAN_ID, FULL_REPAY_AMOUNT))
+      await expect(liquidityPool.autoRepay(getAddress(market), DEFAULT_LOAN_ID, FULL_REPAY_AMOUNT))
         .to.be.revertedWithCustomError(market, ERROR_NAME_AUTO_REPAYMENT_NOT_ALLOWED);
     });
   });

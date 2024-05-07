@@ -4,6 +4,7 @@ import { Contract, ContractFactory } from "ethers";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { getContractAddress } from "@ethersproject/address";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
+import { getAddress } from "../../../test-utils/eth";
 
 const ERROR_NAME_ALREADY_INITIALIZED = "InvalidInitialization";
 const ERROR_NAME_OWNABLE_UNAUTHORIZED = "OwnableUnauthorizedAccount";
@@ -64,7 +65,7 @@ describe("Contract 'LiquidityPoolFactory'", async () => {
   describe("Function 'createLiquidityPool()'", async () => {
     it("Executes as expected and emits the correct event", async () => {
       const { factory } = await loadFixture(deployLiquidityPoolFactory);
-      const factoryAddress = await factory.getAddress();
+      const factoryAddress = getAddress(factory);
       const nextNonce = await ethers.provider.getTransactionCount(factoryAddress);
 
       const expectedLiquidityPoolAddress = getContractAddress({

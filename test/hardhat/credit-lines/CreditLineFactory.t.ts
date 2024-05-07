@@ -4,6 +4,7 @@ import { Contract, ContractFactory } from "ethers";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { getContractAddress } from "@ethersproject/address";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
+import { getAddress } from "../../../test-utils/eth";
 
 const ERROR_NAME_ALREADY_INITIALIZED = "InvalidInitialization";
 const ERROR_NAME_OWNABLE_UNAUTHORIZED = "OwnableUnauthorizedAccount";
@@ -68,7 +69,7 @@ describe("Contract 'CreditLineFactory'", async () => {
       const { factory } = await loadFixture(deployCreditLineFactory);
 
       const expectedCreditLineAddress = getContractAddress({
-        from: await factory.getAddress(),
+        from: getAddress(factory),
         nonce: NONCE
       });
 

@@ -24,3 +24,11 @@ export async function checkContractUupsUpgrading(
   expect(actualNewImplementationAddress).to.eq(expectedNewImplementationAddress);
   expect(actualNewImplementationAddress).not.to.eq(oldImplementationAddress);
 }
+
+export function getAddress(contract: Contract): string {
+  const address = contract.target;
+  if (typeof address !== "string" || address.length != 42 || !address.startsWith("0x")) {
+    throw new Error("The '.target' field of the contract is not an address string");
+  }
+  return address;
+}

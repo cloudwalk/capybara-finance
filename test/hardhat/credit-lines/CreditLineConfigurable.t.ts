@@ -3,7 +3,7 @@ import { expect } from "chai";
 import { Contract, ContractFactory } from "ethers";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
-import { proveTx } from "../../../test-utils/eth";
+import { getAddress, proveTx } from "../../../test-utils/eth";
 
 interface CreditLineConfig {
   treasury: string;
@@ -430,7 +430,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
 
       await expect(creditLine.configureCreditLine(config))
         .to.emit(creditLine, EVENT_NAME_CREDIT_LINE_CONFIGURED)
-        .withArgs(await creditLine.getAddress());
+        .withArgs(getAddress(creditLine));
 
       const onChainConfig: CreditLineConfig = await creditLine.creditLineConfiguration();
 
@@ -534,7 +534,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
 
       await expect(creditLine.configureBorrower(borrower.address, config))
         .to.emit(creditLine, EVENT_NAME_BORROWER_CONFIGURED)
-        .withArgs(await creditLine.getAddress(), borrower.address);
+        .withArgs(getAddress(creditLine), borrower.address);
 
       const onChainConfig: BorrowerConfig = await creditLine.getBorrowerConfiguration(borrower.address);
 
@@ -549,7 +549,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
 
       await expect((creditLine.connect(users[0]) as Contract).configureBorrower(borrower.address, config))
         .to.emit(creditLine, EVENT_NAME_BORROWER_CONFIGURED)
-        .withArgs(await creditLine.getAddress(), borrower.address);
+        .withArgs(getAddress(creditLine), borrower.address);
 
       const onChainConfig: BorrowerConfig = await creditLine.getBorrowerConfiguration(borrower.address);
 
@@ -735,7 +735,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       for (let i = 0; i < borrowers.length; i++) {
         await expect(tx)
           .to.emit(creditLine, EVENT_NAME_BORROWER_CONFIGURED)
-          .withArgs(await creditLine.getAddress(), borrowers[i]);
+          .withArgs(getAddress(creditLine), borrowers[i]);
       }
     });
 
@@ -750,7 +750,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       for (let i = 0; i < borrowers.length; i++) {
         await expect(tx)
           .to.emit(creditLine, EVENT_NAME_BORROWER_CONFIGURED)
-          .withArgs(await creditLine.getAddress(), borrowers[i]);
+          .withArgs(getAddress(creditLine), borrowers[i]);
       }
     });
 
