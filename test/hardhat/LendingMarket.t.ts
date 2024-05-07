@@ -58,7 +58,7 @@ enum InterestFormula {
 }
 
 const ERROR_NAME_ALREADY_CONFIGURED = "AlreadyConfigured";
-const ERROR_NAME_ALREADY_PAUSED = "EnforcedPause";
+const ERROR_NAME_ENFORCED_PAUSED = "EnforcedPause";
 const ERROR_NAME_ALREADY_INITIALIZED = "InvalidInitialization";
 const ERROR_NAME_UNAUTHORIZED = "Unauthorized";
 const ERROR_NAME_OWNABLE_UNAUTHORIZED = "OwnableUnauthorizedAccount";
@@ -315,7 +315,7 @@ describe("Contract 'LendingMarket'", async () => {
 
       await proveTx(market.pause());
       await expect(market.pause())
-        .to.be.revertedWithCustomError(market, ERROR_NAME_ALREADY_PAUSED);
+        .to.be.revertedWithCustomError(market, ERROR_NAME_ENFORCED_PAUSED);
     });
   });
 
@@ -401,7 +401,7 @@ describe("Contract 'LendingMarket'", async () => {
       await proveTx(market.pause());
 
       await expect(market.registerCreditLine(lender.address, creditLineAddress))
-        .to.be.revertedWithCustomError(market, ERROR_NAME_ALREADY_PAUSED);
+        .to.be.revertedWithCustomError(market, ERROR_NAME_ENFORCED_PAUSED);
     });
 
     it("Is reverted if credit line address is zero", async () => {
@@ -452,7 +452,7 @@ describe("Contract 'LendingMarket'", async () => {
       await proveTx(market.pause());
 
       await expect(market.registerLiquidityPool(lender.address, liquidityPoolAddress))
-        .to.be.revertedWithCustomError(market, ERROR_NAME_ALREADY_PAUSED);
+        .to.be.revertedWithCustomError(market, ERROR_NAME_ENFORCED_PAUSED);
     });
 
     it("Is reverted if liquidity pool address is zero", async () => {
@@ -581,7 +581,7 @@ describe("Contract 'LendingMarket'", async () => {
       await proveTx(market.pause());
 
       await expect(market.assignLiquidityPoolToCreditLine(creditLineAddress, liquidityPoolAddress))
-        .to.be.revertedWithCustomError(market, ERROR_NAME_ALREADY_PAUSED);
+        .to.be.revertedWithCustomError(market, ERROR_NAME_ENFORCED_PAUSED);
     });
 
     it("Is reverted if credit line address is zero", async () => {
@@ -659,7 +659,7 @@ describe("Contract 'LendingMarket'", async () => {
       await proveTx(market.pause());
 
       await expect(market.pause())
-        .to.be.revertedWithCustomError(market, ERROR_NAME_ALREADY_PAUSED);
+        .to.be.revertedWithCustomError(market, ERROR_NAME_ENFORCED_PAUSED);
     });
 
     it("Is reverted if credit line address is zero", async () => {
@@ -788,7 +788,7 @@ describe("Contract 'LendingMarket'", async () => {
       await proveTx(market.pause());
 
       await expect(market.repayLoan(DEFAULT_LOAN_ID, REPAY_AMOUNT))
-        .to.be.revertedWithCustomError(market, ERROR_NAME_ALREADY_PAUSED);
+        .to.be.revertedWithCustomError(market, ERROR_NAME_ENFORCED_PAUSED);
     });
 
     it("Is reverted if loan does not exist", async () => {
@@ -850,7 +850,7 @@ describe("Contract 'LendingMarket'", async () => {
       await proveTx(market.pause());
 
       await expect(market.freeze(DEFAULT_LOAN_ID))
-        .to.be.revertedWithCustomError(market, ERROR_NAME_ALREADY_PAUSED);
+        .to.be.revertedWithCustomError(market, ERROR_NAME_ENFORCED_PAUSED);
     });
 
     it("Is reverted if loan does not exist", async () => {
@@ -907,7 +907,7 @@ describe("Contract 'LendingMarket'", async () => {
       await proveTx(market.pause());
 
       await expect(market.unfreeze(DEFAULT_LOAN_ID))
-        .to.be.revertedWithCustomError(market, ERROR_NAME_ALREADY_PAUSED);
+        .to.be.revertedWithCustomError(market, ERROR_NAME_ENFORCED_PAUSED);
     });
 
     it("Is reverted if loan does not exist", async () => {
@@ -954,7 +954,7 @@ describe("Contract 'LendingMarket'", async () => {
       await proveTx(market.pause());
 
       await expect(market.updateLoanDuration(DEFAULT_LOAN_ID, DEFAULT_DURATION_IN_PERIODS))
-        .to.be.revertedWithCustomError(market, ERROR_NAME_ALREADY_PAUSED);
+        .to.be.revertedWithCustomError(market, ERROR_NAME_ENFORCED_PAUSED);
     });
 
     it("Is reverted if loan does not exist", async () => {
@@ -1002,7 +1002,7 @@ describe("Contract 'LendingMarket'", async () => {
       await proveTx(market.pause());
 
       await expect(market.updateLoanInterestRatePrimary(DEFAULT_LOAN_ID, DEFAULT_INTEREST_RATE_PRIMARY))
-        .to.be.revertedWithCustomError(market, ERROR_NAME_ALREADY_PAUSED);
+        .to.be.revertedWithCustomError(market, ERROR_NAME_ENFORCED_PAUSED);
     });
 
     it("Is reverted if loan does not exist", async () => {
@@ -1049,7 +1049,7 @@ describe("Contract 'LendingMarket'", async () => {
       await proveTx(market.pause());
 
       await expect(market.updateLoanInterestRateSecondary(DEFAULT_LOAN_ID, DEFAULT_INTEREST_RATE_SECONDARY))
-        .to.be.revertedWithCustomError(market, ERROR_NAME_ALREADY_PAUSED);
+        .to.be.revertedWithCustomError(market, ERROR_NAME_ENFORCED_PAUSED);
     });
 
     it("Is reverted if loan does not exist", async () => {
@@ -1098,7 +1098,7 @@ describe("Contract 'LendingMarket'", async () => {
       await proveTx(market.pause());
 
       await expect(market.configureAlias(alias.address, true))
-        .to.be.revertedWithCustomError(market, ERROR_NAME_ALREADY_PAUSED);
+        .to.be.revertedWithCustomError(market, ERROR_NAME_ENFORCED_PAUSED);
     });
 
     it("Is reverted if account address is zero", async () => {
