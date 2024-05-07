@@ -136,24 +136,32 @@ describe("Contract 'LendingMarket'", async () => {
   let tokenAddress: string;
 
   before(async () => {
+    [owner, registry, lender, borrower, addonRecipient, alias, attacker] = await ethers.getSigners();
+
+    // Factories with an explicitly specified deployer account
     lendingMarketFactory = await ethers.getContractFactory("LendingMarket");
+    lendingMarketFactory = lendingMarketFactory.connect(owner);
     creditLineFactory = await ethers.getContractFactory("CreditLineMock");
+    creditLineFactory = creditLineFactory.connect(owner);
     liquidityPoolFactory = await ethers.getContractFactory("LiquidityPoolMock");
+    liquidityPoolFactory = liquidityPoolFactory.connect(owner);
     tokenFactory = await ethers.getContractFactory("ERC20Mock");
+    tokenFactory = tokenFactory.connect(owner);
 
     creditLine = await creditLineFactory.deploy() as Contract;
     await creditLine.waitForDeployment();
+    creditLine = creditLine.connect(owner) as Contract; // Explicitly specifying the initial account
     creditLineAddress = getAddress(creditLine);
 
     liquidityPool = await liquidityPoolFactory.deploy() as Contract;
     await liquidityPool.waitForDeployment();
+    liquidityPool = liquidityPool.connect(owner) as Contract; // Explicitly specifying the initial account
     liquidityPoolAddress = getAddress(liquidityPool);
 
     token = await tokenFactory.deploy() as Contract;
     await token.waitForDeployment();
+    token = token.connect(owner) as Contract; // Explicitly specifying the initial account
     tokenAddress = getAddress(token);
-
-    [owner, registry, lender, borrower, addonRecipient, alias, attacker] = await ethers.getSigners();
   });
 
   function createMockTerms(): LoanTerms {
@@ -226,7 +234,7 @@ describe("Contract 'LendingMarket'", async () => {
       TOKEN_NAME, TOKEN_SYMBOL
     ]);
 
-    market = market.connect(owner) as Contract;
+    market = market.connect(owner) as Contract; // Explicitly specifying the initial account
 
     return {
       market
