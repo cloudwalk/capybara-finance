@@ -14,12 +14,9 @@ const EVENT_NAME_LIQUIDITY_POOL_CREATED = "LiquidityPoolCreated";
 const LIQUIDITY_POOL_KIND = 1;
 const UNSUPPORTED_LIQUIDITY_POOL_KIND = 322;
 const CREATION_DATA = ethers.encodeBytes32String("random");
-const NONCE = 2;
 
 describe("Contract 'LiquidityPoolFactory'", async () => {
   let liquidityPoolFactory: ContractFactory;
-
-  let factory: Contract;
 
   let deployer: HardhatEthersSigner;
   let registry: HardhatEthersSigner;
@@ -35,7 +32,7 @@ describe("Contract 'LiquidityPoolFactory'", async () => {
   });
 
   async function deployLiquidityPoolFactory(): Promise<{ factory: Contract }> {
-    factory = await upgrades.deployProxy(liquidityPoolFactory, [
+    let factory = await upgrades.deployProxy(liquidityPoolFactory, [
       registry.address
     ]);
 
@@ -47,15 +44,15 @@ describe("Contract 'LiquidityPoolFactory'", async () => {
   }
 
   describe("Function 'initialize()'", async () => {
-    it("Configures contract as expected", async () => {
+    it("Configures the contract as expected", async () => {
       const { factory } = await loadFixture(deployLiquidityPoolFactory);
 
       expect(await factory.owner()).to.eq(registry.address);
       const supportedKinds = await factory.supportedKinds();
-      expect(supportedKinds[0]).to.eq(LIQUIDITY_POOL_KIND);
+      expect(supportedKinds).to.deep.eq([LIQUIDITY_POOL_KIND]);
     });
 
-    it("Is reverted if called second time", async () => {
+    it("Is reverted if called a second time", async () => {
       const { factory } = await loadFixture(deployLiquidityPoolFactory);
 
       await expect(factory.initialize(registry.address))
@@ -64,12 +61,14 @@ describe("Contract 'LiquidityPoolFactory'", async () => {
   });
 
   describe("Function 'createLiquidityPool()'", async () => {
-    it("Executes as expected and emits correct event", async () => {
+    it("Executes as expected and emits the correct event", async () => {
       const { factory } = await loadFixture(deployLiquidityPoolFactory);
+      const factoryAddress = await factory.getAddress();
+      const nextNonce = await ethers.provider.getTransactionCount(factoryAddress);
 
       const expectedLiquidityPoolAddress = getContractAddress({
-        from: await factory.getAddress(),
-        nonce: NONCE
+        from: factoryAddress,
+        nonce: nextNonce
       });
 
       await expect(factory.createLiquidityPool(
@@ -77,17 +76,18 @@ describe("Contract 'LiquidityPoolFactory'", async () => {
         lender.address,
         LIQUIDITY_POOL_KIND,
         CREATION_DATA
-      ))
-        .to.emit(factory, EVENT_NAME_LIQUIDITY_POOL_CREATED)
-        .withArgs(
-          market.address,
-          lender.address,
-          LIQUIDITY_POOL_KIND,
-          expectedLiquidityPoolAddress
-        );
+      )).to.emit(
+        factory,
+        EVENT_NAME_LIQUIDITY_POOL_CREATED
+      ).withArgs(
+        market.address,
+        lender.address,
+        LIQUIDITY_POOL_KIND,
+        expectedLiquidityPoolAddress
+      );
     });
 
-    it("Is reverted if caller is not the owner", async () => {
+    it("Is reverted if the caller is not the owner", async () => {
       const { factory } = await loadFixture(deployLiquidityPoolFactory);
 
       await expect((factory.connect(attacker) as Contract).createLiquidityPool(
@@ -98,7 +98,7 @@ describe("Contract 'LiquidityPoolFactory'", async () => {
       )).to.be.revertedWithCustomError(factory, ERROR_NAME_OWNABLE_UNAUTHORIZED);
     });
 
-    it("Is reverted if liquidity pool kind is unsupported", async () => {
+    it("Is reverted if the liquidity pool kind is unsupported", async () => {
       const { factory } = await loadFixture(deployLiquidityPoolFactory);
 
       await expect(factory.createLiquidityPool(

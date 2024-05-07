@@ -12,8 +12,6 @@ const CREDIT_LINE_KIND = 1;
 describe("Contract 'CreditLineFactoryUUPS'", async () => {
   let creditLineFactory: ContractFactory;
 
-  let factory: Contract;
-
   let deployer: HardhatEthersSigner;
   let attacker: HardhatEthersSigner;
 
@@ -25,7 +23,7 @@ describe("Contract 'CreditLineFactoryUUPS'", async () => {
   });
 
   async function deployCreditLineFactory(): Promise<{ factory: Contract }> {
-    factory = await upgrades.deployProxy(
+    let factory = await upgrades.deployProxy(
       creditLineFactory,
       [deployer.address],
       { kind: "uups" }
@@ -39,7 +37,7 @@ describe("Contract 'CreditLineFactoryUUPS'", async () => {
   }
 
   describe("Function 'initialize()'", async () => {
-    it("Configures contract as expected", async () => {
+    it("Configures the contract as expected", async () => {
       const { factory } = await loadFixture(deployCreditLineFactory);
 
       expect(await factory.owner()).to.eq(deployer.address);
@@ -54,7 +52,7 @@ describe("Contract 'CreditLineFactoryUUPS'", async () => {
       await checkContractUupsUpgrading(factory, creditLineFactory);
     });
 
-    it("Is reverted if caller is not the owner", async () => {
+    it("Is reverted if the caller is not the owner", async () => {
       const { factory } = await loadFixture(deployCreditLineFactory);
 
       await expect((factory.connect(attacker) as Contract).upgradeToAndCall(attacker.address, "0x"))

@@ -10,8 +10,6 @@ const ERROR_NAME_OWNABLE_UNAUTHORIZED = "OwnableUnauthorizedAccount";
 describe("Contract 'LiquidityPoolAccountableUUPS'", async () => {
   let liquidityPoolFactory: ContractFactory;
 
-  let liquidityPool: Contract;
-
   let deployer: HardhatEthersSigner;
   let market: HardhatEthersSigner;
   let attacker: HardhatEthersSigner;
@@ -24,7 +22,7 @@ describe("Contract 'LiquidityPoolAccountableUUPS'", async () => {
   });
 
   async function deployLiquidityPool(): Promise<{ liquidityPool: Contract }> {
-    liquidityPool = await upgrades.deployProxy(
+    let liquidityPool = await upgrades.deployProxy(
       liquidityPoolFactory,
       [market.address, deployer.address],
       { kind: "uups" }
@@ -38,7 +36,7 @@ describe("Contract 'LiquidityPoolAccountableUUPS'", async () => {
   }
 
   describe("Function 'initialize()'", async () => {
-    it("Configures contract as expected", async () => {
+    it("Configures the contract as expected", async () => {
       const { liquidityPool } = await loadFixture(deployLiquidityPool);
 
       expect(await liquidityPool.owner()).to.eq(deployer.address);
@@ -53,7 +51,7 @@ describe("Contract 'LiquidityPoolAccountableUUPS'", async () => {
       await checkContractUupsUpgrading(liquidityPool, liquidityPoolFactory);
     });
 
-    it("Is reverted if caller is not the owner", async () => {
+    it("Is reverted if the caller is not the owner", async () => {
       const { liquidityPool } = await loadFixture(deployLiquidityPool);
 
       await expect((liquidityPool.connect(attacker) as Contract).upgradeToAndCall(attacker.address, "0x"))

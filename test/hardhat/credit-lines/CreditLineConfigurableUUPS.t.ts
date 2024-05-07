@@ -10,8 +10,6 @@ const ERROR_NAME_OWNABLE_UNAUTHORIZED = "OwnableUnauthorizedAccount";
 describe("Contract 'CreditLineConfigurableUUPS'", async () => {
   let creditLineFactory: ContractFactory;
 
-  let creditLine: Contract;
-
   let deployer: HardhatEthersSigner;
   let lender: HardhatEthersSigner;
   let market: HardhatEthersSigner;
@@ -26,7 +24,7 @@ describe("Contract 'CreditLineConfigurableUUPS'", async () => {
   });
 
   async function deployCreditLine(): Promise<{ creditLine: Contract }> {
-    creditLine = await upgrades.deployProxy(
+    let creditLine = await upgrades.deployProxy(
       creditLineFactory,
       [market.address, lender.address, token.address],
       { kind: "uups" }
@@ -40,7 +38,7 @@ describe("Contract 'CreditLineConfigurableUUPS'", async () => {
   }
 
   describe("Function 'initialize()'", async () => {
-    it("Configures contract as expected", async () => {
+    it("Configures the contract as expected", async () => {
       const { creditLine } = await loadFixture(deployCreditLine);
 
       expect(await creditLine.owner()).to.eq(lender.address);
@@ -56,7 +54,7 @@ describe("Contract 'CreditLineConfigurableUUPS'", async () => {
       await checkContractUupsUpgrading(creditLine, creditLineFactory);
     });
 
-    it("Is reverted if caller is not the owner", async () => {
+    it("Is reverted if the caller is not the owner", async () => {
       const { creditLine } = await loadFixture(deployCreditLine);
 
       await expect((creditLine.connect(attacker) as Contract).upgradeToAndCall(attacker.address, "0x"))

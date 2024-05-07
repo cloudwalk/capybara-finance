@@ -19,8 +19,6 @@ const NONCE = 2;
 describe("Contract 'CreditLineFactory'", async () => {
   let creditLineFactory: ContractFactory;
 
-  let factory: Contract;
-
   let deployer: HardhatEthersSigner;
   let registry: HardhatEthersSigner;
   let market: HardhatEthersSigner;
@@ -36,7 +34,7 @@ describe("Contract 'CreditLineFactory'", async () => {
   });
 
   async function deployCreditLineFactory(): Promise<{ factory: Contract }> {
-    factory = await upgrades.deployProxy(creditLineFactory, [
+    let factory = await upgrades.deployProxy(creditLineFactory, [
       registry.address
     ]);
 
@@ -48,7 +46,7 @@ describe("Contract 'CreditLineFactory'", async () => {
   }
 
   describe("Function 'initialize()'", async () => {
-    it("Configures contract as expected", async () => {
+    it("Configures the contract as expected", async () => {
       const { factory } = await loadFixture(deployCreditLineFactory);
 
       expect(await factory.owner()).to.eq(registry.address);
@@ -56,7 +54,7 @@ describe("Contract 'CreditLineFactory'", async () => {
       expect(supportedKinds[0]).to.eq(CREDIT_LINE_KIND);
     });
 
-    it("Is reverted if called second time", async () => {
+    it("Is reverted if called a second time", async () => {
       const { factory } = await loadFixture(deployCreditLineFactory);
 
       await expect(factory.initialize(registry.address))
@@ -65,7 +63,7 @@ describe("Contract 'CreditLineFactory'", async () => {
   });
 
   describe("Function 'createCreditLine()'", async () => {
-    it("Executes as expected and emits correct event", async () => {
+    it("Executes as expected and emits the correct event", async () => {
       const { factory } = await loadFixture(deployCreditLineFactory);
 
       const expectedCreditLineAddress = getContractAddress({
@@ -90,7 +88,7 @@ describe("Contract 'CreditLineFactory'", async () => {
         );
     });
 
-    it("Is reverted if caller is not the owner", async () => {
+    it("Is reverted if the caller is not the owner", async () => {
       const { factory } = await loadFixture(deployCreditLineFactory);
 
       await expect((factory.connect(attacker) as Contract).createCreditLine(
@@ -102,7 +100,7 @@ describe("Contract 'CreditLineFactory'", async () => {
       )).to.be.revertedWithCustomError(factory, ERROR_NAME_OWNABLE_UNAUTHORIZED);
     });
 
-    it("Is reverted if credit line kind is unsupported", async () => {
+    it("Is reverted if the credit line kind is unsupported", async () => {
       const { factory } = await loadFixture(deployCreditLineFactory);
 
       await expect(factory.createCreditLine(
