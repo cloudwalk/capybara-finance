@@ -16,7 +16,7 @@ const UNSUPPORTED_LIQUIDITY_POOL_KIND = 322;
 const CREATION_DATA = ethers.encodeBytes32String("random");
 
 describe("Contract 'LiquidityPoolFactory'", async () => {
-  let liquidityPoolFactory: ContractFactory;
+  let factoryForLiquidityPoolFactory: ContractFactory;
 
   let deployer: HardhatEthersSigner;
   let registry: HardhatEthersSigner;
@@ -27,12 +27,13 @@ describe("Contract 'LiquidityPoolFactory'", async () => {
   before(async () => {
     [deployer, registry, market, lender, attacker] = await ethers.getSigners();
 
-    liquidityPoolFactory = await ethers.getContractFactory("LiquidityPoolFactory");
-    liquidityPoolFactory = liquidityPoolFactory.connect(deployer); // Explicitly specifying the deployer account
+    factoryForLiquidityPoolFactory = await ethers.getContractFactory("LiquidityPoolFactory");
+    // Explicitly specifying the deployer account
+    factoryForLiquidityPoolFactory = factoryForLiquidityPoolFactory.connect(deployer);
   });
 
   async function deployLiquidityPoolFactory(): Promise<{ factory: Contract }> {
-    let factory = await upgrades.deployProxy(liquidityPoolFactory, [
+    let factory = await upgrades.deployProxy(factoryForLiquidityPoolFactory, [
       registry.address
     ]);
 

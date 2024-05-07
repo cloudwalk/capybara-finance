@@ -29,8 +29,8 @@ const KIND = 1;
 
 describe("Contract 'LendingRegistry'", async () => {
   let marketFactory: ContractFactory;
-  let creditLineFactory: ContractFactory;
-  let liquidityPoolFactory: ContractFactory;
+  let factoryForCreditLineFactory: ContractFactory;
+  let factoryForLiquidityPoolFactory: ContractFactory;
   let registryFactory: ContractFactory;
 
   let market: Contract;
@@ -51,10 +51,10 @@ describe("Contract 'LendingRegistry'", async () => {
     // Factories with an explicitly specified deployer account
     marketFactory = await ethers.getContractFactory("LendingMarketMock");
     marketFactory = marketFactory.connect(owner);
-    creditLineFactory = await ethers.getContractFactory("CreditLineFactoryMock");
-    creditLineFactory = creditLineFactory.connect(owner);
-    liquidityPoolFactory = await ethers.getContractFactory("LiquidityPoolFactoryMock");
-    liquidityPoolFactory = liquidityPoolFactory.connect(owner);
+    factoryForCreditLineFactory = await ethers.getContractFactory("CreditLineFactoryMock");
+    factoryForCreditLineFactory = factoryForCreditLineFactory.connect(owner);
+    factoryForLiquidityPoolFactory = await ethers.getContractFactory("LiquidityPoolFactoryMock");
+    factoryForLiquidityPoolFactory = factoryForLiquidityPoolFactory.connect(owner);
     registryFactory = await ethers.getContractFactory("LendingRegistry");
     registryFactory = registryFactory.connect(owner);
 
@@ -63,12 +63,12 @@ describe("Contract 'LendingRegistry'", async () => {
     market = market.connect(owner) as Contract; // Explicitly specifying the initial account
     marketAddress = await market.getAddress();
 
-    lineFactory = await creditLineFactory.deploy() as Contract;
+    lineFactory = await factoryForCreditLineFactory.deploy() as Contract;
     await lineFactory.waitForDeployment();
     lineFactory = lineFactory.connect(owner) as Contract; // Explicitly specifying the initial account
     lineFactoryAddress = await lineFactory.getAddress();
 
-    poolFactory = await liquidityPoolFactory.deploy() as Contract;
+    poolFactory = await factoryForLiquidityPoolFactory.deploy() as Contract;
     await poolFactory.waitForDeployment();
     poolFactory = poolFactory.connect(owner) as Contract; // Explicitly specifying the initial account
     poolFactoryAddress = await poolFactory.getAddress();

@@ -8,7 +8,7 @@ import { checkContractUupsUpgrading } from "../../../test-utils/eth";
 const ERROR_NAME_OWNABLE_UNAUTHORIZED = "OwnableUnauthorizedAccount";
 
 describe("Contract 'LiquidityPoolFactoryUUPS'", async () => {
-  let liquidityPoolFactory: ContractFactory;
+  let factoryForLiquidityPoolFactory: ContractFactory;
 
   let deployer: HardhatEthersSigner;
   let attacker: HardhatEthersSigner;
@@ -16,13 +16,14 @@ describe("Contract 'LiquidityPoolFactoryUUPS'", async () => {
   before(async () => {
     [deployer, attacker] = await ethers.getSigners();
 
-    liquidityPoolFactory = await ethers.getContractFactory("LiquidityPoolFactoryUUPS");
-    liquidityPoolFactory = liquidityPoolFactory.connect(deployer); // Explicitly specifying the deployer account
+    factoryForLiquidityPoolFactory = await ethers.getContractFactory("LiquidityPoolFactoryUUPS");
+    // Explicitly specifying the deployer account
+    factoryForLiquidityPoolFactory = factoryForLiquidityPoolFactory.connect(deployer);
   });
 
   async function deployLiquidityPoolFactory(): Promise<{ factory: Contract }> {
     let factory = await upgrades.deployProxy(
-      liquidityPoolFactory,
+      factoryForLiquidityPoolFactory,
       [deployer.address],
       { kind: "uups" }
     );
@@ -45,7 +46,7 @@ describe("Contract 'LiquidityPoolFactoryUUPS'", async () => {
   describe("Function 'upgradeToAndCall()'", async () => {
     it("Executes as expected", async () => {
       const { factory } = await loadFixture(deployLiquidityPoolFactory);
-      await checkContractUupsUpgrading(factory, liquidityPoolFactory);
+      await checkContractUupsUpgrading(factory, factoryForLiquidityPoolFactory);
     });
 
     it("Is reverted if the caller is not the owner", async () => {
