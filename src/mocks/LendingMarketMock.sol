@@ -144,6 +144,12 @@ contract LendingMarketMock is ILendingMarket {
         revert Error.NotImplemented();
     }
 
+    function isLenderOrAlias(uint256 loanId, address account) external pure returns (bool) {
+        loanId; // To prevent compiler warning about unused variable
+        account; // To prevent compiler warning about unused variable
+        revert Error.NotImplemented();
+    }
+
     function hasAlias(address lender, address account) external pure returns (bool) {
         lender; // To prevent compiler warning about unused variable
         account; // To prevent compiler warning about unused variable

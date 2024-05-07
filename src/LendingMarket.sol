@@ -97,8 +97,7 @@ contract LendingMarket is
     /// @dev Throws if called by any account other than the lender or its alias.
     /// @param loanId The unique identifier of the loan to check.
     modifier onlyLenderOrAlias(uint256 loanId) {
-        address lender = ownerOf(loanId);
-        if (msg.sender != lender && _hasAlias[lender][msg.sender] == false) {
+        if (!isLenderOrAlias(loanId, msg.sender)) {
             revert Error.Unauthorized();
         }
         _;
@@ -548,6 +547,12 @@ contract LendingMarket is
         (preview.outstandingBalance, preview.periodIndex) = _outstandingBalance(loan, timestamp);
 
         return preview;
+    }
+
+    /// @inheritdoc ILendingMarket
+    function isLenderOrAlias(uint256 loanId, address account) public view returns (bool) {
+        address lender = ownerOf(loanId);
+        return account == lender || _hasAlias[lender][account];
     }
 
     /// @inheritdoc ILendingMarket

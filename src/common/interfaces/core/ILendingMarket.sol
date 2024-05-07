@@ -254,6 +254,11 @@ interface ILendingMarket {
     /// @return The preview state of the loan (see the Loan.Preview struct).
     function getLoanPreview(uint256 loanId, uint256 timestamp) external view returns (Loan.Preview memory);
 
+    /// @dev Checks if the provided account is a lender or an alias for a lender of a given loan.
+    /// @param loanId The unique identifier of the loan to check.
+    /// @param account The address to check whether it's a lender or an alias.
+    function isLenderOrAlias(uint256 loanId, address account) external view returns (bool);
+
     /// @dev Checks if the provided account is an alias for a lender.
     /// @param lender The address of the lender to check alias for.
     /// @param account The address to check whether it's an alias or not.
