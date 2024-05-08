@@ -220,12 +220,8 @@ describe("Contract 'LendingMarket'", async () => {
     interestRate: number,
     interestRateFactor: number
   ): number {
-    let outstandingBalance = originalBalance;
-    for (let i = 0; i < numberOfPeriods; i++) {
-      const interest = (outstandingBalance * interestRate) / interestRateFactor;
-      outstandingBalance += Math.round(interest);
-    }
-    return outstandingBalance;
+    const outstandingBalance = originalBalance * Math.pow(1 + interestRate / interestRateFactor, numberOfPeriods);
+    return Math.round(outstandingBalance);
   }
 
   async function deployLendingMarket(): Promise<{ market: Contract }> {
@@ -1165,28 +1161,25 @@ describe("Contract 'LendingMarket'", async () => {
   describe("Function 'calculateOutstandingBalance()'", async () => {
     it("Executes as expected", async () => {
       const { market } = await loadFixture(deployLendingMarketAndTakeLoan);
-      const initialBorrowAmount = BigInt(BORROW_AMOUNT) + BigInt(DEFAULT_ADDON_AMOUNT);
+      const initialBorrowAmount = BORROW_AMOUNT + DEFAULT_ADDON_AMOUNT;
 
       const actualBalance = await market.calculateOutstandingBalance(
         initialBorrowAmount,
-        BigInt(DEFAULT_NUMBER_OF_PERIODS),
-        BigInt(DEFAULT_INTEREST_RATE_PRIMARY),
-        BigInt(DEFAULT_INTEREST_RATE_FACTOR),
+        DEFAULT_NUMBER_OF_PERIODS,
+        DEFAULT_INTEREST_RATE_PRIMARY,
+        DEFAULT_INTEREST_RATE_FACTOR,
         InterestFormula.Compound
       );
 
-      const expectedBalance = BigInt(calculateOutstandingBalance(
-        Number(initialBorrowAmount),
+      const expectedBalance = calculateOutstandingBalance(
+        initialBorrowAmount,
         DEFAULT_NUMBER_OF_PERIODS,
         DEFAULT_INTEREST_RATE_PRIMARY,
         DEFAULT_INTEREST_RATE_FACTOR
-      ));
+      );
 
-      const difference = BigInt(Math.abs(Number(actualBalance) - Number(expectedBalance)));
-      const percentageDifference = difference * BigInt(100) / expectedBalance;
-      const threshold = BigInt("1"); // 1%
-
-      expect(percentageDifference).to.be.at.most(threshold);
+      const relativeDifference = Math.abs((Number(actualBalance) - expectedBalance) / expectedBalance);
+      expect(relativeDifference).to.be.at.most(0.0001); // 0.01%
     });
   });
 });
