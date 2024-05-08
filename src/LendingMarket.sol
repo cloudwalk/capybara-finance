@@ -278,11 +278,13 @@ contract LendingMarket is
             addonAmount: terms.addonAmount
         });
 
-        ILiquidityPool(liquidityPool).onBeforeLoanTaken(id, creditLine);
-
-        IERC20(terms.token).safeTransferFrom(liquidityPool, msg.sender, borrowAmount);
-
-        ILiquidityPool(liquidityPool).onAfterLoanTaken(id, creditLine);
+        if (terms.treasury.code.length == 0) {
+            IERC20(terms.token).safeTransferFrom(liquidityPool, msg.sender, borrowAmount);
+        } else {
+            ILiquidityPool(liquidityPool).onBeforeLoanTaken(id, creditLine);
+            IERC20(terms.token).safeTransferFrom(liquidityPool, msg.sender, borrowAmount);
+            ILiquidityPool(liquidityPool).onAfterLoanTaken(id, creditLine);
+        }
 
         emit LoanTaken(id, msg.sender, totalBorrowAmount, terms.durationInPeriods);
 
@@ -297,10 +299,6 @@ contract LendingMarket is
 
         Loan.State storage loan = _loans[loanId];
 
-        if (loan.treasury.code.length == 0) {
-            // TBD Add support for EOA liquidity pools.
-            revert Error.NotImplemented();
-        }
 
         (uint256 outstandingBalance,) = _outstandingBalance(loan, _blockTimestamp());
 
@@ -319,15 +317,17 @@ contract LendingMarket is
         outstandingBalance -= repayAmount;
         address payer = autoRepayment ? loan.borrower : msg.sender;
 
-        ILiquidityPool(loan.treasury).onBeforeLoanPayment(loanId, repayAmount);
-
         loan.repaidAmount += repayAmount.toUint64();
         loan.trackedBalance = outstandingBalance.toUint64();
         loan.trackedTimestamp = _blockTimestamp().toUint32();
 
-        IERC20(loan.token).transferFrom(payer, loan.treasury, repayAmount);
-
-        ILiquidityPool(loan.treasury).onAfterLoanPayment(loanId, repayAmount);
+        if (loan.treasury.code.length == 0) {
+            IERC20(loan.token).transferFrom(payer, loan.treasury, repayAmount);
+        } else {
+            ILiquidityPool(loan.treasury).onBeforeLoanPayment(loanId, repayAmount);
+            IERC20(loan.token).transferFrom(payer, loan.treasury, repayAmount);
+            ILiquidityPool(loan.treasury).onAfterLoanPayment(loanId, repayAmount);
+        }
 
         emit LoanRepayment(loanId, payer, loan.borrower, repayAmount, outstandingBalance);
 
@@ -481,7 +481,9 @@ contract LendingMarket is
     }
 
     function _revokeLoan(uint256 loanId, Loan.State storage loan) internal {
-        ILiquidityPool(loan.treasury).onBeforeLoanRevocation(loanId);
+        if (loan.treasury.code.length != 0) {
+            ILiquidityPool(loan.treasury).onBeforeLoanRevocation(loanId);
+        }
 
         loan.trackedBalance = 0;
         loan.trackedTimestamp = _blockTimestamp().toUint32();
@@ -494,7 +496,9 @@ contract LendingMarket is
 
         emit LoanRevoked(loanId);
 
-        ILiquidityPool(loan.treasury).onAfterLoanRevocation(loanId);
+        if (loan.treasury.code.length != 0) {
+            ILiquidityPool(loan.treasury).onAfterLoanRevocation(loanId);
+        }
     }
 
     // -------------------------------------------- //
