@@ -106,12 +106,10 @@ contract LiquidityPoolAccountableTest is Test {
             startTimestamp: 0,
             freezeTimestamp: 0,
             trackedTimestamp: 0,
-            initialBorrowAmount: 0,
-            trackedBorrowBalance: 0,
-            autoRepayment: false,
-            cooldownPeriods: 0,
-            addonAmount: 0,
-            _reserved: 0
+            borrowAmount: 0,
+            trackedBalance: 0,
+            repaidAmount: 0,
+            addonAmount: 0
         });
     }
 
@@ -294,7 +292,7 @@ contract LiquidityPoolAccountableTest is Test {
         configureLender(depositAmount);
 
         Loan.State memory loan = initLoanState();
-        loan.initialBorrowAmount = DEPOSIT_AMOUNT_1 + ADDON_AMOUNT;
+        loan.borrowAmount = DEPOSIT_AMOUNT_1;
         loan.addonAmount = ADDON_AMOUNT;
         lendingMarket.mockLoanState(LOAN_ID_1, loan);
 
@@ -473,7 +471,7 @@ contract LiquidityPoolAccountableTest is Test {
         configureLender(DEPOSIT_AMOUNT_1);
 
         Loan.State memory loan = initLoanState();
-        loan.initialBorrowAmount = DEPOSIT_AMOUNT_1;
+        loan.borrowAmount = DEPOSIT_AMOUNT_1 - ADDON_AMOUNT;
         loan.addonAmount = ADDON_AMOUNT;
         lendingMarket.mockLoanState(LOAN_ID_1, loan);
 
@@ -545,7 +543,7 @@ contract LiquidityPoolAccountableTest is Test {
         liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT_1);
 
         Loan.State memory loan = initLoanState();
-        loan.initialBorrowAmount = DEPOSIT_AMOUNT_1;
+        loan.borrowAmount = DEPOSIT_AMOUNT_1 - ADDON_AMOUNT;
         loan.addonAmount = ADDON_AMOUNT;
         lendingMarket.mockLoanState(LOAN_ID_1, loan);
     }
@@ -605,7 +603,7 @@ contract LiquidityPoolAccountableTest is Test {
     }
 
     // -------------------------------------------- //
-    //  Test `onBeforeLoanRevocation` function      //
+    //  Test `onBeforeLoanRevocation` function    //
     // -------------------------------------------- //
 
     function test_onBeforeLoanRevocation() public {
@@ -629,22 +627,77 @@ contract LiquidityPoolAccountableTest is Test {
     }
 
     // -------------------------------------------- //
-    //  Test `onAfterLoanRevocation` function       //
+    //  Test `onAfterLoanRevocation` function     //
     // -------------------------------------------- //
 
-    function test_onAfterLoanRevocation_ExistentLoan() public {
-        prepareRepayment();
+    function test_onAfterLoanRevocation_RepaidAmountLessThanBorrowAmount() public {
+        configureLender(DEPOSIT_AMOUNT_1);
+
+        vm.prank(LENDER);
+        liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT_1);
 
         ILiquidityPoolAccountable.CreditLineBalance memory creditLineBalance =
             liquidityPool.getCreditLineBalance(address(creditLine));
         assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
         assertEq(creditLineBalance.addons, 0);
 
+        Loan.State memory loan = initLoanState();
+        loan.borrowAmount = DEPOSIT_AMOUNT_1 - ADDON_AMOUNT;
+        loan.repaidAmount = DEPOSIT_AMOUNT_1 / 2;
+        loan.addonAmount = ADDON_AMOUNT;
+        lendingMarket.mockLoanState(LOAN_ID_1, loan);
+
         vm.prank(address(lendingMarket));
-        assertEq(liquidityPool.onAfterLoanTaken(LOAN_ID_1, address(creditLine)), true);
+        liquidityPool.onAfterLoanTaken(LOAN_ID_1, address(creditLine));
 
         creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
         assertEq(creditLineBalance.borrowable, 0);
+        assertEq(creditLineBalance.addons, ADDON_AMOUNT);
+
+        vm.prank(address(lendingMarket));
+        liquidityPool.onAfterLoanPayment(LOAN_ID_1, DEPOSIT_AMOUNT_1 / 2);
+
+        creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1 / 2);
+        assertEq(creditLineBalance.addons, ADDON_AMOUNT);
+
+        vm.prank(address(lendingMarket));
+        assertEq(liquidityPool.onAfterLoanRevocation(LOAN_ID_1), true);
+
+        creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
+        assertEq(creditLineBalance.addons, 0);
+    }
+
+    function test_onAfterLoanRevocation_RepaidAmountGreaterThanBorrowAmount() public {
+        configureLender(DEPOSIT_AMOUNT_1);
+
+        vm.prank(LENDER);
+        liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT_1);
+
+        ILiquidityPoolAccountable.CreditLineBalance memory creditLineBalance =
+            liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
+        assertEq(creditLineBalance.addons, 0);
+
+        Loan.State memory loan = initLoanState();
+        loan.borrowAmount = DEPOSIT_AMOUNT_1 - ADDON_AMOUNT;
+        loan.repaidAmount = DEPOSIT_AMOUNT_1 * 2;
+        loan.addonAmount = ADDON_AMOUNT;
+        lendingMarket.mockLoanState(LOAN_ID_1, loan);
+
+        vm.prank(address(lendingMarket));
+        liquidityPool.onAfterLoanTaken(LOAN_ID_1, address(creditLine));
+
+        creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, 0);
+        assertEq(creditLineBalance.addons, ADDON_AMOUNT);
+
+        vm.prank(address(lendingMarket));
+        liquidityPool.onAfterLoanPayment(LOAN_ID_1, DEPOSIT_AMOUNT_1 * 2);
+
+        creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
+        assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1 * 2);
         assertEq(creditLineBalance.addons, ADDON_AMOUNT);
 
         vm.prank(address(lendingMarket));
@@ -708,7 +761,7 @@ contract LiquidityPoolAccountableTest is Test {
         assertEq(token.balanceOf(address(liquidityPool)), DEPOSIT_AMOUNT_1);
 
         Loan.State memory loan = initLoanState();
-        loan.initialBorrowAmount = DEPOSIT_AMOUNT_1;
+        loan.borrowAmount = DEPOSIT_AMOUNT_1 - ADDON_AMOUNT;
         loan.addonAmount = ADDON_AMOUNT;
         lendingMarket.mockLoanState(LOAN_ID_1, loan);
 
@@ -724,7 +777,7 @@ contract LiquidityPoolAccountableTest is Test {
         configureLender(DEPOSIT_AMOUNT_1);
 
         Loan.State memory loan = initLoanState();
-        loan.initialBorrowAmount = DEPOSIT_AMOUNT_1;
+        loan.borrowAmount = DEPOSIT_AMOUNT_1;
         lendingMarket.mockLoanState(LOAN_ID_1, loan);
 
         vm.prank(LENDER);

@@ -73,10 +73,6 @@ interface ILendingMarket {
         uint256 outstandingBalance
     );
 
-    /// @dev Emitted when a loan is revoked.
-    /// @param loanId The unique identifier of the loan.
-    event LoanRevoked(uint256 indexed loanId);
-
     /// @dev Emitted when a loan is frozen.
     /// @param loanId The unique identifier of the loan.
     event LoanFrozen(uint256 indexed loanId);
@@ -84,6 +80,10 @@ interface ILendingMarket {
     /// @dev Emitted when a loan is unfrozen.
     /// @param loanId The unique identifier of the loan.
     event LoanUnfrozen(uint256 indexed loanId);
+
+    /// @dev Emitted when a loan is revoked.
+    /// @param loanId The unique identifier of the loan.
+    event LoanRevoked(uint256 indexed loanId);
 
     /// @dev Emitted when the duration of the loan is updated.
     /// @param loanId The unique identifier of the loan.
@@ -155,10 +155,6 @@ interface ILendingMarket {
     /// @param repayAmount The amount to repay or `type(uint256).max` to repay the remaining balance of the loan.
     function repayLoan(uint256 loanId, uint256 repayAmount) external;
 
-    /// @dev Revokes a loan.
-    /// @param loanId The unique identifier of the loan to revoke.
-    function revokeLoan(uint256 loanId) external;
-
     // -------------------------------------------- //
     //  Lender functions                            //
     // -------------------------------------------- //
@@ -217,6 +213,14 @@ interface ILendingMarket {
     function configureAlias(address account, bool isAlias) external;
 
     // -------------------------------------------- //
+    //  Borrower OR Lender functions                //
+    // -------------------------------------------- //
+
+    /// @dev Revokes a loan.
+    /// @param loanId The unique identifier of the loan to revoke.
+    function revokeLoan(uint256 loanId) external;
+
+    // -------------------------------------------- //
     //  View functions                              //
     // -------------------------------------------- //
 
@@ -245,6 +249,11 @@ interface ILendingMarket {
     /// @param timestamp The timestamp to get the loan preview for.
     /// @return The preview state of the loan (see the Loan.Preview struct).
     function getLoanPreview(uint256 loanId, uint256 timestamp) external view returns (Loan.Preview memory);
+
+    /// @dev Checks if the provided account is a lender or an alias for a lender of a given loan.
+    /// @param loanId The unique identifier of the loan to check.
+    /// @param account The address to check whether it's a lender or an alias.
+    function isLenderOrAlias(uint256 loanId, address account) external view returns (bool);
 
     /// @dev Checks if the provided account is an alias for a lender.
     /// @param lender The address of the lender to check alias for.

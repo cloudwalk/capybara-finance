@@ -69,10 +69,10 @@ contract LendingMarketTest is Test {
         uint256 repayAmount,
         uint256 outstandingBalance
     );
-    event LoanRevoked(uint256 indexed loanId);
 
     event LoanFrozen(uint256 indexed loanId);
     event LoanUnfrozen(uint256 indexed loanId);
+    event LoanRevoked(uint256 indexed loanId);
 
     event LoanDurationUpdated(
         uint256 indexed loanId,
@@ -143,8 +143,6 @@ contract LendingMarketTest is Test {
     uint32 private constant CREDIT_LINE_CONFIG_MAX_ADDON_FIXED_RATE = 50;
     uint32 private constant CREDIT_LINE_CONFIG_MIN_ADDON_PERIOD_RATE = 10;
     uint32 private constant CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_RATE = 50;
-    uint8 private constant CREDIT_LINE_CONFIG_MIN_COOLDOWN_PERIODS = 2;
-    uint8 private constant CREDIT_LINE_CONFIG_MAX_COOLDOWN_PERIODS = 4;
 
     uint32 private constant BORROWER_CONFIG_ADDON_FIXED_RATE = 15;
     uint32 private constant BORROWER_CONFIG_ADDON_PERIOD_RATE = 20;
@@ -155,8 +153,6 @@ contract LendingMarketTest is Test {
     uint64 private constant BORROWER_CONFIG_MAX_BORROW_AMOUNT = 800;
     uint32 private constant BORROWER_CONFIG_INTEREST_RATE_PRIMARY = 5;
     uint32 private constant BORROWER_CONFIG_INTEREST_RATE_SECONDARY = 6;
-    uint8 private constant BORROWER_CONFIG_COOLDOWN_PERIODS = 3;
-    bool private constant BORROWER_CONFIG_AUTOREPAYMENT = true;
     Interest.Formula private constant BORROWER_CONFIG_INTEREST_FORMULA_COMPOUND = Interest.Formula.Compound;
     ICreditLineConfigurable.BorrowPolicy private constant BORROWER_CONFIG_BORROW_POLICY_DECREASE =
         ICreditLineConfigurable.BorrowPolicy.Reset;
@@ -212,9 +208,7 @@ contract LendingMarketTest is Test {
             addonFixedRate: BORROWER_CONFIG_ADDON_FIXED_RATE,
             addonPeriodRate: BORROWER_CONFIG_ADDON_PERIOD_RATE,
             interestFormula: BORROWER_CONFIG_INTEREST_FORMULA_COMPOUND,
-            borrowPolicy: BORROWER_CONFIG_BORROW_POLICY_DECREASE,
-            autoRepayment: BORROWER_CONFIG_AUTOREPAYMENT,
-            cooldownPeriods: BORROWER_CONFIG_COOLDOWN_PERIODS
+            borrowPolicy: BORROWER_CONFIG_BORROW_POLICY_DECREASE
         });
     }
 
@@ -250,13 +244,11 @@ contract LendingMarketTest is Test {
             minAddonFixedRate: CREDIT_LINE_CONFIG_MIN_ADDON_FIXED_RATE,
             maxAddonFixedRate: CREDIT_LINE_CONFIG_MAX_ADDON_FIXED_RATE,
             minAddonPeriodRate: CREDIT_LINE_CONFIG_MIN_ADDON_PERIOD_RATE,
-            maxAddonPeriodRate: CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_RATE,
-            minCooldownPeriods: CREDIT_LINE_CONFIG_MIN_COOLDOWN_PERIODS,
-            maxCooldownPeriods: CREDIT_LINE_CONFIG_MAX_COOLDOWN_PERIODS
+            maxAddonPeriodRate: CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_RATE
         });
     }
 
-    function mockLoanTerms(address borrower, uint256 borrowAmount, bool autoRepayment) private returns (Loan.Terms memory) {
+    function mockLoanTerms(address borrower, uint256 borrowAmount) private returns (Loan.Terms memory) {
         ICreditLineConfigurable.CreditLineConfig memory creditLineConfig = initCreditLineConfig();
         ICreditLineConfigurable.BorrowerConfig memory borrowerConfig = initBorrowerConfig(0);
 
@@ -267,9 +259,7 @@ contract LendingMarketTest is Test {
             interestRatePrimary: borrowerConfig.interestRatePrimary,
             interestRateSecondary: borrowerConfig.interestRateSecondary,
             interestFormula: borrowerConfig.interestFormula,
-            autoRepayment: autoRepayment,
-            addonAmount: ADDON_AMOUNT,
-            cooldownPeriods: borrowerConfig.cooldownPeriods
+            addonAmount: ADDON_AMOUNT
         });
 
         creditLine.mockLoanTerms(borrower, borrowAmount, terms);
@@ -277,8 +267,8 @@ contract LendingMarketTest is Test {
         return terms;
     }
 
-    function createLoan(address borrower, uint256 borrowAmount, bool autoRepayment) private returns (uint256) {
-        Loan.Terms memory terms = mockLoanTerms(borrower, borrowAmount, autoRepayment);
+    function createLoan(address borrower, uint256 borrowAmount) private returns (uint256) {
+        Loan.Terms memory terms = mockLoanTerms(borrower, borrowAmount);
         token.mint(address(liquidityPool), borrowAmount + terms.addonAmount);
 
         vm.prank(borrower);
@@ -314,10 +304,9 @@ contract LendingMarketTest is Test {
     function createActiveLoan(
         address borrower,
         uint256 borrowAmount,
-        bool autoRepayment,
         uint256 skipPeriods
     ) private returns (uint256) {
-        Loan.Terms memory terms = mockLoanTerms(borrower, borrowAmount, autoRepayment);
+        Loan.Terms memory terms = mockLoanTerms(borrower, borrowAmount);
         token.mint(address(liquidityPool), borrowAmount + terms.addonAmount);
 
         vm.prank(borrower);
@@ -332,10 +321,9 @@ contract LendingMarketTest is Test {
         address lender,
         address borrower,
         uint256 borrowAmount,
-        bool autoRepayment,
         uint256 skipPeriods
     ) private returns (uint256) {
-        uint256 loanId = createActiveLoan(borrower, borrowAmount, autoRepayment, skipPeriods);
+        uint256 loanId = createActiveLoan(borrower, borrowAmount, skipPeriods);
 
         vm.prank(lender);
         market.freeze(loanId);
@@ -346,10 +334,9 @@ contract LendingMarketTest is Test {
     function createDefaultedLoan(
         address borrower,
         uint256 borrowAmount,
-        bool autoRepayment,
         uint256 skipPeriods
     ) private returns (uint256) {
-        uint256 loanId = createActiveLoan(borrower, borrowAmount, autoRepayment, 0);
+        uint256 loanId = createActiveLoan(borrower, borrowAmount, 0);
         Loan.State memory loan = market.getLoanState(loanId);
 
         skip(Constants.PERIOD_IN_SECONDS * loan.durationInPeriods);
@@ -361,10 +348,9 @@ contract LendingMarketTest is Test {
     function createRepaidLoan(
         address borrower,
         uint256 borrowAmount,
-        bool autoRepayment,
         uint256 skipPeriods
     ) private returns (uint256) {
-        uint256 loanId = createActiveLoan(borrower, borrowAmount, autoRepayment, skipPeriods);
+        uint256 loanId = createActiveLoan(borrower, borrowAmount, skipPeriods);
 
         uint256 outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
         token.mint(borrower, outstandingBalance);
@@ -785,7 +771,7 @@ contract LendingMarketTest is Test {
     function test_takeLoan() public {
         configureMarket();
 
-        Loan.Terms memory terms = mockLoanTerms(BORROWER, BORROW_AMOUNT, false);
+        Loan.Terms memory terms = mockLoanTerms(BORROWER, BORROW_AMOUNT);
         uint256 totalBorrowAmount = BORROW_AMOUNT + terms.addonAmount;
         uint256 loanId = 0;
 
@@ -818,12 +804,11 @@ contract LendingMarketTest is Test {
         assertEq(loan.startTimestamp, blockTimestamp());
         assertEq(loan.trackedTimestamp, blockTimestamp());
         assertEq(loan.freezeTimestamp, 0);
-        assertEq(loan.initialBorrowAmount, totalBorrowAmount);
-        assertEq(loan.trackedBorrowBalance, totalBorrowAmount);
+        assertEq(loan.borrowAmount, BORROW_AMOUNT);
+        assertEq(loan.trackedBalance, totalBorrowAmount);
+        assertEq(loan.repaidAmount, 0);
         assertEq(loan.addonAmount, terms.addonAmount);
-        assertEq(loan.autoRepayment, terms.autoRepayment);
         assertEq(loan.durationInPeriods, terms.durationInPeriods);
-        assertEq(loan.cooldownPeriods, terms.cooldownPeriods);
         assertEq(loan.interestRatePrimary, terms.interestRatePrimary);
         assertEq(loan.interestRateSecondary, terms.interestRateSecondary);
         assertEq(uint256(loan.interestFormula), uint256(terms.interestFormula));
@@ -831,7 +816,7 @@ contract LendingMarketTest is Test {
 
     function test_takeLoan_Revert_IfContractIsPaused() public {
         configureMarket();
-        Loan.Terms memory terms = mockLoanTerms(BORROWER, BORROW_AMOUNT, false);
+        Loan.Terms memory terms = mockLoanTerms(BORROWER, BORROW_AMOUNT);
 
         vm.prank(OWNER);
         market.pause();
@@ -843,7 +828,7 @@ contract LendingMarketTest is Test {
 
     function test_takeLoan_Revert_IfBorrowAmountIsZero() public {
         configureMarket();
-        Loan.Terms memory terms = mockLoanTerms(BORROWER, BORROW_AMOUNT, false);
+        Loan.Terms memory terms = mockLoanTerms(BORROWER, BORROW_AMOUNT);
 
         vm.prank(BORROWER);
         vm.expectRevert(Error.InvalidAmount.selector);
@@ -852,7 +837,7 @@ contract LendingMarketTest is Test {
 
     function test_takeLoan_Revert_IfCreditLineIsZeroAddress() public {
         configureMarket();
-        Loan.Terms memory terms = mockLoanTerms(BORROWER, BORROW_AMOUNT, false);
+        Loan.Terms memory terms = mockLoanTerms(BORROWER, BORROW_AMOUNT);
 
         vm.prank(BORROWER);
         vm.expectRevert(Error.ZeroAddress.selector);
@@ -860,7 +845,7 @@ contract LendingMarketTest is Test {
     }
 
     function test_takeLoan_Revert_IfCreditLineIsNotRegistered() public {
-        Loan.Terms memory terms = mockLoanTerms(BORROWER, BORROW_AMOUNT, false);
+        Loan.Terms memory terms = mockLoanTerms(BORROWER, BORROW_AMOUNT);
 
         vm.prank(BORROWER);
         vm.expectRevert(LendingMarket.CreditLineNotRegistered.selector);
@@ -868,7 +853,7 @@ contract LendingMarketTest is Test {
     }
 
     function test_takeLoan_Revert_IfLiquidityPoolIsNotRegistered() public {
-        Loan.Terms memory terms = mockLoanTerms(BORROWER, BORROW_AMOUNT, false);
+        Loan.Terms memory terms = mockLoanTerms(BORROWER, BORROW_AMOUNT);
 
         vm.prank(OWNER);
         market.registerCreditLine(LENDER, address(creditLine));
@@ -884,13 +869,13 @@ contract LendingMarketTest is Test {
 
     function repayLoan(
         uint256 loanId,
-        bool autoRepaymnet,
+        bool autoRepayment,
         uint256 skipPeriodsBeforePartialRepayment,
         uint256 skipPeriodsFullRepayment
     ) private {
         Loan.State memory loan = market.getLoanState(loanId);
 
-        if (!autoRepaymnet) {
+        if (!autoRepayment) {
             vm.startPrank(loan.borrower);
         } else {
             vm.startPrank(loan.treasury);
@@ -903,19 +888,22 @@ contract LendingMarketTest is Test {
         skip(Constants.PERIOD_IN_SECONDS * skipPeriodsBeforePartialRepayment);
 
         uint256 outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
-        uint256 repayAmount = outstandingBalance / 2;
-        outstandingBalance -= repayAmount;
-        token.mint(loan.borrower, repayAmount);
+        uint256 partialRepayAmount = outstandingBalance / 2;
+        outstandingBalance -= partialRepayAmount;
+
+        token.mint(loan.borrower, partialRepayAmount);
 
         vm.expectEmit(true, true, true, true, loan.treasury);
-        emit OnBeforeLoanPaymentCalled(loanId, repayAmount);
+        emit OnBeforeLoanPaymentCalled(loanId, partialRepayAmount);
         vm.expectEmit(true, true, true, true, loan.treasury);
-        emit OnAfterLoanPaymentCalled(loanId, repayAmount);
+        emit OnAfterLoanPaymentCalled(loanId, partialRepayAmount);
         vm.expectEmit(true, true, true, true, address(market));
-        emit LoanRepayment(loanId, loan.borrower, loan.borrower, repayAmount, outstandingBalance);
+        emit LoanRepayment(loanId, loan.borrower, loan.borrower, partialRepayAmount, outstandingBalance);
 
-        market.repayLoan(loanId, repayAmount);
+        market.repayLoan(loanId, partialRepayAmount);
 
+        loan = market.getLoanState(loanId);
+        assertEq(loan.repaidAmount, partialRepayAmount);
         assertEq(market.getLoanPreview(loanId, 0).outstandingBalance, outstandingBalance);
         assertNotEq(market.ownerOf(loanId), loan.borrower);
 
@@ -923,18 +911,20 @@ contract LendingMarketTest is Test {
 
         skip(Constants.PERIOD_IN_SECONDS * skipPeriodsFullRepayment);
 
-        outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
-        token.mint(loan.borrower, outstandingBalance);
+        uint256 fullRepayAmount = market.getLoanPreview(loanId, 0).outstandingBalance;
+        token.mint(loan.borrower, fullRepayAmount);
 
         vm.expectEmit(true, true, true, true, loan.treasury);
-        emit OnBeforeLoanPaymentCalled(loanId, outstandingBalance);
+        emit OnBeforeLoanPaymentCalled(loanId, fullRepayAmount);
         vm.expectEmit(true, true, true, true, loan.treasury);
-        emit OnAfterLoanPaymentCalled(loanId, outstandingBalance);
+        emit OnAfterLoanPaymentCalled(loanId, fullRepayAmount);
         vm.expectEmit(true, true, true, true, address(market));
-        emit LoanRepayment(loanId, loan.borrower, loan.borrower, outstandingBalance, 0);
+        emit LoanRepayment(loanId, loan.borrower, loan.borrower, fullRepayAmount, 0);
 
-        market.repayLoan(loanId, outstandingBalance);
+        market.repayLoan(loanId, fullRepayAmount);
 
+        loan = market.getLoanState(loanId);
+        assertEq(loan.repaidAmount, partialRepayAmount + fullRepayAmount);
         assertEq(market.getLoanPreview(loanId, 0).outstandingBalance, 0);
         assertEq(market.ownerOf(loanId), loan.borrower);
     }
@@ -946,7 +936,7 @@ contract LendingMarketTest is Test {
         uint256 skipPeriodsBeforePartialRepayment = 5;
         uint256 skipPeriodsFullRepayment = 10;
 
-        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT, autoRepayment);
+        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT);
 
         repayLoan(loanId, autoRepayment, skipPeriodsBeforePartialRepayment, skipPeriodsFullRepayment);
     }
@@ -958,7 +948,7 @@ contract LendingMarketTest is Test {
         uint256 skipPeriodsBeforePartialRepayment = 5;
         uint256 skipPeriodsFullRepayment = 10;
 
-        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT, autoRepayment);
+        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT);
         freezeLoan(LENDER, loanId);
 
         repayLoan(loanId, autoRepayment, skipPeriodsBeforePartialRepayment, skipPeriodsFullRepayment);
@@ -971,7 +961,7 @@ contract LendingMarketTest is Test {
         uint256 skipPeriodsBeforePartialRepayment = 5;
         uint256 skipPeriodsFullRepayment = 10;
 
-        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT, autoRepayment);
+        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT);
         defaultLoan(loanId);
 
         repayLoan(loanId, autoRepayment, skipPeriodsBeforePartialRepayment, skipPeriodsFullRepayment);
@@ -984,7 +974,7 @@ contract LendingMarketTest is Test {
         uint256 skipPeriodsBeforePartialRepayment = 5;
         uint256 skipPeriodsFullRepayment = 10;
 
-        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT, autoRepayment);
+        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT);
 
         repayLoan(loanId, autoRepayment, skipPeriodsBeforePartialRepayment, skipPeriodsFullRepayment);
     }
@@ -996,7 +986,7 @@ contract LendingMarketTest is Test {
         uint256 skipPeriodsBeforePartialRepayment = 5;
         uint256 skipPeriodsFullRepayment = 10;
 
-        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT, autoRepayment);
+        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT);
         freezeLoan(LENDER, loanId);
 
         repayLoan(loanId, autoRepayment, skipPeriodsBeforePartialRepayment, skipPeriodsFullRepayment);
@@ -1008,7 +998,7 @@ contract LendingMarketTest is Test {
         uint256 skipPeriodsBeforePartialRepayment = 5;
         uint256 skipPeriodsFullRepayment = 10;
 
-        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT, autoRepayment);
+        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT);
         defaultLoan(loanId);
 
         repayLoan(loanId, autoRepayment, skipPeriodsBeforePartialRepayment, skipPeriodsFullRepayment);
@@ -1017,8 +1007,7 @@ contract LendingMarketTest is Test {
     function test_repayLoan_IfRepaymentAmountIsUint256Max() public {
         configureMarket();
 
-        bool autoRepayment = false;
-        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT, autoRepayment);
+        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT);
 
         uint256 outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
         token.mint(BORROWER, outstandingBalance);
@@ -1035,8 +1024,7 @@ contract LendingMarketTest is Test {
     function test_repayLoan_Revert_IfContractIsPaused() public {
         configureMarket();
 
-        bool autoRepayment = false;
-        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT, autoRepayment);
+        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT);
         uint256 repayAmount = market.getLoanPreview(loanId, 0).outstandingBalance;
 
         vm.prank(OWNER);
@@ -1050,8 +1038,7 @@ contract LendingMarketTest is Test {
     function test_repayLoan_Revert_IfLoanNotExist() public {
         configureMarket();
 
-        bool autoRepayment = false;
-        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT, autoRepayment);
+        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT);
         uint256 repayAmount = market.getLoanPreview(loanId, 0).outstandingBalance;
         uint256 nonExistentLoanId = loanId + 1;
 
@@ -1062,9 +1049,8 @@ contract LendingMarketTest is Test {
 
     function test_repayLoan_Revert_IfBorrowerAndLoanIsRepaid() public {
         configureMarket();
-        bool autoRepayment = false;
 
-        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT, autoRepayment);
+        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT);
         repayLoan(loanId);
 
         Loan.State memory loan = market.getLoanState(loanId);
@@ -1077,8 +1063,7 @@ contract LendingMarketTest is Test {
 
     function test_repayLoan_Revert_IfBorrowerAndRepayAmountIsZero() public {
         configureMarket();
-        bool autoRepayment = false;
-        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT, autoRepayment);
+        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT);
         uint256 repayAmount = 0;
 
         vm.prank(BORROWER);
@@ -1088,8 +1073,7 @@ contract LendingMarketTest is Test {
 
     function test_repayLoan_Revert_IfBorrowerAndInvalidRepayAmount() public {
         configureMarket();
-        bool autoRepayment = false;
-        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT, autoRepayment);
+        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT);
         uint256 repayAmount = market.getLoanPreview(loanId, 0).outstandingBalance + 1;
 
         vm.prank(BORROWER);
@@ -1099,9 +1083,8 @@ contract LendingMarketTest is Test {
 
     function test_repayLoan_Revert_IfTreasuryAndLoanIsRepaid() public {
         configureMarket();
-        bool autoRepayment = true;
 
-        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT, autoRepayment);
+        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT);
         repayLoan(loanId);
 
         Loan.State memory loan = market.getLoanState(loanId);
@@ -1114,8 +1097,7 @@ contract LendingMarketTest is Test {
 
     function test_repayLoan_Revert_IfTreasuryAndRepayAmountIsZero() public {
         configureMarket();
-        bool autoRepayment = true;
-        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT, autoRepayment);
+        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT);
 
         Loan.State memory loan = market.getLoanState(loanId);
         uint256 repayAmount = 0;
@@ -1127,8 +1109,7 @@ contract LendingMarketTest is Test {
 
     function test_repayLoan_Revert_IfTreasuryAndInvalidRepayAmount() public {
         configureMarket();
-        bool autoRepayment = true;
-        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT, autoRepayment);
+        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT);
 
         Loan.State memory loan = market.getLoanState(loanId);
         uint256 repayAmount = market.getLoanPreview(loanId, 0).outstandingBalance + 1;
@@ -1138,101 +1119,188 @@ contract LendingMarketTest is Test {
         market.repayLoan(loanId, repayAmount);
     }
 
-    function test_repayLoan_Revert_IfAutoRepaymentIsNotAllowed() public {
-        configureMarket();
-        bool autoRepayment = false;
-        uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT, autoRepayment);
-
-        Loan.State memory loan = market.getLoanState(loanId);
-        uint256 repayAmount = market.getLoanPreview(loanId, 0).outstandingBalance;
-
-        vm.prank(loan.treasury);
-        vm.expectRevert(LendingMarket.AutoRepaymentNotAllowed.selector);
-        market.repayLoan(loanId, repayAmount);
-    }
-
     // -------------------------------------------- //
     //  Test `revokeLoan` function                  //
     // -------------------------------------------- //
 
-    function test_revokeLoan() public {
+    function revokeLoanIfRepaidAmountZero(address caller) private {
         configureMarket();
 
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 0);
+        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, 0);
         Loan.State memory loan = market.getLoanState(loanId);
+        assertTrue(Constants.COOLDOWN_IN_PERIODS >= 2);
+
+        skip(Constants.PERIOD_IN_SECONDS * (Constants.COOLDOWN_IN_PERIODS - 1));
 
         uint256 borrowerBalance = token.balanceOf(loan.borrower);
         uint256 treasuryBalance = token.balanceOf(loan.treasury);
-        uint256 borrowAmount = loan.initialBorrowAmount - loan.addonAmount;
-
-        skip(Constants.PERIOD_IN_SECONDS * (loan.cooldownPeriods - 1));
 
         vm.expectEmit(true, true, true, true, address(liquidityPool));
         emit OnBeforeLoanRevocationCalled(loanId);
-        vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit OnAfterLoanRevocationCalled(loanId);
+
         vm.expectEmit(true, true, true, true, address(market));
         emit LoanRevoked(loanId);
 
-        vm.prank(loan.borrower);
+        vm.expectEmit(true, true, true, true, address(liquidityPool));
+        emit OnAfterLoanRevocationCalled(loanId);
+
+        vm.prank(caller);
         market.revokeLoan(loanId);
 
         loan = market.getLoanState(loanId);
-        assertEq(loan.trackedBorrowBalance, 0);
-        assertEq(token.balanceOf(loan.borrower), borrowerBalance - borrowAmount);
-        assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance + borrowAmount);
+        assertEq(loan.trackedBalance, 0);
+        assertEq(token.balanceOf(loan.borrower), borrowerBalance - loan.borrowAmount);
+        assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance + loan.borrowAmount);
+    }
+
+    function revokeLoanIfRepaidAmountLessThanBorrowAmount(address caller) private {
+        configureMarket();
+
+        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, 0);
+        Loan.State memory loan = market.getLoanState(loanId);
+        assertTrue(Constants.COOLDOWN_IN_PERIODS >= 2);
+
+        skip(Constants.PERIOD_IN_SECONDS * (Constants.COOLDOWN_IN_PERIODS - 1));
+
+        uint256 repayAmount = loan.borrowAmount / 3;
+        uint256 revokeAmount = loan.borrowAmount - repayAmount;
+
+        token.mint(loan.borrower, repayAmount);
+        vm.prank(loan.borrower);
+        market.repayLoan(loanId, repayAmount);
+
+        uint256 borrowerBalance = token.balanceOf(loan.borrower);
+        uint256 treasuryBalance = token.balanceOf(loan.treasury);
+
+        vm.expectEmit(true, true, true, true, address(liquidityPool));
+        emit OnBeforeLoanRevocationCalled(loanId);
+
+        vm.expectEmit(true, true, true, true, address(market));
+        emit LoanRevoked(loanId);
+
+        vm.expectEmit(true, true, true, true, address(liquidityPool));
+        emit OnAfterLoanRevocationCalled(loanId);
+
+        vm.prank(caller);
+        market.revokeLoan(loanId);
+
+        loan = market.getLoanState(loanId);
+        assertEq(loan.trackedBalance, 0);
+        assertEq(token.balanceOf(loan.borrower), borrowerBalance - revokeAmount);
+        assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance + revokeAmount);
+    }
+
+    function revokeLoanIfRepaidAmountGreaterThanBorrowAmount(address caller) private {
+        configureMarket();
+
+        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, 0);
+        Loan.State memory loan = market.getLoanState(loanId);
+        assertTrue(Constants.COOLDOWN_IN_PERIODS >= 2);
+        assertTrue(loan.addonAmount >= 2);
+
+        skip(Constants.PERIOD_IN_SECONDS * (Constants.COOLDOWN_IN_PERIODS - 1));
+
+        uint256 repayAmount = loan.borrowAmount  +  loan.addonAmount / 2;
+        uint256 revokeAmount = repayAmount - loan.borrowAmount;
+
+        token.mint(loan.borrower, repayAmount);
+        vm.prank(loan.borrower);
+        market.repayLoan(loanId, repayAmount);
+
+        uint256 borrowerBalance = token.balanceOf(loan.borrower);
+        uint256 treasuryBalance = token.balanceOf(loan.treasury);
+
+        vm.expectEmit(true, true, true, true, address(liquidityPool));
+        emit OnBeforeLoanRevocationCalled(loanId);
+
+        vm.expectEmit(true, true, true, true, address(market));
+        emit LoanRevoked(loanId);
+
+        vm.expectEmit(true, true, true, true, address(liquidityPool));
+        emit OnAfterLoanRevocationCalled(loanId);
+
+        vm.prank(caller);
+        market.revokeLoan(loanId);
+
+        loan = market.getLoanState(loanId);
+        assertEq(loan.trackedBalance, 0);
+        assertEq(token.balanceOf(loan.borrower), borrowerBalance + revokeAmount);
+        assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance - revokeAmount);
+    }
+
+    function test_revokeLoan_Borrower_IfRepaidAmountZero() public {
+        revokeLoanIfRepaidAmountZero(BORROWER);
+    }
+
+    function test_revokeLoan_Borrower_IfRepaidAmountLessThanBorrowAmount() public {
+        revokeLoanIfRepaidAmountLessThanBorrowAmount(BORROWER);
+    }
+
+    function test_revokeLoan_Borrower_IfRepaidAmountGreaterThanBorrowAmount() public {
+        revokeLoanIfRepaidAmountGreaterThanBorrowAmount(BORROWER);
+    }
+
+    function test_revokeLoan_Lender_IfRepaidAmountZero() public {
+        revokeLoanIfRepaidAmountZero(LENDER);
+    }
+
+    function test_revokeLoan_Lender_IfRepaidAmountLessThanBorrowAmount() public {
+        revokeLoanIfRepaidAmountLessThanBorrowAmount(LENDER);
+    }
+
+    function test_revokeLoan_Lender_IfRepaidAmountGreaterThanBorrowAmount() public {
+        revokeLoanIfRepaidAmountGreaterThanBorrowAmount(LENDER);
+    }
+
+    function test_revokeLoan_LenderAlias_IfRepaidAmountZero() public {
+        vm.prank(LENDER);
+        market.configureAlias(LENDER_ALIAS, true);
+        revokeLoanIfRepaidAmountZero(LENDER_ALIAS);
+    }
+
+    function test_revokeLoan_LenderAlias_IfRepaidAmountLessThanBorrowAmount() public {
+        vm.prank(LENDER);
+        market.configureAlias(LENDER_ALIAS, true);
+        revokeLoanIfRepaidAmountLessThanBorrowAmount(LENDER_ALIAS);
+    }
+
+    function test_revokeLoan_LenderAlias_IfRepaidAmountGreaterThanBorrowAmount() public {
+        vm.prank(LENDER);
+        market.configureAlias(LENDER_ALIAS, true);
+        revokeLoanIfRepaidAmountGreaterThanBorrowAmount(LENDER_ALIAS);
     }
 
     function test_revokeLoan_Revert_IfContractIsPaused() public {
         configureMarket();
 
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 0);
+        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, 0);
 
         vm.startPrank(OWNER);
         market.pause();
 
-        vm.startPrank(BORROWER);
+        vm.startPrank(LENDER);
         vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
         market.revokeLoan(loanId);
     }
 
     function test_revokeLoan_Revert_IfLoanNotExist() public {
         configureMarket();
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 0);
+
+        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, 0);
         uint256 nonExistentLoanId = loanId + 1;
 
-        vm.prank(BORROWER);
+        vm.prank(LENDER);
         vm.expectRevert(LendingMarket.LoanNotExist.selector);
         market.revokeLoan(nonExistentLoanId);
     }
 
-    function test_revokeLoan_Revert_IfRevocationIsProhibited() public {
+    function test_revokeLoan_Revert_IfUnauthorized() public {
         configureMarket();
 
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 1);
-        Loan.State memory loan = market.getLoanState(loanId);
-        assertEq(loan.trackedTimestamp, loan.startTimestamp);
+        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, 0);
 
-        skip(1);
-
-        vm.prank(BORROWER);
-        market.repayLoan(loanId, 1);
-
-        vm.expectRevert(LendingMarket.RevocationIsProhibited.selector);
-        market.revokeLoan(loanId);
-    }
-
-    function test_revokeLoan_Revert_IfCooldownPeriodHasPassed() public {
-        configureMarket();
-
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 1);
-        Loan.State memory loan = market.getLoanState(loanId);
-        assertEq(loan.trackedTimestamp, loan.startTimestamp);
-
-        skip(Constants.PERIOD_IN_SECONDS * loan.cooldownPeriods);
-
-        vm.prank(BORROWER);
-        vm.expectRevert(LendingMarket.CooldownPeriodHasPassed.selector);
+        vm.prank(ATTACKER);
+        vm.expectRevert(Error.Unauthorized.selector);
         market.revokeLoan(loanId);
     }
 
@@ -1242,7 +1310,7 @@ contract LendingMarketTest is Test {
 
     function test_freeze(address lenderOrAlias) private {
         configureMarket();
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 1);
+        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, 1);
 
         Loan.State memory loan = market.getLoanState(loanId);
         assertNotEq(loan.freezeTimestamp, blockTimestamp());
@@ -1270,7 +1338,7 @@ contract LendingMarketTest is Test {
 
     function test_freeze_Revert_IfContractIsPaused() public {
         configureMarket();
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 1);
+        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, 1);
 
         vm.prank(OWNER);
         market.pause();
@@ -1282,7 +1350,7 @@ contract LendingMarketTest is Test {
 
     function test_freeze_Revert_IfCallerNotLender() public {
         configureMarket();
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 1);
+        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, 1);
 
         vm.prank(ATTACKER);
         vm.expectRevert(Error.Unauthorized.selector);
@@ -1291,7 +1359,7 @@ contract LendingMarketTest is Test {
 
     function test_freeze_Revert_IfLoanNotExist() public {
         configureMarket();
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 0);
+        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, 0);
         uint256 nonExistentLoanId = loanId + 1;
 
         vm.prank(LENDER);
@@ -1301,7 +1369,7 @@ contract LendingMarketTest is Test {
 
     function test_freeze_Revert_IfLoanIsRepaid() public {
         configureMarket();
-        uint256 loanId = createRepaidLoan(BORROWER, BORROW_AMOUNT, false, 1);
+        uint256 loanId = createRepaidLoan(BORROWER, BORROW_AMOUNT, 1);
 
         vm.prank(LENDER);
         vm.expectRevert(LendingMarket.LoanAlreadyRepaid.selector);
@@ -1310,7 +1378,7 @@ contract LendingMarketTest is Test {
 
     function test_freeze_Revert_IfLoanIsFrozen() public {
         configureMarket();
-        uint256 loanId = createFrozenLoan(LENDER, BORROWER, BORROW_AMOUNT, false, 1);
+        uint256 loanId = createFrozenLoan(LENDER, BORROWER, BORROW_AMOUNT, 1);
 
         vm.prank(LENDER);
         vm.expectRevert(LendingMarket.LoanAlreadyFrozen.selector);
@@ -1323,7 +1391,7 @@ contract LendingMarketTest is Test {
 
     function test_unfreeze(address lenderOrAlias) private {
         configureMarket();
-        uint256 loanId = createFrozenLoan(LENDER, BORROWER, BORROW_AMOUNT, false, 0);
+        uint256 loanId = createFrozenLoan(LENDER, BORROWER, BORROW_AMOUNT, 0);
 
         Loan.State memory loan = market.getLoanState(loanId);
         assertNotEq(loan.freezeTimestamp, 0);
@@ -1350,7 +1418,7 @@ contract LendingMarketTest is Test {
 
     function test_unfreeze_IfSamePeriod() public {
         configureMarket();
-        uint256 loanId = createFrozenLoan(LENDER, BORROWER, BORROW_AMOUNT, false, 0);
+        uint256 loanId = createFrozenLoan(LENDER, BORROWER, BORROW_AMOUNT, 0);
 
         Loan.State memory loan = market.getLoanState(loanId);
         Loan.Preview memory preview = market.getLoanPreview(loanId, 0);
@@ -1372,7 +1440,7 @@ contract LendingMarketTest is Test {
 
     function test_unfreeze_IfDifferentPeriod() public {
         configureMarket();
-        uint256 loanId = createFrozenLoan(LENDER, BORROWER, BORROW_AMOUNT, false, 0);
+        uint256 loanId = createFrozenLoan(LENDER, BORROWER, BORROW_AMOUNT, 0);
 
         Loan.State memory loan = market.getLoanState(loanId);
         Loan.Preview memory preview = market.getLoanPreview(loanId, 0);
@@ -1400,7 +1468,7 @@ contract LendingMarketTest is Test {
 
     function test_unfreeze_Revert_IfContractIsPaused() public {
         configureMarket();
-        uint256 loanId = createFrozenLoan(LENDER, BORROWER, BORROW_AMOUNT, false, 1);
+        uint256 loanId = createFrozenLoan(LENDER, BORROWER, BORROW_AMOUNT, 1);
 
         vm.prank(OWNER);
         market.pause();
@@ -1412,7 +1480,7 @@ contract LendingMarketTest is Test {
 
     function test_unfreeze_Revert_IfCallerNotLender() public {
         configureMarket();
-        uint256 loanId = createFrozenLoan(LENDER, BORROWER, BORROW_AMOUNT, false, 1);
+        uint256 loanId = createFrozenLoan(LENDER, BORROWER, BORROW_AMOUNT, 1);
 
         vm.prank(ATTACKER);
         vm.expectRevert(Error.Unauthorized.selector);
@@ -1421,7 +1489,7 @@ contract LendingMarketTest is Test {
 
     function test_unfreeze_Revert_IfLoanNotExist() public {
         configureMarket();
-        uint256 loanId = createFrozenLoan(LENDER, BORROWER, BORROW_AMOUNT, false, 0);
+        uint256 loanId = createFrozenLoan(LENDER, BORROWER, BORROW_AMOUNT, 0);
         uint256 nonExistentLoanId = loanId + 1;
 
         vm.prank(LENDER);
@@ -1431,7 +1499,7 @@ contract LendingMarketTest is Test {
 
     function test_unfreeze_Revert_IfLoanIsRepaid() public {
         configureMarket();
-        uint256 loanId = createRepaidLoan(BORROWER, BORROW_AMOUNT, false, 1);
+        uint256 loanId = createRepaidLoan(BORROWER, BORROW_AMOUNT, 1);
 
         vm.prank(LENDER);
         vm.expectRevert(LendingMarket.LoanAlreadyRepaid.selector);
@@ -1440,7 +1508,7 @@ contract LendingMarketTest is Test {
 
     function test_unfreeze_Revert_IfLoanNotFrozen() public {
         configureMarket();
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 1);
+        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, 1);
 
         vm.prank(LENDER);
         vm.expectRevert(LendingMarket.LoanNotFrozen.selector);
@@ -1454,7 +1522,7 @@ contract LendingMarketTest is Test {
     function test_updateLoanDuration(address lender) private {
         configureMarket();
 
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 1);
+        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, 1);
         Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 newDurationInPeriods = loan.durationInPeriods + 2;
@@ -1482,7 +1550,7 @@ contract LendingMarketTest is Test {
     function test_updateLoanDuration_Revert_IfContractIsPaused() public {
         configureMarket();
 
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 1);
+        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, 1);
         Loan.State memory loan = market.getLoanState(loanId);
 
         vm.prank(OWNER);
@@ -1498,7 +1566,7 @@ contract LendingMarketTest is Test {
     function test_updateLoanDuration_Revert_IfCallerNotLender() public {
         configureMarket();
 
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 1);
+        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, 1);
         Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 newDurationInPeriods = loan.durationInPeriods + 2;
@@ -1510,7 +1578,7 @@ contract LendingMarketTest is Test {
 
     function test_updateLoanDuration_Revert_IfLoanNotExist() public {
         configureMarket();
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 0);
+        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, 0);
         uint256 nonExistentLoanId = loanId + 1;
         uint256 newDurationInPeriods = 10;
 
@@ -1522,7 +1590,7 @@ contract LendingMarketTest is Test {
     function test_updateLoanDuration_Revert_IfRepaidLoan() public {
         configureMarket();
 
-        uint256 loanId = createRepaidLoan(BORROWER, BORROW_AMOUNT, false, 1);
+        uint256 loanId = createRepaidLoan(BORROWER, BORROW_AMOUNT, 1);
         Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 newDurationInPeriods = loan.durationInPeriods + 2;
@@ -1535,7 +1603,7 @@ contract LendingMarketTest is Test {
     function test_updateLoanDuration_Revert_IfSameLoanDuration() public {
         configureMarket();
 
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 1);
+        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, 1);
         Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 newDurationInPeriods = loan.durationInPeriods;
@@ -1548,7 +1616,7 @@ contract LendingMarketTest is Test {
     function test_updateLoanDuration_Revert_IfDecreasedLoanDuration() public {
         configureMarket();
 
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 1);
+        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, 1);
         Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 newDurationInPeriods = loan.durationInPeriods - 1;
@@ -1565,7 +1633,7 @@ contract LendingMarketTest is Test {
     function test_updateLoanInterestRatePrimary(address lender) private {
         configureMarket();
 
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 1);
+        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, 1);
         Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 oldInterestRatePrimary = loan.interestRatePrimary;
@@ -1594,7 +1662,7 @@ contract LendingMarketTest is Test {
     function test_updateLoanInterestRatePrimary_Revert_IfContractIsPaused() public {
         configureMarket();
 
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 1);
+        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, 1);
         Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 newInterestRatePrimary = loan.interestRatePrimary - 1;
@@ -1610,7 +1678,7 @@ contract LendingMarketTest is Test {
     function test_updateLoanInterestRatePrimary_Revert_IfCallerNotLender() public {
         configureMarket();
 
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 1);
+        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, 1);
         Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 newInterestRatePrimary = loan.interestRatePrimary - 1;
@@ -1622,7 +1690,7 @@ contract LendingMarketTest is Test {
 
     function test_updateLoanInterestRatePrimary_Revert_IfLoanNotExist() public {
         configureMarket();
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 0);
+        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, 0);
         uint256 nonExistentLoanId = loanId + 1;
         uint256 newInterestRatePrimary = 10;
 
@@ -1634,7 +1702,7 @@ contract LendingMarketTest is Test {
     function test_updateLoanInterestRatePrimary_Revert_IfLoadIsRepaid() public {
         configureMarket();
 
-        uint256 loanId = createRepaidLoan(BORROWER, BORROW_AMOUNT, false, 1);
+        uint256 loanId = createRepaidLoan(BORROWER, BORROW_AMOUNT, 1);
         Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 newInterestRatePrimary = loan.interestRatePrimary - 1;
@@ -1646,7 +1714,7 @@ contract LendingMarketTest is Test {
 
     function test_updateLoanInterestRatePrimary_Revert_IfIncreasedInterestRate() public {
         configureMarket();
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 1);
+        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, 1);
         Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 newInterestRatePrimary = loan.interestRatePrimary + 1;
@@ -1663,7 +1731,7 @@ contract LendingMarketTest is Test {
     function test_updateLoanInterestRateSecondary(address lender) private {
         configureMarket();
 
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 1);
+        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, 1);
         Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 oldInterestRateSecondary = loan.interestRateSecondary;
@@ -1692,7 +1760,7 @@ contract LendingMarketTest is Test {
     function test_updateLoanInterestRateSecondary_Revert_IfContractIsPaused() public {
         configureMarket();
 
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 1);
+        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, 1);
         Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 newInterestRateSecondary = loan.interestRateSecondary - 1;
@@ -1708,7 +1776,7 @@ contract LendingMarketTest is Test {
     function test_updateLoanInterestRateSecondary_Revert_IfCallerNotLender() public {
         configureMarket();
 
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 1);
+        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, 1);
         Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 newInterestRateSecondary = loan.interestRateSecondary - 1;
@@ -1720,7 +1788,7 @@ contract LendingMarketTest is Test {
 
     function test_updateLoanInterestRateSecondary_Revert_IfLoanNotExist() public {
         configureMarket();
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 0);
+        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, 0);
         uint256 nonExistentLoanId = loanId + 1;
         uint256 newInterestRateSecondary = 10;
 
@@ -1732,7 +1800,7 @@ contract LendingMarketTest is Test {
     function test_updateLoanInterestRateSecondary_Revert_IfLoadIsRepaid() public {
         configureMarket();
 
-        uint256 loanId = createRepaidLoan(BORROWER, BORROW_AMOUNT, false, 1);
+        uint256 loanId = createRepaidLoan(BORROWER, BORROW_AMOUNT, 1);
         Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 newInterestRateSecondary = loan.interestRateSecondary - 1;
@@ -1745,7 +1813,7 @@ contract LendingMarketTest is Test {
     function test_updateLoanInterestRateSecondary_Revert_IfIncreasedInterestRate() public {
         configureMarket();
 
-        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, false, 1);
+        uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, 1);
         Loan.State memory loan = market.getLoanState(loanId);
 
         uint256 newInterestRateSecondary = loan.interestRateSecondary + 1;

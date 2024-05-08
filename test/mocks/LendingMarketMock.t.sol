@@ -43,7 +43,6 @@ contract LendingMarketMockTest is Test {
     uint256 private constant REPAY_AMOUNT = 200;
     uint256 private constant LOAN_ID = 1;
 
-    uint8 private constant STATE_COOLDOWN_PERIODS = 10;
     uint32 private constant STATE_DURATION_IN_PERIODS = 200;
     uint32 private constant STATE_INTEREST_RATE_PRIMARY = 400;
     uint32 private constant STATE_INTEREST_RATE_SECONDARY = 500;
@@ -51,10 +50,10 @@ contract LendingMarketMockTest is Test {
     uint32 private constant STATE_START_TIMESTAMP = 600;
     uint32 private constant STATE_FREEZE_TIMESTAMP = 700;
     uint32 private constant STATE_TRACKED_TIMESTAMP = 800;
+    uint64 private constant STATE_REPAID_BORROW_AMOUNT = 800;
     uint64 private constant STATE_INITIAL_BORROW_AMOUNT = 900;
     uint64 private constant STATE_TRACKED_BORROW_BALANCE = 1000;
     uint64 private constant STATE_ADDON_AMOUNT = 1100;
-    bool private constant STATE_AUTO_REPAYMENT = true;
 
     uint256 private constant UPDATE_LOAN_DURATION = 100;
     uint256 private constant UPDATE_LOAN_INTEREST_RATE_PRIMARY = 300;
@@ -82,11 +81,6 @@ contract LendingMarketMockTest is Test {
         vm.expectEmit(true, true, true, true, address(mock));
         emit RepayLoanCalled(LOAN_ID, REPAY_AMOUNT);
         mock.repayLoan(LOAN_ID, REPAY_AMOUNT);
-    }
-
-    function test_revokeLoan() public {
-        vm.expectRevert(Error.NotImplemented.selector);
-        mock.revokeLoan(LOAN_ID);
     }
 
     function test_freeze() public {
@@ -174,10 +168,9 @@ contract LendingMarketMockTest is Test {
         assertEq(loan.startTimestamp, 0);
         assertEq(loan.freezeTimestamp, 0);
         assertEq(loan.trackedTimestamp, 0);
-        assertEq(loan.initialBorrowAmount, 0);
-        assertEq(loan.trackedBorrowBalance, 0);
-        assertEq(loan.autoRepayment, false);
-        assertEq(loan.cooldownPeriods, 0);
+        assertEq(loan.borrowAmount, 0);
+        assertEq(loan.trackedBalance, 0);
+        assertEq(loan.repaidAmount, 0);
         assertEq(loan.addonAmount, 0);
 
         mock.mockLoanState(
@@ -193,12 +186,10 @@ contract LendingMarketMockTest is Test {
                 startTimestamp: STATE_START_TIMESTAMP,
                 freezeTimestamp: STATE_FREEZE_TIMESTAMP,
                 trackedTimestamp: STATE_TRACKED_TIMESTAMP,
-                initialBorrowAmount: STATE_INITIAL_BORROW_AMOUNT,
-                trackedBorrowBalance: STATE_TRACKED_BORROW_BALANCE,
-                autoRepayment: STATE_AUTO_REPAYMENT,
-                cooldownPeriods: STATE_COOLDOWN_PERIODS,
-                addonAmount: STATE_ADDON_AMOUNT,
-                _reserved: 0
+                borrowAmount: STATE_INITIAL_BORROW_AMOUNT,
+                trackedBalance: STATE_TRACKED_BORROW_BALANCE,
+                repaidAmount: STATE_REPAID_BORROW_AMOUNT,
+                addonAmount: STATE_ADDON_AMOUNT
             })
         );
 
@@ -214,10 +205,9 @@ contract LendingMarketMockTest is Test {
         assertEq(loan.startTimestamp, STATE_START_TIMESTAMP);
         assertEq(loan.freezeTimestamp, STATE_FREEZE_TIMESTAMP);
         assertEq(loan.trackedTimestamp, STATE_TRACKED_TIMESTAMP);
-        assertEq(loan.initialBorrowAmount, STATE_INITIAL_BORROW_AMOUNT);
-        assertEq(loan.trackedBorrowBalance, STATE_TRACKED_BORROW_BALANCE);
-        assertEq(loan.autoRepayment, STATE_AUTO_REPAYMENT);
-        assertEq(loan.cooldownPeriods, STATE_COOLDOWN_PERIODS);
+        assertEq(loan.borrowAmount, STATE_INITIAL_BORROW_AMOUNT);
+        assertEq(loan.trackedBalance, STATE_TRACKED_BORROW_BALANCE);
+        assertEq(loan.repaidAmount, STATE_REPAID_BORROW_AMOUNT);
         assertEq(loan.addonAmount, STATE_ADDON_AMOUNT);
     }
 

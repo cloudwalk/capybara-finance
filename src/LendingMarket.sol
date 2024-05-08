@@ -79,9 +79,6 @@ contract LendingMarket is
     /// @dev Thrown when the cooldown period has passed.
     error CooldownPeriodHasPassed();
 
-    /// @dev Thrown when loan revocation is prohibited.
-    error RevocationIsProhibited();
-
     // -------------------------------------------- //
     //  Modifiers                                   //
     // -------------------------------------------- //
@@ -97,8 +94,7 @@ contract LendingMarket is
     /// @dev Throws if called by any account other than the lender or its alias.
     /// @param loanId The unique identifier of the loan to check.
     modifier onlyLenderOrAlias(uint256 loanId) {
-        address lender = ownerOf(loanId);
-        if (msg.sender != lender && _hasAlias[lender][msg.sender] == false) {
+        if (!isLenderOrAlias(loanId, msg.sender)) {
             revert Error.Unauthorized();
         }
         _;
@@ -110,7 +106,7 @@ contract LendingMarket is
         if (_loans[loanId].token == address(0)) {
             revert LoanNotExist();
         }
-        if (_loans[loanId].trackedBorrowBalance == 0) {
+        if (_loans[loanId].trackedBalance == 0) {
             revert LoanAlreadyRepaid();
         }
         _;
@@ -196,7 +192,7 @@ contract LendingMarket is
     }
 
     // -------------------------------------------- //
-    //  Registry & owner functions                  //
+    //  Registry OR Owner functions                 //
     // -------------------------------------------- //
 
     /// @inheritdoc ILendingMarket
@@ -261,8 +257,9 @@ contract LendingMarket is
             durationInPeriods,
             id
         );
-        uint64 totalBorrowAmount = (borrowAmount + terms.addonAmount).toUint64();
+
         uint32 blockTimestamp = _blockTimestamp().toUint32();
+        uint256 totalBorrowAmount = borrowAmount + terms.addonAmount;
 
         _loans[id] = Loan.State({
             token: terms.token,
@@ -273,18 +270,18 @@ contract LendingMarket is
             interestRatePrimary: terms.interestRatePrimary,
             interestRateSecondary: terms.interestRateSecondary,
             interestFormula: terms.interestFormula,
-            initialBorrowAmount: totalBorrowAmount,
-            trackedBorrowBalance: totalBorrowAmount,
+            borrowAmount: borrowAmount.toUint64(),
+            trackedBalance: totalBorrowAmount.toUint64(),
+            repaidAmount: 0,
             trackedTimestamp: blockTimestamp,
             freezeTimestamp: 0,
-            autoRepayment: terms.autoRepayment,
-            cooldownPeriods: terms.cooldownPeriods,
-            addonAmount: terms.addonAmount,
-            _reserved: 0
+            addonAmount: terms.addonAmount
         });
 
         ILiquidityPool(liquidityPool).onBeforeLoanTaken(id, creditLine);
+
         IERC20(terms.token).safeTransferFrom(liquidityPool, msg.sender, borrowAmount);
+
         ILiquidityPool(liquidityPool).onAfterLoanTaken(id, creditLine);
 
         emit LoanTaken(id, msg.sender, totalBorrowAmount, terms.durationInPeriods);
@@ -315,18 +312,21 @@ contract LendingMarket is
 
         bool autoRepayment = loan.treasury == msg.sender;
 
-        if (autoRepayment && !loan.autoRepayment) {
+        if (autoRepayment && !Constants.AUTO_REPAYMENT_ENABLED) {
             revert AutoRepaymentNotAllowed();
         }
 
+        outstandingBalance -= repayAmount;
         address payer = autoRepayment ? loan.borrower : msg.sender;
 
-        outstandingBalance -= repayAmount;
-        loan.trackedTimestamp = _blockTimestamp().toUint32();
-        loan.trackedBorrowBalance = outstandingBalance.toUint64();
-
         ILiquidityPool(loan.treasury).onBeforeLoanPayment(loanId, repayAmount);
+
+        loan.repaidAmount += repayAmount.toUint64();
+        loan.trackedBalance = outstandingBalance.toUint64();
+        loan.trackedTimestamp = _blockTimestamp().toUint32();
+
         IERC20(loan.token).transferFrom(payer, loan.treasury, repayAmount);
+
         ILiquidityPool(loan.treasury).onAfterLoanPayment(loanId, repayAmount);
 
         emit LoanRepayment(loanId, payer, loan.borrower, repayAmount, outstandingBalance);
@@ -334,29 +334,6 @@ contract LendingMarket is
         if (outstandingBalance == 0) {
             _safeTransfer(ownerOf(loanId), loan.borrower, loanId, "");
         }
-    }
-
-    /// @inheritdoc ILendingMarket
-    function revokeLoan(uint256 loanId) external whenNotPaused onlyOngoingLoan(loanId) {
-        Loan.State storage loan = _loans[loanId];
-
-        if (loan.startTimestamp != loan.trackedTimestamp) {
-            revert RevocationIsProhibited();
-        }
-
-        uint256 currentPeriodIndex = _periodIndex(_blockTimestamp(), Constants.PERIOD_IN_SECONDS);
-        uint256 startPeriodIndex = _periodIndex(loan.startTimestamp, Constants.PERIOD_IN_SECONDS);
-        if (loan.cooldownPeriods <= currentPeriodIndex - startPeriodIndex) {
-            revert CooldownPeriodHasPassed();
-        }
-
-        loan.trackedBorrowBalance = 0;
-
-        ILiquidityPool(loan.treasury).onBeforeLoanRevocation(loanId);
-        IERC20(loan.token).transferFrom(loan.borrower, loan.treasury, loan.initialBorrowAmount - loan.addonAmount);
-        ILiquidityPool(loan.treasury).onAfterLoanRevocation(loanId);
-
-        emit LoanRevoked(loanId);
     }
 
     // -------------------------------------------- //
@@ -481,6 +458,46 @@ contract LendingMarket is
     }
 
     // -------------------------------------------- //
+    //  Borrower and lender functions               //
+    // -------------------------------------------- //
+
+    /// @inheritdoc ILendingMarket
+    function revokeLoan(uint256 loanId) external whenNotPaused onlyOngoingLoan(loanId) {
+        Loan.State storage loan = _loans[loanId];
+        address sender = msg.sender;
+
+        if (sender == loan.borrower) {
+            uint256 currentPeriodIndex = _periodIndex(_blockTimestamp(), Constants.PERIOD_IN_SECONDS);
+            uint256 startPeriodIndex = _periodIndex(loan.startTimestamp, Constants.PERIOD_IN_SECONDS);
+            if (currentPeriodIndex - startPeriodIndex >= Constants.COOLDOWN_IN_PERIODS) {
+                revert CooldownPeriodHasPassed();
+            }
+            _revokeLoan(loanId, loan);
+        } else if (isLenderOrAlias(loanId, msg.sender)) {
+            _revokeLoan(loanId, loan);
+        } else {
+            revert Error.Unauthorized();
+        }
+    }
+
+    function _revokeLoan(uint256 loanId, Loan.State storage loan) internal {
+        ILiquidityPool(loan.treasury).onBeforeLoanRevocation(loanId);
+
+        loan.trackedBalance = 0;
+        loan.trackedTimestamp = _blockTimestamp().toUint32();
+
+        if (loan.repaidAmount < loan.borrowAmount) {
+            IERC20(loan.token).transferFrom(loan.borrower, loan.treasury, loan.borrowAmount - loan.repaidAmount);
+        } else if (loan.repaidAmount != loan.borrowAmount) {
+            IERC20(loan.token).transferFrom(loan.treasury, loan.borrower, loan.repaidAmount - loan.borrowAmount);
+        }
+
+        emit LoanRevoked(loanId);
+
+        ILiquidityPool(loan.treasury).onAfterLoanRevocation(loanId);
+    }
+
+    // -------------------------------------------- //
     //  View functions                              //
     // -------------------------------------------- //
 
@@ -516,6 +533,12 @@ contract LendingMarket is
         (preview.outstandingBalance, preview.periodIndex) = _outstandingBalance(loan, timestamp);
 
         return preview;
+    }
+
+    /// @inheritdoc ILendingMarket
+    function isLenderOrAlias(uint256 loanId, address account) public view returns (bool) {
+        address lender = ownerOf(loanId);
+        return account == lender || _hasAlias[lender][account];
     }
 
     /// @inheritdoc ILendingMarket
@@ -586,7 +609,7 @@ contract LendingMarket is
         Loan.State storage loan,
         uint256 timestamp
     ) internal view returns (uint256 outstandingBalance, uint256 periodIndex) {
-        outstandingBalance = loan.trackedBorrowBalance;
+        outstandingBalance = loan.trackedBalance;
 
         if (loan.freezeTimestamp != 0) {
             timestamp = loan.freezeTimestamp;

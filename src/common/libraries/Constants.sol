@@ -14,4 +14,10 @@ library Constants {
 
     /// @dev The rate factor used for the interest rate calculations.
     uint256 internal constant INTEREST_RATE_FACTOR = 10 ** 9;
+
+    /// @dev The number of periods before which the loan can be revoked.
+    uint256 internal constant COOLDOWN_IN_PERIODS = 3;
+
+    /// @dev The flag that indicates whether the auto repayment is enabled.
+    bool internal constant AUTO_REPAYMENT_ENABLED = true;
 }

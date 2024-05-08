@@ -45,17 +45,17 @@ contract LendingMarketMock is ILendingMarket {
         emit RepayLoanCalled(loanId, repayAmount);
     }
 
-    function revokeLoan(uint256 loanId) external pure {
-        loanId; // To prevent compiler warning about unused variable
-        revert Error.NotImplemented();
-    }
-
     function freeze(uint256 loanId) external pure {
         loanId; // To prevent compiler warning about unused variable
         revert Error.NotImplemented();
     }
 
     function unfreeze(uint256 loanId) external pure {
+        loanId; // To prevent compiler warning about unused variable
+        revert Error.NotImplemented();
+    }
+
+    function revokeLoan(uint256 loanId) external pure {
         loanId; // To prevent compiler warning about unused variable
         revert Error.NotImplemented();
     }
@@ -136,6 +136,12 @@ contract LendingMarketMock is ILendingMarket {
     function getLoanPreview(uint256 loanId, uint256 timestamp) external pure returns (Loan.Preview memory) {
         loanId; // To prevent compiler warning about unused variable
         timestamp; // To prevent compiler warning about unused variable
+        revert Error.NotImplemented();
+    }
+
+    function isLenderOrAlias(uint256 loanId, address account) external pure returns (bool) {
+        loanId; // To prevent compiler warning about unused variable
+        account; // To prevent compiler warning about unused variable
         revert Error.NotImplemented();
     }
 
