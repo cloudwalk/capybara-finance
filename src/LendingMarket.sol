@@ -462,7 +462,7 @@ contract LendingMarket is
     // -------------------------------------------- //
 
     /// @inheritdoc ILendingMarket
-    function cancelLoan(uint256 loanId) external whenNotPaused onlyOngoingLoan(loanId) {
+    function revokeLoan(uint256 loanId) external whenNotPaused onlyOngoingLoan(loanId) {
         Loan.State storage loan = _loans[loanId];
         address sender = msg.sender;
 
@@ -472,16 +472,16 @@ contract LendingMarket is
             if (currentPeriodIndex - startPeriodIndex >= Constants.COOLDOWN_IN_PERIODS) {
                 revert CooldownPeriodHasPassed();
             }
-            _cancelLoan(loanId, loan);
+            _revokeLoan(loanId, loan);
         } else if (isLenderOrAlias(loanId, msg.sender)) {
-            _cancelLoan(loanId, loan);
+            _revokeLoan(loanId, loan);
         } else {
             revert Error.Unauthorized();
         }
     }
 
-    function _cancelLoan(uint256 loanId, Loan.State storage loan) internal {
-        ILiquidityPool(loan.treasury).onBeforeLoanCancellation(loanId);
+    function _revokeLoan(uint256 loanId, Loan.State storage loan) internal {
+        ILiquidityPool(loan.treasury).onBeforeLoanRevocation(loanId);
 
         loan.trackedBalance = 0;
         loan.trackedTimestamp = _blockTimestamp().toUint32();
@@ -492,9 +492,9 @@ contract LendingMarket is
             IERC20(loan.token).transferFrom(loan.treasury, loan.borrower, loan.repaidAmount - loan.borrowAmount);
         }
 
-        emit LoanCancelled(loanId);
+        emit LoanRevoked(loanId);
 
-        ILiquidityPool(loan.treasury).onAfterLoanCancellation(loanId);
+        ILiquidityPool(loan.treasury).onAfterLoanRevocation(loanId);
     }
 
     // -------------------------------------------- //

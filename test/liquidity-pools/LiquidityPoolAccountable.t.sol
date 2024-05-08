@@ -603,34 +603,34 @@ contract LiquidityPoolAccountableTest is Test {
     }
 
     // -------------------------------------------- //
-    //  Test `onBeforeLoanCancellation` function    //
+    //  Test `onBeforeLoanRevocation` function    //
     // -------------------------------------------- //
 
-    function test_onBeforeLoanCancellation() public {
+    function test_onBeforeLoanRevocation() public {
         vm.prank(address(lendingMarket));
-        assertEq(liquidityPool.onBeforeLoanCancellation(LOAN_ID_1), true);
+        assertEq(liquidityPool.onBeforeLoanRevocation(LOAN_ID_1), true);
     }
 
-    function test_onBeforeLoanCancellation_Revert_IfContractIsPaused() public {
+    function test_onBeforeLoanRevocation_Revert_IfContractIsPaused() public {
         vm.prank(LENDER);
         liquidityPool.pause();
 
         vm.prank(address(lendingMarket));
         vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
-        liquidityPool.onBeforeLoanCancellation(LOAN_ID_1);
+        liquidityPool.onBeforeLoanRevocation(LOAN_ID_1);
     }
 
-    function test_onBeforeLoanCancellation_Revert_IfCallerNotMarket() public {
+    function test_onBeforeLoanRevocation_Revert_IfCallerNotMarket() public {
         vm.prank(ATTACKER);
         vm.expectRevert(Error.Unauthorized.selector);
-        liquidityPool.onBeforeLoanCancellation(LOAN_ID_1);
+        liquidityPool.onBeforeLoanRevocation(LOAN_ID_1);
     }
 
     // -------------------------------------------- //
-    //  Test `onAfterLoanCancellation` function     //
+    //  Test `onAfterLoanRevocation` function     //
     // -------------------------------------------- //
 
-    function test_onAfterLoanCancellation_RepaidAmountLessThanBorrowAmount() public {
+    function test_onAfterLoanRevocation_RepaidAmountLessThanBorrowAmount() public {
         configureLender(DEPOSIT_AMOUNT_1);
 
         vm.prank(LENDER);
@@ -662,14 +662,14 @@ contract LiquidityPoolAccountableTest is Test {
         assertEq(creditLineBalance.addons, ADDON_AMOUNT);
 
         vm.prank(address(lendingMarket));
-        assertEq(liquidityPool.onAfterLoanCancellation(LOAN_ID_1), true);
+        assertEq(liquidityPool.onAfterLoanRevocation(LOAN_ID_1), true);
 
         creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
         assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
         assertEq(creditLineBalance.addons, 0);
     }
 
-    function test_onAfterLoanCancellation_RepaidAmountGreaterThanBorrowAmount() public {
+    function test_onAfterLoanRevocation_RepaidAmountGreaterThanBorrowAmount() public {
         configureLender(DEPOSIT_AMOUNT_1);
 
         vm.prank(LENDER);
@@ -701,14 +701,14 @@ contract LiquidityPoolAccountableTest is Test {
         assertEq(creditLineBalance.addons, ADDON_AMOUNT);
 
         vm.prank(address(lendingMarket));
-        assertEq(liquidityPool.onAfterLoanCancellation(LOAN_ID_1), true);
+        assertEq(liquidityPool.onAfterLoanRevocation(LOAN_ID_1), true);
 
         creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
         assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
         assertEq(creditLineBalance.addons, 0);
     }
 
-    function test_onAfterLoanCancellation_NonExistentLoan() public {
+    function test_onAfterLoanRevocation_NonExistentLoan() public {
         prepareRepayment();
 
         ILiquidityPoolAccountable.CreditLineBalance memory creditLineBalance =
@@ -717,26 +717,26 @@ contract LiquidityPoolAccountableTest is Test {
         assertEq(creditLineBalance.addons, 0);
 
         vm.prank(address(lendingMarket));
-        assertEq(liquidityPool.onAfterLoanCancellation(LOAN_ID_NONEXISTENT), true);
+        assertEq(liquidityPool.onAfterLoanRevocation(LOAN_ID_NONEXISTENT), true);
 
         creditLineBalance = liquidityPool.getCreditLineBalance(address(creditLine));
         assertEq(creditLineBalance.borrowable, DEPOSIT_AMOUNT_1);
         assertEq(creditLineBalance.addons, 0);
     }
 
-    function test_onAfterLoanCancellation_Revert_IfContractIsPaused() public {
+    function test_onAfterLoanRevocation_Revert_IfContractIsPaused() public {
         vm.prank(LENDER);
         liquidityPool.pause();
 
         vm.prank(address(lendingMarket));
         vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
-        liquidityPool.onAfterLoanCancellation(LOAN_ID_1);
+        liquidityPool.onAfterLoanRevocation(LOAN_ID_1);
     }
 
-    function test_onAfterLoanCancellation_Revert_IfCallerNotMarket() public {
+    function test_onAfterLoanRevocation_Revert_IfCallerNotMarket() public {
         vm.prank(ATTACKER);
         vm.expectRevert(Error.Unauthorized.selector);
-        liquidityPool.onAfterLoanCancellation(LOAN_ID_1);
+        liquidityPool.onAfterLoanRevocation(LOAN_ID_1);
     }
 
     // -------------------------------------------- //

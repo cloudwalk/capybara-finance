@@ -24,8 +24,8 @@ contract LiquidityPoolMockTest is Test {
     event OnBeforeLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
     event OnAfterLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
 
-    event OnBeforeLoanCancellationCalled(uint256 indexed loanId);
-    event OnAfterLoanCancellationCalled(uint256 indexed loanId);
+    event OnBeforeLoanRevocationCalled(uint256 indexed loanId);
+    event OnAfterLoanRevocationCalled(uint256 indexed loanId);
 
     // -------------------------------------------- //
     //  Storage variables                           //
@@ -105,31 +105,31 @@ contract LiquidityPoolMockTest is Test {
         assertEq(result, true);
     }
 
-    function test_onBeforeLoanCancellation() public {
+    function test_onBeforeLoanRevocation() public {
         vm.expectEmit(true, true, true, true, address(mock));
-        emit OnBeforeLoanCancellationCalled(LOAN_ID);
-        bool result = mock.onBeforeLoanCancellation(LOAN_ID);
+        emit OnBeforeLoanRevocationCalled(LOAN_ID);
+        bool result = mock.onBeforeLoanRevocation(LOAN_ID);
         assertEq(result, false);
 
-        mock.mockOnBeforeLoanCancellationResult(true);
+        mock.mockOnBeforeLoanRevocationResult(true);
 
         vm.expectEmit(true, true, true, true, address(mock));
-        emit OnBeforeLoanCancellationCalled(LOAN_ID);
-        result = mock.onBeforeLoanCancellation(LOAN_ID);
+        emit OnBeforeLoanRevocationCalled(LOAN_ID);
+        result = mock.onBeforeLoanRevocation(LOAN_ID);
         assertEq(result, true);
     }
 
-    function test_onAfterLoanCancellation() public {
+    function test_onAfterLoanRevocation() public {
         vm.expectEmit(true, true, true, true, address(mock));
-        emit OnAfterLoanCancellationCalled(LOAN_ID);
-        bool result = mock.onAfterLoanCancellation(LOAN_ID);
+        emit OnAfterLoanRevocationCalled(LOAN_ID);
+        bool result = mock.onAfterLoanRevocation(LOAN_ID);
         assertEq(result, false);
 
-        mock.mockOnAfterLoanCancellationResult(true);
+        mock.mockOnAfterLoanRevocationResult(true);
 
         vm.expectEmit(true, true, true, true, address(mock));
-        emit OnAfterLoanCancellationCalled(LOAN_ID);
-        result = mock.onAfterLoanCancellation(LOAN_ID);
+        emit OnAfterLoanRevocationCalled(LOAN_ID);
+        result = mock.onAfterLoanRevocation(LOAN_ID);
         assertEq(result, true);
     }
 

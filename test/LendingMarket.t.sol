@@ -37,8 +37,8 @@ contract LendingMarketTest is Test {
     event OnBeforeLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
     event OnAfterLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
 
-    event OnBeforeLoanCancellationCalled(uint256 indexed loanId);
-    event OnAfterLoanCancellationCalled(uint256 indexed loanId);
+    event OnBeforeLoanRevocationCalled(uint256 indexed loanId);
+    event OnAfterLoanRevocationCalled(uint256 indexed loanId);
 
     event MarketRegistryChanged(address indexed newRegistry, address indexed oldRegistry);
     event LiquidityPoolRegistered(address indexed lender, address indexed liquidityPool);
@@ -72,7 +72,7 @@ contract LendingMarketTest is Test {
 
     event LoanFrozen(uint256 indexed loanId);
     event LoanUnfrozen(uint256 indexed loanId);
-    event LoanCancelled(uint256 indexed loanId);
+    event LoanRevoked(uint256 indexed loanId);
 
     event LoanDurationUpdated(
         uint256 indexed loanId,
@@ -1120,10 +1120,10 @@ contract LendingMarketTest is Test {
     }
 
     // -------------------------------------------- //
-    //  Test `cancelLoan` function                  //
+    //  Test `revokeLoan` function                  //
     // -------------------------------------------- //
 
-    function cancelLoanIfRepaidAmountZero(address caller) private {
+    function revokeLoanIfRepaidAmountZero(address caller) private {
         configureMarket();
 
         uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, 0);
@@ -1136,16 +1136,16 @@ contract LendingMarketTest is Test {
         uint256 treasuryBalance = token.balanceOf(loan.treasury);
 
         vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit OnBeforeLoanCancellationCalled(loanId);
+        emit OnBeforeLoanRevocationCalled(loanId);
 
         vm.expectEmit(true, true, true, true, address(market));
-        emit LoanCancelled(loanId);
+        emit LoanRevoked(loanId);
 
         vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit OnAfterLoanCancellationCalled(loanId);
+        emit OnAfterLoanRevocationCalled(loanId);
 
         vm.prank(caller);
-        market.cancelLoan(loanId);
+        market.revokeLoan(loanId);
 
         loan = market.getLoanState(loanId);
         assertEq(loan.trackedBalance, 0);
@@ -1153,7 +1153,7 @@ contract LendingMarketTest is Test {
         assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance + loan.borrowAmount);
     }
 
-    function cancelLoanIfRepaidAmountLessThanBorrowAmount(address caller) private {
+    function revokeLoanIfRepaidAmountLessThanBorrowAmount(address caller) private {
         configureMarket();
 
         uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, 0);
@@ -1173,16 +1173,16 @@ contract LendingMarketTest is Test {
         uint256 treasuryBalance = token.balanceOf(loan.treasury);
 
         vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit OnBeforeLoanCancellationCalled(loanId);
+        emit OnBeforeLoanRevocationCalled(loanId);
 
         vm.expectEmit(true, true, true, true, address(market));
-        emit LoanCancelled(loanId);
+        emit LoanRevoked(loanId);
 
         vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit OnAfterLoanCancellationCalled(loanId);
+        emit OnAfterLoanRevocationCalled(loanId);
 
         vm.prank(caller);
-        market.cancelLoan(loanId);
+        market.revokeLoan(loanId);
 
         loan = market.getLoanState(loanId);
         assertEq(loan.trackedBalance, 0);
@@ -1190,7 +1190,7 @@ contract LendingMarketTest is Test {
         assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance + revokeAmount);
     }
 
-    function cancelLoanIfRepaidAmountGreaterThanBorrowAmount(address caller) private {
+    function revokeLoanIfRepaidAmountGreaterThanBorrowAmount(address caller) private {
         configureMarket();
 
         uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, 0);
@@ -1211,16 +1211,16 @@ contract LendingMarketTest is Test {
         uint256 treasuryBalance = token.balanceOf(loan.treasury);
 
         vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit OnBeforeLoanCancellationCalled(loanId);
+        emit OnBeforeLoanRevocationCalled(loanId);
 
         vm.expectEmit(true, true, true, true, address(market));
-        emit LoanCancelled(loanId);
+        emit LoanRevoked(loanId);
 
         vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit OnAfterLoanCancellationCalled(loanId);
+        emit OnAfterLoanRevocationCalled(loanId);
 
         vm.prank(caller);
-        market.cancelLoan(loanId);
+        market.revokeLoan(loanId);
 
         loan = market.getLoanState(loanId);
         assertEq(loan.trackedBalance, 0);
@@ -1228,49 +1228,49 @@ contract LendingMarketTest is Test {
         assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance - revokeAmount);
     }
 
-    function test_cancelLoan_Borrower_IfRepaidAmountZero() public {
-        cancelLoanIfRepaidAmountZero(BORROWER);
+    function test_revokeLoan_Borrower_IfRepaidAmountZero() public {
+        revokeLoanIfRepaidAmountZero(BORROWER);
     }
 
-    function test_cancelLoan_Borrower_IfRepaidAmountLessThanBorrowAmount() public {
-        cancelLoanIfRepaidAmountLessThanBorrowAmount(BORROWER);
+    function test_revokeLoan_Borrower_IfRepaidAmountLessThanBorrowAmount() public {
+        revokeLoanIfRepaidAmountLessThanBorrowAmount(BORROWER);
     }
 
-    function test_cancelLoan_Borrower_IfRepaidAmountGreaterThanBorrowAmount() public {
-        cancelLoanIfRepaidAmountGreaterThanBorrowAmount(BORROWER);
+    function test_revokeLoan_Borrower_IfRepaidAmountGreaterThanBorrowAmount() public {
+        revokeLoanIfRepaidAmountGreaterThanBorrowAmount(BORROWER);
     }
 
-    function test_cancelLoan_Lender_IfRepaidAmountZero() public {
-        cancelLoanIfRepaidAmountZero(LENDER);
+    function test_revokeLoan_Lender_IfRepaidAmountZero() public {
+        revokeLoanIfRepaidAmountZero(LENDER);
     }
 
-    function test_cancelLoan_Lender_IfRepaidAmountLessThanBorrowAmount() public {
-        cancelLoanIfRepaidAmountLessThanBorrowAmount(LENDER);
+    function test_revokeLoan_Lender_IfRepaidAmountLessThanBorrowAmount() public {
+        revokeLoanIfRepaidAmountLessThanBorrowAmount(LENDER);
     }
 
-    function test_cancelLoan_Lender_IfRepaidAmountGreaterThanBorrowAmount() public {
-        cancelLoanIfRepaidAmountGreaterThanBorrowAmount(LENDER);
+    function test_revokeLoan_Lender_IfRepaidAmountGreaterThanBorrowAmount() public {
+        revokeLoanIfRepaidAmountGreaterThanBorrowAmount(LENDER);
     }
 
-    function test_cancelLoan_LenderAlias_IfRepaidAmountZero() public {
+    function test_revokeLoan_LenderAlias_IfRepaidAmountZero() public {
         vm.prank(LENDER);
         market.configureAlias(LENDER_ALIAS, true);
-        cancelLoanIfRepaidAmountZero(LENDER_ALIAS);
+        revokeLoanIfRepaidAmountZero(LENDER_ALIAS);
     }
 
-    function test_cancelLoan_LenderAlias_IfRepaidAmountLessThanBorrowAmount() public {
+    function test_revokeLoan_LenderAlias_IfRepaidAmountLessThanBorrowAmount() public {
         vm.prank(LENDER);
         market.configureAlias(LENDER_ALIAS, true);
-        cancelLoanIfRepaidAmountLessThanBorrowAmount(LENDER_ALIAS);
+        revokeLoanIfRepaidAmountLessThanBorrowAmount(LENDER_ALIAS);
     }
 
-    function test_cancelLoan_LenderAlias_IfRepaidAmountGreaterThanBorrowAmount() public {
+    function test_revokeLoan_LenderAlias_IfRepaidAmountGreaterThanBorrowAmount() public {
         vm.prank(LENDER);
         market.configureAlias(LENDER_ALIAS, true);
-        cancelLoanIfRepaidAmountGreaterThanBorrowAmount(LENDER_ALIAS);
+        revokeLoanIfRepaidAmountGreaterThanBorrowAmount(LENDER_ALIAS);
     }
 
-    function test_cancelLoan_Revert_IfContractIsPaused() public {
+    function test_revokeLoan_Revert_IfContractIsPaused() public {
         configureMarket();
 
         uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, 0);
@@ -1280,10 +1280,10 @@ contract LendingMarketTest is Test {
 
         vm.startPrank(LENDER);
         vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
-        market.cancelLoan(loanId);
+        market.revokeLoan(loanId);
     }
 
-    function test_cancelLoan_Revert_IfLoanNotExist() public {
+    function test_revokeLoan_Revert_IfLoanNotExist() public {
         configureMarket();
 
         uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, 0);
@@ -1291,17 +1291,17 @@ contract LendingMarketTest is Test {
 
         vm.prank(LENDER);
         vm.expectRevert(LendingMarket.LoanNotExist.selector);
-        market.cancelLoan(nonExistentLoanId);
+        market.revokeLoan(nonExistentLoanId);
     }
 
-    function test_cancelLoan_Revert_IfUnauthorized() public {
+    function test_revokeLoan_Revert_IfUnauthorized() public {
         configureMarket();
 
         uint256 loanId = createActiveLoan(BORROWER, BORROW_AMOUNT, 0);
 
         vm.prank(ATTACKER);
         vm.expectRevert(Error.Unauthorized.selector);
-        market.cancelLoan(loanId);
+        market.revokeLoan(loanId);
     }
 
     // -------------------------------------------- //

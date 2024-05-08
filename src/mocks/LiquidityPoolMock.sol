@@ -19,8 +19,8 @@ contract LiquidityPoolMock is ILiquidityPool {
     event OnBeforeLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
     event OnAfterLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
 
-    event OnBeforeLoanCancellationCalled(uint256 indexed loanId);
-    event OnAfterLoanCancellationCalled(uint256 indexed loanId);
+    event OnBeforeLoanRevocationCalled(uint256 indexed loanId);
+    event OnAfterLoanRevocationCalled(uint256 indexed loanId);
 
     // -------------------------------------------- //
     //  Storage variables                           //
@@ -32,8 +32,8 @@ contract LiquidityPoolMock is ILiquidityPool {
     bool private _onBeforeLoanPaymentResult;
     bool private _onAfterLoanPaymentResult;
 
-    bool private _onBeforeLoanCancellationResult;
-    bool private _onAfterLoanCancellationResult;
+    bool private _onBeforeLoanRevocationResult;
+    bool private _onAfterLoanRevocationResult;
 
     // -------------------------------------------- //
     //  ILiquidityPoolFactory functions             //
@@ -59,14 +59,14 @@ contract LiquidityPoolMock is ILiquidityPool {
         return _onAfterLoanPaymentResult;
     }
 
-    function onBeforeLoanCancellation(uint256 loanId) external returns (bool) {
-        emit OnBeforeLoanCancellationCalled(loanId);
-        return _onBeforeLoanCancellationResult;
+    function onBeforeLoanRevocation(uint256 loanId) external returns (bool) {
+        emit OnBeforeLoanRevocationCalled(loanId);
+        return _onBeforeLoanRevocationResult;
     }
 
-    function onAfterLoanCancellation(uint256 loanId) external returns (bool) {
-        emit OnAfterLoanCancellationCalled(loanId);
-        return _onAfterLoanCancellationResult;
+    function onAfterLoanRevocation(uint256 loanId) external returns (bool) {
+        emit OnAfterLoanRevocationCalled(loanId);
+        return _onAfterLoanRevocationResult;
     }
 
     function market() external pure returns (address) {
@@ -101,11 +101,11 @@ contract LiquidityPoolMock is ILiquidityPool {
         _onAfterLoanPaymentResult = result;
     }
 
-    function mockOnBeforeLoanCancellationResult(bool result) external {
-        _onBeforeLoanCancellationResult = result;
+    function mockOnBeforeLoanRevocationResult(bool result) external {
+        _onBeforeLoanRevocationResult = result;
     }
 
-    function mockOnAfterLoanCancellationResult(bool result) external {
-        _onAfterLoanCancellationResult = result;
+    function mockOnAfterLoanRevocationResult(bool result) external {
+        _onAfterLoanRevocationResult = result;
     }
 }
