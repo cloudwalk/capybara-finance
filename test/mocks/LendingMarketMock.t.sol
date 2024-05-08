@@ -189,8 +189,7 @@ contract LendingMarketMockTest is Test {
                 borrowAmount: STATE_INITIAL_BORROW_AMOUNT,
                 trackedBalance: STATE_TRACKED_BORROW_BALANCE,
                 repaidAmount: STATE_REPAID_BORROW_AMOUNT,
-                addonAmount: STATE_ADDON_AMOUNT,
-                _reserved: 0
+                addonAmount: STATE_ADDON_AMOUNT
             })
         );
 

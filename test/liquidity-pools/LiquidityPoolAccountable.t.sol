@@ -109,8 +109,7 @@ contract LiquidityPoolAccountableTest is Test {
             borrowAmount: 0,
             trackedBalance: 0,
             repaidAmount: 0,
-            addonAmount: 0,
-            _reserved: 0
+            addonAmount: 0
         });
     }
 

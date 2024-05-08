@@ -275,8 +275,7 @@ contract LendingMarket is
             repaidAmount: 0,
             trackedTimestamp: blockTimestamp,
             freezeTimestamp: 0,
-            addonAmount: terms.addonAmount,
-            _reserved: 0
+            addonAmount: terms.addonAmount
         });
 
         ILiquidityPool(liquidityPool).onBeforeLoanTaken(id, creditLine);
