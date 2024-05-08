@@ -45,11 +45,10 @@ interface LoanState {
 }
 
 interface LoanPreview {
-  periodIndex: number,
-  outstandingBalance: number
+  periodIndex: number;
+  outstandingBalance: number;
 
-  [key: string]: number // Index signature
-
+  [key: string]: number; // Index signature
 }
 
 enum InterestFormula {
@@ -219,7 +218,7 @@ describe("Contract 'LendingMarket'", async () => {
     originalBalance: number,
     numberOfPeriods: number,
     interestRate: number,
-    interestRateFactor: number,
+    interestRateFactor: number
   ): number {
     let outstandingBalance = originalBalance;
     for (let i = 0; i < numberOfPeriods; i++) {
@@ -268,8 +267,8 @@ describe("Contract 'LendingMarket'", async () => {
   }
 
   async function deployLendingMarketAndTakeLoan(): Promise<{
-    market: Contract,
-    marketConnectedToLender: Contract
+    market: Contract;
+    marketConnectedToLender: Contract;
   }> {
     const { market } = await deployLendingMarketAndConfigureItForLoan();
     const marketConnectedToLender = market.connect(lender) as Contract;
@@ -626,16 +625,18 @@ describe("Contract 'LendingMarket'", async () => {
       const { market } = await loadFixture(deployLendingMarket);
       await proveTx(market.registerLiquidityPool(lender.address, liquidityPoolAddress));
 
-      await expect((market.connect(lender) as Contract).assignLiquidityPoolToCreditLine(creditLineAddress, liquidityPoolAddress))
-        .to.be.revertedWithCustomError(market, ERROR_NAME_UNAUTHORIZED);
+      await expect(
+        (market.connect(lender) as Contract).assignLiquidityPoolToCreditLine(creditLineAddress, liquidityPoolAddress)
+      ).to.be.revertedWithCustomError(market, ERROR_NAME_UNAUTHORIZED);
     });
 
     it("Is reverted if the caller is not liquidity pool`s lender", async () => {
       const { market } = await loadFixture(deployLendingMarket);
       await proveTx(market.registerCreditLine(lender.address, creditLineAddress));
 
-      await expect((market.connect(lender) as Contract).assignLiquidityPoolToCreditLine(creditLineAddress, liquidityPoolAddress))
-        .to.be.revertedWithCustomError(market, ERROR_NAME_UNAUTHORIZED);
+      await expect(
+        (market.connect(lender) as Contract).assignLiquidityPoolToCreditLine(creditLineAddress, liquidityPoolAddress)
+      ).to.be.revertedWithCustomError(market, ERROR_NAME_UNAUTHORIZED);
     });
   });
 
@@ -1003,9 +1004,12 @@ describe("Contract 'LendingMarket'", async () => {
     it("Executes as expected and emits the correct event", async () => {
       const { market, marketConnectedToLender } = await loadFixture(deployLendingMarketAndTakeLoan);
 
-      await expect(marketConnectedToLender.updateLoanInterestRatePrimary(DEFAULT_LOAN_ID, DEFAULT_INTEREST_RATE_PRIMARY - 1))
-        .to.emit(market, EVENT_NAME_LOAN_INTEREST_RATE_PRIMARY_UPDATED)
-        .withArgs(DEFAULT_LOAN_ID, DEFAULT_INTEREST_RATE_PRIMARY - 1, DEFAULT_INTEREST_RATE_PRIMARY);
+      await expect(
+        marketConnectedToLender.updateLoanInterestRatePrimary(DEFAULT_LOAN_ID, DEFAULT_INTEREST_RATE_PRIMARY - 1)
+      ).to.emit(
+        market,
+        EVENT_NAME_LOAN_INTEREST_RATE_PRIMARY_UPDATED
+      ).withArgs(DEFAULT_LOAN_ID, DEFAULT_INTEREST_RATE_PRIMARY - 1, DEFAULT_INTEREST_RATE_PRIMARY);
     });
 
     it("Is reverted if the contract is paused", async () => {
@@ -1027,8 +1031,9 @@ describe("Contract 'LendingMarket'", async () => {
       const { market, marketConnectedToLender } = await loadFixture(deployLendingMarketAndTakeLoan);
       await proveTx((market.connect(borrower) as Contract).repayLoan(DEFAULT_LOAN_ID, FULL_REPAY_AMOUNT));
 
-      await expect(marketConnectedToLender.updateLoanInterestRatePrimary(DEFAULT_LOAN_ID, DEFAULT_INTEREST_RATE_PRIMARY))
-        .to.be.revertedWithCustomError(market, ERROR_NAME_LOAN_ALREADY_REPAID);
+      await expect(
+        marketConnectedToLender.updateLoanInterestRatePrimary(DEFAULT_LOAN_ID, DEFAULT_INTEREST_RATE_PRIMARY)
+      ).to.be.revertedWithCustomError(market, ERROR_NAME_LOAN_ALREADY_REPAID);
     });
 
     it("Is reverted if the caller is not the lender or an alias", async () => {
@@ -1055,9 +1060,12 @@ describe("Contract 'LendingMarket'", async () => {
     it("Executes as expected and emits the correct event", async () => {
       const { market, marketConnectedToLender } = await loadFixture(deployLendingMarketAndTakeLoan);
 
-      await expect(marketConnectedToLender.updateLoanInterestRateSecondary(DEFAULT_LOAN_ID, DEFAULT_INTEREST_RATE_SECONDARY - 1))
-        .to.emit(market, EVENT_NAME_LOAN_INTEREST_RATE_SECONDARY_UPDATED)
-        .withArgs(DEFAULT_LOAN_ID, DEFAULT_INTEREST_RATE_SECONDARY - 1, DEFAULT_INTEREST_RATE_SECONDARY);
+      await expect(
+        marketConnectedToLender.updateLoanInterestRateSecondary(DEFAULT_LOAN_ID, DEFAULT_INTEREST_RATE_SECONDARY - 1)
+      ).to.emit(
+        market,
+        EVENT_NAME_LOAN_INTEREST_RATE_SECONDARY_UPDATED
+      ).withArgs(DEFAULT_LOAN_ID, DEFAULT_INTEREST_RATE_SECONDARY - 1, DEFAULT_INTEREST_RATE_SECONDARY);
     });
 
     it("Is reverted if the contract is paused", async () => {
@@ -1079,22 +1087,28 @@ describe("Contract 'LendingMarket'", async () => {
       const { market, marketConnectedToLender } = await loadFixture(deployLendingMarketAndTakeLoan);
       await proveTx((market.connect(borrower) as Contract).repayLoan(DEFAULT_LOAN_ID, FULL_REPAY_AMOUNT));
 
-      await expect(marketConnectedToLender.updateLoanInterestRateSecondary(DEFAULT_LOAN_ID, DEFAULT_INTEREST_RATE_SECONDARY))
-        .to.be.revertedWithCustomError(market, ERROR_NAME_LOAN_ALREADY_REPAID);
+      await expect(
+        marketConnectedToLender.updateLoanInterestRateSecondary(DEFAULT_LOAN_ID, DEFAULT_INTEREST_RATE_SECONDARY)
+      ).to.be.revertedWithCustomError(market, ERROR_NAME_LOAN_ALREADY_REPAID);
     });
 
     it("Is reverted if the caller is not the lender or an alias", async () => {
       const { market } = await loadFixture(deployLendingMarketAndTakeLoan);
 
-      await expect((market.connect(attacker) as Contract).updateLoanInterestRateSecondary(DEFAULT_LOAN_ID, DEFAULT_INTEREST_RATE_SECONDARY))
-        .to.be.revertedWithCustomError(market, ERROR_NAME_UNAUTHORIZED);
+      await expect(
+        (market.connect(attacker) as Contract).updateLoanInterestRateSecondary(
+          DEFAULT_LOAN_ID,
+          DEFAULT_INTEREST_RATE_SECONDARY
+        )
+      ).to.be.revertedWithCustomError(market, ERROR_NAME_UNAUTHORIZED);
     });
 
     it("Is is reverted if the new interest rate is inappropriate", async () => {
       const { market, marketConnectedToLender } = await loadFixture(deployLendingMarketAndTakeLoan);
 
-      await expect(marketConnectedToLender.updateLoanInterestRateSecondary(DEFAULT_LOAN_ID, DEFAULT_INTEREST_RATE_SECONDARY + 1))
-        .to.be.revertedWithCustomError(market, ERROR_NAME_INAPPROPRIATE_INTEREST_RATE);
+      await expect(
+        marketConnectedToLender.updateLoanInterestRateSecondary(DEFAULT_LOAN_ID, DEFAULT_INTEREST_RATE_SECONDARY + 1)
+      ).to.be.revertedWithCustomError(market, ERROR_NAME_INAPPROPRIATE_INTEREST_RATE);
     });
   });
 

@@ -23,7 +23,7 @@ interface CreditLineConfig {
   minAddonPeriodRate: number;
   maxAddonPeriodRate: number;
 
-  [key: string]: string | number;  // Index signature
+  [key: string]: string | number; // Index signature
 }
 
 interface BorrowerConfig {
@@ -56,7 +56,7 @@ interface LoanTerms {
   addonRecipient: string;
   addonAmount: number;
 
-  [key: string]: string | number | boolean | InterestFormula;  // Index signature
+  [key: string]: string | number | boolean | InterestFormula; // Index signature
 }
 
 enum InterestFormula {
@@ -123,8 +123,8 @@ describe("Contract 'CreditLineConfigurable'", async () => {
   let users: HardhatEthersSigner[];
 
   before(async () => {
-    [deployer, lender, market, token, attacker, treasury, addonRecipient, borrower, ...users]
-      = await ethers.getSigners();
+    [deployer, lender, market, token, attacker, treasury, addonRecipient, borrower, ...users] =
+      await ethers.getSigners();
 
     creditLineFactory = await ethers.getContractFactory("CreditLineConfigurable");
     creditLineFactory.connect(deployer); // Explicitly specifying the deployer account
@@ -238,8 +238,8 @@ describe("Contract 'CreditLineConfigurable'", async () => {
   }
 
   async function prepareDataForBatchBorrowerConfig(borrowersNumber: number): Promise<{
-    borrowers: string[],
-    configs: BorrowerConfig[]
+    borrowers: string[];
+    configs: BorrowerConfig[];
   }> {
     const config = createDefaultBorrowerConfiguration();
     if (borrowersNumber > users.length) {
@@ -263,7 +263,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     let creditLine = await upgrades.deployProxy(creditLineFactory, [
       market.address,
       lender.address,
-      token.address,
+      token.address
     ]);
     await creditLine.waitForDeployment();
     creditLine = creditLine.connect(lender) as Contract; // Explicitly specifying the initial account

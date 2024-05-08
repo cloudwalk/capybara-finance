@@ -213,7 +213,7 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
 
       await expect(liquidityPool.configureAdmin(
         ZERO_ADDRESS, // account
-        true          // isAdmin
+        true // isAdmin
       )).to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_ZERO_ADDRESS);
     });
 
