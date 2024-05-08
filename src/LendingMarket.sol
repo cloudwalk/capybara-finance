@@ -275,7 +275,6 @@ contract LendingMarket is
             repaidAmount: 0,
             trackedTimestamp: blockTimestamp,
             freezeTimestamp: 0,
-            autoRepayment: terms.autoRepayment,
             addonAmount: terms.addonAmount,
             _reserved: 0
         });
@@ -314,7 +313,7 @@ contract LendingMarket is
 
         bool autoRepayment = loan.treasury == msg.sender;
 
-        if (autoRepayment && !loan.autoRepayment) {
+        if (autoRepayment && !Constants.AUTO_REPAYMENT_ENABLED) {
             revert AutoRepaymentNotAllowed();
         }
 

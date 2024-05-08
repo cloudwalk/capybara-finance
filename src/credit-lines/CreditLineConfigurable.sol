@@ -269,7 +269,6 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         terms.interestRatePrimary = borrowerConfig.interestRatePrimary;
         terms.interestRateSecondary = borrowerConfig.interestRateSecondary;
         terms.interestFormula = borrowerConfig.interestFormula;
-        terms.autoRepayment = borrowerConfig.autoRepayment;
         terms.addonAmount = calculateAddonAmount(
             borrowAmount,
             durationInPeriods,

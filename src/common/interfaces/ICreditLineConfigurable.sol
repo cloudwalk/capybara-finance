@@ -61,7 +61,6 @@ interface ICreditLineConfigurable is ICreditLine {
         uint32 maxDurationInPeriods;      // The maximum duration of the loan determined in periods.
         Interest.Formula interestFormula; // The formula to be used for interest calculation on the loan.
         BorrowPolicy borrowPolicy;        // The borrow policy to be applied to the borrower.
-        bool autoRepayment;               // Whether the loan can be repaid automatically.
     }
 
     // -------------------------------------------- //

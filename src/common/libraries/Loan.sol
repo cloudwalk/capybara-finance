@@ -23,8 +23,7 @@ library Loan {
         uint32 interestRatePrimary;       // The primary interest rate that is applied to the loan.
         uint32 interestRateSecondary;     // The secondary interest rate that is applied to the loan.
         Interest.Formula interestFormula; // The formula used for interest calculation on the loan.
-        bool autoRepayment;               // The flag that indicates whether the loan can be repaid automatically.
-        uint16 _reserved;                 // Reserved for future use.
+        uint24 _reserved;                 // Reserved for future use.
         // Slot 4
         uint64 repaidAmount;              // The amount that has been repaid on the loan over its lifetime.
         uint64 trackedBalance;            // The borrow balance of the loan that is tracked over its lifetime.
@@ -43,7 +42,6 @@ library Loan {
         address treasury;                 // The address of the loan treasury.
         uint64 addonAmount;               // The amount of the loan addon (extra charges or fees).
         Interest.Formula interestFormula; // The formula to be used for interest calculation on the loan.
-        bool autoRepayment;               // The flag that indicates whether the loan can be repaid automatically.
     }
 
     /// @dev A struct that defines the preview of the loan.

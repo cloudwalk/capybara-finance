@@ -72,7 +72,6 @@ contract CreditLineConfigurableTest is Test {
     uint32 private constant BORROWER_CONFIG_INTEREST_RATE_SECONDARY = 6;
     uint32 private constant BORROWER_CONFIG_ADDON_FIXED_RATE = 15;
     uint32 private constant BORROWER_CONFIG_ADDON_PERIOD_RATE = 20;
-    bool private constant BORROWER_CONFIG_AUTOREPAYMENT = true;
     Interest.Formula private constant BORROWER_CONFIG_INTEREST_FORMULA_COMPOUND = Interest.Formula.Compound;
     ICreditLineConfigurable.BorrowPolicy private constant BORROWER_CONFIG_BORROW_POLICY_DECREASE =
         ICreditLineConfigurable.BorrowPolicy.Decrease;
@@ -115,8 +114,7 @@ contract CreditLineConfigurableTest is Test {
             config1.addonFixedRate == config2.addonFixedRate &&
             config1.addonPeriodRate == config2.addonPeriodRate &&
             uint256(config1.interestFormula) == uint256(config2.interestFormula) &&
-            uint256(config1.borrowPolicy) == uint256(config2.borrowPolicy) &&
-            config1.autoRepayment == config2.autoRepayment
+            uint256(config1.borrowPolicy) == uint256(config2.borrowPolicy)
         );
     }
 
@@ -135,8 +133,7 @@ contract CreditLineConfigurableTest is Test {
             config1.addonFixedRate == config2.addonFixedRate &&
             config1.addonPeriodRate == config2.addonPeriodRate &&
             uint256(config1.interestFormula) == uint256(config2.interestFormula) &&
-            uint256(config1.borrowPolicy) == uint256(config2.borrowPolicy) &&
-            config1.autoRepayment == config2.autoRepayment
+            uint256(config1.borrowPolicy) == uint256(config2.borrowPolicy)
         );
     }
 
@@ -198,8 +195,7 @@ contract CreditLineConfigurableTest is Test {
             addonFixedRate: BORROWER_CONFIG_ADDON_FIXED_RATE,
             addonPeriodRate: BORROWER_CONFIG_ADDON_PERIOD_RATE,
             interestFormula: BORROWER_CONFIG_INTEREST_FORMULA_COMPOUND,
-            borrowPolicy: BORROWER_CONFIG_BORROW_POLICY_DECREASE,
-            autoRepayment: BORROWER_CONFIG_AUTOREPAYMENT
+            borrowPolicy: BORROWER_CONFIG_BORROW_POLICY_DECREASE
         });
     }
 
@@ -828,7 +824,6 @@ contract CreditLineConfigurableTest is Test {
         assertEq(terms.interestRatePrimary, borrowerConfig.interestRatePrimary);
         assertEq(terms.interestRateSecondary, borrowerConfig.interestRateSecondary);
         assertEq(uint256(terms.interestFormula), uint256(borrowerConfig.interestFormula));
-        assertEq(terms.autoRepayment, borrowerConfig.autoRepayment);
         assertEq(
             terms.addonAmount,
             creditLine.calculateAddonAmount(

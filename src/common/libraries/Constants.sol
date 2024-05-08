@@ -17,4 +17,7 @@ library Constants {
 
     /// @dev The number of periods before which the loan can be revoked.
     uint256 internal constant COOLDOWN_IN_PERIODS = 3;
+
+    /// @dev The flag that indicates whether the auto repayment is enabled.
+    bool internal constant AUTO_REPAYMENT_ENABLED = true;
 }

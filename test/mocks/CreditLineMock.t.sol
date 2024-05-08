@@ -34,7 +34,6 @@ contract CreditLineMockTest is Test {
     uint32 private constant TERMS_ADDON_AMOUNT = 600;
 
     Interest.Formula private constant TERMS_INTEREST_FORMULA = Interest.Formula.Compound;
-    bool private constant TERMS_AUTO_REPAYMENT = true;
 
     // -------------------------------------------- //
     //  Setup and configuration                     //
@@ -57,7 +56,6 @@ contract CreditLineMockTest is Test {
         assertEq(terms.interestRatePrimary, 0);
         assertEq(terms.interestRateSecondary, 0);
         assertEq(uint256(terms.interestFormula), uint256(Interest.Formula.Simple));
-        assertEq(terms.autoRepayment, false);
         assertEq(terms.addonAmount, 0);
 
         mock.mockLoanTerms(
@@ -70,7 +68,6 @@ contract CreditLineMockTest is Test {
                 interestRatePrimary: TERMS_INTEREST_RATE_PRIMARY,
                 interestRateSecondary: TERMS_INTEREST_RATE_SECONDARY,
                 interestFormula: TERMS_INTEREST_FORMULA,
-                autoRepayment: TERMS_AUTO_REPAYMENT,
                 addonAmount: TERMS_ADDON_AMOUNT
             })
         );
@@ -83,7 +80,6 @@ contract CreditLineMockTest is Test {
         assertEq(terms.interestRatePrimary, TERMS_INTEREST_RATE_PRIMARY);
         assertEq(terms.interestRateSecondary, TERMS_INTEREST_RATE_SECONDARY);
         assertEq(uint256(terms.interestFormula), uint256(TERMS_INTEREST_FORMULA));
-        assertEq(terms.autoRepayment, TERMS_AUTO_REPAYMENT);
         assertEq(terms.addonAmount, TERMS_ADDON_AMOUNT);
     }
 
@@ -96,7 +92,6 @@ contract CreditLineMockTest is Test {
         assertEq(terms.interestRatePrimary, 0);
         assertEq(terms.interestRateSecondary, 0);
         assertEq(uint256(terms.interestFormula), uint256(Interest.Formula.Simple));
-        assertEq(terms.autoRepayment, false);
         assertEq(terms.addonAmount, 0);
 
         mock.mockLoanTerms(
@@ -109,7 +104,6 @@ contract CreditLineMockTest is Test {
                 interestRatePrimary: TERMS_INTEREST_RATE_PRIMARY,
                 interestRateSecondary: TERMS_INTEREST_RATE_SECONDARY,
                 interestFormula: TERMS_INTEREST_FORMULA,
-                autoRepayment: TERMS_AUTO_REPAYMENT,
                 addonAmount: TERMS_ADDON_AMOUNT
             })
         );
@@ -122,7 +116,6 @@ contract CreditLineMockTest is Test {
         assertEq(terms.interestRatePrimary, TERMS_INTEREST_RATE_PRIMARY);
         assertEq(terms.interestRateSecondary, TERMS_INTEREST_RATE_SECONDARY);
         assertEq(uint256(terms.interestFormula), uint256(TERMS_INTEREST_FORMULA));
-        assertEq(terms.autoRepayment, TERMS_AUTO_REPAYMENT);
         assertEq(terms.addonAmount, TERMS_ADDON_AMOUNT);
     }
 
