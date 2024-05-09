@@ -7,9 +7,6 @@ import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.s
 import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import { AccessControlUpgradeable } from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
-import { ERC721Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
-import { ERC721EnumerableUpgradeable } from
-    "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 
 import { Loan } from "src/common/libraries/Loan.sol";
 import { Error } from "src/common/libraries/Error.sol";
@@ -32,8 +29,6 @@ contract LendingMarket is
     Initializable,
     AccessControlUpgradeable,
     PausableUpgradeable,
-    ERC721Upgradeable,
-    ERC721EnumerableUpgradeable,
     ILendingMarket
 {
     using SafeERC20 for IERC20;
@@ -115,20 +110,14 @@ contract LendingMarket is
     // -------------------------------------------- //
 
     /// @dev Initializer of the upgradable contract.
-    /// @param name_ The name of the NFT token that will represent the loans.
-    /// @param symbol_ The symbol of the NFT token that will represent the loans.
-    function initialize(string memory name_, string memory symbol_) external initializer {
-        __LendingMarket_init(name_, symbol_);
+    function initialize() external initializer {
+        __LendingMarket_init();
     }
 
     /// @dev Internal initializer of the upgradable contract.
-    /// @param name_ The name of the NFT token that will represent the loans.
-    /// @param symbol_ The symbol of the NFT token that will represent the loans.
-    function __LendingMarket_init(string memory name_, string memory symbol_) internal onlyInitializing {
+    function __LendingMarket_init() internal onlyInitializing {
         __AccessControl_init_unchained();
         __Pausable_init_unchained();
-        __ERC721_init_unchained(name_, symbol_);
-        __ERC721Enumerable_init_unchained();
         __LendingMarket_init_unchained();
     }
 
@@ -239,7 +228,9 @@ contract LendingMarket is
             revert LiquidityPoolNotRegistered();
         }
 
-        uint256 id = _safeMint(lender);
+        uint256 id = _loanIdCounter++;
+        _loanLenders[id] = lender;
+
         Loan.Terms memory terms = ICreditLine(creditLine).onBeforeLoanTaken(
             msg.sender,
             borrowAmount,
@@ -319,10 +310,6 @@ contract LendingMarket is
         ILiquidityPool(loan.treasury).onAfterLoanPayment(loanId, repayAmount);
 
         emit LoanRepayment(loanId, payer, loan.borrower, repayAmount, outstandingBalance);
-
-        if (outstandingBalance == 0) {
-            _safeTransfer(ownerOf(loanId), loan.borrower, loanId, "");
-        }
     }
 
     // -------------------------------------------- //
@@ -526,8 +513,12 @@ contract LendingMarket is
 
     /// @inheritdoc ILendingMarket
     function isLenderOrAlias(uint256 loanId, address account) public view returns (bool) {
-        address lender = ownerOf(loanId);
+        address lender = _loanLenders[loanId];
         return account == lender || _hasAlias[lender][account];
+    }
+
+    function getLoanLender(uint256 loanId) public view returns (address) {
+        return _loanLenders[loanId];
     }
 
     /// @inheritdoc ILendingMarket
@@ -548,6 +539,15 @@ contract LendingMarket is
     /// @inheritdoc ILendingMarket
     function timeOffset() external view returns (uint256, bool) {
         return (Constants.NEGATIVE_TIME_OFFSET, false);
+    }
+
+    /// @inheritdoc ILendingMarket
+    function registry() external view returns (address) {
+        return _registry;
+    }
+
+    function loansCount() external view returns (uint256) {
+        return _loanIdCounter;
     }
 
     /// @dev Calculates the period index that corresponds the specified timestamp.
@@ -642,15 +642,6 @@ contract LendingMarket is
         }
     }
 
-    /// @dev Mints a new NFT token.
-    /// @param to The address to mint the token to.
-    /// @return The unique identifier of the minted token.
-    function _safeMint(address to) internal returns (uint256) {
-        uint256 tokenId = _tokenIdCounter++;
-        _safeMint(to, tokenId);
-        return tokenId;
-    }
-
     /// @dev Calculates the period index that corresponds the specified timestamp.
     function _periodIndex(uint256 timestamp, uint256 periodInSeconds) internal pure returns (uint256) {
         return (timestamp / periodInSeconds);
@@ -659,36 +650,5 @@ contract LendingMarket is
     /// @dev Returns the current block timestamp.
     function _blockTimestamp() internal view virtual returns (uint256) {
         return block.timestamp - Constants.NEGATIVE_TIME_OFFSET;
-    }
-
-    // -------------------------------------------- //
-    //  ERC721 functions                            //
-    // -------------------------------------------- //
-
-    /// @inheritdoc ERC721Upgradeable
-    function _update(
-        address to,
-        uint256 tokenId,
-        address auth
-    ) internal override (ERC721Upgradeable, ERC721EnumerableUpgradeable) whenNotPaused returns (address) {
-        return super._update(to, tokenId, auth);
-    }
-
-    /// @inheritdoc ERC721Upgradeable
-    function _increaseBalance(
-        address account,
-        uint128 value
-    ) internal override (ERC721Upgradeable, ERC721EnumerableUpgradeable) whenNotPaused {
-        super._increaseBalance(account, value);
-    }
-
-    /// @inheritdoc ERC721Upgradeable
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        override (ERC721Upgradeable, ERC721EnumerableUpgradeable, AccessControlUpgradeable)
-        returns (bool)
-    {
-        return super.supportsInterface(interfaceId);
     }
 }

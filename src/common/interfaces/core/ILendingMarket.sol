@@ -250,6 +250,10 @@ interface ILendingMarket {
     /// @param account The address to check whether it's a lender or an alias.
     function isLenderOrAlias(uint256 loanId, address account) external view returns (bool);
 
+    /// @dev Returns the lender of the loan with the provided id.
+    /// @param loanId The unique identifier of the loan to check.
+    function getLoanLender(uint256 loanId) external view returns (address);
+
     /// @dev Checks if the provided account is an alias for a lender.
     /// @param lender The address of the lender to check alias for.
     /// @param account The address to check whether it's an alias or not.
@@ -265,4 +269,10 @@ interface ILendingMarket {
     /// @dev Returns time offset and whether it's positive or negative.
     /// The time offset is used to adjust current period of the loan.
     function timeOffset() external view returns (uint256, bool);
+
+    /// @dev Returns the address of the lending market registry.
+    function registry() external view returns (address);
+
+    /// @dev Returns the total amount of loans taken.
+    function loansCount() external view returns (uint256);
 }

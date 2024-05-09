@@ -12,11 +12,13 @@ abstract contract LendingMarketStorage {
     //  Storage variables                           //
     // -------------------------------------------- //
 
-    /// @dev The counter of the NFT token identifiers.
-    uint256 internal _tokenIdCounter;
+    /// @dev The counter of loans.
+    uint256 internal _loanIdCounter;
 
     /// @dev The mapping of loan identifier to loan state.
     mapping(uint256 => Loan.State) internal _loans;
+
+    mapping(uint256 => address) internal _loanLenders;
 
     /// @dev The mapping of credit line to associated lender.
     mapping(address => address) internal _creditLineLenders;
@@ -32,5 +34,5 @@ abstract contract LendingMarketStorage {
 
     /// @dev This empty reserved space is put in place to allow future versions
     /// to add new variables without shifting down storage in the inheritance chain.
-    uint256[44] private __gap;
+    uint256[43] private __gap;
 }
