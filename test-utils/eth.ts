@@ -1,4 +1,4 @@
-import { upgrades } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 import { Contract, ContractFactory } from "ethers";
 import { expect } from "chai";
 import { TransactionReceipt, TransactionResponse } from "@ethersproject/abstract-provider";
@@ -31,4 +31,10 @@ export function getAddress(contract: Contract): string {
     throw new Error("The '.target' field of the contract is not an address string");
   }
   return address;
+}
+
+export async function getTxTimestamp(tx: Promise<TransactionResponse>): Promise<number> {
+  const receipt = await proveTx(tx);
+  const block = await ethers.provider.getBlock(receipt.blockNumber);
+  return Number(block?.timestamp ?? 0);
 }
