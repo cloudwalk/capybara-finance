@@ -61,7 +61,7 @@ contract LendingMarketComplexTest is Test {
 
         // Deploy market
         lendingMarket = new LendingMarket();
-        lendingMarket.initialize("NAME", "SYMBOL");
+        lendingMarket.initialize();
 
         // Deploy scenarios
         scenarios = new LoanComplexScenarios();

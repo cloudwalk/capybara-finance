@@ -170,8 +170,11 @@ contract LendingMarketTest is Test {
         liquidityPool = new LiquidityPoolMock();
 
         market = new LendingMarket();
-        vm.prank(OWNER);
-        market.initialize("NAME", "SYMBOL");
+
+        vm.startPrank(DEPLOYER);
+        market.initialize();
+        market.transferOwnership(OWNER);
+        vm.stopPrank();
 
         vm.startPrank(OWNER);
         market.grantRole(REGISTRY_ROLE, OWNER);
@@ -375,21 +378,17 @@ contract LendingMarketTest is Test {
     // -------------------------------------------- //
 
     function test_initialize() public {
+        vm.startPrank(DEPLOYER);
+
         market = new LendingMarket();
+        assertEq(market.owner(), address(0));
 
-        assertEq(market.name(), "");
-        assertEq(market.symbol(), "");
-        assertEq(market.hasRole(OWNER_ROLE, OWNER), false);
+        market.initialize();
 
-        vm.prank(OWNER);
-        market.initialize("NAME", "SYMBOL");
-
-        assertEq(market.name(), "NAME");
-        assertEq(market.symbol(), "SYMBOL");
-        assertEq(market.hasRole(OWNER_ROLE, OWNER), true);
+        assertEq(market.owner(), DEPLOYER);
 
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        market.initialize("NEW_NAME", "NEW_SYMBOL");
+        market.initialize();
     }
 
     // -------------------------------------------- //
@@ -771,7 +770,6 @@ contract LendingMarketTest is Test {
 
         token.mint(address(liquidityPool), BORROW_AMOUNT);
 
-        uint256 totalSupply = market.totalSupply();
         uint256 borrowerBalance = token.balanceOf(BORROWER);
         uint256 liquidityPoolBefore = token.balanceOf(address(liquidityPool));
 
@@ -782,18 +780,20 @@ contract LendingMarketTest is Test {
         vm.expectEmit(true, true, true, true, address(market));
         emit LoanTaken(loanId, BORROWER, totalBorrowAmount, terms.durationInPeriods);
 
+        assertEq(market.loansCount(), 0); // number of loans taken
+
         vm.prank(BORROWER);
         assertEq(market.takeLoan(address(creditLine), BORROW_AMOUNT, terms.durationInPeriods), loanId);
+        assertEq(market.loansCount(), 1); // number of loans taken
 
         Loan.State memory loan = market.getLoanState(loanId);
 
-        assertEq(market.ownerOf(loanId), LENDER);
-        assertEq(market.totalSupply(), totalSupply + 1);
         assertEq(token.balanceOf(BORROWER), borrowerBalance + BORROW_AMOUNT);
         assertEq(token.balanceOf(address(liquidityPool)), liquidityPoolBefore - BORROW_AMOUNT);
 
         assertEq(loan.token, terms.token);
         assertEq(loan.borrower, BORROWER);
+        assertEq(market.getLoanLender(loanId), LENDER);
         assertEq(loan.treasury, terms.treasury);
         assertEq(loan.startTimestamp, blockTimestamp());
         assertEq(loan.trackedTimestamp, blockTimestamp());
@@ -875,8 +875,6 @@ contract LendingMarketTest is Test {
             vm.startPrank(loan.treasury);
         }
 
-        assertNotEq(market.ownerOf(loanId), loan.borrower);
-
         // Partial repayment
 
         skip(Constants.PERIOD_IN_SECONDS * skipPeriodsBeforePartialRepayment);
@@ -899,7 +897,6 @@ contract LendingMarketTest is Test {
         loan = market.getLoanState(loanId);
         assertEq(loan.repaidAmount, partialRepayAmount);
         assertEq(market.getLoanPreview(loanId, 0).outstandingBalance, outstandingBalance);
-        assertNotEq(market.ownerOf(loanId), loan.borrower);
 
         // Full repayment
 
@@ -920,7 +917,6 @@ contract LendingMarketTest is Test {
         loan = market.getLoanState(loanId);
         assertEq(loan.repaidAmount, partialRepayAmount + fullRepayAmount);
         assertEq(market.getLoanPreview(loanId, 0).outstandingBalance, 0);
-        assertEq(market.ownerOf(loanId), loan.borrower);
     }
 
     function test_repayLoan_CanBeRepaid_IfLoanIsActive() public {
@@ -1916,15 +1912,4 @@ contract LendingMarketTest is Test {
     //     }
     // }
 
-    // -------------------------------------------- //
-    //  ERC165 support                              //
-    // -------------------------------------------- //
-
-    function test_supportsInterface() public {
-        assertEq(market.supportsInterface(0x0), false);
-        assertEq(market.supportsInterface(0x01ffc9a7), true); // ERC165
-        assertEq(market.supportsInterface(0x80ac58cd), true); // ERC721
-        assertEq(market.supportsInterface(0x5b5e139f), true); // ERC721Metadata
-        assertEq(market.supportsInterface(0x780e9d63), true); // ERC721Enumerable
-    }
 }

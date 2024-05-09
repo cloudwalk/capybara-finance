@@ -27,6 +27,7 @@ contract LendingMarketUUPSTest is Test {
 
     address private constant OWNER = address(bytes20(keccak256("owner")));
     address private constant ATTACKER = address(bytes20(keccak256("attacker")));
+    address private constant DEPLOYER = address(bytes20(keccak256("deployer")));
 
     bytes32 private constant OWNER_ROLE = keccak256("OWNER_ROLE");
 
@@ -35,9 +36,11 @@ contract LendingMarketUUPSTest is Test {
     // -------------------------------------------- //
 
     function setUp() public {
+        vm.startPrank(DEPLOYER);
         proxy = LendingMarketUUPS(address(new ERC1967Proxy(address(new LendingMarketUUPS()), "")));
-        vm.prank(OWNER);
-        proxy.initialize("NAME", "SYMBOL");
+        proxy.initialize();
+        proxy.transferOwnership(OWNER);
+        vm.stopPrank();
     }
 
     // -------------------------------------------- //
