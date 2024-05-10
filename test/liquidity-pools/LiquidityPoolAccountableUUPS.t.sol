@@ -5,7 +5,7 @@ pragma solidity 0.8.24;
 import { Test } from "forge-std/Test.sol";
 
 import { ERC1967Proxy } from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.sol";
 
 import { LiquidityPoolAccountableUUPS } from "src/liquidity-pools/LiquidityPoolAccountableUUPS.sol";
 
@@ -28,6 +28,8 @@ contract LiquidityPoolAccountableUUPSTest is Test {
     address private constant MARKET = address(bytes20(keccak256("market")));
     address private constant LENDER = address(bytes20(keccak256("lender")));
     address private constant ATTACKER = address(bytes20(keccak256("attacker")));
+
+    bytes32 private constant OWNER_ROLE = keccak256("OWNER_ROLE");
 
     // -------------------------------------------- //
     //  Setup and configuration                     //
@@ -55,7 +57,11 @@ contract LiquidityPoolAccountableUUPSTest is Test {
     function test_upgradeToAndCall_Revert_IfCallerNotOwner() public {
         address newImplemetation = address(new LiquidityPoolAccountableUUPS());
         vm.prank(ATTACKER);
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                ATTACKER, OWNER_ROLE)
+        );
         proxy.upgradeToAndCall(newImplemetation, "");
     }
 }

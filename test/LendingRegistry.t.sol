@@ -5,7 +5,7 @@ pragma solidity 0.8.24;
 import { Test } from "forge-std/Test.sol";
 
 import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
 import { Error } from "src/common/libraries/Error.sol";
@@ -65,6 +65,8 @@ contract LendingRegistryTest is Test {
     address private constant LIQUIDITY_POOL_FACTORY_2 = address(bytes20(keccak256("liquidity_pool_factory_2")));
     address private constant EXPECTED_CONTRACT_ADDRESS = address(bytes20(keccak256("expected_contract_address")));
 
+    bytes32 private constant OWNER_ROLE = keccak256("OWNER_ROLE");
+
     uint16 private constant KIND_1 = 1;
     bytes private constant DATA = "0x";
 
@@ -78,9 +80,8 @@ contract LendingRegistryTest is Test {
         liquidityPoolFactory = new LiquidityPoolFactoryMock();
 
         registry = new LendingRegistry();
+        vm.prank(OWNER);
         registry.initialize(address(lendingMarket));
-
-        registry.transferOwnership(OWNER);
     }
 
     // -------------------------------------------- //
@@ -89,8 +90,10 @@ contract LendingRegistryTest is Test {
 
     function test_initialize() public {
         registry = new LendingRegistry();
+        vm.prank(OWNER);
         registry.initialize(address(lendingMarket));
         assertEq(registry.market(), address(lendingMarket));
+        assertEq(registry.hasRole(OWNER_ROLE, OWNER), true);
     }
 
     function test_initialize_Revert_IfMarketIsZeroAddress() public {
@@ -127,7 +130,11 @@ contract LendingRegistryTest is Test {
 
     function test_pause_Revert_IfCallerNotOwner() public {
         vm.prank(ATTACKER);
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                ATTACKER, OWNER_ROLE)
+        );
         registry.pause();
     }
 
@@ -155,7 +162,11 @@ contract LendingRegistryTest is Test {
         vm.prank(OWNER);
         registry.pause();
         vm.prank(ATTACKER);
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                ATTACKER, OWNER_ROLE)
+        );
         registry.unpause();
     }
 
@@ -186,7 +197,11 @@ contract LendingRegistryTest is Test {
 
     function test_setCreditLineFactory_Revert_IfCallerNotOwner() public {
         vm.prank(ATTACKER);
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                ATTACKER, OWNER_ROLE)
+        );
         registry.setCreditLineFactory(CREDIT_LINE_FACTORY_1);
     }
 
@@ -224,7 +239,11 @@ contract LendingRegistryTest is Test {
 
     function test_setLiquidityPoolFactory_Revert_IfCallerNotOwner() public {
         vm.prank(ATTACKER);
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                ATTACKER, OWNER_ROLE)
+        );
         registry.setLiquidityPoolFactory(LIQUIDITY_POOL_FACTORY_1);
     }
 

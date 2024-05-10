@@ -5,7 +5,7 @@ pragma solidity 0.8.24;
 import { Test } from "forge-std/Test.sol";
 
 import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
 import { Loan } from "src/common/libraries/Loan.sol";
@@ -47,6 +47,9 @@ contract LiquidityPoolAccountableTest is Test {
     address private constant LENDER = address(bytes20(keccak256("lender")));
     address private constant ATTACKER = address(bytes20(keccak256("attacker")));
     address private constant TOKEN_SOURCE_NONEXISTENT = address(bytes20(keccak256("token_source_nonexistent")));
+
+    bytes32 private constant OWNER_ROLE = keccak256("OWNER_ROLE");
+    bytes32 private constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
     uint256 private constant LOAN_ID_1 = 1;
     uint256 private constant LOAN_ID_2 = 2;
@@ -121,8 +124,8 @@ contract LiquidityPoolAccountableTest is Test {
         liquidityPool = new LiquidityPoolAccountable();
         liquidityPool.initialize(address(lendingMarket), LENDER);
         assertEq(liquidityPool.market(), address(lendingMarket));
+        assertEq(liquidityPool.hasRole(OWNER_ROLE, LENDER), true);
         assertEq(liquidityPool.lender(), LENDER);
-        assertEq(liquidityPool.owner(), LENDER);
     }
 
     function test_initializer_Revert_IfMarketIsZeroAddress() public {
@@ -133,7 +136,7 @@ contract LiquidityPoolAccountableTest is Test {
 
     function test_initializer_Revert_IfLenderIsZeroAddress() public {
         liquidityPool = new LiquidityPoolAccountable();
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableInvalidOwner.selector, address(0)));
+        vm.expectRevert(Error.ZeroAddress.selector);
         liquidityPool.initialize(address(lendingMarket), address(0));
     }
 
@@ -164,7 +167,11 @@ contract LiquidityPoolAccountableTest is Test {
 
     function test_pause_Revert_IfCallerNotOwner() public {
         vm.prank(ATTACKER);
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                ATTACKER, OWNER_ROLE)
+        );
         liquidityPool.pause();
     }
 
@@ -192,7 +199,11 @@ contract LiquidityPoolAccountableTest is Test {
         vm.prank(LENDER);
         liquidityPool.pause();
         vm.prank(ATTACKER);
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                ATTACKER, OWNER_ROLE)
+        );
         liquidityPool.unpause();
     }
 
@@ -220,7 +231,11 @@ contract LiquidityPoolAccountableTest is Test {
 
     function test_configureAdmin_Revert_IfCallerNotOwner() public {
         vm.prank(ATTACKER);
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                ATTACKER, OWNER_ROLE)
+        );
         liquidityPool.configureAdmin(ADMIN, true);
     }
 
@@ -267,7 +282,11 @@ contract LiquidityPoolAccountableTest is Test {
 
     function test_deposit_Revert_IfCallerNotOwner() public {
         vm.prank(ATTACKER);
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                ATTACKER, OWNER_ROLE)
+        );
         liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT_1);
     }
 
@@ -338,7 +357,11 @@ contract LiquidityPoolAccountableTest is Test {
     function test_withdraw_Revert_IfCallerNotOwner() public {
         (uint256 borrowable, uint256 addons) = prepareWithdraw();
         vm.prank(ATTACKER);
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                ATTACKER, OWNER_ROLE)
+        );
         liquidityPool.withdraw(address(creditLine), borrowable, addons);
     }
 
@@ -392,7 +415,11 @@ contract LiquidityPoolAccountableTest is Test {
     function test_rescue_Revert_IfCallerNotOwner() public {
         token.mint(address(liquidityPool), DEPOSIT_AMOUNT_1);
         vm.prank(ATTACKER);
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                ATTACKER, OWNER_ROLE)
+        );
         liquidityPool.rescue(address(token), DEPOSIT_AMOUNT_1);
     }
 
@@ -421,7 +448,11 @@ contract LiquidityPoolAccountableTest is Test {
         (uint256[] memory loanIds, uint256[] memory amounts) = getBatchLoanData();
 
         vm.prank(ATTACKER);
-        vm.expectRevert(Error.Unauthorized.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                ATTACKER, ADMIN_ROLE)
+        );
         liquidityPool.autoRepay(loanIds, amounts);
     }
 

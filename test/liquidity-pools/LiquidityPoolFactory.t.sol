@@ -5,7 +5,7 @@ pragma solidity 0.8.24;
 import { Test } from "forge-std/Test.sol";
 
 import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.sol";
 
 import { LiquidityPoolAccountable } from "src/liquidity-pools/LiquidityPoolAccountable.sol";
 import { LiquidityPoolFactory } from "src/liquidity-pools/LiquidityPoolFactory.sol";
@@ -38,6 +38,8 @@ contract LiquidityPoolFactoryTest is Test {
     address private constant REGISTRY_2 = address(bytes20(keccak256("registry_2")));
     address private constant EXPECTED_CONTRACT_ADDRESS = 0x104fBc016F4bb334D775a19E8A6510109AC63E00;
 
+    bytes32 private constant OWNER_ROLE = keccak256("OWNER_ROLE");
+
     uint16 private constant KIND_1 = 1;
     uint16 private constant KIND_2 = 2;
     bytes private constant DATA = "0x123ff";
@@ -58,14 +60,7 @@ contract LiquidityPoolFactoryTest is Test {
     function test_initializer() public {
         factory = new LiquidityPoolFactory();
         factory.initialize(REGISTRY_1);
-        assertEq(factory.owner(), REGISTRY_1);
-    }
-
-    function test_initializer_Revert_IfRegistryIsZeroAddress() public {
-        vm.prank(REGISTRY_1);
-        factory = new LiquidityPoolFactory();
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableInvalidOwner.selector, address(0)));
-        factory.initialize(address(0));
+        assertEq(factory.hasRole(OWNER_ROLE, REGISTRY_1), true);
     }
 
     function test_initialize_Revert_IfCalledSecondTime() public {
@@ -99,7 +94,11 @@ contract LiquidityPoolFactoryTest is Test {
 
     function test_createLiquidityPool_Revert_IfCallerNotRegistry() public {
         vm.prank(ATTACKER);
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                ATTACKER, OWNER_ROLE)
+        );
         factory.createLiquidityPool(MARKET, LENDER, KIND_1, DATA);
     }
 

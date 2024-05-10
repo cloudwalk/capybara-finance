@@ -5,7 +5,7 @@ pragma solidity 0.8.24;
 import { Test } from "forge-std/Test.sol";
 
 import { ERC1967Proxy } from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.sol";
 
 import { LendingMarketUUPS } from "src/LendingMarketUUPS.sol";
 
@@ -28,14 +28,16 @@ contract LendingMarketUUPSTest is Test {
     address private constant OWNER = address(bytes20(keccak256("owner")));
     address private constant ATTACKER = address(bytes20(keccak256("attacker")));
 
+    bytes32 private constant OWNER_ROLE = keccak256("OWNER_ROLE");
+
     // -------------------------------------------- //
     //  Setup and configuration                     //
     // -------------------------------------------- //
 
     function setUp() public {
         proxy = LendingMarketUUPS(address(new ERC1967Proxy(address(new LendingMarketUUPS()), "")));
+        vm.prank(OWNER);
         proxy.initialize("NAME", "SYMBOL");
-        proxy.transferOwnership(OWNER);
     }
 
     // -------------------------------------------- //
@@ -53,7 +55,11 @@ contract LendingMarketUUPSTest is Test {
     function test_upgradeToAndCall_Revert_IfCallerNotOwner() public {
         address newImplemetation = address(new LendingMarketUUPS());
         vm.prank(ATTACKER);
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                ATTACKER, OWNER_ROLE)
+        );
         proxy.upgradeToAndCall(newImplemetation, "");
     }
 }

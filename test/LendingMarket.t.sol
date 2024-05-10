@@ -5,7 +5,7 @@ pragma solidity 0.8.24;
 import { Test } from "forge-std/Test.sol";
 
 import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
 import { Loan } from "src/common/libraries/Loan.sol";
@@ -40,7 +40,7 @@ contract LendingMarketTest is Test {
     event OnBeforeLoanRevocationCalled(uint256 indexed loanId);
     event OnAfterLoanRevocationCalled(uint256 indexed loanId);
 
-    event MarketRegistryChanged(address indexed newRegistry, address indexed oldRegistry);
+    event RegistryAdminStatusConfigured(address indexed account, bool adminStatus);
     event LiquidityPoolRegistered(address indexed lender, address indexed liquidityPool);
     event CreditLineRegistered(address indexed lender, address indexed creditLine);
 
@@ -124,6 +124,9 @@ contract LendingMarketTest is Test {
     address private constant LENDER_ALIAS = address(bytes20(keccak256("lender_alias")));
     address private constant LOAN_TREASURY = address(bytes20(keccak256("loan_treasury")));
 
+    bytes32 private constant OWNER_ROLE = keccak256("OWNER_ROLE");
+    bytes32 private constant REGISTRY_ADMIN_ROLE = keccak256("REGISTRY_ADMIN_ROLE");
+
     uint64 private constant ADDON_AMOUNT = 100;
     uint64 private constant BORROW_AMOUNT = 100;
     uint32 private constant DURATION_IN_PERIODS = 30;
@@ -167,11 +170,13 @@ contract LendingMarketTest is Test {
         liquidityPool = new LiquidityPoolMock();
 
         market = new LendingMarket();
-        market.initialize("NAME", "SYMBOL");
-        market.transferOwnership(OWNER);
-
         vm.prank(OWNER);
-        market.setRegistry(REGISTRY_1);
+        market.initialize("NAME", "SYMBOL");
+
+        vm.startPrank(OWNER);
+        market.configureRegistryAdmin(OWNER, true);
+        market.configureRegistryAdmin(REGISTRY_1, true);
+        vm.stopPrank();
 
         skip(INIT_BLOCK_TIMESTAMP);
     }
@@ -374,13 +379,14 @@ contract LendingMarketTest is Test {
 
         assertEq(market.name(), "");
         assertEq(market.symbol(), "");
-        assertEq(market.owner(), address(0));
+        assertEq(market.hasRole(OWNER_ROLE, OWNER), false);
 
+        vm.prank(OWNER);
         market.initialize("NAME", "SYMBOL");
 
         assertEq(market.name(), "NAME");
         assertEq(market.symbol(), "SYMBOL");
-        assertEq(market.owner(), address(this));
+        assertEq(market.hasRole(OWNER_ROLE, OWNER), true);
 
         vm.expectRevert(Initializable.InvalidInitialization.selector);
         market.initialize("NEW_NAME", "NEW_SYMBOL");
@@ -400,7 +406,11 @@ contract LendingMarketTest is Test {
     function test_pause_Revert_IfCallerNotOwner() public {
         assertEq(market.paused(), false);
         vm.prank(ATTACKER);
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                ATTACKER, OWNER_ROLE)
+        );
         market.pause();
     }
 
@@ -428,7 +438,11 @@ contract LendingMarketTest is Test {
         vm.prank(OWNER);
         market.pause();
         vm.prank(ATTACKER);
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                ATTACKER, OWNER_ROLE)
+        );
         market.unpause();
     }
 
@@ -440,39 +454,42 @@ contract LendingMarketTest is Test {
     }
 
     // -------------------------------------------- //
-    //  Test `setRegistry` function                 //
+    //  Test `configureRegistryAdmin` function                 //
     // -------------------------------------------- //
 
-    function test_setRegistry() public {
+    function test_configureRegistryAdmin() public {
         vm.startPrank(OWNER);
 
-        assertEq(market.registry(), REGISTRY_1);
+        assertEq(market.hasRole(REGISTRY_ADMIN_ROLE, REGISTRY_1), true);
 
         vm.expectEmit(true, true, true, true, address(market));
-        emit MarketRegistryChanged(address(0), REGISTRY_1);
-        market.setRegistry(address(0));
+        emit RegistryAdminStatusConfigured(REGISTRY_1, false);
+        market.configureRegistryAdmin(REGISTRY_1, false);
 
-        assertEq(market.registry(), address(0));
+        assertEq(market.hasRole(REGISTRY_ADMIN_ROLE, REGISTRY_1), false);
 
         vm.expectEmit(true, true, true, true, address(market));
-        emit MarketRegistryChanged(REGISTRY_2, address(0));
-        market.setRegistry(REGISTRY_2);
+        emit RegistryAdminStatusConfigured(REGISTRY_2, true);
+        market.configureRegistryAdmin(REGISTRY_2, true);
 
-        assertEq(market.registry(), REGISTRY_2);
+        assertEq(market.hasRole(REGISTRY_ADMIN_ROLE, REGISTRY_2), true);
     }
 
-    function test_setRegistry_Revert_IfCallerNotOwner() public {
-        assertEq(market.registry(), REGISTRY_1);
+    function test_configureRegistryAdmin_Revert_IfCallerNotOwner() public {
         vm.prank(ATTACKER);
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
-        market.setRegistry(REGISTRY_2);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                ATTACKER, OWNER_ROLE)
+        );
+        market.configureRegistryAdmin(REGISTRY_2, true);
     }
 
-    function test_setRegistry_Revert_IfAlreadyConfigured() public {
-        assertEq(market.registry(), REGISTRY_1);
-        vm.prank(OWNER);
+    function test_configureRegistryAdmin_Revert_IfAlreadyConfigured() public {
+        vm.startPrank(OWNER);
+        assertEq(market.hasRole(REGISTRY_ADMIN_ROLE, REGISTRY_1), true);
         vm.expectRevert(Error.AlreadyConfigured.selector);
-        market.setRegistry(REGISTRY_1);
+        market.configureRegistryAdmin(REGISTRY_1, true);
     }
 
     // -------------------------------------------- //
@@ -520,7 +537,11 @@ contract LendingMarketTest is Test {
 
     function test_registerCreditLine_Revert_IfCallerNotRegistryOrOwner() public {
         vm.prank(ATTACKER);
-        vm.expectRevert(Error.Unauthorized.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                ATTACKER, REGISTRY_ADMIN_ROLE)
+        );
         market.registerCreditLine(LENDER, address(creditLine));
     }
 
@@ -588,7 +609,11 @@ contract LendingMarketTest is Test {
 
     function test_registerLiquidityPool_Revert_IfCallerNotRegistryOrOwner() public {
         vm.prank(ATTACKER);
-        vm.expectRevert(Error.Unauthorized.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                ATTACKER, REGISTRY_ADMIN_ROLE)
+        );
         market.registerLiquidityPool(LENDER, address(liquidityPool));
     }
 
@@ -630,7 +655,11 @@ contract LendingMarketTest is Test {
 
     function test_updateCreditLineLender_Revert_IfCallerNotOwner() public {
         vm.prank(ATTACKER);
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                ATTACKER, OWNER_ROLE)
+        );
         market.updateCreditLineLender(address(creditLine), LENDER);
     }
 
@@ -672,7 +701,11 @@ contract LendingMarketTest is Test {
 
     function test_updateLiquidityPoolLender_Revert_IfCallerNotOwner() public {
         vm.prank(ATTACKER);
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                ATTACKER, OWNER_ROLE)
+        );
         market.updateLiquidityPoolLender(address(liquidityPool), LENDER);
     }
 
