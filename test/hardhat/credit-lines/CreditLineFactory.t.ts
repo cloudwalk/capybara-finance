@@ -19,6 +19,7 @@ const NONCE = 2;
 
 describe("Contract 'CreditLineFactory'", async () => {
   let factoryForCreditLineFactory: ContractFactory;
+  let factoryForCreditLine: ContractFactory;
 
   let deployer: HardhatEthersSigner;
   let registry: HardhatEthersSigner;
@@ -33,6 +34,9 @@ describe("Contract 'CreditLineFactory'", async () => {
     factoryForCreditLineFactory = await ethers.getContractFactory("CreditLineFactory");
     // Explicitly specifying the deployer account
     factoryForCreditLineFactory = factoryForCreditLineFactory.connect(deployer);
+
+    factoryForCreditLine = await ethers.getContractFactory("CreditLineConfigurable");
+    factoryForCreditLine = factoryForCreditLine.connect(deployer); // Explicitly specifying the deployer account
   });
 
   async function deployCreditLineFactory(): Promise<{ factory: Contract }> {
@@ -79,15 +83,23 @@ describe("Contract 'CreditLineFactory'", async () => {
         token.address,
         CREDIT_LINE_KIND,
         CREATION_DATA
-      ))
-        .to.emit(factory, EVENT_NAME_CREDIT_LINE_CREATED)
-        .withArgs(
-          market.address,
-          lender.address,
-          token.address,
-          CREDIT_LINE_KIND,
-          expectedCreditLineAddress
-        );
+      )).to.emit(
+        factory,
+        EVENT_NAME_CREDIT_LINE_CREATED
+      ).withArgs(
+        market.address,
+        lender.address,
+        token.address,
+        CREDIT_LINE_KIND,
+        expectedCreditLineAddress
+      );
+
+      const creditLine: Contract = factoryForCreditLine.attach(expectedCreditLineAddress) as Contract;
+      expect(await creditLine.lender()).to.eq(lender.address);
+      expect(await creditLine.owner()).to.eq(lender.address);
+      expect(await creditLine.token()).to.eq(token.address);
+      expect(await creditLine.market()).to.eq(market.address);
+      expect(await creditLine.kind()).to.eq(CREDIT_LINE_KIND);
     });
 
     it("Is reverted if the caller is not the owner", async () => {
