@@ -39,13 +39,15 @@ describe("Contract 'LendingRegistry'", async () => {
   let owner: HardhatEthersSigner;
   let attacker: HardhatEthersSigner;
   let token: HardhatEthersSigner;
+  let creditLine: HardhatEthersSigner;
+  let liquidityPool: HardhatEthersSigner;
 
   let marketAddress: string;
   let lineFactoryAddress: string;
   let poolFactoryAddress: string;
 
   before(async () => {
-    [owner, attacker, token] = await ethers.getSigners();
+    [owner, attacker, token, creditLine, liquidityPool] = await ethers.getSigners();
 
     // Factories with an explicitly specified deployer account
     marketFactory = await ethers.getContractFactory("LendingMarketMock");
@@ -65,11 +67,13 @@ describe("Contract 'LendingRegistry'", async () => {
     lineFactory = await factoryForCreditLineFactory.deploy() as Contract;
     await lineFactory.waitForDeployment();
     lineFactory = lineFactory.connect(owner) as Contract; // Explicitly specifying the initial account
+    await proveTx(lineFactory.mockCreatedCreditLineAddress(creditLine.address));
     lineFactoryAddress = getAddress(lineFactory);
 
     poolFactory = await factoryForLiquidityPoolFactory.deploy() as Contract;
     await poolFactory.waitForDeployment();
     poolFactory = poolFactory.connect(owner) as Contract; // Explicitly specifying the initial account
+    await proveTx(poolFactory.mockCreatedLiquidityPoolAddress(liquidityPool.address));
     poolFactoryAddress = getAddress(poolFactory);
   });
 
@@ -245,9 +249,22 @@ describe("Contract 'LendingRegistry'", async () => {
       const { registry } = await loadFixture(deployLendingRegistry);
       await proveTx(registry.setCreditLineFactory(lineFactoryAddress));
 
-      await expect(registry.createCreditLine(KIND, token.address))
+      const tx = registry.createCreditLine(KIND, token.address);
+      await expect(tx)
         .to.emit(lineFactory, EVENT_NAME_CREATE_CREDIT_LINE_CALLED)
-        .and.to.emit(market, EVENT_NAME_REGISTER_CREDIT_LINE_CALLED);
+        .withArgs(
+          marketAddress,
+          owner.address, // lender
+          token.address,
+          KIND,
+          "0x3078" // data: bytes of string "0x"
+        );
+      await expect(tx)
+        .to.emit(market, EVENT_NAME_REGISTER_CREDIT_LINE_CALLED)
+        .withArgs(
+          owner.address, // lender
+          creditLine.address
+        );
     });
 
     it("Is reverted if the contract is paused", async () => {
@@ -271,9 +288,21 @@ describe("Contract 'LendingRegistry'", async () => {
       const { registry } = await loadFixture(deployLendingRegistry);
       await proveTx(registry.setLiquidityPoolFactory(poolFactoryAddress));
 
-      await expect(registry.createLiquidityPool(KIND))
+      const tx = registry.createLiquidityPool(KIND);
+      await expect(tx)
         .to.emit(poolFactory, EVENT_NAME_CREATE_LIQUIDITY_POOL_CALLED)
-        .and.to.emit(market, EVENT_NAME_REGISTER_LIQUIDITY_POOL_CALLED);
+        .withArgs(
+          marketAddress,
+          owner.address, // lender
+          KIND,
+          "0x3078" // data: bytes of string "0x"
+        );
+      await expect(tx)
+        .to.emit(market, EVENT_NAME_REGISTER_LIQUIDITY_POOL_CALLED)
+        .withArgs(
+          owner.address, // lender
+          liquidityPool.address
+        );
     });
 
     it("Is reverted if the contract is paused", async () => {
