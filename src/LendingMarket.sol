@@ -42,8 +42,8 @@ contract LendingMarket is
     /// @dev The role of this contract owner.
     bytes32 public constant OWNER_ROLE = keccak256("OWNER_ROLE");
 
-    /// @dev The role of this contract
-    bytes32 public constant REGISTRY_ADMIN = keccak256("REGISTRY_ADMIN_ROLE");
+    /// @dev The role of this contract registry admin.
+    bytes32 public constant REGISTRY_ADMIN_ROLE = keccak256("REGISTRY_ADMIN_ROLE");
 
     // -------------------------------------------- //
     //  Errors                                      //
@@ -135,6 +135,7 @@ contract LendingMarket is
     /// @dev Unchained internal initializer of the upgradable contract.
     function __LendingMarket_init_unchained() internal onlyInitializing {
         _grantRole(OWNER_ROLE, msg.sender);
+        _setRoleAdmin(REGISTRY_ADMIN_ROLE, OWNER_ROLE);
     }
 
     // -------------------------------------------- //
@@ -149,26 +150,6 @@ contract LendingMarket is
     /// @dev Unpauses the contract.
     function unpause() external onlyRole(OWNER_ROLE) {
         _unpause();
-    }
-
-    /// @dev Sets the address of the lending market registry.
-    /// @param account The address of the account to configure.
-    /// @param adminStatus The new admin status of the account.
-    function configureRegistryAdmin(address account, bool adminStatus) external onlyRole(OWNER_ROLE) {
-        if (account == address(0)) {
-            revert Error.ZeroAddress();
-        }
-
-        if (adminStatus) {
-            if (hasRole(REGISTRY_ADMIN, account)) {
-                revert Error.AlreadyConfigured();
-            }
-            _grantRole(REGISTRY_ADMIN, account);
-        } else {
-            _revokeRole(REGISTRY_ADMIN, account);
-        }
-
-        emit RegistryAdminStatusConfigured(account, adminStatus);
     }
 
     /// @inheritdoc ILendingMarket
@@ -204,7 +185,7 @@ contract LendingMarket is
     // -------------------------------------------- //
 
     /// @inheritdoc ILendingMarket
-    function registerCreditLine(address lender, address creditLine) external whenNotPaused onlyRole(REGISTRY_ADMIN) {
+    function registerCreditLine(address lender, address creditLine) external whenNotPaused onlyRole(REGISTRY_ADMIN_ROLE) {
         if (lender == address(0) || creditLine == address(0)) {
             revert Error.ZeroAddress();
         }
@@ -218,7 +199,7 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ILendingMarket
-    function registerLiquidityPool(address lender, address liquidityPool) external whenNotPaused onlyRole(REGISTRY_ADMIN) {
+    function registerLiquidityPool(address lender, address liquidityPool) external whenNotPaused onlyRole(REGISTRY_ADMIN_ROLE) {
         if (lender == address(0) || liquidityPool == address(0)) {
             revert Error.ZeroAddress();
         }

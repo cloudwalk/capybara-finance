@@ -36,9 +36,6 @@ contract LiquidityPoolAccountable is AccessControlUpgradeable, PausableUpgradeab
     /// @dev The address of the lending market.
     address internal _market;
 
-    /// @dev The address of the liquidity pool`s lender.
-    address internal _lender;
-
     /// @dev The mapping of a loan identifier to a credit line.
     mapping(uint256 => address) internal _creditLines;
 
@@ -96,9 +93,9 @@ contract LiquidityPoolAccountable is AccessControlUpgradeable, PausableUpgradeab
         }
 
         _grantRole(OWNER_ROLE, lender_);
+        _setRoleAdmin(ADMIN_ROLE, OWNER_ROLE);
 
         _market = market_;
-        _lender = lender_;
     }
 
     // -------------------------------------------- //
@@ -113,24 +110,6 @@ contract LiquidityPoolAccountable is AccessControlUpgradeable, PausableUpgradeab
     /// @dev Unpauses the contract.
     function unpause() external onlyRole(OWNER_ROLE) {
         _unpause();
-    }
-
-    /// @inheritdoc ILiquidityPoolAccountable
-    function configureAdmin(address account, bool adminStatus) external onlyRole(OWNER_ROLE) {
-        if (account == address(0)) {
-            revert Error.ZeroAddress();
-        }
-
-        if (adminStatus) {
-            if (hasRole(ADMIN_ROLE, account)) {
-                revert Error.AlreadyConfigured();
-            }
-            _grantRole(ADMIN_ROLE, account);
-        } else {
-            _revokeRole(ADMIN_ROLE, account);
-        }
-
-        emit AdminConfigured(account, adminStatus);
     }
 
     /// @inheritdoc ILiquidityPoolAccountable
@@ -287,19 +266,9 @@ contract LiquidityPoolAccountable is AccessControlUpgradeable, PausableUpgradeab
         return _creditLines[loanId];
     }
 
-    /// @inheritdoc ILiquidityPoolAccountable
-    function isAdmin(address account) external view returns (bool) {
-        return hasRole(ADMIN_ROLE, account);
-    }
-
     /// @inheritdoc ILiquidityPool
     function market() external view returns (address) {
         return _market;
-    }
-
-    /// @inheritdoc ILiquidityPool
-    function lender() external view returns (address) {
-        return _lender;
     }
 
     /// @inheritdoc ILiquidityPool

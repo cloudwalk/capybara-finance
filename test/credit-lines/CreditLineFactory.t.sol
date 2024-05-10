@@ -83,7 +83,6 @@ contract CreditLineFactoryTest is Test {
         address creditLine = factory.createCreditLine(MARKET, LENDER, TOKEN, KIND_1, DATA);
 
         assertEq(creditLine, EXPECTED_CONTRACT_ADDRESS);
-        assertEq(CreditLineConfigurable(creditLine).lender(), LENDER);
         assertEq(CreditLineConfigurable(creditLine).market(), MARKET);
         assertEq(CreditLineConfigurable(creditLine).token(), TOKEN);
         assertEq(CreditLineConfigurable(creditLine).kind(), KIND_1);

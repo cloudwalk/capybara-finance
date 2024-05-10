@@ -12,11 +12,6 @@ interface ILendingMarket {
     //  Events                                      //
     // -------------------------------------------- //
 
-    /// @dev Emitted when the lending market registry admin is changed.
-    /// @param account The address of the configured account.
-    /// @param adminStatus The new status of the registry admin.
-    event RegistryAdminStatusConfigured(address indexed account, bool adminStatus);
-
     /// @dev Emitted when a liquidity pool is registered.
     /// @param lender The address of the liquidity pool lender.
     /// @param liquidityPool The address of the liquidity pool contract.

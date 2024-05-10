@@ -81,7 +81,6 @@ contract LiquidityPoolFactoryTest is Test {
         address liquidityPool = factory.createLiquidityPool(MARKET, LENDER, KIND_1, DATA);
 
         assertEq(liquidityPool, EXPECTED_CONTRACT_ADDRESS);
-        assertEq(LiquidityPoolAccountable(liquidityPool).lender(), LENDER);
         assertEq(LiquidityPoolAccountable(liquidityPool).market(), MARKET);
         assertEq(LiquidityPoolAccountable(liquidityPool).kind(), KIND_1);
     }

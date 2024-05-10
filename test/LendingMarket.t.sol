@@ -174,8 +174,8 @@ contract LendingMarketTest is Test {
         market.initialize("NAME", "SYMBOL");
 
         vm.startPrank(OWNER);
-        market.configureRegistryAdmin(OWNER, true);
-        market.configureRegistryAdmin(REGISTRY_1, true);
+        market.grantRole(REGISTRY_ADMIN_ROLE, OWNER);
+        market.grantRole(REGISTRY_ADMIN_ROLE, REGISTRY_1);
         vm.stopPrank();
 
         skip(INIT_BLOCK_TIMESTAMP);
@@ -451,45 +451,6 @@ contract LendingMarketTest is Test {
         vm.prank(OWNER);
         vm.expectRevert(PausableUpgradeable.ExpectedPause.selector);
         market.unpause();
-    }
-
-    // -------------------------------------------- //
-    //  Test `configureRegistryAdmin` function                 //
-    // -------------------------------------------- //
-
-    function test_configureRegistryAdmin() public {
-        vm.startPrank(OWNER);
-
-        assertEq(market.hasRole(REGISTRY_ADMIN_ROLE, REGISTRY_1), true);
-
-        vm.expectEmit(true, true, true, true, address(market));
-        emit RegistryAdminStatusConfigured(REGISTRY_1, false);
-        market.configureRegistryAdmin(REGISTRY_1, false);
-
-        assertEq(market.hasRole(REGISTRY_ADMIN_ROLE, REGISTRY_1), false);
-
-        vm.expectEmit(true, true, true, true, address(market));
-        emit RegistryAdminStatusConfigured(REGISTRY_2, true);
-        market.configureRegistryAdmin(REGISTRY_2, true);
-
-        assertEq(market.hasRole(REGISTRY_ADMIN_ROLE, REGISTRY_2), true);
-    }
-
-    function test_configureRegistryAdmin_Revert_IfCallerNotOwner() public {
-        vm.prank(ATTACKER);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IAccessControl.AccessControlUnauthorizedAccount.selector,
-                ATTACKER, OWNER_ROLE)
-        );
-        market.configureRegistryAdmin(REGISTRY_2, true);
-    }
-
-    function test_configureRegistryAdmin_Revert_IfAlreadyConfigured() public {
-        vm.startPrank(OWNER);
-        assertEq(market.hasRole(REGISTRY_ADMIN_ROLE, REGISTRY_1), true);
-        vm.expectRevert(Error.AlreadyConfigured.selector);
-        market.configureRegistryAdmin(REGISTRY_1, true);
     }
 
     // -------------------------------------------- //

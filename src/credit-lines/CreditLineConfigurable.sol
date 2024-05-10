@@ -35,9 +35,6 @@ contract CreditLineConfigurable is AccessControlUpgradeable, PausableUpgradeable
     /// @dev The address of the credit line token.
     address internal _token;
 
-    /// @dev The address of the credit line lender.
-    address internal _lender;
-
     /// @dev The mapping of borrower to its configuration.
     mapping(address => BorrowerConfig) internal _borrowers;
 
@@ -120,10 +117,10 @@ contract CreditLineConfigurable is AccessControlUpgradeable, PausableUpgradeable
         }
 
         _grantRole(OWNER_ROLE, lender_);
+        _setRoleAdmin(ADMIN_ROLE, OWNER_ROLE);
 
         _market = market_;
         _token = token_;
-        _lender = lender_;
     }
 
     // -------------------------------------------- //
@@ -138,25 +135,6 @@ contract CreditLineConfigurable is AccessControlUpgradeable, PausableUpgradeable
     /// @dev Unpauses the contract.
     function unpause() external onlyRole(OWNER_ROLE) {
         _unpause();
-    }
-
-    /// @inheritdoc ICreditLineConfigurable
-    function configureAdmin(address account, bool adminStatus) external onlyRole(OWNER_ROLE) {
-        if (account == address(0)) {
-            revert Error.ZeroAddress();
-        }
-
-        if (adminStatus) {
-            if (hasRole(ADMIN_ROLE, account)) {
-                revert Error.AlreadyConfigured();
-            }
-            _grantRole(ADMIN_ROLE, account);
-        } else {
-            _revokeRole(ADMIN_ROLE, account);
-        }
-
-
-        emit AdminConfigured(account, adminStatus);
     }
 
     /// @inheritdoc ICreditLineConfigurable
@@ -308,11 +286,6 @@ contract CreditLineConfigurable is AccessControlUpgradeable, PausableUpgradeable
     /// @inheritdoc ICreditLine
     function market() external view returns (address) {
         return _market;
-    }
-
-    /// @inheritdoc ICreditLine
-    function lender() external view returns (address) {
-        return _lender;
     }
 
     /// @inheritdoc ICreditLine

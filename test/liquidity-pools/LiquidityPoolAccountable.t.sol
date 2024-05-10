@@ -125,7 +125,6 @@ contract LiquidityPoolAccountableTest is Test {
         liquidityPool.initialize(address(lendingMarket), LENDER);
         assertEq(liquidityPool.market(), address(lendingMarket));
         assertEq(liquidityPool.hasRole(OWNER_ROLE, LENDER), true);
-        assertEq(liquidityPool.lender(), LENDER);
     }
 
     function test_initializer_Revert_IfMarketIsZeroAddress() public {
@@ -205,51 +204,6 @@ contract LiquidityPoolAccountableTest is Test {
                 ATTACKER, OWNER_ROLE)
         );
         liquidityPool.unpause();
-    }
-
-    // -------------------------------------------- //
-    //  Test `configureAdmin` function              //
-    // -------------------------------------------- //
-
-    function test_configureAdmin() public {
-        assertEq(liquidityPool.isAdmin(ADMIN), false);
-
-        vm.startPrank(LENDER);
-
-        vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit AdminConfigured(ADMIN, true);
-        liquidityPool.configureAdmin(ADMIN, true);
-
-        assertEq(liquidityPool.isAdmin(ADMIN), true);
-
-        vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit AdminConfigured(ADMIN, false);
-        liquidityPool.configureAdmin(ADMIN, false);
-
-        assertEq(liquidityPool.isAdmin(ADMIN), false);
-    }
-
-    function test_configureAdmin_Revert_IfCallerNotOwner() public {
-        vm.prank(ATTACKER);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IAccessControl.AccessControlUnauthorizedAccount.selector,
-                ATTACKER, OWNER_ROLE)
-        );
-        liquidityPool.configureAdmin(ADMIN, true);
-    }
-
-    function test_configureAdmin_Revert_IfAdminIsZeroAddress() public {
-        vm.prank(LENDER);
-        vm.expectRevert(Error.ZeroAddress.selector);
-        liquidityPool.configureAdmin(address(0), true);
-    }
-
-    function test_configureAdmin_Revert_IfAdminIsAlreadyConfigured() public {
-        vm.startPrank(LENDER);
-        liquidityPool.configureAdmin(ADMIN, true);
-        vm.expectRevert(Error.AlreadyConfigured.selector);
-        liquidityPool.configureAdmin(ADMIN, true);
     }
 
     // -------------------------------------------- //
@@ -428,8 +382,9 @@ contract LiquidityPoolAccountableTest is Test {
     // -------------------------------------------- //
 
     function test_autoRepay() public {
-        vm.prank(LENDER);
-        liquidityPool.configureAdmin(ADMIN, true);
+        vm.startPrank(LENDER);
+        liquidityPool.grantRole(ADMIN_ROLE, ADMIN);
+
         (uint256[] memory loanIds, uint256[] memory amounts) = getBatchLoanData();
 
         vm.expectEmit(true, true, true, true, address(liquidityPool));
@@ -440,6 +395,7 @@ contract LiquidityPoolAccountableTest is Test {
             emit RepayLoanCalled(loanIds[i], amounts[i]);
         }
 
+        vm.stopPrank();
         vm.prank(ADMIN);
         liquidityPool.autoRepay(loanIds, amounts);
     }
@@ -458,7 +414,7 @@ contract LiquidityPoolAccountableTest is Test {
 
     function test_autoRepay_Revert_IfArrayLengthMismatch() public {
         vm.prank(LENDER);
-        liquidityPool.configureAdmin(ADMIN, true);
+        liquidityPool.grantRole(ADMIN_ROLE, ADMIN);
 
         (uint256[] memory loanIds, uint256[] memory amounts) = getBatchLoanData();
         uint256[] memory amountsIncorrectLength = new uint256[](2);
@@ -822,26 +778,8 @@ contract LiquidityPoolAccountableTest is Test {
         assertEq(liquidityPool.getCreditLine(LOAN_ID_1), address(creditLine));
     }
 
-    function test_isAdmin() public {
-        assertFalse(liquidityPool.isAdmin(ADMIN));
-
-        vm.prank(LENDER);
-        liquidityPool.configureAdmin(ADMIN, true);
-
-        assertTrue(liquidityPool.isAdmin(ADMIN));
-
-        vm.prank(LENDER);
-        liquidityPool.configureAdmin(ADMIN, false);
-
-        assertFalse(liquidityPool.isAdmin(ADMIN));
-    }
-
     function test_market() public {
         assertEq(liquidityPool.market(), address(lendingMarket));
-    }
-
-    function test_lender() public {
-        assertEq(liquidityPool.lender(), LENDER);
     }
 
     function test_kind() public {

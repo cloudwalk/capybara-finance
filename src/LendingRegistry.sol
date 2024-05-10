@@ -80,7 +80,6 @@ contract LendingRegistry is
         _grantRole(OWNER_ROLE, msg.sender);
 
         _market = market_;
-        _owner = msg.sender;
     }
 
     // -------------------------------------------- //
