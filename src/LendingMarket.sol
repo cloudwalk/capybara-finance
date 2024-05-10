@@ -228,7 +228,7 @@ contract LendingMarket is
             revert LiquidityPoolNotRegistered();
         }
 
-        uint256 id = _loanIdCounter++;
+        uint256 id = _loanCounter++;
         _loanLenders[id] = lender;
 
         Loan.Terms memory terms = ICreditLine(creditLine).onBeforeLoanTaken(
@@ -547,7 +547,7 @@ contract LendingMarket is
     }
 
     function loansCount() external view returns (uint256) {
-        return _loanIdCounter;
+        return _loanCounter;
     }
 
     /// @dev Calculates the period index that corresponds the specified timestamp.

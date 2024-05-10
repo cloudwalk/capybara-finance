@@ -13,11 +13,12 @@ abstract contract LendingMarketStorage {
     // -------------------------------------------- //
 
     /// @dev The counter of loans.
-    uint256 internal _loanIdCounter;
+    uint256 internal _loanCounter;
 
     /// @dev The mapping of loan identifier to loan state.
     mapping(uint256 => Loan.State) internal _loans;
 
+    /// @dev The mapping of loan identifier to loan lender.
     mapping(uint256 => address) internal _loanLenders;
 
     /// @dev The mapping of credit line to associated lender.
@@ -34,5 +35,5 @@ abstract contract LendingMarketStorage {
 
     /// @dev This empty reserved space is put in place to allow future versions
     /// to add new variables without shifting down storage in the inheritance chain.
-    uint256[43] private __gap;
+    uint256[42] private __gap;
 }
