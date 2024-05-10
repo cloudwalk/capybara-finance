@@ -6,6 +6,29 @@ import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { getAddress, proveTx } from "../../../test-utils/eth";
 import { TransactionReceipt } from "@ethersproject/abstract-provider";
 
+enum InterestFormula {
+  Simple = 0
+  // Compound = 1 Is not used in this test
+}
+
+interface LoanState {
+  token: string;
+  interestRateFactor: number;
+  interestRatePrimary: number;
+  interestRateSecondary: number;
+  borrower: string;
+  initialBorrowAmount: number;
+  startTimestamp: number;
+  treasury: string;
+  periodInSeconds: number;
+  durationInPeriods: number;
+  interestFormula: InterestFormula;
+  autoRepayment: boolean;
+  trackedBorrowBalance: number;
+  trackedTimestamp: number;
+  freezeTimestamp: number;
+}
+
 const ERROR_NAME_ALREADY_CONFIGURED = "AlreadyConfigured";
 const ERROR_NAME_ALREADY_INITIALIZED = "InvalidInitialization";
 const ERROR_NAME_ARRAY_LENGTH_MISMATCH = "ArrayLengthMismatch";
@@ -19,6 +42,7 @@ const ERROR_NAME_ZERO_ADDRESS = "ZeroAddress";
 const ERROR_NAME_ZERO_BALANCE = "ZeroBalance";
 
 const EVENT_NAME_ADMIN_CONFIGURED = "AdminConfigured";
+const EVENT_NAME_APPROVE = "APPROVE";
 const EVENT_NAME_AUTO_REPAYMENT = "AutoRepayment";
 const EVENT_NAME_DEPOSIT = "Deposit";
 const EVENT_NAME_HOOK_CALL_RESULT = "HookCallResult";
@@ -35,6 +59,8 @@ const DEFAULT_LOAN_ID = 123;
 const DEFAULT_REPAY_AMOUNT = 322;
 const AUTO_REPAY_LOAN_IDS = [1, 2, 3];
 const AUTO_REPAY_AMOUNTS = [4, 5, 6];
+const ADMIN_STATUS_CONFIGURED = true;
+const ADMIN_STATUS_NOT_CONFIGURED = false;
 
 describe("Contract 'LiquidityPoolAccountable'", async () => {
   let liquidityPoolFactory: ContractFactory;
@@ -97,6 +123,35 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
 
     await proveTx((token.connect(lender) as Contract).approve(getAddress(liquidityPool), MINT_AMOUNT));
     return { liquidityPool };
+  }
+
+  async function prepareLoan(
+    liquidityPool: Contract,
+    loanProps: {
+      initialBorrowAmount: number
+      loanId: number
+    }
+  ) {
+    await proveTx(liquidityPool.deposit(creditLineAddress, loanProps.initialBorrowAmount));
+    const loanState: LoanState = {
+      token: ZERO_ADDRESS,
+      interestRateFactor: 0,
+      interestRatePrimary: 0,
+      interestRateSecondary: 0,
+      borrower: ZERO_ADDRESS,
+      initialBorrowAmount: loanProps.initialBorrowAmount,
+      startTimestamp: 0,
+      treasury: ZERO_ADDRESS,
+      periodInSeconds: 0,
+      durationInPeriods: 0,
+      interestFormula: InterestFormula.Simple,
+      autoRepayment: false,
+      trackedBorrowBalance: 0,
+      trackedTimestamp: 0,
+      freezeTimestamp: 0
+    };
+    await proveTx(market.mockLoanState(loanProps.loanId, loanState));
+
   }
 
   describe("Function 'initialize()'", async () => {
@@ -185,54 +240,55 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
     it("Executes as expected and emits the correct event", async () => {
       const { liquidityPool } = await loadFixture(deployLiquidityPool);
 
-      expect(await liquidityPool.isAdmin(admin.address)).to.eq(false);
+      expect(await liquidityPool.isAdmin(admin.address)).to.eq(ADMIN_STATUS_NOT_CONFIGURED);
 
-      expect(await liquidityPool.configureAdmin(admin.address, true))
+      expect(await liquidityPool.configureAdmin(admin.address, ADMIN_STATUS_CONFIGURED))
         .to.emit(liquidityPool, EVENT_NAME_ADMIN_CONFIGURED)
-        .withArgs(admin.address, true);
+        .withArgs(admin.address, ADMIN_STATUS_CONFIGURED);
 
-      expect(await liquidityPool.isAdmin(admin.address)).to.eq(true);
+      expect(await liquidityPool.isAdmin(admin.address)).to.eq(ADMIN_STATUS_CONFIGURED);
 
-      expect(await liquidityPool.configureAdmin(admin.address, false))
+      expect(await liquidityPool.configureAdmin(admin.address, ADMIN_STATUS_NOT_CONFIGURED))
         .to.emit(liquidityPool, EVENT_NAME_ADMIN_CONFIGURED)
-        .withArgs(admin.address, false);
+        .withArgs(admin.address, ADMIN_STATUS_NOT_CONFIGURED);
 
-      expect(await liquidityPool.isAdmin(admin.address)).to.eq(false);
+      expect(await liquidityPool.isAdmin(admin.address)).to.eq(ADMIN_STATUS_NOT_CONFIGURED);
     });
 
     it("Is reverted if the caller is not the owner", async () => {
       const { liquidityPool } = await loadFixture(deployLiquidityPool);
 
-      await expect((liquidityPool.connect(attacker) as Contract).configureAdmin(attacker.address, true))
-        .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_OWNABLE_UNAUTHORIZED)
-        .withArgs(attacker.address);
+      await expect(
+        (liquidityPool.connect(attacker) as Contract).configureAdmin(attacker.address, ADMIN_STATUS_CONFIGURED)
+      ).to.be.revertedWithCustomError(
+        liquidityPool,
+        ERROR_NAME_OWNABLE_UNAUTHORIZED
+      ).withArgs(attacker.address);
     });
 
     it("Is reverted if the account address is zero", async () => {
       const { liquidityPool } = await loadFixture(deployLiquidityPool);
 
-      await expect(liquidityPool.configureAdmin(
-        ZERO_ADDRESS, // account
-        true // isAdmin
-      )).to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_ZERO_ADDRESS);
+      await expect(liquidityPool.configureAdmin(ZERO_ADDRESS, ADMIN_STATUS_CONFIGURED))
+        .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_ZERO_ADDRESS);
     });
 
     it("Is reverted if the admin is already configured", async () => {
       const { liquidityPool } = await loadFixture(deployLiquidityPool);
 
-      await expect(liquidityPool.configureAdmin(admin.address, false))
+      await expect(liquidityPool.configureAdmin(admin.address, ADMIN_STATUS_NOT_CONFIGURED))
         .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_ALREADY_CONFIGURED);
 
-      await proveTx(liquidityPool.configureAdmin(admin.address, true));
+      await proveTx(liquidityPool.configureAdmin(admin.address, ADMIN_STATUS_CONFIGURED));
 
-      await expect(liquidityPool.configureAdmin(admin.address, true))
+      await expect(liquidityPool.configureAdmin(admin.address, ADMIN_STATUS_CONFIGURED))
         .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_ALREADY_CONFIGURED);
     });
   });
 
   describe("Function 'deposit()'", async () => {
-    it("Executes as expected and emits the correct event", async () => {
-      const { liquidityPool } = await loadFixture(deployLiquidityPool);
+    async function depositAndCheck(liquidityPool: Contract): Promise<TransactionReceipt> {
+      const creditLineBalanceBefore: bigint = await liquidityPool.getTokenBalance(creditLineAddress);
 
       const tx: TransactionReceipt = await proveTx(liquidityPool.deposit(creditLineAddress, DEPOSIT_AMOUNT));
 
@@ -245,6 +301,30 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
       expect(tx)
         .to.emit(liquidityPool, EVENT_NAME_DEPOSIT)
         .withArgs(creditLineAddress, DEPOSIT_AMOUNT);
+
+      const creditLineBalanceAfter: bigint = await liquidityPool.getTokenBalance(creditLineAddress);
+      expect(creditLineBalanceAfter - creditLineBalanceBefore).to.eq(DEPOSIT_AMOUNT);
+
+      return tx;
+    }
+
+    it("Executes as expected and emits the correct events", async () => {
+      const { liquidityPool } = await loadFixture(deployLiquidityPool);
+
+      // First deposit must change the allowance from the liquidity pool to the market
+
+      const allowanceBefore = await token.allowance(getAddress(liquidityPool), getAddress(market));
+      expect(allowanceBefore).to.eq(0);
+
+      const tx1 = await depositAndCheck(liquidityPool);
+      expect(tx1).to.emit(token, EVENT_NAME_APPROVE);
+
+      const allowanceAfter = await token.allowance(getAddress(liquidityPool), getAddress(market));
+      expect(allowanceAfter).to.eq(ethers.MaxUint256);
+
+      // Second deposit must not change the allowance from the liquidity pool to the market
+      const tx2 = await depositAndCheck(liquidityPool);
+      expect(tx2).not.to.emit(token, EVENT_NAME_APPROVE);
     });
 
     it("Is reverted if the caller is not the owner", async () => {
@@ -270,11 +350,10 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
   });
 
   describe("Function 'withdraw()'", async () => {
-    it("Executes as expected and emits correct event when a credit line balance is withdrawn", async () => {
-      const { liquidityPool } = await loadFixture(deployLiquidityPool);
-      await proveTx(liquidityPool.deposit(creditLineAddress, DEPOSIT_AMOUNT));
+    async function withdrawAndCheck(liquidityPool: Contract, sourceAddress: string) {
+      const balanceBefore: bigint = await liquidityPool.getTokenBalance(sourceAddress);
 
-      const tx: TransactionReceipt = await proveTx(liquidityPool.withdraw(creditLineAddress, DEPOSIT_AMOUNT));
+      const tx: TransactionReceipt = await proveTx(liquidityPool.withdraw(sourceAddress, DEPOSIT_AMOUNT));
 
       expect(tx).to.changeTokenBalances(
         token,
@@ -285,23 +364,21 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
       expect(tx)
         .to.emit(liquidityPool, EVENT_NAME_WITHDRAWAL)
         .withArgs(creditLineAddress, DEPOSIT_AMOUNT);
+
+      const balanceAfter: bigint = await liquidityPool.getTokenBalance(sourceAddress);
+      expect(balanceBefore - balanceAfter).to.eq(DEPOSIT_AMOUNT);
+    }
+
+    it("Executes as expected and emits correct event when a credit line balance is withdrawn", async () => {
+      const { liquidityPool } = await loadFixture(deployLiquidityPool);
+      await proveTx(liquidityPool.deposit(creditLineAddress, DEPOSIT_AMOUNT));
+      await withdrawAndCheck(liquidityPool, creditLineAddress);
     });
 
     it("Executes as expected and emits correct event when a token balance is withdrawn", async () => {
       const { liquidityPool } = await loadFixture(deployLiquidityPool);
-      await proveTx((token.connect(lender) as Contract).transfer(getAddress(liquidityPool), DEPOSIT_AMOUNT));
-
-      const tx: TransactionReceipt = await proveTx(liquidityPool.withdraw(tokenAddress, DEPOSIT_AMOUNT));
-
-      expect(tx).to.changeTokenBalances(
-        token,
-        [lender.address, getAddress(liquidityPool)],
-        [+DEPOSIT_AMOUNT, -DEPOSIT_AMOUNT]
-      );
-
-      expect(tx)
-        .to.emit(liquidityPool, EVENT_NAME_WITHDRAWAL)
-        .withArgs(tokenAddress, DEPOSIT_AMOUNT);
+      await proveTx(token.mint(getAddress(liquidityPool), DEPOSIT_AMOUNT));
+      await withdrawAndCheck(liquidityPool, tokenAddress);
     });
 
     it("Is reverted if the caller is not the owner", async () => {
@@ -336,7 +413,7 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
 
     it("Is reverted if a token balance is withdrawn with a greater amount", async () => {
       const { liquidityPool } = await loadFixture(deployLiquidityPool);
-      await proveTx((token.connect(lender) as Contract).transfer(getAddress(liquidityPool), DEPOSIT_AMOUNT));
+      await proveTx(token.mint(getAddress(liquidityPool), DEPOSIT_AMOUNT));
 
       await expect(liquidityPool.withdraw(tokenAddress, DEPOSIT_AMOUNT + 1))
         .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_INSUFFICIENT_BALANCE);
@@ -362,16 +439,16 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
   describe("Function 'autoRepay()'", async () => {
     it("Executes as expected and emits the correct event", async () => {
       const { liquidityPool } = await loadFixture(deployLiquidityPool);
-      await proveTx(liquidityPool.configureAdmin(admin.address, true));
+      await proveTx(liquidityPool.configureAdmin(admin.address, ADMIN_STATUS_CONFIGURED));
 
       const tx: TransactionReceipt =
         await proveTx((liquidityPool.connect(admin) as Contract).autoRepay(AUTO_REPAY_LOAN_IDS, AUTO_REPAY_AMOUNTS));
-      await expect(tx)
+      expect(tx)
         .to.emit(liquidityPool, EVENT_NAME_AUTO_REPAYMENT)
         .withArgs(AUTO_REPAY_LOAN_IDS.length);
 
       for (let i = 0; i < AUTO_REPAY_LOAN_IDS.length; i++) {
-        await expect(tx)
+        expect(tx)
           .to.emit(market, EVENT_NAME_REPAY_LOAN_CALLED)
           .withArgs(AUTO_REPAY_LOAN_IDS[i], AUTO_REPAY_AMOUNTS[i]);
       }
@@ -383,11 +460,16 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
       await expect(
         (liquidityPool.connect(attacker) as Contract).autoRepay(AUTO_REPAY_LOAN_IDS, AUTO_REPAY_AMOUNTS)
       ).to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_UNAUTHORIZED);
+
+      // Even the lender cannot execute the auto repayments
+      await expect(
+        (liquidityPool.connect(lender) as Contract).autoRepay(AUTO_REPAY_LOAN_IDS, AUTO_REPAY_AMOUNTS)
+      ).to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_UNAUTHORIZED);
     });
 
     it("Is reverted if the lengths of the arrays do not match", async () => {
       const { liquidityPool } = await loadFixture(deployLiquidityPool);
-      await proveTx(liquidityPool.configureAdmin(admin.address, true));
+      await proveTx(liquidityPool.configureAdmin(admin.address, ADMIN_STATUS_CONFIGURED));
 
       AUTO_REPAY_LOAN_IDS.pop();
 
@@ -424,12 +506,17 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
   describe("Function 'onAfterLoanTaken()'", async () => {
     it("Executes as expected", async () => {
       const { liquidityPool } = await loadFixture(deployLiquidityPool);
+      await prepareLoan(liquidityPool, { initialBorrowAmount: DEPOSIT_AMOUNT, loanId: DEFAULT_LOAN_ID });
+      const creditLineBalanceBefore = await liquidityPool.getTokenBalance(creditLineAddress);
 
       await expect(market.callOnAfterLoanTaken(getAddress(liquidityPool), DEFAULT_LOAN_ID, creditLineAddress))
         .to.emit(market, EVENT_NAME_HOOK_CALL_RESULT)
         .withArgs(true);
 
+      const creditLineBalanceAfter = await liquidityPool.getTokenBalance(creditLineAddress);
+
       expect(await liquidityPool.getCreditLine(DEFAULT_LOAN_ID)).to.eq(creditLineAddress);
+      expect(creditLineBalanceBefore - creditLineBalanceAfter).to.eq(DEPOSIT_AMOUNT);
     });
 
     it("Is reverted if the contract is paused", async () => {
@@ -473,22 +560,32 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
   });
 
   describe("Function 'onAfterLoanPayment()'", async () => {
-    it("Executes as expected if the loan ID is not associated with a credit line", async () => {
+    async function executeAndCheck(props: { associateCreditLineWithLoan: boolean }) {
       const { liquidityPool } = await loadFixture(deployLiquidityPool);
+      await prepareLoan(liquidityPool, { initialBorrowAmount: DEPOSIT_AMOUNT, loanId: DEFAULT_LOAN_ID });
+      const creditLineBalanceBefore = await liquidityPool.getTokenBalance(creditLineAddress);
+
+      if (props.associateCreditLineWithLoan) {
+        await proveTx(market.callOnAfterLoanTaken(getAddress(liquidityPool), DEFAULT_LOAN_ID, creditLineAddress));
+      }
       await expect(market.callOnAfterLoanPayment(getAddress(liquidityPool), DEFAULT_LOAN_ID, DEFAULT_REPAY_AMOUNT))
         .to.emit(market, EVENT_NAME_HOOK_CALL_RESULT)
         .withArgs(true);
+
+      const creditLineBalanceAfter = await liquidityPool.getTokenBalance(creditLineAddress);
+      if (props.associateCreditLineWithLoan) {
+        expect(creditLineBalanceBefore - creditLineBalanceAfter).to.eq(DEPOSIT_AMOUNT - DEFAULT_REPAY_AMOUNT);
+      } else {
+        expect(creditLineBalanceBefore - creditLineBalanceAfter).to.eq(0);
+      }
+    }
+
+    it("Executes as expected if the loan ID is not associated with a credit line", async () => {
+      await executeAndCheck({ associateCreditLineWithLoan: false });
     });
 
     it("Executes as expected if the loan ID is associated with a credit line", async () => {
-      const { liquidityPool } = await loadFixture(deployLiquidityPool);
-
-      await proveTx(market.callOnAfterLoanTaken(getAddress(liquidityPool), DEFAULT_LOAN_ID, creditLineAddress));
-      await expect(market.callOnAfterLoanPayment(getAddress(liquidityPool), DEFAULT_LOAN_ID, DEFAULT_REPAY_AMOUNT))
-        .to.emit(market, EVENT_NAME_HOOK_CALL_RESULT)
-        .withArgs(true);
-
-      expect(await liquidityPool.getTokenBalance(creditLineAddress)).to.eq(DEFAULT_REPAY_AMOUNT);
+      await executeAndCheck({ associateCreditLineWithLoan: true });
     });
 
     it("Is reverted if the contract is paused", async () => {
