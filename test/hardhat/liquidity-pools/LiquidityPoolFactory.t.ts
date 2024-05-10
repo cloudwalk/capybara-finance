@@ -18,6 +18,7 @@ const CREATION_DATA = ethers.encodeBytes32String("random");
 
 describe("Contract 'LiquidityPoolFactory'", async () => {
   let factoryForLiquidityPoolFactory: ContractFactory;
+  let factoryForLiquidityPool: ContractFactory;
 
   let deployer: HardhatEthersSigner;
   let registry: HardhatEthersSigner;
@@ -31,6 +32,10 @@ describe("Contract 'LiquidityPoolFactory'", async () => {
     factoryForLiquidityPoolFactory = await ethers.getContractFactory("LiquidityPoolFactory");
     // Explicitly specifying the deployer account
     factoryForLiquidityPoolFactory = factoryForLiquidityPoolFactory.connect(deployer);
+
+    factoryForLiquidityPool = await ethers.getContractFactory("LiquidityPoolAccountable");
+    // Explicitly specifying the deployer account
+    factoryForLiquidityPool = factoryForLiquidityPool.connect(deployer);
   });
 
   async function deployLiquidityPoolFactory(): Promise<{ factory: Contract }> {
@@ -87,6 +92,12 @@ describe("Contract 'LiquidityPoolFactory'", async () => {
         LIQUIDITY_POOL_KIND,
         expectedLiquidityPoolAddress
       );
+
+      const liquidityPool: Contract = factoryForLiquidityPool.attach(expectedLiquidityPoolAddress) as Contract;
+      expect(await liquidityPool.lender()).to.eq(lender.address);
+      expect(await liquidityPool.owner()).to.eq(lender.address);
+      expect(await liquidityPool.market()).to.eq(market.address);
+      expect(await liquidityPool.kind()).to.eq(LIQUIDITY_POOL_KIND);
     });
 
     it("Is reverted if the caller is not the owner", async () => {
