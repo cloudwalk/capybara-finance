@@ -2,8 +2,14 @@ import { ethers, network, upgrades } from "hardhat";
 import { expect } from "chai";
 import { Contract, ContractFactory } from "ethers";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
-import { loadFixture, time } from "@nomicfoundation/hardhat-network-helpers";
-import { getAddress, getTxTimestamp, proveTx } from "../../test-utils/eth";
+import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
+import {
+  getAddress,
+  getLatestBlockTimestamp,
+  getTxTimestamp,
+  increaseBlockTimestampTo,
+  proveTx
+} from "../../test-utils/eth";
 
 async function setUpFixture<T>(func: () => Promise<T>): Promise<T> {
   if (network.name === "hardhat") {
@@ -919,25 +925,25 @@ describe("Contract 'LendingMarket'", async () => {
 
       it("There is a partial repayment from a stranger before the loan is defaulted", async () => {
         const { market, initialLoanState } = await setUpFixture(deployLendingMarketAndTakeLoan);
-        const timestamp = await time.latest();
+        const timestamp = await getLatestBlockTimestamp();
         const futureTimestamp = timestamp + DEFAULT_DURATION_IN_PERIODS / 2 * DEFAULT_PERIOD_IN_SECONDS;
-        await time.increaseTo(futureTimestamp);
+        await increaseBlockTimestampTo(futureTimestamp);
         await repayLoanAndCheck(market, REPAY_AMOUNT, PayerKind.Stranger, initialLoanState);
       });
 
       it("There is the full repayment from a stranger after the loan is defaulted", async () => {
         const { market, initialLoanState } = await setUpFixture(deployLendingMarketAndTakeLoan);
-        const timestamp = await time.latest();
+        const timestamp = await getLatestBlockTimestamp();
         const futureTimestamp = timestamp + (DEFAULT_DURATION_IN_PERIODS + 1) * DEFAULT_PERIOD_IN_SECONDS;
-        await time.increaseTo(futureTimestamp);
+        await increaseBlockTimestampTo(futureTimestamp);
         await repayLoanAndCheck(market, FULL_REPAY_AMOUNT, PayerKind.Stranger, initialLoanState);
       });
 
       it("There is a full auto repayment from the liquidity pool after the loan is defaulted", async () => {
         const { market, initialLoanState } = await setUpFixture(deployLendingMarketAndTakeLoan);
-        const timestamp = await time.latest();
+        const timestamp = await getLatestBlockTimestamp();
         const futureTimestamp = timestamp + (DEFAULT_DURATION_IN_PERIODS + 1) * DEFAULT_PERIOD_IN_SECONDS;
-        await time.increaseTo(futureTimestamp);
+        await increaseBlockTimestampTo(futureTimestamp);
         await repayLoanAndCheck(market, FULL_REPAY_AMOUNT, PayerKind.LiquidityPool, initialLoanState);
       });
     });
@@ -1063,7 +1069,7 @@ describe("Contract 'LendingMarket'", async () => {
       const freezingTimestamp = await getTxTimestamp(freezingTx);
 
       if (frozenInterval > 0) {
-        await time.increaseTo(await time.latest() + frozenInterval);
+        await increaseBlockTimestampTo(await getLatestBlockTimestamp() + frozenInterval);
       }
 
       const unfreezingTx = marketConnectedToLender.unfreeze(DEFAULT_LOAN_ID);
@@ -1384,7 +1390,7 @@ describe("Contract 'LendingMarket'", async () => {
         expectedLoanPreview = await checkLoanPreview(market, loanState, timestamp);
 
         // Check the preview after one loan period passed after the loan taken and after a partial repayment
-        await time.increaseTo(timestamp);
+        await increaseBlockTimestampTo(timestamp);
         const repaymentTx = (market.connect(borrower) as Contract).repayLoan(DEFAULT_LOAN_ID, REPAY_AMOUNT);
         timestamp = await getTxTimestamp(repaymentTx);
         loanState.trackedTimestamp = timestamp;
@@ -1400,7 +1406,7 @@ describe("Contract 'LendingMarket'", async () => {
         await checkLoanPreview(market, loanState, timestamp);
 
         // Check the preview after the previous actions and the full loan repayment
-        await time.increaseTo(timestamp);
+        await increaseBlockTimestampTo(timestamp);
         const fullRepaymentTx = (market.connect(borrower) as Contract).repayLoan(DEFAULT_LOAN_ID, FULL_REPAY_AMOUNT);
         timestamp = await getTxTimestamp(fullRepaymentTx);
         loanState.trackedBorrowBalance = 0;
@@ -1417,7 +1423,7 @@ describe("Contract 'LendingMarket'", async () => {
 
         // Check the preview after one loan period passed after the loan taken and after the loan is frozen
         let timestamp = loanState.startTimestamp + DEFAULT_PERIOD_IN_SECONDS;
-        await time.increaseTo(timestamp);
+        await increaseBlockTimestampTo(timestamp);
         const freezingTx = marketConnectedToLender.freeze(DEFAULT_LOAN_ID);
         timestamp = await getTxTimestamp(freezingTx);
         loanState.freezeTimestamp = timestamp;
@@ -1428,7 +1434,7 @@ describe("Contract 'LendingMarket'", async () => {
         await checkLoanPreview(market, loanState, timestamp);
 
         // Check the preview after the previous actions and the full loan repayment
-        await time.increaseTo(timestamp);
+        await increaseBlockTimestampTo(timestamp);
         const fullRepaymentTx = (market.connect(borrower) as Contract).repayLoan(DEFAULT_LOAN_ID, FULL_REPAY_AMOUNT);
         timestamp = await getTxTimestamp(fullRepaymentTx);
         loanState.trackedBorrowBalance = 0;

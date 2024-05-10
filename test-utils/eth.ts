@@ -1,7 +1,8 @@
-import { ethers, upgrades } from "hardhat";
-import { Contract, ContractFactory } from "ethers";
+import { ethers, network, upgrades } from "hardhat";
+import { BlockTag, Contract, ContractFactory } from "ethers";
 import { expect } from "chai";
 import { TransactionReceipt, TransactionResponse } from "@ethersproject/abstract-provider";
+import { time } from "@nomicfoundation/hardhat-network-helpers";
 
 export async function proveTx(txResponsePromise: Promise<TransactionResponse>): Promise<TransactionReceipt> {
   const txReceipt = await txResponsePromise;
@@ -37,4 +38,24 @@ export async function getTxTimestamp(tx: Promise<TransactionResponse>): Promise<
   const receipt = await proveTx(tx);
   const block = await ethers.provider.getBlock(receipt.blockNumber);
   return Number(block?.timestamp ?? 0);
+}
+
+export async function getBlockTimestamp(blockTag: BlockTag): Promise<number> {
+  const block = await ethers.provider.getBlock(blockTag);
+  return block?.timestamp ?? 0;
+}
+
+export async function getLatestBlockTimestamp(): Promise<number> {
+  return getBlockTimestamp("latest");
+}
+
+export async function increaseBlockTimestampTo(target: number) {
+  if (network.name === "hardhat") {
+    await time.increaseTo(target);
+  } else if (network.name === "stratus") {
+    await ethers.provider.send("evm_setNextBlockTimestamp", [target]);
+    await ethers.provider.send("evm_mine", []);
+  } else {
+    throw new Error(`Setting block timestamp for the current blockchain is not supported: ${network.name}`);
+  }
 }
