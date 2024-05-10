@@ -127,8 +127,8 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
   async function prepareLoan(
     liquidityPool: Contract,
     loanProps: {
-      initialBorrowAmount: number
-      loanId: number
+      initialBorrowAmount: number;
+      loanId: number;
     }
   ) {
     await proveTx(liquidityPool.deposit(creditLineAddress, loanProps.initialBorrowAmount));
@@ -150,7 +150,6 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
       freezeTimestamp: 0
     };
     await proveTx(market.mockLoanState(loanProps.loanId, loanState));
-
   }
 
   describe("Function 'initialize()'", async () => {
