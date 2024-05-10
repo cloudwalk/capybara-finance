@@ -16,5 +16,5 @@ contract LendingRegistryUUPS is LendingRegistry, UUPSUpgradeable {
     }
 
     /// @inheritdoc UUPSUpgradeable
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner { }
+    function _authorizeUpgrade(address newImplementation) internal override onlyRole(OWNER_ROLE) { }
 }

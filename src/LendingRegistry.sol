@@ -3,7 +3,7 @@
 pragma solidity 0.8.24;
 
 import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { AccessControlUpgradeable } from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
 import { Error } from "src/common/libraries/Error.sol";
@@ -21,10 +21,13 @@ import { LendingRegistryStorage } from "./LendingRegistryStorage.sol";
 contract LendingRegistry is
     LendingRegistryStorage,
     Initializable,
-    OwnableUpgradeable,
+    AccessControlUpgradeable,
     PausableUpgradeable,
     ILendingRegistry
 {
+    /// @dev The role of this contract owner.
+    bytes32 public constant OWNER_ROLE = keccak256("OWNER_ROLE");
+
     // -------------------------------------------- //
     //  Events                                      //
     // -------------------------------------------- //
@@ -62,7 +65,7 @@ contract LendingRegistry is
     /// @dev Internal initializer of the upgradable contract.
     /// @param market_ The address of the lending market.
     function __LendingRegistry_init(address market_) internal onlyInitializing {
-        __Ownable_init_unchained(msg.sender);
+        __AccessControl_init_unchained();
         __Pausable_init_unchained();
         __LendingRegistry_init_unchained(market_);
     }
@@ -74,7 +77,10 @@ contract LendingRegistry is
             revert Error.ZeroAddress();
         }
 
+        _grantRole(OWNER_ROLE, msg.sender);
+
         _market = market_;
+        _owner = msg.sender;
     }
 
     // -------------------------------------------- //
@@ -82,18 +88,18 @@ contract LendingRegistry is
     // -------------------------------------------- //
 
     /// @dev Pauses the contract.
-    function pause() external onlyOwner {
+    function pause() external onlyRole(OWNER_ROLE) {
         _pause();
     }
 
     /// @dev Unpauses the contract.
-    function unpause() external onlyOwner {
+    function unpause() external onlyRole(OWNER_ROLE) {
         _unpause();
     }
 
     /// @dev Sets the credit line factory.
     /// @param newFactory The address of the new credit line factory.
-    function setCreditLineFactory(address newFactory) external onlyOwner {
+    function setCreditLineFactory(address newFactory) external onlyRole(OWNER_ROLE) {
         if (_creditLineFactory == newFactory) {
             revert Error.AlreadyConfigured();
         }
@@ -105,7 +111,7 @@ contract LendingRegistry is
 
     /// @dev Sets the liquidity pool factory.
     /// @param newFactory The address of the new liquidity pool factory.
-    function setLiquidityPoolFactory(address newFactory) external onlyOwner {
+    function setLiquidityPoolFactory(address newFactory) external onlyRole(OWNER_ROLE) {
         if (_liquidityPoolFactory == newFactory) {
             revert Error.AlreadyConfigured();
         }

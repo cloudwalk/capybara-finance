@@ -12,11 +12,11 @@ abstract contract LendingMarketStorage {
     //  Storage variables                           //
     // -------------------------------------------- //
 
-    /// @dev The address of the lending registry.
-    address internal _registry;
-
     /// @dev The counter of the NFT token identifiers.
     uint256 internal _tokenIdCounter;
+
+    /// @dev The address of the contract owner.
+    address internal _owner;
 
     /// @dev The mapping of loan identifier to loan state.
     mapping(uint256 => Loan.State) internal _loans;

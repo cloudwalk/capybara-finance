@@ -16,5 +16,5 @@ contract CreditLineFactoryUUPS is CreditLineFactory, UUPSUpgradeable {
     }
 
     /// @inheritdoc UUPSUpgradeable
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner { }
+    function _authorizeUpgrade(address newImplementation) internal override onlyRole(OWNER_ROLE) { }
 }

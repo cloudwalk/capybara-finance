@@ -5,7 +5,7 @@ pragma solidity 0.8.24;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { AccessControlUpgradeable } from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import { ERC721Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import { ERC721EnumerableUpgradeable } from
@@ -30,7 +30,7 @@ import { LendingMarketStorage } from "./LendingMarketStorage.sol";
 contract LendingMarket is
     LendingMarketStorage,
     Initializable,
-    OwnableUpgradeable,
+    AccessControlUpgradeable,
     PausableUpgradeable,
     ERC721Upgradeable,
     ERC721EnumerableUpgradeable,
@@ -38,6 +38,12 @@ contract LendingMarket is
 {
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
+
+    /// @dev The role of this contract owner.
+    bytes32 public constant OWNER_ROLE = keccak256("OWNER_ROLE");
+
+    /// @dev The role of this contract
+    bytes32 public constant REGISTRY_ADMIN = keccak256("REGISTRY_ADMIN_ROLE");
 
     // -------------------------------------------- //
     //  Errors                                      //
@@ -83,14 +89,6 @@ contract LendingMarket is
     //  Modifiers                                   //
     // -------------------------------------------- //
 
-    /// @dev Throws if called by any account other than the market registry or the owner.
-    modifier onlyRegistryOrOwner() {
-        if (msg.sender != _registry && msg.sender != owner()) {
-            revert Error.Unauthorized();
-        }
-        _;
-    }
-
     /// @dev Throws if called by any account other than the lender or its alias.
     /// @param loanId The unique identifier of the loan to check.
     modifier onlyLenderOrAlias(uint256 loanId) {
@@ -127,7 +125,7 @@ contract LendingMarket is
     /// @param name_ The name of the NFT token that will represent the loans.
     /// @param symbol_ The symbol of the NFT token that will represent the loans.
     function __LendingMarket_init(string memory name_, string memory symbol_) internal onlyInitializing {
-        __Ownable_init_unchained(msg.sender);
+        __AccessControl_init_unchained();
         __Pausable_init_unchained();
         __ERC721_init_unchained(name_, symbol_);
         __ERC721Enumerable_init_unchained();
@@ -135,36 +133,46 @@ contract LendingMarket is
     }
 
     /// @dev Unchained internal initializer of the upgradable contract.
-    function __LendingMarket_init_unchained() internal onlyInitializing { }
+    function __LendingMarket_init_unchained() internal onlyInitializing {
+        _grantRole(OWNER_ROLE, msg.sender);
+    }
 
     // -------------------------------------------- //
     //  Owner functions                             //
     // -------------------------------------------- //
 
     /// @dev Pauses the contract.
-    function pause() external onlyOwner {
+    function pause() external onlyRole(OWNER_ROLE) {
         _pause();
     }
 
     /// @dev Unpauses the contract.
-    function unpause() external onlyOwner {
+    function unpause() external onlyRole(OWNER_ROLE) {
         _unpause();
     }
 
     /// @dev Sets the address of the lending market registry.
-    /// @param newRegistry The address of the new registry.
-    function setRegistry(address newRegistry) external onlyOwner {
-        if (newRegistry == _registry) {
-            revert Error.AlreadyConfigured();
+    /// @param account The address of the account to configure.
+    /// @param adminStatus The new admin status of the account.
+    function configureRegistryAdmin(address account, bool adminStatus) external onlyRole(OWNER_ROLE) {
+        if (account == address(0)) {
+            revert Error.ZeroAddress();
         }
 
-        emit MarketRegistryChanged(newRegistry, _registry);
+        if (adminStatus) {
+            if (hasRole(REGISTRY_ADMIN, account)) {
+                revert Error.AlreadyConfigured();
+            }
+            _grantRole(REGISTRY_ADMIN, account);
+        } else {
+            _revokeRole(REGISTRY_ADMIN, account);
+        }
 
-        _registry = newRegistry;
+        emit RegistryAdminStatusConfigured(account, adminStatus);
     }
 
     /// @inheritdoc ILendingMarket
-    function updateCreditLineLender(address creditLine, address newLender) external onlyOwner {
+    function updateCreditLineLender(address creditLine, address newLender) external onlyRole(OWNER_ROLE) {
         if (creditLine == address(0) || newLender == address(0)) {
             revert Error.ZeroAddress();
         }
@@ -178,7 +186,7 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ILendingMarket
-    function updateLiquidityPoolLender(address liquidityPool, address newLender) external onlyOwner {
+    function updateLiquidityPoolLender(address liquidityPool, address newLender) external onlyRole(OWNER_ROLE) {
         if (liquidityPool == address(0) || newLender == address(0)) {
             revert Error.ZeroAddress();
         }
@@ -196,7 +204,7 @@ contract LendingMarket is
     // -------------------------------------------- //
 
     /// @inheritdoc ILendingMarket
-    function registerCreditLine(address lender, address creditLine) external whenNotPaused onlyRegistryOrOwner {
+    function registerCreditLine(address lender, address creditLine) external whenNotPaused onlyRole(REGISTRY_ADMIN) {
         if (lender == address(0) || creditLine == address(0)) {
             revert Error.ZeroAddress();
         }
@@ -210,7 +218,7 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ILendingMarket
-    function registerLiquidityPool(address lender, address liquidityPool) external whenNotPaused onlyRegistryOrOwner {
+    function registerLiquidityPool(address lender, address liquidityPool) external whenNotPaused onlyRole(REGISTRY_ADMIN) {
         if (lender == address(0) || liquidityPool == address(0)) {
             revert Error.ZeroAddress();
         }
@@ -561,11 +569,6 @@ contract LendingMarket is
         return (Constants.NEGATIVE_TIME_OFFSET, false);
     }
 
-    /// @inheritdoc ILendingMarket
-    function registry() external view returns (address) {
-        return _registry;
-    }
-
     /// @dev Calculates the period index that corresponds the specified timestamp.
     /// @param timestamp The timestamp to calculate the period index.
     /// @param periodInSeconds The period duration in seconds.
@@ -702,7 +705,7 @@ contract LendingMarket is
     function supportsInterface(bytes4 interfaceId)
         public
         view
-        override (ERC721Upgradeable, ERC721EnumerableUpgradeable)
+        override (ERC721Upgradeable, ERC721EnumerableUpgradeable, AccessControlUpgradeable)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
