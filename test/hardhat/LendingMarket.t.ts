@@ -121,9 +121,9 @@ const ZERO_ADDRESS = ethers.ZeroAddress;
 const BORROW_AMOUNT = 100;
 const REPAY_AMOUNT = 50;
 const FULL_REPAY_AMOUNT = ethers.MaxUint256;
-const MINT_AMOUNT = 1000000000000000;
-const BORROWER_SUPPLY_AMOUNT = 1000000000;
-const DEPOSIT_AMOUNT = 1000000;
+const MINT_AMOUNT = 1000_000;
+const BORROWER_SUPPLY_AMOUNT = 10_000;
+const DEPOSIT_AMOUNT = 1000;
 const DEFAULT_INTEREST_RATE_PRIMARY = 10;
 const DEFAULT_INTEREST_RATE_SECONDARY = 20;
 const DEFAULT_INTEREST_RATE_FACTOR = 100;
@@ -132,7 +132,6 @@ const DEFAULT_DURATION_IN_PERIODS = 10;
 const DEFAULT_ADDON_AMOUNT = 10;
 const DEFAULT_LOAN_ID = 0;
 const NON_EXISTENT_LOAN_ID = ethers.MaxUint256;
-const DEFAULT_NUMBER_OF_PERIODS = 20;
 const TIME_OFFSET = 0;
 const ALIAS_STATUS_CONFIGURED = true;
 const ALIAS_STATUS_NOT_CONFIGURED = false;
@@ -1457,7 +1456,7 @@ describe("Contract 'LendingMarket'", async () => {
       const { market } = await loadFixture(deployLendingMarketAndTakeLoan);
       const actualBalance = await market.calculateOutstandingBalance(
         BORROW_AMOUNT,
-        DEFAULT_NUMBER_OF_PERIODS,
+        DEFAULT_DURATION_IN_PERIODS,
         DEFAULT_INTEREST_RATE_PRIMARY,
         DEFAULT_INTEREST_RATE_FACTOR,
         InterestFormula.Compound
@@ -1465,7 +1464,7 @@ describe("Contract 'LendingMarket'", async () => {
 
       const expectedBalance = calculateOutstandingBalance(
         BORROW_AMOUNT,
-        DEFAULT_NUMBER_OF_PERIODS,
+        DEFAULT_DURATION_IN_PERIODS,
         DEFAULT_INTEREST_RATE_PRIMARY,
         DEFAULT_INTEREST_RATE_FACTOR
       );
@@ -1476,7 +1475,7 @@ describe("Contract 'LendingMarket'", async () => {
       const { market } = await loadFixture(deployLendingMarketAndTakeLoan);
       await expect(market.calculateOutstandingBalance(
         BORROW_AMOUNT,
-        DEFAULT_NUMBER_OF_PERIODS,
+        DEFAULT_DURATION_IN_PERIODS,
         DEFAULT_INTEREST_RATE_PRIMARY,
         DEFAULT_INTEREST_RATE_FACTOR,
         InterestFormula.Simple
