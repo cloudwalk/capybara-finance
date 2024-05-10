@@ -43,7 +43,7 @@ contract LendingMarketComplexTest is Test {
     address private constant BORROWER = address(bytes20(keccak256("borrower")));
     address private constant ADDON_RECIPIENT = address(bytes20(keccak256("recipient")));
 
-    bytes32 private constant REGISTRY_ADMIN_ROLE = keccak256("REGISTRY_ADMIN_ROLE");
+    bytes32 private constant REGISTRY_ROLE = keccak256("REGISTRY_ROLE");
     bytes32 private constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
     uint256 private constant ZERO_VALUE = 0;
@@ -75,7 +75,7 @@ contract LendingMarketComplexTest is Test {
         liquidityPool.initialize(address(lendingMarket), LENDER);
 
         // Register credit line and liquidity pool
-        lendingMarket.grantRole(REGISTRY_ADMIN_ROLE, OWNER);
+        lendingMarket.grantRole(REGISTRY_ROLE, OWNER);
         lendingMarket.registerCreditLine(LENDER, address(creditLine));
         lendingMarket.registerLiquidityPool(LENDER, address(liquidityPool));
 

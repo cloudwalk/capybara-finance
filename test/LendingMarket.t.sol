@@ -125,7 +125,7 @@ contract LendingMarketTest is Test {
     address private constant LOAN_TREASURY = address(bytes20(keccak256("loan_treasury")));
 
     bytes32 private constant OWNER_ROLE = keccak256("OWNER_ROLE");
-    bytes32 private constant REGISTRY_ADMIN_ROLE = keccak256("REGISTRY_ADMIN_ROLE");
+    bytes32 private constant REGISTRY_ROLE = keccak256("REGISTRY_ROLE");
 
     uint64 private constant ADDON_AMOUNT = 100;
     uint64 private constant BORROW_AMOUNT = 100;
@@ -174,8 +174,8 @@ contract LendingMarketTest is Test {
         market.initialize("NAME", "SYMBOL");
 
         vm.startPrank(OWNER);
-        market.grantRole(REGISTRY_ADMIN_ROLE, OWNER);
-        market.grantRole(REGISTRY_ADMIN_ROLE, REGISTRY_1);
+        market.grantRole(REGISTRY_ROLE, OWNER);
+        market.grantRole(REGISTRY_ROLE, REGISTRY_1);
         vm.stopPrank();
 
         skip(INIT_BLOCK_TIMESTAMP);
@@ -501,7 +501,7 @@ contract LendingMarketTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(
                 IAccessControl.AccessControlUnauthorizedAccount.selector,
-                ATTACKER, REGISTRY_ADMIN_ROLE)
+                ATTACKER, REGISTRY_ROLE)
         );
         market.registerCreditLine(LENDER, address(creditLine));
     }
@@ -573,7 +573,7 @@ contract LendingMarketTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(
                 IAccessControl.AccessControlUnauthorizedAccount.selector,
-                ATTACKER, REGISTRY_ADMIN_ROLE)
+                ATTACKER, REGISTRY_ROLE)
         );
         market.registerLiquidityPool(LENDER, address(liquidityPool));
     }
