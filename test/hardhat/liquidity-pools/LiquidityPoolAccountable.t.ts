@@ -1,10 +1,9 @@
 import { ethers, upgrades } from "hardhat";
 import { expect } from "chai";
-import { Contract, ContractFactory } from "ethers";
+import { Contract, ContractFactory, TransactionReceipt } from "ethers";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { getAddress, proveTx } from "../../../test-utils/eth";
-import { TransactionReceipt } from "@ethersproject/abstract-provider";
 
 enum InterestFormula {
   Simple = 0

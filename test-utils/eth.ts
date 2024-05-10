@@ -1,12 +1,15 @@
 import { ethers, network, upgrades } from "hardhat";
-import { BlockTag, Contract, ContractFactory } from "ethers";
+import { BlockTag, Contract, ContractFactory, TransactionReceipt, TransactionResponse } from "ethers";
 import { expect } from "chai";
-import { TransactionReceipt, TransactionResponse } from "@ethersproject/abstract-provider";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 
 export async function proveTx(txResponsePromise: Promise<TransactionResponse>): Promise<TransactionReceipt> {
-  const txReceipt = await txResponsePromise;
-  return txReceipt.wait();
+  const txResponse = await txResponsePromise;
+  const txReceipt = await txResponse.wait();
+  if (!txReceipt) {
+    throw new Error("The transaction receipt is empty");
+  }
+  return txReceipt;
 }
 
 export async function checkContractUupsUpgrading(
