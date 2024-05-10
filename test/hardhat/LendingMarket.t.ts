@@ -187,6 +187,11 @@ describe("Contract 'LendingMarket'", async () => {
     await token.waitForDeployment();
     token = token.connect(owner) as Contract; // Explicitly specifying the initial account
     tokenAddress = getAddress(token);
+
+    // Start tests at the beginning of a loan period to avoid rare failures due to crossing a border between two periods
+    const periodIndex = calculatePeriodIndex(await getLatestBlockTimestamp());
+    const nextPeriodTimestamp = ((periodIndex + 1) * DEFAULT_PERIOD_IN_SECONDS) - TIME_OFFSET + 1;
+    await increaseBlockTimestampTo(nextPeriodTimestamp);
   });
 
   function createMockTerms(): LoanTerms {
