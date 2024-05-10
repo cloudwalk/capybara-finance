@@ -254,7 +254,7 @@ describe("Contract 'LendingMarket'", async () => {
   }
 
   function calculatePeriodIndex(timestamp: number): number {
-    return Math.floor((timestamp - TIME_OFFSET) / DEFAULT_PERIOD_IN_SECONDS);
+    return Math.floor((timestamp + TIME_OFFSET) / DEFAULT_PERIOD_IN_SECONDS);
   }
 
   function defineLoanPreview(loanState: LoanState, timestamp: number): LoanPreview {
