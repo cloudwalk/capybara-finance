@@ -266,6 +266,11 @@ contract LiquidityPoolAccountable is AccessControlUpgradeable, PausableUpgradeab
         return _creditLines[loanId];
     }
 
+    /// @inheritdoc ILiquidityPoolAccountable
+    function isAdmin(address account) external view returns (bool) {
+        return hasRole(ADMIN_ROLE, account);
+    }
+
     /// @inheritdoc ILiquidityPool
     function market() external view returns (address) {
         return _market;

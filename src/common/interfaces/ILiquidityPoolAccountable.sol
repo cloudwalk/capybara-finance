@@ -76,4 +76,9 @@ interface ILiquidityPoolAccountable is ILiquidityPool {
     /// @param loanId The unique identifier of the loan.
     /// @return The address of the credit line.
     function getCreditLine(uint256 loanId) external view returns (address);
+
+    /// @dev Checks whether an account is an admin.
+    /// @param account The address of the account to check.
+    /// @return True if the account is configured as an admin.
+    function isAdmin(address account) external view returns (bool);
 }
