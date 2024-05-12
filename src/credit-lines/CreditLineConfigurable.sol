@@ -19,11 +19,15 @@ import { ICreditLineConfigurable } from "../common/interfaces/ICreditLineConfigu
 contract CreditLineConfigurable is AccessControlUpgradeable, PausableUpgradeable, ICreditLineConfigurable {
     using SafeCast for uint256;
 
-    /// @dev The role of this contract owner.
-    bytes32 public constant OWNER_ROLE = keccak256("OWNER_ROLE");
+    /// @dev The role of this contract lender (owner).
+    bytes32 public constant LENDER_ROLE = keccak256("LENDER_ROLE");
+
+    /// @dev The role of this contract pauser.
+    bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 
     /// @dev The role of this contract admin.
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
+
 
     // -------------------------------------------- //
     //  Storage variables                           //
@@ -32,14 +36,14 @@ contract CreditLineConfigurable is AccessControlUpgradeable, PausableUpgradeable
     /// @dev The address of the lending market.
     address internal _market;
 
-    /// @dev The address of the credit line token.
+    /// @dev The address of the underlying token.
     address internal _token;
 
-    /// @dev The mapping of borrower to its configuration.
-    mapping(address => BorrowerConfig) internal _borrowers;
-
-    /// @dev The configuration of the credit line.
+    /// @dev The structure of the credit line configuration.
     CreditLineConfig internal _config;
+
+    /// @dev The mapping of borrower to borrower configuration.
+    mapping(address => BorrowerConfig) internal _borrowers;
 
     // -------------------------------------------- //
     //  Errors                                      //
@@ -53,9 +57,6 @@ contract CreditLineConfigurable is AccessControlUpgradeable, PausableUpgradeable
 
     /// @dev Thrown when the borrower configuration has expired.
     error BorrowerConfigurationExpired();
-
-    /// @dev Thrown when the borrow policy is unsupported.
-    error UnsupportedBorrowPolicy();
 
     /// @dev Thrown when the loan duration is out of range.
     error LoanDurationOutOfRange();
@@ -77,47 +78,53 @@ contract CreditLineConfigurable is AccessControlUpgradeable, PausableUpgradeable
     // -------------------------------------------- //
 
     /// @dev Initializer of the upgradable contract.
+    /// @param lender_ The address of the credit line lender.
     /// @param market_ The address of the lending market.
-    /// @param lender_ The address of the lender.
     /// @param token_ The address of the token.
     function initialize(
-        address market_,
         address lender_,
+        address market_,
         address token_
     ) external initializer {
-        __CreditLineConfigurable_init(market_, lender_, token_);
+        __CreditLineConfigurable_init(lender_, market_, token_);
     }
 
     /// @dev Internal initializer of the upgradable contract.
+    /// @param lender_ The address of the credit line lender.
     /// @param market_ The address of the lending market.
-    /// @param lender_ The address of the lender.
     /// @param token_ The address of the token.
     function __CreditLineConfigurable_init(
-        address market_,
         address lender_,
+        address market_,
         address token_
     ) internal onlyInitializing {
         __AccessControl_init_unchained();
         __Pausable_init_unchained();
-        __CreditLineConfigurable_init_unchained(market_, token_, lender_);
+        __CreditLineConfigurable_init_unchained(lender_, market_, token_);
     }
 
     /// @dev Unchained internal initializer of the upgradable contract.
+    /// @param lender_ The address of the credit line lender.
     /// @param market_ The address of the lending market.
     /// @param token_ The address of the token.
-    function __CreditLineConfigurable_init_unchained(address market_, address token_, address lender_) internal onlyInitializing {
+    function __CreditLineConfigurable_init_unchained(
+        address lender_,
+        address market_,
+        address token_
+    ) internal onlyInitializing {
+        if (lender_ == address(0)) {
+            revert Error.ZeroAddress();
+        }
         if (market_ == address(0)) {
             revert Error.ZeroAddress();
         }
         if (token_ == address(0)) {
             revert Error.ZeroAddress();
         }
-        if (lender_ == address(0)) {
-            revert Error.ZeroAddress();
-        }
 
-        _grantRole(OWNER_ROLE, lender_);
-        _setRoleAdmin(ADMIN_ROLE, OWNER_ROLE);
+        _grantRole(LENDER_ROLE, lender_);
+        _setRoleAdmin(PAUSER_ROLE, LENDER_ROLE);
+        _setRoleAdmin(ADMIN_ROLE, LENDER_ROLE);
 
         _market = market_;
         _token = token_;
@@ -128,17 +135,17 @@ contract CreditLineConfigurable is AccessControlUpgradeable, PausableUpgradeable
     // -------------------------------------------- //
 
     /// @dev Pauses the contract.
-    function pause() external onlyRole(OWNER_ROLE) {
+    function pause() external onlyRole(PAUSER_ROLE) {
         _pause();
     }
 
     /// @dev Unpauses the contract.
-    function unpause() external onlyRole(OWNER_ROLE) {
+    function unpause() external onlyRole(PAUSER_ROLE) {
         _unpause();
     }
 
     /// @inheritdoc ICreditLineConfigurable
-    function configureCreditLine(CreditLineConfig memory config) external onlyRole(OWNER_ROLE) {
+    function configureCreditLine(CreditLineConfig memory config) external onlyRole(LENDER_ROLE) {
         if (config.minBorrowAmount > config.maxBorrowAmount) {
             revert InvalidCreditLineConfiguration();
         }
@@ -210,12 +217,7 @@ contract CreditLineConfigurable is AccessControlUpgradeable, PausableUpgradeable
             borrowerConfig.maxBorrowAmount = 0;
         } else if (borrowerConfig.borrowPolicy == BorrowPolicy.Decrease) {
             borrowerConfig.maxBorrowAmount -= borrowAmount.toUint64();
-        } else if (borrowerConfig.borrowPolicy == BorrowPolicy.Keep) {
-            // Do nothing
-        } else {
-            // NOTE: This should never happen since all possible policies are checked above
-            revert UnsupportedBorrowPolicy();
-        }
+        } // else if (BorrowPolicy.Keep) - do nothing
     }
 
     // -------------------------------------------- //

@@ -40,6 +40,7 @@ contract CreditLineConfigurableTest is Test {
 
     address private constant ADMIN = address(bytes20(keccak256("admin")));
     address private constant MARKET = address(bytes20(keccak256("market")));
+    address private constant PAUSER = address(bytes20(keccak256("pauser")));
     address private constant TOKEN_1 = address(bytes20(keccak256("token_1")));
     address private constant TOKEN_2 = address(bytes20(keccak256("token_2")));
     address private constant LENDER_1 = address(bytes20(keccak256("lender_1")));
@@ -50,7 +51,8 @@ contract CreditLineConfigurableTest is Test {
     address private constant BORROWER_3 = address(bytes20(keccak256("borrower_3")));
     address private constant LOAN_TREASURY = address(bytes20(keccak256("loan_treasury")));
 
-    bytes32 private constant OWNER_ROLE = keccak256("OWNER_ROLE");
+    bytes32 private constant LENDER_ROLE = keccak256("LENDER_ROLE");
+    bytes32 private constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
     bytes32 private constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
     uint64 private constant CREDIT_LINE_CONFIG_MIN_BORROW_AMOUNT = 400;
@@ -88,13 +90,16 @@ contract CreditLineConfigurableTest is Test {
 
     function setUp() public {
         creditLine = new CreditLineConfigurable();
-        creditLine.initialize(MARKET, LENDER_1, TOKEN_1);
+        creditLine.initialize(LENDER_1, MARKET, TOKEN_1);
+        vm.startPrank(LENDER_1);
+        creditLine.grantRole(PAUSER_ROLE, PAUSER);
+        creditLine.grantRole(ADMIN_ROLE, ADMIN);
+        vm.stopPrank();
     }
 
     function configureCreditLine() public returns (ICreditLineConfigurable.CreditLineConfig memory) {
         vm.startPrank(LENDER_1);
         ICreditLineConfigurable.CreditLineConfig memory config = initCreditLineConfig();
-        creditLine.grantRole(ADMIN_ROLE, ADMIN);
         creditLine.configureCreditLine(config);
         vm.stopPrank();
         return config;
@@ -242,35 +247,35 @@ contract CreditLineConfigurableTest is Test {
 
     function test_initializer() public {
         creditLine = new CreditLineConfigurable();
-        creditLine.initialize(MARKET, LENDER_1, TOKEN_1);
+        creditLine.initialize(LENDER_1, MARKET, TOKEN_1);
         assertEq(creditLine.market(), MARKET);
-        assertEq(creditLine.hasRole(OWNER_ROLE, LENDER_1), true);
+        assertEq(creditLine.hasRole(LENDER_ROLE, LENDER_1), true);
         assertEq(creditLine.token(), TOKEN_1);
     }
 
     function test_initializer_Revert_IfMarketIsZeroAddress() public {
         creditLine = new CreditLineConfigurable();
         vm.expectRevert(Error.ZeroAddress.selector);
-        creditLine.initialize(address(0), LENDER_1, TOKEN_1);
+        creditLine.initialize(LENDER_1, address(0), TOKEN_1);
     }
 
     function test_initializer_Revert_IfLenderIsZeroAddress() public {
         creditLine = new CreditLineConfigurable();
         vm.expectRevert(Error.ZeroAddress.selector);
-        creditLine.initialize(MARKET, address(0), TOKEN_1);
+        creditLine.initialize(address(0), MARKET, TOKEN_1);
     }
 
     function test_initializer_Revert_IfTokenIsZeroAddress() public {
         creditLine = new CreditLineConfigurable();
         vm.expectRevert(Error.ZeroAddress.selector);
-        creditLine.initialize(MARKET, LENDER_1, address(0));
+        creditLine.initialize(LENDER_1, MARKET, address(0));
     }
 
     function test_initialize_Revert_IfCalledSecondTime() public {
         creditLine = new CreditLineConfigurable();
-        creditLine.initialize(MARKET, LENDER_1, TOKEN_1);
+        creditLine.initialize(LENDER_1, MARKET, TOKEN_1);
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        creditLine.initialize(MARKET, LENDER_2, TOKEN_2);
+        creditLine.initialize(LENDER_2, MARKET, TOKEN_2);
     }
 
     // -------------------------------------------- //
@@ -279,13 +284,13 @@ contract CreditLineConfigurableTest is Test {
 
     function test_pause() public {
         assertEq(creditLine.paused(), false);
-        vm.prank(LENDER_1);
+        vm.prank(PAUSER);
         creditLine.pause();
         assertEq(creditLine.paused(), true);
     }
 
     function test_pause_Revert_IfContractIsPaused() public {
-        vm.startPrank(LENDER_1);
+        vm.startPrank(PAUSER);
         creditLine.pause();
         vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
         creditLine.pause();
@@ -296,7 +301,7 @@ contract CreditLineConfigurableTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(
                 IAccessControl.AccessControlUnauthorizedAccount.selector,
-                ATTACKER, OWNER_ROLE)
+                ATTACKER, PAUSER_ROLE)
         );
         creditLine.pause();
     }
@@ -306,7 +311,7 @@ contract CreditLineConfigurableTest is Test {
     // -------------------------------------------- //
 
     function test_unpause() public {
-        vm.startPrank(LENDER_1);
+        vm.startPrank(PAUSER);
         assertEq(creditLine.paused(), false);
         creditLine.pause();
         assertEq(creditLine.paused(), true);
@@ -316,19 +321,19 @@ contract CreditLineConfigurableTest is Test {
 
     function test_unpause_RevertIfContractNotPaused() public {
         assertEq(creditLine.paused(), false);
-        vm.prank(LENDER_1);
+        vm.prank(PAUSER);
         vm.expectRevert(PausableUpgradeable.ExpectedPause.selector);
         creditLine.unpause();
     }
 
     function test_unpause_Revert_IfCallerNotOwner() public {
-        vm.prank(LENDER_1);
+        vm.prank(PAUSER);
         creditLine.pause();
         vm.prank(ATTACKER);
         vm.expectRevert(
             abi.encodeWithSelector(
                 IAccessControl.AccessControlUnauthorizedAccount.selector,
-                ATTACKER, OWNER_ROLE)
+                ATTACKER, PAUSER_ROLE)
         );
         creditLine.unpause();
     }
@@ -357,7 +362,7 @@ contract CreditLineConfigurableTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(
                 IAccessControl.AccessControlUnauthorizedAccount.selector,
-                ATTACKER, OWNER_ROLE)
+                ATTACKER, LENDER_ROLE)
         );
         creditLine.configureCreditLine(config);
     }
@@ -440,7 +445,7 @@ contract CreditLineConfigurableTest is Test {
 
         ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
 
-        vm.prank(LENDER_1);
+        vm.prank(PAUSER);
         creditLine.pause();
 
         vm.prank(ATTACKER);
@@ -656,7 +661,7 @@ contract CreditLineConfigurableTest is Test {
         (address[] memory borrowers, ICreditLineConfigurable.BorrowerConfig[] memory configs) =
             initBorrowerConfigs(block.timestamp);
 
-        vm.prank(LENDER_1);
+        vm.prank(PAUSER);
         creditLine.pause();
 
         vm.prank(ADMIN);
@@ -758,7 +763,7 @@ contract CreditLineConfigurableTest is Test {
         vm.prank(ADMIN);
         creditLine.configureBorrower(BORROWER_1, config);
 
-        vm.prank(LENDER_1);
+        vm.prank(PAUSER);
         creditLine.pause();
 
         vm.prank(ATTACKER);

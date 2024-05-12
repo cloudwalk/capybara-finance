@@ -30,7 +30,7 @@ contract CreditLineConfigurableUUPSTest is Test {
     address private constant LENDER = address(bytes20(keccak256("lender")));
     address private constant ATTACKER = address(bytes20(keccak256("attacker")));
 
-    bytes32 private constant OWNER_ROLE = keccak256("OWNER_ROLE");
+    bytes32 private constant LENDER_ROLE = keccak256("LENDER_ROLE");
 
     // -------------------------------------------- //
     //  Setup and configuration                     //
@@ -38,7 +38,7 @@ contract CreditLineConfigurableUUPSTest is Test {
 
     function setUp() public {
         proxy = CreditLineConfigurableUUPS(address(new ERC1967Proxy(address(new CreditLineConfigurableUUPS()), "")));
-        proxy.initialize(MARKET, LENDER, TOKEN);
+        proxy.initialize(LENDER, MARKET, TOKEN);
     }
 
     // -------------------------------------------- //
@@ -53,13 +53,13 @@ contract CreditLineConfigurableUUPSTest is Test {
         proxy.upgradeToAndCall(newImplemetation, "");
     }
 
-    function test_upgradeToAndCall_Revert_IfCallerNotOwner() public {
+    function test_upgradeToAndCall_Revert_IfCallerNotLender() public {
         address newImplemetation = address(new CreditLineConfigurableUUPS());
         vm.prank(ATTACKER);
         vm.expectRevert(
             abi.encodeWithSelector(
                 IAccessControl.AccessControlUnauthorizedAccount.selector,
-                ATTACKER, OWNER_ROLE)
+                ATTACKER, LENDER_ROLE)
         );
         proxy.upgradeToAndCall(newImplemetation, "");
     }

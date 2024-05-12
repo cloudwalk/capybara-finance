@@ -62,7 +62,7 @@ contract LendingMarketComplexTest is Test {
 
         // Deploy credit line
         creditLine = new CreditLineConfigurable();
-        creditLine.initialize(address(lendingMarket), LENDER, address(token));
+        creditLine.initialize(LENDER, address(lendingMarket), address(token));
 
         // Deploy liquidity pool
         liquidityPool = new LiquidityPoolAccountable();
