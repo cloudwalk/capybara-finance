@@ -5,11 +5,6 @@ pragma solidity 0.8.24;
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
 
-import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
-import { IERC721Receiver } from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-
 import { Loan } from "src/common/libraries/Loan.sol";
 import { Interest } from "src/common/libraries/Interest.sol";
 import { Constants } from "src/common/libraries/Constants.sol";
@@ -61,7 +56,7 @@ contract LendingMarketComplexTest is Test {
 
         // Deploy market
         lendingMarket = new LendingMarket();
-        lendingMarket.initialize();
+        lendingMarket.initialize(OWNER);
 
         // Deploy scenarios
         scenarios = new LoanComplexScenarios();

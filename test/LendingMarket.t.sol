@@ -114,6 +114,7 @@ contract LendingMarketTest is Test {
     address private constant LENDER = address(bytes20(keccak256("lender")));
     address private constant BORROWER = address(bytes20(keccak256("borrower")));
     address private constant ATTACKER = address(bytes20(keccak256("attacker")));
+    address private constant DEPLOYER = address(bytes20(keccak256("deployer")));
 
     address private constant LENDER_2 = address(bytes20(keccak256("lender_2")));
     address private constant BORROWER_2 = address(bytes20(keccak256("borrower_2")));
@@ -172,8 +173,7 @@ contract LendingMarketTest is Test {
         market = new LendingMarket();
 
         vm.startPrank(DEPLOYER);
-        market.initialize();
-        market.transferOwnership(OWNER);
+        market.initialize(OWNER);
         vm.stopPrank();
 
         vm.startPrank(OWNER);
@@ -381,14 +381,14 @@ contract LendingMarketTest is Test {
         vm.startPrank(DEPLOYER);
 
         market = new LendingMarket();
-        assertEq(market.owner(), address(0));
+        assertEq(market.hasRole(OWNER_ROLE, OWNER), false);
 
-        market.initialize();
+        market.initialize(OWNER);
 
-        assertEq(market.owner(), DEPLOYER);
+        assertEq(market.hasRole(OWNER_ROLE, OWNER), true);
 
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        market.initialize();
+        market.initialize(OWNER);
     }
 
     // -------------------------------------------- //

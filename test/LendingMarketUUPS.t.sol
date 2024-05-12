@@ -38,8 +38,7 @@ contract LendingMarketUUPSTest is Test {
     function setUp() public {
         vm.startPrank(DEPLOYER);
         proxy = LendingMarketUUPS(address(new ERC1967Proxy(address(new LendingMarketUUPS()), "")));
-        proxy.initialize();
-        proxy.transferOwnership(OWNER);
+        proxy.initialize(OWNER);
         vm.stopPrank();
     }
 
