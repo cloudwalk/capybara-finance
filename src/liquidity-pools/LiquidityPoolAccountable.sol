@@ -23,14 +23,14 @@ contract LiquidityPoolAccountable is AccessControlUpgradeable, PausableUpgradeab
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
 
-    /// @dev The role of this contract lender (owner).
-    bytes32 public constant LENDER_ROLE = keccak256("LENDER_ROLE");
-
-    /// @dev The role of this contract pauser.
-    bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
+    /// @dev The role of this contract owner.
+    bytes32 public constant OWNER_ROLE = keccak256("OWNER_ROLE");
 
     /// @dev The role of this contract admin.
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
+
+    /// @dev The role of this contract pauser.
+    bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 
     // -------------------------------------------- //
     //  Storage variables                           //
@@ -95,19 +95,33 @@ contract LiquidityPoolAccountable is AccessControlUpgradeable, PausableUpgradeab
             revert Error.ZeroAddress();
         }
 
-        _grantRole(LENDER_ROLE, lender_);
-        _setRoleAdmin(PAUSER_ROLE, LENDER_ROLE);
-        _setRoleAdmin(ADMIN_ROLE, LENDER_ROLE);
+        _grantRole(OWNER_ROLE, lender_);
+        _setRoleAdmin(ADMIN_ROLE, OWNER_ROLE);
+        _setRoleAdmin(PAUSER_ROLE, OWNER_ROLE);
 
         _market = market_;
     }
 
     // -------------------------------------------- //
-    //  Lender functions                            //
+    //  Pauser functions                            //
+    // -------------------------------------------- //
+
+    /// @dev Pauses the contract.
+    function pause() external onlyRole(PAUSER_ROLE) {
+        _pause();
+    }
+
+    /// @dev Unpauses the contract.
+    function unpause() external onlyRole(PAUSER_ROLE) {
+        _unpause();
+    }
+
+    // -------------------------------------------- //
+    //  Owner functions                            //
     // -------------------------------------------- //
 
     /// @inheritdoc ILiquidityPoolAccountable
-    function deposit(address creditLine, uint256 amount) external onlyRole(LENDER_ROLE) {
+    function deposit(address creditLine, uint256 amount) external onlyRole(OWNER_ROLE) {
         if (creditLine == address(0)) {
             revert Error.ZeroAddress();
         }
@@ -127,7 +141,7 @@ contract LiquidityPoolAccountable is AccessControlUpgradeable, PausableUpgradeab
     }
 
     /// @inheritdoc ILiquidityPoolAccountable
-    function withdraw(address creditLine, uint256 borrowableAmount, uint256 addonAmount) external onlyRole(LENDER_ROLE) {
+    function withdraw(address creditLine, uint256 borrowableAmount, uint256 addonAmount) external onlyRole(OWNER_ROLE) {
         if (creditLine == address(0)) {
             revert Error.ZeroAddress();
         }
@@ -152,7 +166,7 @@ contract LiquidityPoolAccountable is AccessControlUpgradeable, PausableUpgradeab
     }
 
     /// @inheritdoc ILiquidityPoolAccountable
-    function rescue(address token, uint256 amount) external onlyRole(LENDER_ROLE) {
+    function rescue(address token, uint256 amount) external onlyRole(OWNER_ROLE) {
         if (token == address(0)) {
             revert Error.ZeroAddress();
         }
@@ -163,20 +177,6 @@ contract LiquidityPoolAccountable is AccessControlUpgradeable, PausableUpgradeab
         IERC20(token).safeTransfer(msg.sender, amount);
 
         emit Rescue(token, amount);
-    }
-
-    // -------------------------------------------- //
-    //  Pauser functions                            //
-    // -------------------------------------------- //
-
-    /// @dev Pauses the contract.
-    function pause() external onlyRole(PAUSER_ROLE) {
-        _pause();
-    }
-
-    /// @dev Unpauses the contract.
-    function unpause() external onlyRole(PAUSER_ROLE) {
-        _unpause();
     }
 
     // -------------------------------------------- //

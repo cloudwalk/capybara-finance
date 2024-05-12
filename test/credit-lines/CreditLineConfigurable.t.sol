@@ -52,9 +52,9 @@ contract CreditLineConfigurableTest is Test {
     address private constant BORROWER_3 = address(bytes20(keccak256("borrower_3")));
     address private constant LOAN_TREASURY = address(bytes20(keccak256("loan_treasury")));
 
-    bytes32 private constant LENDER_ROLE = keccak256("LENDER_ROLE");
-    bytes32 private constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
+    bytes32 private constant OWNER_ROLE = keccak256("OWNER_ROLE");
     bytes32 private constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
+    bytes32 private constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 
     uint64 private constant CREDIT_LINE_CONFIG_MIN_BORROW_AMOUNT = 400;
     uint64 private constant CREDIT_LINE_CONFIG_MAX_BORROW_AMOUNT = 900;
@@ -253,7 +253,7 @@ contract CreditLineConfigurableTest is Test {
         creditLine = new CreditLineConfigurable();
         creditLine.initialize(LENDER_1, MARKET, TOKEN_1);
         assertEq(creditLine.market(), MARKET);
-        assertEq(creditLine.hasRole(LENDER_ROLE, LENDER_1), true);
+        assertEq(creditLine.hasRole(OWNER_ROLE, LENDER_1), true);
         assertEq(creditLine.token(), TOKEN_1);
     }
 
@@ -366,7 +366,7 @@ contract CreditLineConfigurableTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(
                 IAccessControl.AccessControlUnauthorizedAccount.selector,
-                ATTACKER, LENDER_ROLE)
+                ATTACKER, OWNER_ROLE)
         );
         creditLine.configureCreditLine(config);
     }

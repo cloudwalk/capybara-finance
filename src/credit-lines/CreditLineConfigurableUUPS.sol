@@ -16,5 +16,5 @@ contract CreditLineConfigurableUUPS is CreditLineConfigurable, UUPSUpgradeable {
     }
 
     /// @inheritdoc UUPSUpgradeable
-    function _authorizeUpgrade(address newImplementation) internal override onlyRole(LENDER_ROLE) { }
+    function _authorizeUpgrade(address newImplementation) internal override onlyRole(OWNER_ROLE) { }
 }

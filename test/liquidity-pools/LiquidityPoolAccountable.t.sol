@@ -50,9 +50,9 @@ contract LiquidityPoolAccountableTest is Test {
     address private constant ATTACKER = address(bytes20(keccak256("attacker")));
     address private constant TOKEN_SOURCE_NONEXISTENT = address(bytes20(keccak256("token_source_nonexistent")));
 
-    bytes32 private constant LENDER_ROLE = keccak256("LENDER_ROLE");
-    bytes32 private constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
+    bytes32 private constant OWNER_ROLE = keccak256("OWNER_ROLE");
     bytes32 private constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
+    bytes32 private constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 
     uint256 private constant LOAN_ID_1 = 1;
     uint256 private constant LOAN_ID_2 = 2;
@@ -132,7 +132,7 @@ contract LiquidityPoolAccountableTest is Test {
         liquidityPool = new LiquidityPoolAccountable();
         liquidityPool.initialize(LENDER, address(lendingMarket));
         assertEq(liquidityPool.market(), address(lendingMarket));
-        assertEq(liquidityPool.hasRole(LENDER_ROLE, LENDER), true);
+        assertEq(liquidityPool.hasRole(OWNER_ROLE, LENDER), true);
     }
 
     function test_initializer_Revert_IfMarketIsZeroAddress() public {
@@ -247,7 +247,7 @@ contract LiquidityPoolAccountableTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(
                 IAccessControl.AccessControlUnauthorizedAccount.selector,
-                ATTACKER, LENDER_ROLE)
+                ATTACKER, OWNER_ROLE)
         );
         liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT_1);
     }
@@ -322,7 +322,7 @@ contract LiquidityPoolAccountableTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(
                 IAccessControl.AccessControlUnauthorizedAccount.selector,
-                ATTACKER, LENDER_ROLE)
+                ATTACKER, OWNER_ROLE)
         );
         liquidityPool.withdraw(address(creditLine), borrowable, addons);
     }
@@ -380,7 +380,7 @@ contract LiquidityPoolAccountableTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(
                 IAccessControl.AccessControlUnauthorizedAccount.selector,
-                ATTACKER, LENDER_ROLE)
+                ATTACKER, OWNER_ROLE)
         );
         liquidityPool.rescue(address(token), DEPOSIT_AMOUNT_1);
     }

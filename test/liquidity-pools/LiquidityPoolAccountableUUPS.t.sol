@@ -29,7 +29,7 @@ contract LiquidityPoolAccountableUUPSTest is Test {
     address private constant LENDER = address(bytes20(keccak256("lender")));
     address private constant ATTACKER = address(bytes20(keccak256("attacker")));
 
-    bytes32 private constant LENDER_ROLE = keccak256("LENDER_ROLE");
+    bytes32 private constant OWNER_ROLE = keccak256("OWNER_ROLE");
 
     // -------------------------------------------- //
     //  Setup and configuration                     //
@@ -60,7 +60,7 @@ contract LiquidityPoolAccountableUUPSTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(
                 IAccessControl.AccessControlUnauthorizedAccount.selector,
-                ATTACKER, LENDER_ROLE)
+                ATTACKER, OWNER_ROLE)
         );
         proxy.upgradeToAndCall(newImplemetation, "");
     }
