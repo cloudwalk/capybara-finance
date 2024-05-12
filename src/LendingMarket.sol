@@ -227,10 +227,10 @@ contract LendingMarket is
         _loanLenders[id] = lender;
 
         Loan.Terms memory terms = ICreditLine(creditLine).onBeforeLoanTaken(
+            id,
             msg.sender,
             borrowAmount,
-            durationInPeriods,
-            id
+            durationInPeriods
         );
 
         uint32 blockTimestamp = _blockTimestamp().toUint32();

@@ -195,10 +195,10 @@ contract CreditLineConfigurable is AccessControlUpgradeable, PausableUpgradeable
 
     /// @inheritdoc ICreditLine
     function onBeforeLoanTaken(
+        uint256 loanId,
         address borrower,
         uint256 borrowAmount,
-        uint256 durationInPeriods,
-        uint256 loanId
+        uint256 durationInPeriods
     ) external whenNotPaused onlyMarket returns (Loan.Terms memory terms) {
         loanId; // To prevent compiler warning about unused variable
 

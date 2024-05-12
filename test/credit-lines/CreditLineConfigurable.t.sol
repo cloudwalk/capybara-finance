@@ -708,7 +708,7 @@ contract CreditLineConfigurableTest is Test {
         assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, config.maxBorrowAmount);
 
         vm.prank(MARKET);
-        creditLine.onBeforeLoanTaken(BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS, 1);
+        creditLine.onBeforeLoanTaken(1, BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS);
 
         assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, config.maxBorrowAmount);
     }
@@ -725,7 +725,7 @@ contract CreditLineConfigurableTest is Test {
         assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, config.maxBorrowAmount);
 
         vm.prank(MARKET);
-        creditLine.onBeforeLoanTaken(BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS, 1);
+        creditLine.onBeforeLoanTaken(1,BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS);
 
         assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, 0);
     }
@@ -742,7 +742,7 @@ contract CreditLineConfigurableTest is Test {
         assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, config.maxBorrowAmount);
 
         vm.prank(MARKET);
-        creditLine.onBeforeLoanTaken(BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS, 1);
+        creditLine.onBeforeLoanTaken(1, BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS);
 
         assertEq(
             creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount,
@@ -763,7 +763,7 @@ contract CreditLineConfigurableTest is Test {
 
         vm.prank(ATTACKER);
         vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
-        creditLine.onBeforeLoanTaken(BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS, 1);
+        creditLine.onBeforeLoanTaken(1, BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS);
     }
 
     function test_onBeforeLoanTaken_Revert_IfCallerIsNotMarket() public {
@@ -776,7 +776,7 @@ contract CreditLineConfigurableTest is Test {
 
         vm.prank(ATTACKER);
         vm.expectRevert(Error.Unauthorized.selector);
-        creditLine.onBeforeLoanTaken(BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS, 1);
+        creditLine.onBeforeLoanTaken(1, BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS);
     }
 
     // -------------------------------------------- //

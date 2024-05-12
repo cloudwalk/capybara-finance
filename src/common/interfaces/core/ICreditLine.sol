@@ -13,16 +13,16 @@ interface ICreditLine {
     // -------------------------------------------- //
 
     /// @dev A hook that is triggered by the associated market before a loan is taken.
+    /// @param loanId The unique identifier of the loan.
     /// @param borrower The address of the borrower.
     /// @param borrowAmount The desired amount of tokens to borrow.
     /// @param durationInPeriods The desired duration of the loan in periods.
-    /// @param loanId The unique identifier of the loan.
     /// @return terms The struct containing the terms of the loan.
     function onBeforeLoanTaken(
+        uint256 loanId,
         address borrower,
         uint256 borrowAmount,
-        uint256 durationInPeriods,
-        uint256 loanId
+        uint256 durationInPeriods
     ) external returns (Loan.Terms memory terms);
 
     /// @dev Retrieves the loan terms for the provided borrower, amount, and loan duration.
