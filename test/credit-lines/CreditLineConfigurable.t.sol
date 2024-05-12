@@ -45,6 +45,7 @@ contract CreditLineConfigurableTest is Test {
     address private constant TOKEN_2 = address(bytes20(keccak256("token_2")));
     address private constant LENDER_1 = address(bytes20(keccak256("lender_1")));
     address private constant LENDER_2 = address(bytes20(keccak256("lender_2")));
+    address private constant DEPLOYER = address(bytes20(keccak256("deployer")));
     address private constant ATTACKER = address(bytes20(keccak256("attacker")));
     address private constant BORROWER_1 = address(bytes20(keccak256("borrower_1")));
     address private constant BORROWER_2 = address(bytes20(keccak256("borrower_2")));
@@ -89,8 +90,11 @@ contract CreditLineConfigurableTest is Test {
     // -------------------------------------------- //
 
     function setUp() public {
+        vm.startPrank(DEPLOYER);
         creditLine = new CreditLineConfigurable();
         creditLine.initialize(LENDER_1, MARKET, TOKEN_1);
+        vm.stopPrank();
+
         vm.startPrank(LENDER_1);
         creditLine.grantRole(PAUSER_ROLE, PAUSER);
         creditLine.grantRole(ADMIN_ROLE, ADMIN);
