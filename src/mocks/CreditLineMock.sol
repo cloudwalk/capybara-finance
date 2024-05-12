@@ -53,10 +53,6 @@ contract CreditLineMock is ICreditLine {
         return _tokenAddress;
     }
 
-    function kind() external pure returns (uint16) {
-        revert Error.NotImplemented();
-    }
-
     // -------------------------------------------- //
     //  Mock functions                              //
     // -------------------------------------------- //

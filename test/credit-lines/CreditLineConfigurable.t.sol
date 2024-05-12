@@ -80,8 +80,6 @@ contract CreditLineConfigurableTest is Test {
         ICreditLineConfigurable.BorrowPolicy.Decrease;
 
     uint32 private constant DURATION_IN_PERIODS = 30;
-    uint16 private constant KIND_1 = 1;
-
     uint256 private constant INTEREST_RATE_FACTOR = 1_000_000_000;
 
     // -------------------------------------------- //
@@ -991,9 +989,5 @@ contract CreditLineConfigurableTest is Test {
 
     function test_token() public {
         assertEq(creditLine.token(), TOKEN_1);
-    }
-
-    function test_kind() public {
-        assertEq(creditLine.kind(), KIND_1);
     }
 }

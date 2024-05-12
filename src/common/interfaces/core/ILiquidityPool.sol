@@ -40,7 +40,4 @@ interface ILiquidityPool {
 
     /// @dev Returns the address of the associated lending market.
     function market() external view returns (address);
-
-    /// @dev Returns the kind of the liquidity pool.
-    function kind() external view returns (uint16);
 }

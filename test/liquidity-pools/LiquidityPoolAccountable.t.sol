@@ -61,8 +61,6 @@ contract LiquidityPoolAccountableTest is Test {
     uint64 private constant DEPOSIT_AMOUNT_3 = 300;
     uint64 private constant ADDON_AMOUNT = 25;
 
-    uint16 private constant KIND_1 = 1;
-
     // -------------------------------------------- //
     //  Setup and configuration                     //
     // -------------------------------------------- //
@@ -780,9 +778,5 @@ contract LiquidityPoolAccountableTest is Test {
 
     function test_market() public {
         assertEq(liquidityPool.market(), address(lendingMarket));
-    }
-
-    function test_kind() public {
-        assertEq(liquidityPool.kind(), KIND_1);
     }
 }

@@ -41,7 +41,4 @@ interface ICreditLine {
 
     /// @dev Returns the address of the credit line token.
     function token() external view returns (address);
-
-    /// @dev Returns the kind of the credit line.
-    function kind() external view returns (uint16);
 }

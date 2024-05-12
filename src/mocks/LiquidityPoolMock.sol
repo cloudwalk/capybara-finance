@@ -77,10 +77,6 @@ contract LiquidityPoolMock is ILiquidityPool {
         revert Error.NotImplemented();
     }
 
-    function kind() external pure returns (uint16) {
-        revert Error.NotImplemented();
-    }
-
     // -------------------------------------------- //
     //  Mock functions                              //
     // -------------------------------------------- //

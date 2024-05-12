@@ -134,9 +134,4 @@ contract CreditLineMockTest is Test {
         mock.mockTokenAddress(TERMS_TOKEN);
         assertEq(mock.token(), TERMS_TOKEN);
     }
-
-    function test_kind() public {
-        vm.expectRevert(Error.NotImplemented.selector);
-        mock.kind();
-    }
 }

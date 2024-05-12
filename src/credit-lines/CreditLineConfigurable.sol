@@ -293,11 +293,6 @@ contract CreditLineConfigurable is AccessControlUpgradeable, PausableUpgradeable
         return _token;
     }
 
-    /// @inheritdoc ICreditLine
-    function kind() external pure returns (uint16) {
-        return 1;
-    }
-
     /// @dev Calculates the amount of a loan addon (extra charges or fees).
     /// @param amount The initial principal amount of the loan.
     /// @param durationInPeriods The duration of the loan in periods.

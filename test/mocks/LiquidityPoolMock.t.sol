@@ -142,9 +142,4 @@ contract LiquidityPoolMockTest is Test {
         vm.expectRevert(Error.NotImplemented.selector);
         mock.lender();
     }
-
-    function test_kind() public {
-        vm.expectRevert(Error.NotImplemented.selector);
-        mock.kind();
-    }
 }
