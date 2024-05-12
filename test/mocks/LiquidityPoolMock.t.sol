@@ -46,7 +46,7 @@ contract LiquidityPoolMockTest is Test {
     }
 
     // -------------------------------------------- //
-    //  ILiquidityPoolFactory functions             //
+    //  ILiquidityPool functions                    //
     // -------------------------------------------- //
 
     function test_onBeforeLoanTaken() public {

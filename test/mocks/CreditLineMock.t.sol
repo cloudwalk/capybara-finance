@@ -44,7 +44,7 @@ contract CreditLineMockTest is Test {
     }
 
     // -------------------------------------------- //
-    //  ICreditLineFactory functions                //
+    //  ICreditLine        functions                //
     // -------------------------------------------- //
 
     function test_onBeforeLoanTaken() public {

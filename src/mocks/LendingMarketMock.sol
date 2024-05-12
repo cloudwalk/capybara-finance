@@ -168,10 +168,6 @@ contract LendingMarketMock is ILendingMarket {
         revert Error.NotImplemented();
     }
 
-    function registry() external pure returns (address) {
-        revert Error.NotImplemented();
-    }
-
     function loansCount() external view returns (uint256) {
         revert Error.NotImplemented();
     }

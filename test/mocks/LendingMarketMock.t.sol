@@ -241,11 +241,6 @@ contract LendingMarketMockTest is Test {
         mock.timeOffset();
     }
 
-    function test_registry() public {
-        vm.expectRevert(Error.NotImplemented.selector);
-        mock.registry();
-    }
-
     function test_loansCount() public {
         vm.expectRevert(Error.NotImplemented.selector);
         mock.loansCount();

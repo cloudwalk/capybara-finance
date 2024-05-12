@@ -40,7 +40,6 @@ contract LendingMarketTest is Test {
     event OnBeforeLoanRevocationCalled(uint256 indexed loanId);
     event OnAfterLoanRevocationCalled(uint256 indexed loanId);
 
-    event RegistryAdminStatusConfigured(address indexed account, bool adminStatus);
     event LiquidityPoolRegistered(address indexed lender, address indexed liquidityPool);
     event CreditLineRegistered(address indexed lender, address indexed creditLine);
 
@@ -119,14 +118,11 @@ contract LendingMarketTest is Test {
     address private constant LENDER_2 = address(bytes20(keccak256("lender_2")));
     address private constant BORROWER_2 = address(bytes20(keccak256("borrower_2")));
     address private constant BORROWER_3 = address(bytes20(keccak256("borrower_3")));
-    address private constant REGISTRY_1 = address(bytes20(keccak256("registry_1")));
-    address private constant REGISTRY_2 = address(bytes20(keccak256("registry_2")));
     address private constant CREDIT_LINE = address(bytes20(keccak256("credit_line")));
     address private constant LENDER_ALIAS = address(bytes20(keccak256("lender_alias")));
     address private constant LOAN_TREASURY = address(bytes20(keccak256("loan_treasury")));
 
     bytes32 private constant OWNER_ROLE = keccak256("OWNER_ROLE");
-    bytes32 private constant REGISTRY_ROLE = keccak256("REGISTRY_ROLE");
 
     uint64 private constant ADDON_AMOUNT = 100;
     uint64 private constant BORROW_AMOUNT = 100;
@@ -166,22 +162,17 @@ contract LendingMarketTest is Test {
     // -------------------------------------------- //
 
     function setUp() public {
+        vm.startPrank(DEPLOYER);
+
         token = new ERC20Mock();
         creditLine = new CreditLineMock();
         liquidityPool = new LiquidityPoolMock();
-
         market = new LendingMarket();
-
-        vm.startPrank(DEPLOYER);
         market.initialize(OWNER);
-        vm.stopPrank();
-
-        vm.startPrank(OWNER);
-        market.grantRole(REGISTRY_ROLE, OWNER);
-        market.grantRole(REGISTRY_ROLE, REGISTRY_1);
-        vm.stopPrank();
 
         skip(INIT_BLOCK_TIMESTAMP);
+
+        vm.stopPrank();
     }
 
     function configureMarket() private {
@@ -468,39 +459,12 @@ contract LendingMarketTest is Test {
         assertEq(market.getCreditLineLender(address(creditLine)), LENDER);
     }
 
-    function test_registerCreditLine_IfRegistry() public {
-        assertEq(market.getCreditLineLender(address(creditLine)), address(0));
-
-        vm.expectEmit(true, true, true, true, address(market));
-        emit CreditLineRegistered(LENDER, address(creditLine));
-
-        vm.prank(REGISTRY_1);
-        market.registerCreditLine(LENDER, address(creditLine));
-
-        assertEq(market.getCreditLineLender(address(creditLine)), LENDER);
-    }
-
-    function test_registerCreditLine_Revert_IfOwner_ContractIsPaused() public {
-        vm.startPrank(OWNER);
-        market.pause();
-        vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
-        market.registerCreditLine(LENDER, address(creditLine));
-    }
-
-    function test_registerCreditLine_Revert_IfRegistry_ContractIsPaused() public {
-        vm.prank(OWNER);
-        market.pause();
-        vm.prank(REGISTRY_1);
-        vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
-        market.registerCreditLine(LENDER, address(creditLine));
-    }
-
-    function test_registerCreditLine_Revert_IfCallerNotRegistryOrOwner() public {
+    function test_registerCreditLine_Revert_IfCallerNotOwner() public {
         vm.prank(ATTACKER);
         vm.expectRevert(
             abi.encodeWithSelector(
                 IAccessControl.AccessControlUnauthorizedAccount.selector,
-                ATTACKER, REGISTRY_ROLE)
+                ATTACKER, OWNER_ROLE)
         );
         market.registerCreditLine(LENDER, address(creditLine));
     }
@@ -540,39 +504,12 @@ contract LendingMarketTest is Test {
         assertEq(market.getLiquidityPoolLender(address(liquidityPool)), LENDER);
     }
 
-    function test_registerLiquidityPool_IfRegistry() public {
-        assertEq(market.getLiquidityPoolLender(address(liquidityPool)), address(0));
-
-        vm.expectEmit(true, true, true, true, address(market));
-        emit LiquidityPoolRegistered(LENDER, address(liquidityPool));
-
-        vm.prank(REGISTRY_1);
-        market.registerLiquidityPool(LENDER, address(liquidityPool));
-
-        assertEq(market.getLiquidityPoolLender(address(liquidityPool)), LENDER);
-    }
-
-    function test_registerLiquidityPool_Revert_IfOwner_ContractIsPaused() public {
-        vm.startPrank(OWNER);
-        market.pause();
-        vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
-        market.registerLiquidityPool(LENDER, address(liquidityPool));
-    }
-
-    function test_registerLiquidityPool_Revert_IfRegistry_ContractIsPaused() public {
-        vm.prank(OWNER);
-        market.pause();
-        vm.prank(REGISTRY_1);
-        vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
-        market.registerLiquidityPool(LENDER, address(liquidityPool));
-    }
-
-    function test_registerLiquidityPool_Revert_IfCallerNotRegistryOrOwner() public {
+    function test_registerLiquidityPool_Revert_IfCallerNotOwner() public {
         vm.prank(ATTACKER);
         vm.expectRevert(
             abi.encodeWithSelector(
                 IAccessControl.AccessControlUnauthorizedAccount.selector,
-                ATTACKER, REGISTRY_ROLE)
+                ATTACKER, OWNER_ROLE)
         );
         market.registerLiquidityPool(LENDER, address(liquidityPool));
     }

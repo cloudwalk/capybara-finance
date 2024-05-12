@@ -36,7 +36,7 @@ contract LiquidityPoolMock is ILiquidityPool {
     bool private _onAfterLoanRevocationResult;
 
     // -------------------------------------------- //
-    //  ILiquidityPoolFactory functions             //
+    //  ILiquidityPool functions                    //
     // -------------------------------------------- //
 
     function onBeforeLoanTaken(uint256 loanId, address creditLine) external returns (bool) {

@@ -37,9 +37,6 @@ contract LendingMarket is
     /// @dev The role of this contract owner.
     bytes32 public constant OWNER_ROLE = keccak256("OWNER_ROLE");
 
-    /// @dev The role of this contract registry.
-    bytes32 public constant REGISTRY_ROLE = keccak256("REGISTRY_ROLE");
-
     // -------------------------------------------- //
     //  Errors                                      //
     // -------------------------------------------- //
@@ -127,7 +124,6 @@ contract LendingMarket is
     /// @param owner_ The owner of the contract.
     function __LendingMarket_init_unchained(address owner_) internal onlyInitializing {
         _grantRole(OWNER_ROLE, owner_);
-        _setRoleAdmin(REGISTRY_ROLE, OWNER_ROLE);
     }
 
     // -------------------------------------------- //
@@ -142,6 +138,34 @@ contract LendingMarket is
     /// @dev Unpauses the contract.
     function unpause() external onlyRole(OWNER_ROLE) {
         _unpause();
+    }
+
+    /// @inheritdoc ILendingMarket
+    function registerCreditLine(address lender, address creditLine) external onlyRole(OWNER_ROLE) {
+        if (lender == address(0) || creditLine == address(0)) {
+            revert Error.ZeroAddress();
+        }
+        if (_creditLineLenders[creditLine] != address(0)) {
+            revert CreditLineAlreadyRegistered();
+        }
+
+        emit CreditLineRegistered(lender, creditLine);
+
+        _creditLineLenders[creditLine] = lender;
+    }
+
+    /// @inheritdoc ILendingMarket
+    function registerLiquidityPool(address lender, address liquidityPool) external onlyRole(OWNER_ROLE) {
+        if (lender == address(0) || liquidityPool == address(0)) {
+            revert Error.ZeroAddress();
+        }
+        if (_liquidityPoolLenders[liquidityPool] != address(0)) {
+            revert LiquidityPoolAlreadyRegistered();
+        }
+
+        emit LiquidityPoolRegistered(lender, liquidityPool);
+
+        _liquidityPoolLenders[liquidityPool] = lender;
     }
 
     /// @inheritdoc ILendingMarket
@@ -170,38 +194,6 @@ contract LendingMarket is
         emit LiquidityPoolLenderUpdated(liquidityPool, newLender, _liquidityPoolLenders[liquidityPool]);
 
         _liquidityPoolLenders[liquidityPool] = newLender;
-    }
-
-    // -------------------------------------------- //
-    //  Registry OR Owner functions                 //
-    // -------------------------------------------- //
-
-    /// @inheritdoc ILendingMarket
-    function registerCreditLine(address lender, address creditLine) external whenNotPaused onlyRole(REGISTRY_ROLE) {
-        if (lender == address(0) || creditLine == address(0)) {
-            revert Error.ZeroAddress();
-        }
-        if (_creditLineLenders[creditLine] != address(0)) {
-            revert CreditLineAlreadyRegistered();
-        }
-
-        emit CreditLineRegistered(lender, creditLine);
-
-        _creditLineLenders[creditLine] = lender;
-    }
-
-    /// @inheritdoc ILendingMarket
-    function registerLiquidityPool(address lender, address liquidityPool) external whenNotPaused onlyRole(REGISTRY_ROLE) {
-        if (lender == address(0) || liquidityPool == address(0)) {
-            revert Error.ZeroAddress();
-        }
-        if (_liquidityPoolLenders[liquidityPool] != address(0)) {
-            revert LiquidityPoolAlreadyRegistered();
-        }
-
-        emit LiquidityPoolRegistered(lender, liquidityPool);
-
-        _liquidityPoolLenders[liquidityPool] = lender;
     }
 
     // -------------------------------------------- //
