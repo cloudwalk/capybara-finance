@@ -213,7 +213,7 @@ contract LendingMarket is
         }
 
         address lender = _creditLineLenders[creditLine];
-        address liquidityPool = _liquidityPoolByCreditLine[creditLine];
+        address liquidityPool = _creditLineToLiquidityPool[creditLine];
 
         if (lender == address(0)) {
             revert CreditLineNotRegistered();
@@ -222,7 +222,7 @@ contract LendingMarket is
             revert LiquidityPoolNotRegistered();
         }
 
-        uint256 id = _loanCounter++;
+        uint256 id = _loanIdCounter++;
         _loanLenders[id] = lender;
 
         Loan.Terms memory terms = ICreditLine(creditLine).onBeforeLoanTaken(
@@ -411,7 +411,7 @@ contract LendingMarket is
         if (creditLine == address(0) || liquidityPool == address(0)) {
             revert Error.ZeroAddress();
         }
-        if (_liquidityPoolByCreditLine[creditLine] != address(0)) {
+        if (_creditLineToLiquidityPool[creditLine] != address(0)) {
             // TBD Check if updating the liquidity pool associated with the credit line
             // will have any unexpected side effects during the loan lifecycle.
             revert Error.NotImplemented();
@@ -421,9 +421,9 @@ contract LendingMarket is
             revert Error.Unauthorized();
         }
 
-        emit LiquidityPoolAssignedToCreditLine(creditLine, liquidityPool, _liquidityPoolByCreditLine[creditLine]);
+        emit LiquidityPoolAssignedToCreditLine(creditLine, liquidityPool, _creditLineToLiquidityPool[creditLine]);
 
-        _liquidityPoolByCreditLine[creditLine] = liquidityPool;
+        _creditLineToLiquidityPool[creditLine] = liquidityPool;
     }
 
     // -------------------------------------------- //
@@ -482,7 +482,7 @@ contract LendingMarket is
 
     /// @inheritdoc ILendingMarket
     function getLiquidityPoolByCreditLine(address creditLine) external view returns (address) {
-        return _liquidityPoolByCreditLine[creditLine];
+        return _creditLineToLiquidityPool[creditLine];
     }
 
     /// @inheritdoc ILendingMarket
@@ -535,7 +535,7 @@ contract LendingMarket is
     }
 
     function loansCount() external view returns (uint256) {
-        return _loanCounter;
+        return _loanIdCounter;
     }
 
     /// @dev Calculates the period index that corresponds the specified timestamp.
