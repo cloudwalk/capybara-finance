@@ -10,7 +10,6 @@ import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/P
 
 import { Loan } from "src/common/libraries/Loan.sol";
 import { Error } from "src/common/libraries/Error.sol";
-import { Interest } from "src/common/libraries/Interest.sol";
 import { Constants } from "src/common/libraries/Constants.sol";
 import { InterestMath } from "src/common/libraries/InterestMath.sol";
 import { SafeCast } from "src/common/libraries/SafeCast.sol";
@@ -244,7 +243,6 @@ contract LendingMarket is
             durationInPeriods: terms.durationInPeriods,
             interestRatePrimary: terms.interestRatePrimary,
             interestRateSecondary: terms.interestRateSecondary,
-            interestFormula: terms.interestFormula,
             borrowAmount: borrowAmount.toUint64(),
             trackedBalance: totalBorrowAmount.toUint64(),
             repaidAmount: 0,
@@ -552,21 +550,18 @@ contract LendingMarket is
     /// @param numberOfPeriods The number of periods to calculate the outstanding balance.
     /// @param interestRate The interest rate applied to the loan.
     /// @param interestRateFactor The interest rate factor.
-    /// @param interestFormula The interest formula.
     function calculateOutstandingBalance(
         uint256 originalBalance,
         uint256 numberOfPeriods,
         uint256 interestRate,
-        uint256 interestRateFactor,
-        Interest.Formula interestFormula
+        uint256 interestRateFactor
     ) external pure returns (uint256) {
         return
             InterestMath.calculateOutstandingBalance(
                 originalBalance,
                 numberOfPeriods,
                 interestRate,
-                interestRateFactor,
-                interestFormula
+                interestRateFactor
             );
     }
 
@@ -600,32 +595,28 @@ contract LendingMarket is
                     outstandingBalance,
                     periodIndex - trackedPeriodIndex,
                     loan.interestRatePrimary,
-                    Constants.INTEREST_RATE_FACTOR,
-                    loan.interestFormula
+                    Constants.INTEREST_RATE_FACTOR
                 );
             } else if (trackedPeriodIndex >= duePeriodIndex) {
                 outstandingBalance = InterestMath.calculateOutstandingBalance(
                     outstandingBalance,
                     periodIndex - trackedPeriodIndex,
                     loan.interestRateSecondary,
-                    Constants.INTEREST_RATE_FACTOR,
-                    loan.interestFormula
+                    Constants.INTEREST_RATE_FACTOR
                 );
             } else {
                 outstandingBalance = InterestMath.calculateOutstandingBalance(
                     outstandingBalance,
                     duePeriodIndex - trackedPeriodIndex,
                     loan.interestRatePrimary,
-                    Constants.INTEREST_RATE_FACTOR,
-                    loan.interestFormula
+                    Constants.INTEREST_RATE_FACTOR
                 );
                 if (periodIndex > duePeriodIndex) {
                     outstandingBalance = InterestMath.calculateOutstandingBalance(
                         outstandingBalance,
                         periodIndex - duePeriodIndex,
                         loan.interestRateSecondary,
-                        Constants.INTEREST_RATE_FACTOR,
-                        loan.interestFormula
+                        Constants.INTEREST_RATE_FACTOR
                     );
                 }
             }

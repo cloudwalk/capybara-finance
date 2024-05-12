@@ -6,7 +6,6 @@ import "forge-std/Test.sol";
 import "forge-std/console.sol";
 
 import { Loan } from "src/common/libraries/Loan.sol";
-import { Interest } from "src/common/libraries/Interest.sol";
 import { Constants } from "src/common/libraries/Constants.sol";
 
 import { ICreditLineConfigurable } from "src/common/interfaces/ICreditLineConfigurable.sol";
@@ -127,7 +126,6 @@ contract LendingMarketComplexTest is Test {
             interestRateSecondary: scenario.interestRateSecondary,
             addonFixedRate: 0,
             addonPeriodRate: 0,
-            interestFormula: scenario.interestFormula,
             borrowPolicy: ICreditLineConfigurable.BorrowPolicy.Keep,
             expiration: type(uint32).max
         });

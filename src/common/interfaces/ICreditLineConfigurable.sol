@@ -2,7 +2,6 @@
 
 pragma solidity 0.8.24;
 
-import { Interest } from "../libraries/Interest.sol";
 import { ICreditLine } from "./core/ICreditLine.sol";
 
 /// @title ICreditLineConfigurable interface
@@ -56,9 +55,8 @@ interface ICreditLineConfigurable is ICreditLine {
         uint32 addonPeriodRate;           // The period rate for the loan addon calculation (extra charges or fees).
         uint32 interestRatePrimary;       // The primary interest rate to be applied to the loan.
         uint32 interestRateSecondary;     // The secondary interest rate to be applied to the loan.
-        Interest.Formula interestFormula; // The formula to be used for interest calculation on the loan.
         BorrowPolicy borrowPolicy;        // The borrow policy to be applied to the borrower.
-        // __reserverd                    // 16 bytes reserved for future use.
+        // uint24 __reserved;             // Reserved for future use.
         // Slot 2
         uint64 minBorrowAmount;           // The minimum amount of tokens the borrower can take as a loan.
         uint64 maxBorrowAmount;           // The maximum amount of tokens the borrower can take as a loan.

@@ -10,7 +10,6 @@ import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/P
 
 import { Loan } from "src/common/libraries/Loan.sol";
 import { Error } from "src/common/libraries/Error.sol";
-import { Interest } from "src/common/libraries/Interest.sol";
 import { SafeCast } from "src/common/libraries/SafeCast.sol";
 import { Constants } from "src/common/libraries/Constants.sol";
 
@@ -153,7 +152,6 @@ contract LendingMarketTest is Test {
     uint64 private constant BORROWER_CONFIG_MAX_BORROW_AMOUNT = 800;
     uint32 private constant BORROWER_CONFIG_INTEREST_RATE_PRIMARY = 5;
     uint32 private constant BORROWER_CONFIG_INTEREST_RATE_SECONDARY = 6;
-    Interest.Formula private constant BORROWER_CONFIG_INTEREST_FORMULA_COMPOUND = Interest.Formula.Compound;
     ICreditLineConfigurable.BorrowPolicy private constant BORROWER_CONFIG_BORROW_POLICY_DECREASE =
         ICreditLineConfigurable.BorrowPolicy.Reset;
 
@@ -206,7 +204,6 @@ contract LendingMarketTest is Test {
             interestRateSecondary: BORROWER_CONFIG_INTEREST_RATE_SECONDARY,
             addonFixedRate: BORROWER_CONFIG_ADDON_FIXED_RATE,
             addonPeriodRate: BORROWER_CONFIG_ADDON_PERIOD_RATE,
-            interestFormula: BORROWER_CONFIG_INTEREST_FORMULA_COMPOUND,
             borrowPolicy: BORROWER_CONFIG_BORROW_POLICY_DECREASE
         });
     }
@@ -257,7 +254,6 @@ contract LendingMarketTest is Test {
             durationInPeriods: DURATION_IN_PERIODS,
             interestRatePrimary: borrowerConfig.interestRatePrimary,
             interestRateSecondary: borrowerConfig.interestRateSecondary,
-            interestFormula: borrowerConfig.interestFormula,
             addonAmount: ADDON_AMOUNT
         });
 
@@ -742,7 +738,6 @@ contract LendingMarketTest is Test {
         assertEq(loan.durationInPeriods, terms.durationInPeriods);
         assertEq(loan.interestRatePrimary, terms.interestRatePrimary);
         assertEq(loan.interestRateSecondary, terms.interestRateSecondary);
-        assertEq(uint256(loan.interestFormula), uint256(terms.interestFormula));
     }
 
     function test_takeLoan_Revert_IfContractIsPaused() public {

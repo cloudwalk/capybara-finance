@@ -6,7 +6,6 @@ import { Test } from "forge-std/Test.sol";
 
 import { Loan } from "src/common/libraries/Loan.sol";
 import { Error } from "src/common/libraries/Error.sol";
-import { Interest } from "src/common/libraries/Interest.sol";
 
 contract LoanComplexScenarios is Test {
     // -------------------------------------------- //
@@ -37,7 +36,6 @@ contract LoanComplexScenarios is Test {
         uint32 durationInPeriods;
         uint32 interestRatePrimary;
         uint32 interestRateSecondary;
-        Interest.Formula interestFormula;
         uint32 iterationStep;
         uint256 precisionFactor;
         uint256 precisionMinimum;
@@ -61,7 +59,6 @@ contract LoanComplexScenarios is Test {
             durationInPeriods: DURATION_IN_PERIODS,
             interestRatePrimary: interestRatePrimary,
             interestRateSecondary: interestRateSecondary,
-            interestFormula: Interest.Formula.Compound,
             iterationStep: ITERATION_STEP,
             precisionFactor: PRECISION_FACTOR,
             precisionMinimum: PRECISION_MINIMUM,

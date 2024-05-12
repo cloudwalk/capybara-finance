@@ -6,7 +6,6 @@ import { Test } from "forge-std/Test.sol";
 
 import { Loan } from "src/common/libraries/Loan.sol";
 import { Error } from "src/common/libraries/Error.sol";
-import { Interest } from "src/common/libraries/Interest.sol";
 
 import { CreditLineMock } from "src/mocks/CreditLineMock.sol";
 
@@ -33,8 +32,6 @@ contract CreditLineMockTest is Test {
     uint32 private constant TERMS_INTEREST_RATE_SECONDARY = 500;
     uint32 private constant TERMS_ADDON_AMOUNT = 600;
 
-    Interest.Formula private constant TERMS_INTEREST_FORMULA = Interest.Formula.Compound;
-
     // -------------------------------------------- //
     //  Setup and configuration                     //
     // -------------------------------------------- //
@@ -55,7 +52,6 @@ contract CreditLineMockTest is Test {
         assertEq(terms.durationInPeriods, 0);
         assertEq(terms.interestRatePrimary, 0);
         assertEq(terms.interestRateSecondary, 0);
-        assertEq(uint256(terms.interestFormula), uint256(Interest.Formula.Simple));
         assertEq(terms.addonAmount, 0);
 
         mock.mockLoanTerms(
@@ -67,7 +63,6 @@ contract CreditLineMockTest is Test {
                 durationInPeriods: TERMS_DURATION_IN_PERIODS,
                 interestRatePrimary: TERMS_INTEREST_RATE_PRIMARY,
                 interestRateSecondary: TERMS_INTEREST_RATE_SECONDARY,
-                interestFormula: TERMS_INTEREST_FORMULA,
                 addonAmount: TERMS_ADDON_AMOUNT
             })
         );
@@ -79,7 +74,6 @@ contract CreditLineMockTest is Test {
         assertEq(terms.durationInPeriods, TERMS_DURATION_IN_PERIODS);
         assertEq(terms.interestRatePrimary, TERMS_INTEREST_RATE_PRIMARY);
         assertEq(terms.interestRateSecondary, TERMS_INTEREST_RATE_SECONDARY);
-        assertEq(uint256(terms.interestFormula), uint256(TERMS_INTEREST_FORMULA));
         assertEq(terms.addonAmount, TERMS_ADDON_AMOUNT);
     }
 
@@ -91,7 +85,6 @@ contract CreditLineMockTest is Test {
         assertEq(terms.durationInPeriods, 0);
         assertEq(terms.interestRatePrimary, 0);
         assertEq(terms.interestRateSecondary, 0);
-        assertEq(uint256(terms.interestFormula), uint256(Interest.Formula.Simple));
         assertEq(terms.addonAmount, 0);
 
         mock.mockLoanTerms(
@@ -103,7 +96,6 @@ contract CreditLineMockTest is Test {
                 durationInPeriods: TERMS_DURATION_IN_PERIODS,
                 interestRatePrimary: TERMS_INTEREST_RATE_PRIMARY,
                 interestRateSecondary: TERMS_INTEREST_RATE_SECONDARY,
-                interestFormula: TERMS_INTEREST_FORMULA,
                 addonAmount: TERMS_ADDON_AMOUNT
             })
         );
@@ -115,7 +107,6 @@ contract CreditLineMockTest is Test {
         assertEq(terms.durationInPeriods, TERMS_DURATION_IN_PERIODS);
         assertEq(terms.interestRatePrimary, TERMS_INTEREST_RATE_PRIMARY);
         assertEq(terms.interestRateSecondary, TERMS_INTEREST_RATE_SECONDARY);
-        assertEq(uint256(terms.interestFormula), uint256(TERMS_INTEREST_FORMULA));
         assertEq(terms.addonAmount, TERMS_ADDON_AMOUNT);
     }
 

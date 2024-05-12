@@ -263,7 +263,6 @@ contract CreditLineConfigurable is AccessControlUpgradeable, PausableUpgradeable
         terms.durationInPeriods = durationInPeriods.toUint32();
         terms.interestRatePrimary = borrowerConfig.interestRatePrimary;
         terms.interestRateSecondary = borrowerConfig.interestRateSecondary;
-        terms.interestFormula = borrowerConfig.interestFormula;
         terms.addonAmount = calculateAddonAmount(
             borrowAmount,
             durationInPeriods,

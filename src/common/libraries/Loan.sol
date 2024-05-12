@@ -2,8 +2,6 @@
 
 pragma solidity 0.8.24;
 
-import { Interest } from "./Interest.sol";
-
 /// @title Loan library
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @dev Defines the common types used for loan management.
@@ -22,7 +20,7 @@ library Loan {
         address treasury;                 // The address of the loan treasury.
         uint32 interestRatePrimary;       // The primary interest rate that is applied to the loan.
         uint32 interestRateSecondary;     // The secondary interest rate that is applied to the loan.
-        Interest.Formula interestFormula; // The formula used for interest calculation on the loan.
+        // uint32 __reserved;             // Reserved for future use.
         // Slot 4
         uint64 repaidAmount;              // The amount that has been repaid on the loan over its lifetime.
         uint64 trackedBalance;            // The borrow balance of the loan that is tracked over its lifetime.
@@ -40,7 +38,6 @@ library Loan {
         // Slot 2
         address treasury;                 // The address of the loan treasury.
         uint64 addonAmount;               // The amount of the loan addon (extra charges or fees).
-        Interest.Formula interestFormula; // The formula to be used for interest calculation on the loan.
     }
 
     /// @dev A struct that defines the preview of the loan.

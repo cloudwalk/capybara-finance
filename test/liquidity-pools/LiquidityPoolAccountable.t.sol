@@ -10,7 +10,6 @@ import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/P
 
 import { Loan } from "src/common/libraries/Loan.sol";
 import { Error } from "src/common/libraries/Error.sol";
-import { Interest } from "src/common/libraries/Interest.sol";
 
 import { ERC20Mock } from "src/mocks/ERC20Mock.sol";
 import { CreditLineMock } from "src/mocks/CreditLineMock.sol";
@@ -113,7 +112,6 @@ contract LiquidityPoolAccountableTest is Test {
             durationInPeriods: 0,
             interestRatePrimary: 0,
             interestRateSecondary: 0,
-            interestFormula: Interest.Formula.Simple,
             startTimestamp: 0,
             freezeTimestamp: 0,
             trackedTimestamp: 0,

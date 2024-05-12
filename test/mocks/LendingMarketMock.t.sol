@@ -6,7 +6,6 @@ import { Test } from "forge-std/Test.sol";
 
 import { Loan } from "src/common/libraries/Loan.sol";
 import { Error } from "src/common/libraries/Error.sol";
-import { Interest } from "src/common/libraries/Interest.sol";
 
 import { LendingMarketMock } from "src/mocks/LendingMarketMock.sol";
 
@@ -46,7 +45,6 @@ contract LendingMarketMockTest is Test {
     uint32 private constant STATE_DURATION_IN_PERIODS = 200;
     uint32 private constant STATE_INTEREST_RATE_PRIMARY = 400;
     uint32 private constant STATE_INTEREST_RATE_SECONDARY = 500;
-    Interest.Formula private constant STATE_INTEREST_FORMULA = Interest.Formula.Compound;
     uint32 private constant STATE_START_TIMESTAMP = 600;
     uint32 private constant STATE_FREEZE_TIMESTAMP = 700;
     uint32 private constant STATE_TRACKED_TIMESTAMP = 800;
@@ -164,7 +162,6 @@ contract LendingMarketMockTest is Test {
         assertEq(loan.durationInPeriods, 0);
         assertEq(loan.interestRatePrimary, 0);
         assertEq(loan.interestRateSecondary, 0);
-        assertEq(uint256(loan.interestFormula), uint256(Interest.Formula.Simple));
         assertEq(loan.startTimestamp, 0);
         assertEq(loan.freezeTimestamp, 0);
         assertEq(loan.trackedTimestamp, 0);
@@ -182,7 +179,6 @@ contract LendingMarketMockTest is Test {
                 durationInPeriods: STATE_DURATION_IN_PERIODS,
                 interestRatePrimary: STATE_INTEREST_RATE_PRIMARY,
                 interestRateSecondary: STATE_INTEREST_RATE_SECONDARY,
-                interestFormula: STATE_INTEREST_FORMULA,
                 startTimestamp: STATE_START_TIMESTAMP,
                 freezeTimestamp: STATE_FREEZE_TIMESTAMP,
                 trackedTimestamp: STATE_TRACKED_TIMESTAMP,
@@ -201,7 +197,6 @@ contract LendingMarketMockTest is Test {
         assertEq(loan.durationInPeriods, STATE_DURATION_IN_PERIODS);
         assertEq(loan.interestRatePrimary, STATE_INTEREST_RATE_PRIMARY);
         assertEq(loan.interestRateSecondary, STATE_INTEREST_RATE_SECONDARY);
-        assertEq(uint256(loan.interestFormula), uint256(STATE_INTEREST_FORMULA));
         assertEq(loan.startTimestamp, STATE_START_TIMESTAMP);
         assertEq(loan.freezeTimestamp, STATE_FREEZE_TIMESTAMP);
         assertEq(loan.trackedTimestamp, STATE_TRACKED_TIMESTAMP);
