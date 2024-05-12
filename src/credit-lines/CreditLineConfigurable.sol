@@ -19,8 +19,8 @@ import { ICreditLineConfigurable } from "../common/interfaces/ICreditLineConfigu
 contract CreditLineConfigurable is AccessControlUpgradeable, PausableUpgradeable, ICreditLineConfigurable {
     using SafeCast for uint256;
 
-    /// @dev The role of this contract lender (owner).
-    bytes32 public constant LENDER_ROLE = keccak256("LENDER_ROLE");
+    /// @dev The role of this contract owner.
+    bytes32 public constant OWNER_ROLE = keccak256("OWNER_ROLE");
 
     /// @dev The role of this contract pauser.
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
@@ -122,30 +122,20 @@ contract CreditLineConfigurable is AccessControlUpgradeable, PausableUpgradeable
             revert Error.ZeroAddress();
         }
 
-        _grantRole(LENDER_ROLE, lender_);
-        _setRoleAdmin(PAUSER_ROLE, LENDER_ROLE);
-        _setRoleAdmin(ADMIN_ROLE, LENDER_ROLE);
+        _grantRole(OWNER_ROLE, lender_);
+        _setRoleAdmin(PAUSER_ROLE, OWNER_ROLE);
+        _setRoleAdmin(ADMIN_ROLE, OWNER_ROLE);
 
         _market = market_;
         _token = token_;
     }
 
     // -------------------------------------------- //
-    //  Owner functions                             //
+    //  Owner functions                            //
     // -------------------------------------------- //
 
-    /// @dev Pauses the contract.
-    function pause() external onlyRole(PAUSER_ROLE) {
-        _pause();
-    }
-
-    /// @dev Unpauses the contract.
-    function unpause() external onlyRole(PAUSER_ROLE) {
-        _unpause();
-    }
-
     /// @inheritdoc ICreditLineConfigurable
-    function configureCreditLine(CreditLineConfig memory config) external onlyRole(LENDER_ROLE) {
+    function configureCreditLine(CreditLineConfig memory config) external onlyRole(OWNER_ROLE) {
         if (config.minBorrowAmount > config.maxBorrowAmount) {
             revert InvalidCreditLineConfiguration();
         }
@@ -168,6 +158,20 @@ contract CreditLineConfigurable is AccessControlUpgradeable, PausableUpgradeable
         _config = config;
 
         emit CreditLineConfigured(address(this));
+    }
+
+    // -------------------------------------------- //
+    //  Pauser functions                            //
+    // -------------------------------------------- //
+
+    /// @dev Pauses the contract.
+    function pause() external onlyRole(PAUSER_ROLE) {
+        _pause();
+    }
+
+    /// @dev Unpauses the contract.
+    function unpause() external onlyRole(PAUSER_ROLE) {
+        _unpause();
     }
 
     // -------------------------------------------- //
