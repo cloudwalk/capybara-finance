@@ -110,20 +110,23 @@ contract LendingMarket is
     // -------------------------------------------- //
 
     /// @dev Initializer of the upgradable contract.
-    function initialize() external initializer {
-        __LendingMarket_init();
+    /// @param owner_ The owner of the contract.
+    function initialize(address owner_) external initializer {
+        __LendingMarket_init(owner_);
     }
 
     /// @dev Internal initializer of the upgradable contract.
-    function __LendingMarket_init() internal onlyInitializing {
+    /// @param owner_ The owner of the contract.
+    function __LendingMarket_init(address owner_) internal onlyInitializing {
         __AccessControl_init_unchained();
         __Pausable_init_unchained();
-        __LendingMarket_init_unchained();
+        __LendingMarket_init_unchained(owner_);
     }
 
     /// @dev Unchained internal initializer of the upgradable contract.
-    function __LendingMarket_init_unchained() internal onlyInitializing {
-        _grantRole(OWNER_ROLE, msg.sender);
+    /// @param owner_ The owner of the contract.
+    function __LendingMarket_init_unchained(address owner_) internal onlyInitializing {
+        _grantRole(OWNER_ROLE, owner_);
         _setRoleAdmin(REGISTRY_ROLE, OWNER_ROLE);
     }
 
@@ -539,11 +542,6 @@ contract LendingMarket is
     /// @inheritdoc ILendingMarket
     function timeOffset() external view returns (uint256, bool) {
         return (Constants.NEGATIVE_TIME_OFFSET, false);
-    }
-
-    /// @inheritdoc ILendingMarket
-    function registry() external view returns (address) {
-        return _registry;
     }
 
     function loansCount() external view returns (uint256) {

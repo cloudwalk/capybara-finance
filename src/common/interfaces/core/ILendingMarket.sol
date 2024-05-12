@@ -270,9 +270,6 @@ interface ILendingMarket {
     /// The time offset is used to adjust current period of the loan.
     function timeOffset() external view returns (uint256, bool);
 
-    /// @dev Returns the address of the lending market registry.
-    function registry() external view returns (address);
-
     /// @dev Returns the total amount of loans taken.
     function loansCount() external view returns (uint256);
 }
