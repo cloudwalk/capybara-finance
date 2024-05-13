@@ -4,7 +4,6 @@ pragma solidity 0.8.24;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { AccessControlUpgradeable } from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
 import { Loan } from "../common/libraries/Loan.sol";
@@ -15,11 +14,13 @@ import { ICreditLine } from "../common/interfaces/core/ICreditLine.sol";
 import { ILendingMarket } from "../common/interfaces/core/ILendingMarket.sol";
 import { ILiquidityPool } from "../common/interfaces/core/ILiquidityPool.sol";
 import { ILiquidityPoolAccountable } from "../common/interfaces/ILiquidityPoolAccountable.sol";
+import { AccessControlExtUpgradeable } from "../common/AccessControlExtUpgradeable.sol";
+
 
 /// @title LiquidityPoolAccountable contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @dev Implementation of the accountable liquidity pool contract.
-contract LiquidityPoolAccountable is AccessControlUpgradeable, PausableUpgradeable, ILiquidityPoolAccountable {
+contract LiquidityPoolAccountable is AccessControlExtUpgradeable, PausableUpgradeable, ILiquidityPoolAccountable {
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
 
@@ -80,6 +81,7 @@ contract LiquidityPoolAccountable is AccessControlUpgradeable, PausableUpgradeab
     /// @param market_ The address of the lending market.
     function __LiquidityPoolAccountable_init(address lender_, address market_) internal onlyInitializing {
         __AccessControl_init_unchained();
+        __AccessControlExt_init_unchained();
         __Pausable_init_unchained();
         __LiquidityPoolAccountable_init_unchained(lender_, market_);
     }

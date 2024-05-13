@@ -2,7 +2,6 @@
 
 pragma solidity 0.8.24;
 
-import { AccessControlUpgradeable } from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
 import { Loan } from "../common/libraries/Loan.sol";
@@ -12,11 +11,12 @@ import { Constants } from "../common/libraries/Constants.sol";
 
 import { ICreditLine } from "../common/interfaces/core/ICreditLine.sol";
 import { ICreditLineConfigurable } from "../common/interfaces/ICreditLineConfigurable.sol";
+import { AccessControlExtUpgradeable } from "../common/AccessControlExtUpgradeable.sol";
 
 /// @title CreditLineConfigurable contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @dev Implementation of the configurable credit line contract.
-contract CreditLineConfigurable is AccessControlUpgradeable, PausableUpgradeable, ICreditLineConfigurable {
+contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradeable, ICreditLineConfigurable {
     using SafeCast for uint256;
 
     /// @dev The role of this contract owner.
@@ -98,6 +98,7 @@ contract CreditLineConfigurable is AccessControlUpgradeable, PausableUpgradeable
         address token_
     ) internal onlyInitializing {
         __AccessControl_init_unchained();
+        __AccessControlExt_init_unchained();
         __Pausable_init_unchained();
         __CreditLineConfigurable_init_unchained(lender_, market_, token_);
     }
