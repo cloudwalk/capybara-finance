@@ -15,10 +15,10 @@ abstract contract LendingMarketStorage {
     /// @dev The loan identifier counter.
     uint256 internal _loanIdCounter;
 
-    /// @dev The mapping of loan to its state.
+    /// @dev The mapping of loan id to its state.
     mapping(uint256 => Loan.State) internal _loans;
 
-    /// @dev The mapping of loan to associated lender.
+    /// @dev The mapping of loan id to associated lender.
     mapping(uint256 => address) internal _loanLenders;
 
     /// @dev The mapping of credit line to associated lender.

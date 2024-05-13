@@ -411,7 +411,9 @@ contract LendingMarket is
         if (creditLine == address(0) || liquidityPool == address(0)) {
             revert Error.ZeroAddress();
         }
-        if (_creditLineToLiquidityPool[creditLine] != address(0)) {
+
+        address oldLiquidityPool = _creditLineToLiquidityPool[creditLine];
+        if (oldLiquidityPool != address(0)) {
             // TBD Check if updating the liquidity pool associated with the credit line
             // will have any unexpected side effects during the loan lifecycle.
             revert Error.NotImplemented();
@@ -421,7 +423,7 @@ contract LendingMarket is
             revert Error.Unauthorized();
         }
 
-        emit LiquidityPoolAssignedToCreditLine(creditLine, liquidityPool, _creditLineToLiquidityPool[creditLine]);
+        emit LiquidityPoolAssignedToCreditLine(creditLine, liquidityPool, oldLiquidityPool);
 
         _creditLineToLiquidityPool[creditLine] = liquidityPool;
     }
