@@ -2,7 +2,6 @@
 
 pragma solidity 0.8.24;
 
-import { AccessControlUpgradeable } from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
 import { Loan } from "../common/libraries/Loan.sol";
@@ -12,11 +11,12 @@ import { Constants } from "../common/libraries/Constants.sol";
 
 import { ICreditLine } from "../common/interfaces/core/ICreditLine.sol";
 import { ICreditLineConfigurable } from "../common/interfaces/ICreditLineConfigurable.sol";
+import { AccessControlExtUpgradeable } from "../common/AccessControlExtUpgradeable.sol";
 
 /// @title CreditLineConfigurable contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @dev Implementation of the configurable credit line contract.
-contract CreditLineConfigurable is AccessControlUpgradeable, PausableUpgradeable, ICreditLineConfigurable {
+contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradeable, ICreditLineConfigurable {
     using SafeCast for uint256;
 
     /// @dev The role of this contract owner.
@@ -25,6 +25,9 @@ contract CreditLineConfigurable is AccessControlUpgradeable, PausableUpgradeable
     /// @dev The role of this contract admin.
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
+    /// @dev The role of this contract pauser.
+    bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
+
     // -------------------------------------------- //
     //  Storage variables                           //
     // -------------------------------------------- //
@@ -32,14 +35,14 @@ contract CreditLineConfigurable is AccessControlUpgradeable, PausableUpgradeable
     /// @dev The address of the lending market.
     address internal _market;
 
-    /// @dev The address of the credit line token.
+    /// @dev The address of the underlying token.
     address internal _token;
 
-    /// @dev The mapping of borrower to its configuration.
-    mapping(address => BorrowerConfig) internal _borrowers;
-
-    /// @dev The configuration of the credit line.
+    /// @dev The structure of the credit line configuration.
     CreditLineConfig internal _config;
+
+    /// @dev The mapping of borrower to borrower configuration.
+    mapping(address => BorrowerConfig) internal _borrowers;
 
     // -------------------------------------------- //
     //  Errors                                      //
@@ -53,9 +56,6 @@ contract CreditLineConfigurable is AccessControlUpgradeable, PausableUpgradeable
 
     /// @dev Thrown when the borrower configuration has expired.
     error BorrowerConfigurationExpired();
-
-    /// @dev Thrown when the borrow policy is unsupported.
-    error UnsupportedBorrowPolicy();
 
     /// @dev Thrown when the loan duration is out of range.
     error LoanDurationOutOfRange();
@@ -77,65 +77,81 @@ contract CreditLineConfigurable is AccessControlUpgradeable, PausableUpgradeable
     // -------------------------------------------- //
 
     /// @dev Initializer of the upgradable contract.
+    /// @param lender_ The address of the credit line lender.
     /// @param market_ The address of the lending market.
-    /// @param lender_ The address of the lender.
     /// @param token_ The address of the token.
+    /// See details https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable.
     function initialize(
-        address market_,
         address lender_,
+        address market_,
         address token_
     ) external initializer {
-        __CreditLineConfigurable_init(market_, lender_, token_);
+        __CreditLineConfigurable_init(lender_, market_, token_);
     }
 
     /// @dev Internal initializer of the upgradable contract.
+    /// @param lender_ The address of the credit line lender.
     /// @param market_ The address of the lending market.
-    /// @param lender_ The address of the lender.
     /// @param token_ The address of the token.
+    /// See details https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable.
     function __CreditLineConfigurable_init(
-        address market_,
         address lender_,
+        address market_,
         address token_
     ) internal onlyInitializing {
+        __Context_init_unchained();
+        __ERC165_init_unchained();
         __AccessControl_init_unchained();
+        __AccessControlExt_init_unchained();
         __Pausable_init_unchained();
-        __CreditLineConfigurable_init_unchained(market_, token_, lender_);
+        __CreditLineConfigurable_init_unchained(lender_, market_, token_);
     }
 
     /// @dev Unchained internal initializer of the upgradable contract.
+    /// @param lender_ The address of the credit line lender.
     /// @param market_ The address of the lending market.
     /// @param token_ The address of the token.
-    function __CreditLineConfigurable_init_unchained(address market_, address token_, address lender_) internal onlyInitializing {
+    /// See details https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable.
+    function __CreditLineConfigurable_init_unchained(
+        address lender_,
+        address market_,
+        address token_
+    ) internal onlyInitializing {
+        if (lender_ == address(0)) {
+            revert Error.ZeroAddress();
+        }
         if (market_ == address(0)) {
             revert Error.ZeroAddress();
         }
         if (token_ == address(0)) {
             revert Error.ZeroAddress();
         }
-        if (lender_ == address(0)) {
-            revert Error.ZeroAddress();
-        }
 
         _grantRole(OWNER_ROLE, lender_);
         _setRoleAdmin(ADMIN_ROLE, OWNER_ROLE);
+        _setRoleAdmin(PAUSER_ROLE, OWNER_ROLE);
 
         _market = market_;
         _token = token_;
     }
 
     // -------------------------------------------- //
-    //  Owner functions                             //
+    //  Pauser functions                            //
     // -------------------------------------------- //
 
     /// @dev Pauses the contract.
-    function pause() external onlyRole(OWNER_ROLE) {
+    function pause() external onlyRole(PAUSER_ROLE) {
         _pause();
     }
 
     /// @dev Unpauses the contract.
-    function unpause() external onlyRole(OWNER_ROLE) {
+    function unpause() external onlyRole(PAUSER_ROLE) {
         _unpause();
     }
+
+    // -------------------------------------------- //
+    //  Owner functions                             //
+    // -------------------------------------------- //
 
     /// @inheritdoc ICreditLineConfigurable
     function configureCreditLine(CreditLineConfig memory config) external onlyRole(OWNER_ROLE) {
@@ -195,10 +211,10 @@ contract CreditLineConfigurable is AccessControlUpgradeable, PausableUpgradeable
 
     /// @inheritdoc ICreditLine
     function onBeforeLoanTaken(
+        uint256 loanId,
         address borrower,
         uint256 borrowAmount,
-        uint256 durationInPeriods,
-        uint256 loanId
+        uint256 durationInPeriods
     ) external whenNotPaused onlyMarket returns (Loan.Terms memory terms) {
         loanId; // To prevent compiler warning about unused variable
 
@@ -206,15 +222,12 @@ contract CreditLineConfigurable is AccessControlUpgradeable, PausableUpgradeable
 
         BorrowerConfig storage borrowerConfig = _borrowers[borrower];
 
-        if (borrowerConfig.borrowPolicy == BorrowPolicy.Reset) {
-            borrowerConfig.maxBorrowAmount = 0;
+        if (borrowerConfig.borrowPolicy == BorrowPolicy.Keep) {
+            // Do nothing to the borrower's max borrow amount configuration
         } else if (borrowerConfig.borrowPolicy == BorrowPolicy.Decrease) {
             borrowerConfig.maxBorrowAmount -= borrowAmount.toUint64();
-        } else if (borrowerConfig.borrowPolicy == BorrowPolicy.Keep) {
-            // Do nothing
-        } else {
-            // NOTE: This should never happen since all possible policies are checked above
-            revert UnsupportedBorrowPolicy();
+        } else { // borrowerConfig.borrowPolicy == BorrowPolicy.Reset
+            borrowerConfig.maxBorrowAmount = 0;
         }
     }
 
@@ -258,7 +271,6 @@ contract CreditLineConfigurable is AccessControlUpgradeable, PausableUpgradeable
         terms.durationInPeriods = durationInPeriods.toUint32();
         terms.interestRatePrimary = borrowerConfig.interestRatePrimary;
         terms.interestRateSecondary = borrowerConfig.interestRateSecondary;
-        terms.interestFormula = borrowerConfig.interestFormula;
         terms.addonAmount = calculateAddonAmount(
             borrowAmount,
             durationInPeriods,
@@ -291,11 +303,6 @@ contract CreditLineConfigurable is AccessControlUpgradeable, PausableUpgradeable
     /// @inheritdoc ICreditLine
     function token() external view returns (address) {
         return _token;
-    }
-
-    /// @inheritdoc ICreditLine
-    function kind() external pure returns (uint16) {
-        return 1;
     }
 
     /// @dev Calculates the amount of a loan addon (extra charges or fees).

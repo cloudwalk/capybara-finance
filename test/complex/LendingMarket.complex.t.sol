@@ -6,7 +6,6 @@ import "forge-std/Test.sol";
 import "forge-std/console.sol";
 
 import { Loan } from "src/common/libraries/Loan.sol";
-import { Interest } from "src/common/libraries/Interest.sol";
 import { Constants } from "src/common/libraries/Constants.sol";
 
 import { ICreditLineConfigurable } from "src/common/interfaces/ICreditLineConfigurable.sol";
@@ -38,7 +37,6 @@ contract LendingMarketComplexTest is Test {
     address private constant BORROWER = address(bytes20(keccak256("borrower")));
     address private constant ADDON_RECIPIENT = address(bytes20(keccak256("recipient")));
 
-    bytes32 private constant REGISTRY_ROLE = keccak256("REGISTRY_ROLE");
     bytes32 private constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
     uint256 private constant ZERO_VALUE = 0;
@@ -63,14 +61,13 @@ contract LendingMarketComplexTest is Test {
 
         // Deploy credit line
         creditLine = new CreditLineConfigurable();
-        creditLine.initialize(address(lendingMarket), LENDER, address(token));
+        creditLine.initialize(LENDER, address(lendingMarket), address(token));
 
         // Deploy liquidity pool
         liquidityPool = new LiquidityPoolAccountable();
-        liquidityPool.initialize(address(lendingMarket), LENDER);
+        liquidityPool.initialize(LENDER, address(lendingMarket));
 
         // Register credit line and liquidity pool
-        lendingMarket.grantRole(REGISTRY_ROLE, OWNER);
         lendingMarket.registerCreditLine(LENDER, address(creditLine));
         lendingMarket.registerLiquidityPool(LENDER, address(liquidityPool));
 
@@ -129,7 +126,6 @@ contract LendingMarketComplexTest is Test {
             interestRateSecondary: scenario.interestRateSecondary,
             addonFixedRate: 0,
             addonPeriodRate: 0,
-            interestFormula: scenario.interestFormula,
             borrowPolicy: ICreditLineConfigurable.BorrowPolicy.Keep,
             expiration: type(uint32).max
         });

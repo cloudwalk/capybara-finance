@@ -4,7 +4,6 @@ pragma solidity 0.8.24;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { AccessControlUpgradeable } from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
 import { Loan } from "../common/libraries/Loan.sol";
@@ -15,11 +14,13 @@ import { ICreditLine } from "../common/interfaces/core/ICreditLine.sol";
 import { ILendingMarket } from "../common/interfaces/core/ILendingMarket.sol";
 import { ILiquidityPool } from "../common/interfaces/core/ILiquidityPool.sol";
 import { ILiquidityPoolAccountable } from "../common/interfaces/ILiquidityPoolAccountable.sol";
+import { AccessControlExtUpgradeable } from "../common/AccessControlExtUpgradeable.sol";
+
 
 /// @title LiquidityPoolAccountable contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @dev Implementation of the accountable liquidity pool contract.
-contract LiquidityPoolAccountable is AccessControlUpgradeable, PausableUpgradeable, ILiquidityPoolAccountable {
+contract LiquidityPoolAccountable is AccessControlExtUpgradeable, PausableUpgradeable, ILiquidityPoolAccountable {
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
 
@@ -28,6 +29,9 @@ contract LiquidityPoolAccountable is AccessControlUpgradeable, PausableUpgradeab
 
     /// @dev The role of this contract admin.
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
+
+    /// @dev The role of this contract pauser.
+    bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 
     // -------------------------------------------- //
     //  Storage variables                           //
@@ -66,51 +70,62 @@ contract LiquidityPoolAccountable is AccessControlUpgradeable, PausableUpgradeab
     // -------------------------------------------- //
 
     /// @dev Initializer of the upgradable contract.
+    /// @param lender_ The address of the liquidity pool lender.
     /// @param market_ The address of the lending market.
-    /// @param lender_ The address of the lender.
-    function initialize(address market_, address lender_) external initializer {
-        __LiquidityPoolAccountable_init(market_, lender_);
+    /// See details https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable.
+    function initialize(address lender_, address market_) external initializer {
+        __LiquidityPoolAccountable_init(lender_, market_);
     }
 
     /// @dev Internal initializer of the upgradable contract.
+    /// @param lender_ The address of the liquidity pool lender.
     /// @param market_ The address of the lending market.
-    /// @param lender_ The address of the lender.
-    function __LiquidityPoolAccountable_init(address market_, address lender_) internal onlyInitializing {
+    /// See details https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable.
+    function __LiquidityPoolAccountable_init(address lender_, address market_) internal onlyInitializing {
+        __Context_init_unchained();
+        __ERC165_init_unchained();
         __AccessControl_init_unchained();
+        __AccessControlExt_init_unchained();
         __Pausable_init_unchained();
-        __LiquidityPoolAccountable_init_unchained(market_, lender_);
+        __LiquidityPoolAccountable_init_unchained(lender_, market_);
     }
 
     /// @dev Unchained internal initializer of the upgradable contract.
+    /// @param lender_ The address of the liquidity pool lender.
     /// @param market_ The address of the lending market.
-    function __LiquidityPoolAccountable_init_unchained(address market_, address lender_) internal onlyInitializing {
-        if (market_ == address(0)) {
+    /// See details https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable.
+    function __LiquidityPoolAccountable_init_unchained(address lender_, address market_) internal onlyInitializing {
+        if (lender_ == address(0)) {
             revert Error.ZeroAddress();
         }
-
-        if (lender_ == address(0)) {
+        if (market_ == address(0)) {
             revert Error.ZeroAddress();
         }
 
         _grantRole(OWNER_ROLE, lender_);
         _setRoleAdmin(ADMIN_ROLE, OWNER_ROLE);
+        _setRoleAdmin(PAUSER_ROLE, OWNER_ROLE);
 
         _market = market_;
     }
 
     // -------------------------------------------- //
-    //  Owner functions                             //
+    //  Pauser functions                            //
     // -------------------------------------------- //
 
     /// @dev Pauses the contract.
-    function pause() external onlyRole(OWNER_ROLE) {
+    function pause() external onlyRole(PAUSER_ROLE) {
         _pause();
     }
 
     /// @dev Unpauses the contract.
-    function unpause() external onlyRole(OWNER_ROLE) {
+    function unpause() external onlyRole(PAUSER_ROLE) {
         _unpause();
     }
+
+    // -------------------------------------------- //
+    //  Owner functions                            //
+    // -------------------------------------------- //
 
     /// @inheritdoc ILiquidityPoolAccountable
     function deposit(address creditLine, uint256 amount) external onlyRole(OWNER_ROLE) {
@@ -170,6 +185,10 @@ contract LiquidityPoolAccountable is AccessControlUpgradeable, PausableUpgradeab
 
         emit Rescue(token, amount);
     }
+
+    // -------------------------------------------- //
+    //  Admin functions                             //
+    // -------------------------------------------- //
 
     /// @inheritdoc ILiquidityPoolAccountable
     function autoRepay(uint256[] memory loanIds, uint256[] memory amounts) external onlyRole(ADMIN_ROLE) {
@@ -274,10 +293,5 @@ contract LiquidityPoolAccountable is AccessControlUpgradeable, PausableUpgradeab
     /// @inheritdoc ILiquidityPool
     function market() external view returns (address) {
         return _market;
-    }
-
-    /// @inheritdoc ILiquidityPool
-    function kind() external pure returns (uint16) {
-        return 1;
     }
 }

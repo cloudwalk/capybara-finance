@@ -39,7 +39,7 @@ contract LiquidityPoolAccountableUUPSTest is Test {
         proxy = LiquidityPoolAccountableUUPS(
             address(new ERC1967Proxy(address(new LiquidityPoolAccountableUUPS()), ""))
         );
-        proxy.initialize(MARKET, LENDER);
+        proxy.initialize(LENDER, MARKET);
     }
 
     // -------------------------------------------- //

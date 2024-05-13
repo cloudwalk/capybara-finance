@@ -10,7 +10,6 @@ import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/P
 
 import { Loan } from "src/common/libraries/Loan.sol";
 import { Error } from "src/common/libraries/Error.sol";
-import { Interest } from "src/common/libraries/Interest.sol";
 import { SafeCast } from "src/common/libraries/SafeCast.sol";
 import { Constants } from "src/common/libraries/Constants.sol";
 
@@ -40,10 +39,12 @@ contract CreditLineConfigurableTest is Test {
 
     address private constant ADMIN = address(bytes20(keccak256("admin")));
     address private constant MARKET = address(bytes20(keccak256("market")));
+    address private constant PAUSER = address(bytes20(keccak256("pauser")));
     address private constant TOKEN_1 = address(bytes20(keccak256("token_1")));
     address private constant TOKEN_2 = address(bytes20(keccak256("token_2")));
     address private constant LENDER_1 = address(bytes20(keccak256("lender_1")));
     address private constant LENDER_2 = address(bytes20(keccak256("lender_2")));
+    address private constant DEPLOYER = address(bytes20(keccak256("deployer")));
     address private constant ATTACKER = address(bytes20(keccak256("attacker")));
     address private constant BORROWER_1 = address(bytes20(keccak256("borrower_1")));
     address private constant BORROWER_2 = address(bytes20(keccak256("borrower_2")));
@@ -52,6 +53,7 @@ contract CreditLineConfigurableTest is Test {
 
     bytes32 private constant OWNER_ROLE = keccak256("OWNER_ROLE");
     bytes32 private constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
+    bytes32 private constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 
     uint64 private constant CREDIT_LINE_CONFIG_MIN_BORROW_AMOUNT = 400;
     uint64 private constant CREDIT_LINE_CONFIG_MAX_BORROW_AMOUNT = 900;
@@ -75,13 +77,10 @@ contract CreditLineConfigurableTest is Test {
     uint32 private constant BORROWER_CONFIG_INTEREST_RATE_SECONDARY = 6;
     uint32 private constant BORROWER_CONFIG_ADDON_FIXED_RATE = 15;
     uint32 private constant BORROWER_CONFIG_ADDON_PERIOD_RATE = 20;
-    Interest.Formula private constant BORROWER_CONFIG_INTEREST_FORMULA_COMPOUND = Interest.Formula.Compound;
     ICreditLineConfigurable.BorrowPolicy private constant BORROWER_CONFIG_BORROW_POLICY_DECREASE =
         ICreditLineConfigurable.BorrowPolicy.Decrease;
 
     uint32 private constant DURATION_IN_PERIODS = 30;
-    uint16 private constant KIND_1 = 1;
-
     uint256 private constant INTEREST_RATE_FACTOR = 1_000_000_000;
 
     // -------------------------------------------- //
@@ -89,14 +88,20 @@ contract CreditLineConfigurableTest is Test {
     // -------------------------------------------- //
 
     function setUp() public {
+        vm.startPrank(DEPLOYER);
         creditLine = new CreditLineConfigurable();
-        creditLine.initialize(MARKET, LENDER_1, TOKEN_1);
+        creditLine.initialize(LENDER_1, MARKET, TOKEN_1);
+        vm.stopPrank();
+
+        vm.startPrank(LENDER_1);
+        creditLine.grantRole(PAUSER_ROLE, PAUSER);
+        creditLine.grantRole(ADMIN_ROLE, ADMIN);
+        vm.stopPrank();
     }
 
     function configureCreditLine() public returns (ICreditLineConfigurable.CreditLineConfig memory) {
         vm.startPrank(LENDER_1);
         ICreditLineConfigurable.CreditLineConfig memory config = initCreditLineConfig();
-        creditLine.grantRole(ADMIN_ROLE, ADMIN);
         creditLine.configureCreditLine(config);
         vm.stopPrank();
         return config;
@@ -116,7 +121,6 @@ contract CreditLineConfigurableTest is Test {
             config1.interestRateSecondary == config2.interestRateSecondary &&
             config1.addonFixedRate == config2.addonFixedRate &&
             config1.addonPeriodRate == config2.addonPeriodRate &&
-            uint256(config1.interestFormula) == uint256(config2.interestFormula) &&
             uint256(config1.borrowPolicy) == uint256(config2.borrowPolicy)
         );
     }
@@ -135,7 +139,6 @@ contract CreditLineConfigurableTest is Test {
             config1.interestRateSecondary == config2.interestRateSecondary &&
             config1.addonFixedRate == config2.addonFixedRate &&
             config1.addonPeriodRate == config2.addonPeriodRate &&
-            uint256(config1.interestFormula) == uint256(config2.interestFormula) &&
             uint256(config1.borrowPolicy) == uint256(config2.borrowPolicy)
         );
     }
@@ -197,7 +200,6 @@ contract CreditLineConfigurableTest is Test {
             interestRateSecondary: BORROWER_CONFIG_INTEREST_RATE_SECONDARY,
             addonFixedRate: BORROWER_CONFIG_ADDON_FIXED_RATE,
             addonPeriodRate: BORROWER_CONFIG_ADDON_PERIOD_RATE,
-            interestFormula: BORROWER_CONFIG_INTEREST_FORMULA_COMPOUND,
             borrowPolicy: BORROWER_CONFIG_BORROW_POLICY_DECREASE
         });
     }
@@ -244,7 +246,7 @@ contract CreditLineConfigurableTest is Test {
 
     function test_initializer() public {
         creditLine = new CreditLineConfigurable();
-        creditLine.initialize(MARKET, LENDER_1, TOKEN_1);
+        creditLine.initialize(LENDER_1, MARKET, TOKEN_1);
         assertEq(creditLine.market(), MARKET);
         assertEq(creditLine.hasRole(OWNER_ROLE, LENDER_1), true);
         assertEq(creditLine.token(), TOKEN_1);
@@ -253,26 +255,26 @@ contract CreditLineConfigurableTest is Test {
     function test_initializer_Revert_IfMarketIsZeroAddress() public {
         creditLine = new CreditLineConfigurable();
         vm.expectRevert(Error.ZeroAddress.selector);
-        creditLine.initialize(address(0), LENDER_1, TOKEN_1);
+        creditLine.initialize(LENDER_1, address(0), TOKEN_1);
     }
 
     function test_initializer_Revert_IfLenderIsZeroAddress() public {
         creditLine = new CreditLineConfigurable();
         vm.expectRevert(Error.ZeroAddress.selector);
-        creditLine.initialize(MARKET, address(0), TOKEN_1);
+        creditLine.initialize(address(0), MARKET, TOKEN_1);
     }
 
     function test_initializer_Revert_IfTokenIsZeroAddress() public {
         creditLine = new CreditLineConfigurable();
         vm.expectRevert(Error.ZeroAddress.selector);
-        creditLine.initialize(MARKET, LENDER_1, address(0));
+        creditLine.initialize(LENDER_1, MARKET, address(0));
     }
 
     function test_initialize_Revert_IfCalledSecondTime() public {
         creditLine = new CreditLineConfigurable();
-        creditLine.initialize(MARKET, LENDER_1, TOKEN_1);
+        creditLine.initialize(LENDER_1, MARKET, TOKEN_1);
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        creditLine.initialize(MARKET, LENDER_2, TOKEN_2);
+        creditLine.initialize(LENDER_2, MARKET, TOKEN_2);
     }
 
     // -------------------------------------------- //
@@ -281,13 +283,13 @@ contract CreditLineConfigurableTest is Test {
 
     function test_pause() public {
         assertEq(creditLine.paused(), false);
-        vm.prank(LENDER_1);
+        vm.prank(PAUSER);
         creditLine.pause();
         assertEq(creditLine.paused(), true);
     }
 
     function test_pause_Revert_IfContractIsPaused() public {
-        vm.startPrank(LENDER_1);
+        vm.startPrank(PAUSER);
         creditLine.pause();
         vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
         creditLine.pause();
@@ -298,7 +300,7 @@ contract CreditLineConfigurableTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(
                 IAccessControl.AccessControlUnauthorizedAccount.selector,
-                ATTACKER, OWNER_ROLE)
+                ATTACKER, PAUSER_ROLE)
         );
         creditLine.pause();
     }
@@ -308,7 +310,7 @@ contract CreditLineConfigurableTest is Test {
     // -------------------------------------------- //
 
     function test_unpause() public {
-        vm.startPrank(LENDER_1);
+        vm.startPrank(PAUSER);
         assertEq(creditLine.paused(), false);
         creditLine.pause();
         assertEq(creditLine.paused(), true);
@@ -318,19 +320,19 @@ contract CreditLineConfigurableTest is Test {
 
     function test_unpause_RevertIfContractNotPaused() public {
         assertEq(creditLine.paused(), false);
-        vm.prank(LENDER_1);
+        vm.prank(PAUSER);
         vm.expectRevert(PausableUpgradeable.ExpectedPause.selector);
         creditLine.unpause();
     }
 
     function test_unpause_Revert_IfCallerNotOwner() public {
-        vm.prank(LENDER_1);
+        vm.prank(PAUSER);
         creditLine.pause();
         vm.prank(ATTACKER);
         vm.expectRevert(
             abi.encodeWithSelector(
                 IAccessControl.AccessControlUnauthorizedAccount.selector,
-                ATTACKER, OWNER_ROLE)
+                ATTACKER, PAUSER_ROLE)
         );
         creditLine.unpause();
     }
@@ -442,7 +444,7 @@ contract CreditLineConfigurableTest is Test {
 
         ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
 
-        vm.prank(LENDER_1);
+        vm.prank(PAUSER);
         creditLine.pause();
 
         vm.prank(ATTACKER);
@@ -658,7 +660,7 @@ contract CreditLineConfigurableTest is Test {
         (address[] memory borrowers, ICreditLineConfigurable.BorrowerConfig[] memory configs) =
             initBorrowerConfigs(block.timestamp);
 
-        vm.prank(LENDER_1);
+        vm.prank(PAUSER);
         creditLine.pause();
 
         vm.prank(ADMIN);
@@ -710,7 +712,7 @@ contract CreditLineConfigurableTest is Test {
         assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, config.maxBorrowAmount);
 
         vm.prank(MARKET);
-        creditLine.onBeforeLoanTaken(BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS, 1);
+        creditLine.onBeforeLoanTaken(1, BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS);
 
         assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, config.maxBorrowAmount);
     }
@@ -727,7 +729,7 @@ contract CreditLineConfigurableTest is Test {
         assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, config.maxBorrowAmount);
 
         vm.prank(MARKET);
-        creditLine.onBeforeLoanTaken(BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS, 1);
+        creditLine.onBeforeLoanTaken(1,BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS);
 
         assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, 0);
     }
@@ -744,7 +746,7 @@ contract CreditLineConfigurableTest is Test {
         assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, config.maxBorrowAmount);
 
         vm.prank(MARKET);
-        creditLine.onBeforeLoanTaken(BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS, 1);
+        creditLine.onBeforeLoanTaken(1, BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS);
 
         assertEq(
             creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount,
@@ -760,12 +762,12 @@ contract CreditLineConfigurableTest is Test {
         vm.prank(ADMIN);
         creditLine.configureBorrower(BORROWER_1, config);
 
-        vm.prank(LENDER_1);
+        vm.prank(PAUSER);
         creditLine.pause();
 
         vm.prank(ATTACKER);
         vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
-        creditLine.onBeforeLoanTaken(BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS, 1);
+        creditLine.onBeforeLoanTaken(1, BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS);
     }
 
     function test_onBeforeLoanTaken_Revert_IfCallerIsNotMarket() public {
@@ -778,7 +780,7 @@ contract CreditLineConfigurableTest is Test {
 
         vm.prank(ATTACKER);
         vm.expectRevert(Error.Unauthorized.selector);
-        creditLine.onBeforeLoanTaken(BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS, 1);
+        creditLine.onBeforeLoanTaken(1, BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS);
     }
 
     // -------------------------------------------- //
@@ -804,7 +806,6 @@ contract CreditLineConfigurableTest is Test {
         assertEq(terms.durationInPeriods, DURATION_IN_PERIODS);
         assertEq(terms.interestRatePrimary, borrowerConfig.interestRatePrimary);
         assertEq(terms.interestRateSecondary, borrowerConfig.interestRateSecondary);
-        assertEq(uint256(terms.interestFormula), uint256(borrowerConfig.interestFormula));
         assertEq(
             terms.addonAmount,
             creditLine.calculateAddonAmount(
@@ -991,9 +992,5 @@ contract CreditLineConfigurableTest is Test {
 
     function test_token() public {
         assertEq(creditLine.token(), TOKEN_1);
-    }
-
-    function test_kind() public {
-        assertEq(creditLine.kind(), KIND_1);
     }
 }

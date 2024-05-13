@@ -22,10 +22,10 @@ contract CreditLineMock is ICreditLine {
     // -------------------------------------------- //
 
     function onBeforeLoanTaken(
+        uint256 loanId,
         address borrower,
         uint256 borrowAmount,
-        uint256 durationInPeriods,
-        uint256 loanId
+        uint256 durationInPeriods
     ) external view returns (Loan.Terms memory terms) {
         durationInPeriods; // To prevent compiler warning about unused variable
         loanId; // To prevent compiler warning about unused variable
@@ -51,10 +51,6 @@ contract CreditLineMock is ICreditLine {
 
     function token() external view returns (address) {
         return _tokenAddress;
-    }
-
-    function kind() external pure returns (uint16) {
-        revert Error.NotImplemented();
     }
 
     // -------------------------------------------- //

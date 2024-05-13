@@ -10,7 +10,6 @@ import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/P
 
 import { Loan } from "src/common/libraries/Loan.sol";
 import { Error } from "src/common/libraries/Error.sol";
-import { Interest } from "src/common/libraries/Interest.sol";
 import { Constants } from "src/common/libraries/Constants.sol";
 import { InterestMath } from "src/common/libraries/InterestMath.sol";
 import { SafeCast } from "src/common/libraries/SafeCast.sol";
@@ -36,9 +35,6 @@ contract LendingMarket is
 
     /// @dev The role of this contract owner.
     bytes32 public constant OWNER_ROLE = keccak256("OWNER_ROLE");
-
-    /// @dev The role of this contract registry.
-    bytes32 public constant REGISTRY_ROLE = keccak256("REGISTRY_ROLE");
 
     // -------------------------------------------- //
     //  Errors                                      //
@@ -111,13 +107,17 @@ contract LendingMarket is
 
     /// @dev Initializer of the upgradable contract.
     /// @param owner_ The owner of the contract.
+    /// See details https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable.
     function initialize(address owner_) external initializer {
         __LendingMarket_init(owner_);
     }
 
     /// @dev Internal initializer of the upgradable contract.
     /// @param owner_ The owner of the contract.
+    /// See details https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable.
     function __LendingMarket_init(address owner_) internal onlyInitializing {
+        __Context_init_unchained();
+        __ERC165_init_unchained();
         __AccessControl_init_unchained();
         __Pausable_init_unchained();
         __LendingMarket_init_unchained(owner_);
@@ -125,9 +125,9 @@ contract LendingMarket is
 
     /// @dev Unchained internal initializer of the upgradable contract.
     /// @param owner_ The owner of the contract.
+    /// See details https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable.
     function __LendingMarket_init_unchained(address owner_) internal onlyInitializing {
         _grantRole(OWNER_ROLE, owner_);
-        _setRoleAdmin(REGISTRY_ROLE, OWNER_ROLE);
     }
 
     // -------------------------------------------- //
@@ -142,6 +142,34 @@ contract LendingMarket is
     /// @dev Unpauses the contract.
     function unpause() external onlyRole(OWNER_ROLE) {
         _unpause();
+    }
+
+    /// @inheritdoc ILendingMarket
+    function registerCreditLine(address lender, address creditLine) external onlyRole(OWNER_ROLE) {
+        if (lender == address(0) || creditLine == address(0)) {
+            revert Error.ZeroAddress();
+        }
+        if (_creditLineLenders[creditLine] != address(0)) {
+            revert CreditLineAlreadyRegistered();
+        }
+
+        emit CreditLineRegistered(lender, creditLine);
+
+        _creditLineLenders[creditLine] = lender;
+    }
+
+    /// @inheritdoc ILendingMarket
+    function registerLiquidityPool(address lender, address liquidityPool) external onlyRole(OWNER_ROLE) {
+        if (lender == address(0) || liquidityPool == address(0)) {
+            revert Error.ZeroAddress();
+        }
+        if (_liquidityPoolLenders[liquidityPool] != address(0)) {
+            revert LiquidityPoolAlreadyRegistered();
+        }
+
+        emit LiquidityPoolRegistered(lender, liquidityPool);
+
+        _liquidityPoolLenders[liquidityPool] = lender;
     }
 
     /// @inheritdoc ILendingMarket
@@ -173,38 +201,6 @@ contract LendingMarket is
     }
 
     // -------------------------------------------- //
-    //  Registry OR Owner functions                 //
-    // -------------------------------------------- //
-
-    /// @inheritdoc ILendingMarket
-    function registerCreditLine(address lender, address creditLine) external whenNotPaused onlyRole(REGISTRY_ROLE) {
-        if (lender == address(0) || creditLine == address(0)) {
-            revert Error.ZeroAddress();
-        }
-        if (_creditLineLenders[creditLine] != address(0)) {
-            revert CreditLineAlreadyRegistered();
-        }
-
-        emit CreditLineRegistered(lender, creditLine);
-
-        _creditLineLenders[creditLine] = lender;
-    }
-
-    /// @inheritdoc ILendingMarket
-    function registerLiquidityPool(address lender, address liquidityPool) external whenNotPaused onlyRole(REGISTRY_ROLE) {
-        if (lender == address(0) || liquidityPool == address(0)) {
-            revert Error.ZeroAddress();
-        }
-        if (_liquidityPoolLenders[liquidityPool] != address(0)) {
-            revert LiquidityPoolAlreadyRegistered();
-        }
-
-        emit LiquidityPoolRegistered(lender, liquidityPool);
-
-        _liquidityPoolLenders[liquidityPool] = lender;
-    }
-
-    // -------------------------------------------- //
     //  Borrower functions                          //
     // -------------------------------------------- //
 
@@ -222,7 +218,7 @@ contract LendingMarket is
         }
 
         address lender = _creditLineLenders[creditLine];
-        address liquidityPool = _liquidityPoolByCreditLine[creditLine];
+        address liquidityPool = _creditLineToLiquidityPool[creditLine];
 
         if (lender == address(0)) {
             revert CreditLineNotRegistered();
@@ -231,14 +227,14 @@ contract LendingMarket is
             revert LiquidityPoolNotRegistered();
         }
 
-        uint256 id = _loanCounter++;
+        uint256 id = _loanIdCounter++;
         _loanLenders[id] = lender;
 
         Loan.Terms memory terms = ICreditLine(creditLine).onBeforeLoanTaken(
+            id,
             msg.sender,
             borrowAmount,
-            durationInPeriods,
-            id
+            durationInPeriods
         );
 
         uint32 blockTimestamp = _blockTimestamp().toUint32();
@@ -252,7 +248,6 @@ contract LendingMarket is
             durationInPeriods: terms.durationInPeriods,
             interestRatePrimary: terms.interestRatePrimary,
             interestRateSecondary: terms.interestRateSecondary,
-            interestFormula: terms.interestFormula,
             borrowAmount: borrowAmount.toUint64(),
             trackedBalance: totalBorrowAmount.toUint64(),
             repaidAmount: 0,
@@ -421,7 +416,9 @@ contract LendingMarket is
         if (creditLine == address(0) || liquidityPool == address(0)) {
             revert Error.ZeroAddress();
         }
-        if (_liquidityPoolByCreditLine[creditLine] != address(0)) {
+
+        address oldLiquidityPool = _creditLineToLiquidityPool[creditLine];
+        if (oldLiquidityPool != address(0)) {
             // TBD Check if updating the liquidity pool associated with the credit line
             // will have any unexpected side effects during the loan lifecycle.
             revert Error.NotImplemented();
@@ -431,9 +428,9 @@ contract LendingMarket is
             revert Error.Unauthorized();
         }
 
-        emit LiquidityPoolAssignedToCreditLine(creditLine, liquidityPool, _liquidityPoolByCreditLine[creditLine]);
+        emit LiquidityPoolAssignedToCreditLine(creditLine, liquidityPool, oldLiquidityPool);
 
-        _liquidityPoolByCreditLine[creditLine] = liquidityPool;
+        _creditLineToLiquidityPool[creditLine] = liquidityPool;
     }
 
     // -------------------------------------------- //
@@ -492,7 +489,7 @@ contract LendingMarket is
 
     /// @inheritdoc ILendingMarket
     function getLiquidityPoolByCreditLine(address creditLine) external view returns (address) {
-        return _liquidityPoolByCreditLine[creditLine];
+        return _creditLineToLiquidityPool[creditLine];
     }
 
     /// @inheritdoc ILendingMarket
@@ -520,6 +517,7 @@ contract LendingMarket is
         return account == lender || _hasAlias[lender][account];
     }
 
+    /// @inheritdoc ILendingMarket
     function getLoanLender(uint256 loanId) public view returns (address) {
         return _loanLenders[loanId];
     }
@@ -544,8 +542,8 @@ contract LendingMarket is
         return (Constants.NEGATIVE_TIME_OFFSET, false);
     }
 
-    function loansCount() external view returns (uint256) {
-        return _loanCounter;
+    function loanCounter() external view returns (uint256) {
+        return _loanIdCounter;
     }
 
     /// @dev Calculates the period index that corresponds the specified timestamp.
@@ -560,21 +558,18 @@ contract LendingMarket is
     /// @param numberOfPeriods The number of periods to calculate the outstanding balance.
     /// @param interestRate The interest rate applied to the loan.
     /// @param interestRateFactor The interest rate factor.
-    /// @param interestFormula The interest formula.
     function calculateOutstandingBalance(
         uint256 originalBalance,
         uint256 numberOfPeriods,
         uint256 interestRate,
-        uint256 interestRateFactor,
-        Interest.Formula interestFormula
+        uint256 interestRateFactor
     ) external pure returns (uint256) {
         return
             InterestMath.calculateOutstandingBalance(
                 originalBalance,
                 numberOfPeriods,
                 interestRate,
-                interestRateFactor,
-                interestFormula
+                interestRateFactor
             );
     }
 
@@ -608,32 +603,28 @@ contract LendingMarket is
                     outstandingBalance,
                     periodIndex - trackedPeriodIndex,
                     loan.interestRatePrimary,
-                    Constants.INTEREST_RATE_FACTOR,
-                    loan.interestFormula
+                    Constants.INTEREST_RATE_FACTOR
                 );
             } else if (trackedPeriodIndex >= duePeriodIndex) {
                 outstandingBalance = InterestMath.calculateOutstandingBalance(
                     outstandingBalance,
                     periodIndex - trackedPeriodIndex,
                     loan.interestRateSecondary,
-                    Constants.INTEREST_RATE_FACTOR,
-                    loan.interestFormula
+                    Constants.INTEREST_RATE_FACTOR
                 );
             } else {
                 outstandingBalance = InterestMath.calculateOutstandingBalance(
                     outstandingBalance,
                     duePeriodIndex - trackedPeriodIndex,
                     loan.interestRatePrimary,
-                    Constants.INTEREST_RATE_FACTOR,
-                    loan.interestFormula
+                    Constants.INTEREST_RATE_FACTOR
                 );
                 if (periodIndex > duePeriodIndex) {
                     outstandingBalance = InterestMath.calculateOutstandingBalance(
                         outstandingBalance,
                         periodIndex - duePeriodIndex,
                         loan.interestRateSecondary,
-                        Constants.INTEREST_RATE_FACTOR,
-                        loan.interestFormula
+                        Constants.INTEREST_RATE_FACTOR
                     );
                 }
             }

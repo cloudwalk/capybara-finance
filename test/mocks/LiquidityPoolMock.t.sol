@@ -6,7 +6,6 @@ import { Test } from "forge-std/Test.sol";
 
 import { Loan } from "src/common/libraries/Loan.sol";
 import { Error } from "src/common/libraries/Error.sol";
-import { Interest } from "src/common/libraries/Interest.sol";
 
 import { LiquidityPoolMock } from "src/mocks/LiquidityPoolMock.sol";
 
@@ -46,7 +45,7 @@ contract LiquidityPoolMockTest is Test {
     }
 
     // -------------------------------------------- //
-    //  ILiquidityPoolFactory functions             //
+    //  ILiquidityPool functions                    //
     // -------------------------------------------- //
 
     function test_onBeforeLoanTaken() public {
@@ -141,10 +140,5 @@ contract LiquidityPoolMockTest is Test {
     function test_lender() public {
         vm.expectRevert(Error.NotImplemented.selector);
         mock.lender();
-    }
-
-    function test_kind() public {
-        vm.expectRevert(Error.NotImplemented.selector);
-        mock.kind();
     }
 }
