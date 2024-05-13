@@ -52,17 +52,11 @@ contract LendingMarket is
     /// @dev Thrown when the loan is already frozen.
     error LoanAlreadyFrozen();
 
-    /// @dev Thrown when the credit line is not registered.
-    error CreditLineNotRegistered();
+    /// @dev Thrown when the credit line is not configured.
+    error CreditLineLenderNotConfigured();
 
-    /// @dev Thrown when the liquidity pool is not registered.
-    error LiquidityPoolNotRegistered();
-
-    /// @dev Thrown when the credit line is already registered.
-    error CreditLineAlreadyRegistered();
-
-    /// @dev Thrown when the liquidity pool is already registered.
-    error LiquidityPoolAlreadyRegistered();
+    /// @dev Thrown when the liquidity pool is not configured.
+    error LiquidityPoolLenderNotConfigured();
 
     /// @dev Thrown when provided interest rate is inappropriate.
     error InappropriateInterestRate();
@@ -145,7 +139,7 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ILendingMarket
-    function updateCreditLineLender(address creditLine, address newLender) external onlyRole(OWNER_ROLE) {
+    function configureCreditLineLender(address creditLine, address newLender) external onlyRole(OWNER_ROLE) {
         if (creditLine == address(0) || newLender == address(0)) {
             revert Error.ZeroAddress();
         }
@@ -153,13 +147,13 @@ contract LendingMarket is
             revert Error.AlreadyConfigured();
         }
 
-        emit CreditLineLenderUpdated(creditLine, newLender, _creditLineLenders[creditLine]);
+        emit CreditLineLenderConfigured(creditLine, newLender, _creditLineLenders[creditLine]);
 
         _creditLineLenders[creditLine] = newLender;
     }
 
     /// @inheritdoc ILendingMarket
-    function updateLiquidityPoolLender(address liquidityPool, address newLender) external onlyRole(OWNER_ROLE) {
+    function configureLiquidityPoolLender(address liquidityPool, address newLender) external onlyRole(OWNER_ROLE) {
         if (liquidityPool == address(0) || newLender == address(0)) {
             revert Error.ZeroAddress();
         }
@@ -167,7 +161,7 @@ contract LendingMarket is
             revert Error.AlreadyConfigured();
         }
 
-        emit LiquidityPoolLenderUpdated(liquidityPool, newLender, _liquidityPoolLenders[liquidityPool]);
+        emit LiquidityPoolLenderConfigured(liquidityPool, newLender, _liquidityPoolLenders[liquidityPool]);
 
         _liquidityPoolLenders[liquidityPool] = newLender;
     }
@@ -191,12 +185,12 @@ contract LendingMarket is
 
         address lender = _creditLineLenders[creditLine];
         if (lender == address(0)) {
-            revert CreditLineNotRegistered();
+            revert CreditLineLenderNotConfigured();
         }
 
         address liquidityPool = _creditLineToLiquidityPool[creditLine];
         if (liquidityPool == address(0)) {
-            revert LiquidityPoolNotRegistered();
+            revert LiquidityPoolLenderNotConfigured();
         }
 
         if (lender != _liquidityPoolLenders[liquidityPool]) {

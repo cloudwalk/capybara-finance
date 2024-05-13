@@ -68,8 +68,8 @@ contract LendingMarketComplexTest is Test {
         liquidityPool.initialize(LENDER, address(lendingMarket));
 
         // Register credit line and liquidity pool
-        lendingMarket.updateCreditLineLender(address(creditLine), LENDER);
-        lendingMarket.updateLiquidityPoolLender(address(liquidityPool), LENDER);
+        lendingMarket.configureCreditLineLender(address(creditLine), LENDER);
+        lendingMarket.configureLiquidityPoolLender(address(liquidityPool), LENDER);
 
         vm.stopPrank();
 

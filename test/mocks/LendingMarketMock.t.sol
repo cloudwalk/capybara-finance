@@ -102,14 +102,14 @@ contract LendingMarketMockTest is Test {
         mock.updateLoanInterestRateSecondary(LOAN_ID, UPDATE_LOAN_INTEREST_RATE_SECONDARY);
     }
 
-    function test_updateCreditLineLender() public {
+    function test_configureCreditLineLender() public {
         vm.expectRevert(Error.NotImplemented.selector);
-        mock.updateCreditLineLender(CREDIT_LINE, LENDER_1);
+        mock.configureCreditLineLender(CREDIT_LINE, LENDER_1);
     }
 
-    function test_updateLiquidityPoolLender() public {
+    function test_configureLiquidityPoolLender() public {
         vm.expectRevert(Error.NotImplemented.selector);
-        mock.updateLiquidityPoolLender(LIQUIDITY_POOL, LENDER_1);
+        mock.configureLiquidityPoolLender(LIQUIDITY_POOL, LENDER_1);
     }
 
     function test_assignLiquidityPoolToCreditLine() public {

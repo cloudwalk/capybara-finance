@@ -12,21 +12,21 @@ interface ILendingMarket {
     //  Events                                      //
     // -------------------------------------------- //
 
-    /// @dev Emitted when the lender of a liquidity pool is updated.
+    /// @dev Emitted when the lender of a liquidity pool is configured.
     /// @param liquidityPool The address of the liquidity pool.
     /// @param newLender The address of the new lender.
     /// @param oldLender The address of the old lender.
-    event LiquidityPoolLenderUpdated(
+    event LiquidityPoolLenderConfigured(
         address indexed liquidityPool,
         address indexed newLender,
         address indexed oldLender
     );
 
-    /// @dev Emitted when the lender of a credit line is updated.
+    /// @dev Emitted when the lender of a credit line is configured.
     /// @param creditLine The address of the credit line.
     /// @param newLender The address of the new lender.
     /// @param oldLender The address of the old lender.
-    event CreditLineLenderUpdated(
+    event CreditLineLenderConfigured(
         address indexed creditLine,
         address indexed newLender,
         address indexed oldLender
@@ -167,15 +167,15 @@ interface ILendingMarket {
     /// @param newInterestRate The new secondary interest rate of the loan.
     function updateLoanInterestRateSecondary(uint256 loanId, uint256 newInterestRate) external;
 
-    /// @dev Updates the lender of a given credit line.
+    /// @dev Configures the lender of a credit line.
     /// @param creditLine The address of the credit line to update.
     /// @param newLender The address of the new lender of the credit line.
-    function updateCreditLineLender(address creditLine, address newLender) external;
+    function configureCreditLineLender(address creditLine, address newLender) external;
 
-    /// @dev Updates the lender of a given liquidity pool.
+    /// @dev Configures the lender of a liquidity pool.
     /// @param liquidityPool The address of the liquidity pool to update.
     /// @param newLender The address of the new lender of the liquidity pool.
-    function updateLiquidityPoolLender(address liquidityPool, address newLender) external;
+    function configureLiquidityPoolLender(address liquidityPool, address newLender) external;
 
     /// @dev Assigns a liquidity pool to a credit line.
     /// @param creditLine The address of the credit line.

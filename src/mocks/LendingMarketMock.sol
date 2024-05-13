@@ -76,13 +76,13 @@ contract LendingMarketMock is ILendingMarket {
         revert Error.NotImplemented();
     }
 
-    function updateCreditLineLender(address creditLine, address newLender) external pure {
+    function configureCreditLineLender(address creditLine, address newLender) external pure {
         creditLine; // To prevent compiler warning about unused variable
         newLender; // To prevent compiler warning about unused variable
         revert Error.NotImplemented();
     }
 
-    function updateLiquidityPoolLender(address liquidityPool, address newLender) external pure {
+    function configureLiquidityPoolLender(address liquidityPool, address newLender) external pure {
         liquidityPool; // To prevent compiler warning about unused variable
         newLender; // To prevent compiler warning about unused variable
         revert Error.NotImplemented();
