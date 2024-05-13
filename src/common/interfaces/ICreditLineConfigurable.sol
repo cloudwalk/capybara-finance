@@ -31,6 +31,7 @@ interface ICreditLineConfigurable is ICreditLine {
         address treasury;                // The address of the loan treasury.
         uint32 minDurationInPeriods;     // The minimum duration of the loan determined in periods.
         uint32 maxDurationInPeriods;     // The maximum duration of the loan determined in periods.
+        // uint32 __reserved;            // Reserved for future use.
         // Slot 2
         uint64 minBorrowAmount;          // The minimum amount of tokens the borrower can take as a loan.
         uint64 maxBorrowAmount;          // The maximum amount of tokens the borrower can take as a loan.
@@ -51,15 +52,15 @@ interface ICreditLineConfigurable is ICreditLine {
         uint32 expiration;                // The expiration date of the configuration.
         uint32 minDurationInPeriods;      // The minimum duration of the loan determined in periods.
         uint32 maxDurationInPeriods;      // The maximum duration of the loan determined in periods.
-        uint32 addonFixedRate;            // The fixed rate for the loan addon calculation (extra charges or fees).
-        uint32 addonPeriodRate;           // The period rate for the loan addon calculation (extra charges or fees).
-        uint32 interestRatePrimary;       // The primary interest rate to be applied to the loan.
-        uint32 interestRateSecondary;     // The secondary interest rate to be applied to the loan.
+        uint64 minBorrowAmount;           // The minimum amount of tokens the borrower can take as a loan.
+        uint64 maxBorrowAmount;           // The maximum amount of tokens the borrower can take as a loan.
         BorrowPolicy borrowPolicy;        // The borrow policy to be applied to the borrower.
         // uint24 __reserved;             // Reserved for future use.
         // Slot 2
-        uint64 minBorrowAmount;           // The minimum amount of tokens the borrower can take as a loan.
-        uint64 maxBorrowAmount;           // The maximum amount of tokens the borrower can take as a loan.
+        uint32 interestRatePrimary;       // The primary interest rate to be applied to the loan.
+        uint32 interestRateSecondary;     // The secondary interest rate to be applied to the loan.
+        uint32 addonFixedRate;            // The fixed rate for the loan addon calculation (extra charges or fees).
+        uint32 addonPeriodRate;           // The period rate for the loan addon calculation (extra charges or fees).
     }
 
     // -------------------------------------------- //
