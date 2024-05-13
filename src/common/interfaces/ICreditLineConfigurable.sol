@@ -17,8 +17,8 @@ interface ICreditLineConfigurable is ICreditLine {
     /// The possible values:
     ///
     /// - Reset ---- Reset the borrow allowance after the first loan taken.
-    /// - Decrease - Decrease the borrow allowance after each loan taken.
     /// - Keep ----- Do not change anything about the borrow allowance.
+    /// - Decrease - Decrease the borrow allowance after each loan taken.
     enum BorrowPolicy {
         Reset,    // 0
         Keep,     // 1
