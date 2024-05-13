@@ -36,22 +36,4 @@ library InterestMath {
         }
         return outstandingBalance;
     }
-
-    /// @dev Calculates the outstanding balance of a loan using the compound interest formula.
-    /// @param originalBalance The original balance of the loan.
-    /// @param numberOfPeriods The number of periods since the loan was taken.
-    /// @param interestRate The interest rate applied to the loan.
-    /// @param interestRateFactor The interest rate factor.
-    /// @return outstandingBalance The outstanding balance of the loan.
-    function calculateOutstandingBalanceInLoop(
-        uint256 originalBalance,
-        uint256 numberOfPeriods,
-        uint256 interestRate,
-        uint256 interestRateFactor
-    ) internal pure returns (uint256 outstandingBalance) {
-        outstandingBalance = originalBalance;
-        for (uint256 i = 0; i < numberOfPeriods; i++) {
-            outstandingBalance += (outstandingBalance * interestRate) / interestRateFactor;
-        }
-    }
 }
