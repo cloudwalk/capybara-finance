@@ -518,7 +518,7 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ILendingMarket
-    function getLoanLender(uint256 loanId) public view returns (address) {
+    function getLoanLender(uint256 loanId) external view returns (address) {
         return _loanLenders[loanId];
     }
 
@@ -542,6 +542,7 @@ contract LendingMarket is
         return (Constants.NEGATIVE_TIME_OFFSET, false);
     }
 
+    /// @inheritdoc ILendingMarket
     function loanCounter() external view returns (uint256) {
         return _loanIdCounter;
     }
