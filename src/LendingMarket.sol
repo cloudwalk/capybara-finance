@@ -512,6 +512,7 @@ contract LendingMarket is
         return account == lender || _hasAlias[lender][account];
     }
 
+    /// @inheritdoc ILendingMarket
     function getLoanLender(uint256 loanId) public view returns (address) {
         return _loanLenders[loanId];
     }
