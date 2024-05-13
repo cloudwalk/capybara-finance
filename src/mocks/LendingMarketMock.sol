@@ -151,7 +151,7 @@ contract LendingMarketMock is ILendingMarket {
         revert Error.NotImplemented();
     }
 
-    function getLoanLender(uint256 loanId) external view returns (address) {
+    function getLoanLender(uint256 loanId) external view returns (Loan.Lender memory) {
         loanId;
         revert Error.NotImplemented();
     }

@@ -19,7 +19,7 @@ abstract contract LendingMarketStorage {
     mapping(uint256 => Loan.State) internal _loans;
 
     /// @dev The mapping of loan id to associated lender.
-    mapping(uint256 => address) internal _loanLenders;
+    mapping(uint256 => Loan.Lender) internal _lenders;
 
     /// @dev The mapping of credit line to associated lender.
     mapping(address => address) internal _creditLineLenders;

@@ -252,7 +252,7 @@ interface ILendingMarket {
 
     /// @dev Returns the lender of a loan.
     /// @param loanId The unique identifier of the loan to check.
-    function getLoanLender(uint256 loanId) external view returns (address);
+    function getLoanLender(uint256 loanId) external view returns (Loan.Lender memory);
 
     /// @dev Checks if the provided account is an alias for a lender.
     /// @param lender The address of the lender to check alias for.
