@@ -32,17 +32,17 @@ interface ICreditLineConfigurable is ICreditLine {
         uint32 minDurationInPeriods;     // The minimum duration of the loan determined in periods.
         uint32 maxDurationInPeriods;     // The maximum duration of the loan determined in periods.
         // Slot 2
-        uint32 minAddonFixedRate;        // The minimum fixed rate for the loan addon calculation.
-        uint32 maxAddonFixedRate;        // The maximum fixed rate for the loan addon calculation.
-        uint32 minAddonPeriodRate;       // The minimum period rate for the loan addon calculation.
-        uint32 maxAddonPeriodRate;       // The maximum period rate for the loan addon calculation.
+        uint64 minBorrowAmount;          // The minimum amount of tokens the borrower can take as a loan.
+        uint64 maxBorrowAmount;          // The maximum amount of tokens the borrower can take as a loan.
         uint32 minInterestRatePrimary;   // The minimum primary interest rate to be applied to the loan.
         uint32 maxInterestRatePrimary;   // The maximum primary interest rate to be applied to the loan.
         uint32 minInterestRateSecondary; // The minimum secondary interest rate to be applied to the loan.
         uint32 maxInterestRateSecondary; // The maximum secondary interest rate to be applied to the loan.
         // Slot 3
-        uint64 minBorrowAmount;          // The minimum amount of tokens the borrower can take as a loan.
-        uint64 maxBorrowAmount;          // The maximum amount of tokens the borrower can take as a loan.
+        uint32 minAddonFixedRate;        // The minimum fixed rate for the loan addon calculation.
+        uint32 maxAddonFixedRate;        // The maximum fixed rate for the loan addon calculation.
+        uint32 minAddonPeriodRate;       // The minimum period rate for the loan addon calculation.
+        uint32 maxAddonPeriodRate;       // The maximum period rate for the loan addon calculation.
     }
 
     /// @dev A struct that defines borrower configuration.
