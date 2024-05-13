@@ -80,6 +80,7 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
     /// @param lender_ The address of the credit line lender.
     /// @param market_ The address of the lending market.
     /// @param token_ The address of the token.
+    /// See details https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable.
     function initialize(
         address lender_,
         address market_,
@@ -92,6 +93,7 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
     /// @param lender_ The address of the credit line lender.
     /// @param market_ The address of the lending market.
     /// @param token_ The address of the token.
+    /// See details https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable.
     function __CreditLineConfigurable_init(
         address lender_,
         address market_,
@@ -109,6 +111,7 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
     /// @param lender_ The address of the credit line lender.
     /// @param market_ The address of the lending market.
     /// @param token_ The address of the token.
+    /// See details https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable.
     function __CreditLineConfigurable_init_unchained(
         address lender_,
         address market_,

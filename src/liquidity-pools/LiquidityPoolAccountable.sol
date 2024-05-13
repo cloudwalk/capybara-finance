@@ -72,6 +72,7 @@ contract LiquidityPoolAccountable is AccessControlExtUpgradeable, PausableUpgrad
     /// @dev Initializer of the upgradable contract.
     /// @param lender_ The address of the liquidity pool lender.
     /// @param market_ The address of the lending market.
+    /// See details https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable.
     function initialize(address lender_, address market_) external initializer {
         __LiquidityPoolAccountable_init(lender_, market_);
     }
@@ -79,6 +80,7 @@ contract LiquidityPoolAccountable is AccessControlExtUpgradeable, PausableUpgrad
     /// @dev Internal initializer of the upgradable contract.
     /// @param lender_ The address of the liquidity pool lender.
     /// @param market_ The address of the lending market.
+    /// See details https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable.
     function __LiquidityPoolAccountable_init(address lender_, address market_) internal onlyInitializing {
         __Context_init_unchained();
         __ERC165_init_unchained();
@@ -91,6 +93,7 @@ contract LiquidityPoolAccountable is AccessControlExtUpgradeable, PausableUpgrad
     /// @dev Unchained internal initializer of the upgradable contract.
     /// @param lender_ The address of the liquidity pool lender.
     /// @param market_ The address of the lending market.
+    /// See details https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable.
     function __LiquidityPoolAccountable_init_unchained(address lender_, address market_) internal onlyInitializing {
         if (lender_ == address(0)) {
             revert Error.ZeroAddress();

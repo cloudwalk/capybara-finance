@@ -107,12 +107,14 @@ contract LendingMarket is
 
     /// @dev Initializer of the upgradable contract.
     /// @param owner_ The owner of the contract.
+    /// See details https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable.
     function initialize(address owner_) external initializer {
         __LendingMarket_init(owner_);
     }
 
     /// @dev Internal initializer of the upgradable contract.
     /// @param owner_ The owner of the contract.
+    /// See details https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable.
     function __LendingMarket_init(address owner_) internal onlyInitializing {
         __Context_init_unchained();
         __ERC165_init_unchained();
@@ -123,6 +125,7 @@ contract LendingMarket is
 
     /// @dev Unchained internal initializer of the upgradable contract.
     /// @param owner_ The owner of the contract.
+    /// See details https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable.
     function __LendingMarket_init_unchained(address owner_) internal onlyInitializing {
         _grantRole(OWNER_ROLE, owner_);
     }
