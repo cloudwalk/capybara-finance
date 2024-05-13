@@ -216,11 +216,13 @@ contract CreditLineConfigurable is AccessControlUpgradeable, PausableUpgradeable
 
         BorrowerConfig storage borrowerConfig = _borrowers[borrower];
 
-        if (borrowerConfig.borrowPolicy == BorrowPolicy.Reset) {
-            borrowerConfig.maxBorrowAmount = 0;
+        if (borrowerConfig.borrowPolicy == BorrowPolicy.Keep) {
+            // Do nothing to the borrower's max borrow amount configuration
         } else if (borrowerConfig.borrowPolicy == BorrowPolicy.Decrease) {
             borrowerConfig.maxBorrowAmount -= borrowAmount.toUint64();
-        } // else if (BorrowPolicy.Keep) - do nothing
+        } else { // borrowerConfig.borrowPolicy == BorrowPolicy.Reset
+            borrowerConfig.maxBorrowAmount = 0;
+        }
     }
 
     // -------------------------------------------- //
