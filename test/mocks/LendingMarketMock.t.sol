@@ -221,6 +221,11 @@ contract LendingMarketMockTest is Test {
         mock.hasAlias(LENDER_1, LENDER_2);
     }
 
+    function test_getLoanLender() public {
+        vm.expectRevert(Error.NotImplemented.selector);
+        mock.getLoanLender(LOAN_ID);
+    }
+
     function test_interestRateFactor() public {
         vm.expectRevert(Error.NotImplemented.selector);
         mock.interestRateFactor();
@@ -234,5 +239,15 @@ contract LendingMarketMockTest is Test {
     function test_timeOffset() public {
         vm.expectRevert(Error.NotImplemented.selector);
         mock.timeOffset();
+    }
+
+    function test_registry() public {
+        vm.expectRevert(Error.NotImplemented.selector);
+        mock.registry();
+    }
+
+    function test_loansCount() public {
+        vm.expectRevert(Error.NotImplemented.selector);
+        mock.loansCount();
     }
 }
