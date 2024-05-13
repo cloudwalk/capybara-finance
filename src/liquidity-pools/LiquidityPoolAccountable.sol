@@ -80,6 +80,8 @@ contract LiquidityPoolAccountable is AccessControlExtUpgradeable, PausableUpgrad
     /// @param lender_ The address of the liquidity pool lender.
     /// @param market_ The address of the lending market.
     function __LiquidityPoolAccountable_init(address lender_, address market_) internal onlyInitializing {
+        __Context_init_unchained();
+        __ERC165_init_unchained();
         __AccessControl_init_unchained();
         __AccessControlExt_init_unchained();
         __Pausable_init_unchained();

@@ -97,6 +97,8 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
         address market_,
         address token_
     ) internal onlyInitializing {
+        __Context_init_unchained();
+        __ERC165_init_unchained();
         __AccessControl_init_unchained();
         __AccessControlExt_init_unchained();
         __Pausable_init_unchained();

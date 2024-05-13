@@ -114,6 +114,8 @@ contract LendingMarket is
     /// @dev Internal initializer of the upgradable contract.
     /// @param owner_ The owner of the contract.
     function __LendingMarket_init(address owner_) internal onlyInitializing {
+        __Context_init_unchained();
+        __ERC165_init_unchained();
         __AccessControl_init_unchained();
         __Pausable_init_unchained();
         __LendingMarket_init_unchained(owner_);
