@@ -271,5 +271,5 @@ interface ILendingMarket {
     function timeOffset() external view returns (uint256, bool);
 
     /// @dev Returns the total amount of loans taken.
-    function loansCount() external view returns (uint256);
+    function loanCounter() external view returns (uint256);
 }

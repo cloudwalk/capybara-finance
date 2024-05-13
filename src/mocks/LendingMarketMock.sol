@@ -168,7 +168,7 @@ contract LendingMarketMock is ILendingMarket {
         revert Error.NotImplemented();
     }
 
-    function loansCount() external view returns (uint256) {
+    function loanCounter() external view returns (uint256) {
         revert Error.NotImplemented();
     }
 

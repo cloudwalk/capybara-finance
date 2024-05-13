@@ -236,8 +236,8 @@ contract LendingMarketMockTest is Test {
         mock.timeOffset();
     }
 
-    function test_loansCount() public {
+    function test_loanCounter() public {
         vm.expectRevert(Error.NotImplemented.selector);
-        mock.loansCount();
+        mock.loanCounter();
     }
 }

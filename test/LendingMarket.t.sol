@@ -713,11 +713,11 @@ contract LendingMarketTest is Test {
         vm.expectEmit(true, true, true, true, address(market));
         emit LoanTaken(loanId, BORROWER, totalBorrowAmount, terms.durationInPeriods);
 
-        assertEq(market.loansCount(), 0); // number of loans taken
+        assertEq(market.loanCounter(), 0); // number of loans taken
 
         vm.prank(BORROWER);
         assertEq(market.takeLoan(address(creditLine), BORROW_AMOUNT, terms.durationInPeriods), loanId);
-        assertEq(market.loansCount(), 1); // number of loans taken
+        assertEq(market.loanCounter(), 1); // number of loans taken
 
         Loan.State memory loan = market.getLoanState(loanId);
 

@@ -536,7 +536,7 @@ contract LendingMarket is
         return (Constants.NEGATIVE_TIME_OFFSET, false);
     }
 
-    function loansCount() external view returns (uint256) {
+    function loanCounter() external view returns (uint256) {
         return _loanIdCounter;
     }
 
