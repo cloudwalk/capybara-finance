@@ -14,8 +14,6 @@ contract LendingMarketMock is ILendingMarket {
     //  Events                                      //
     // -------------------------------------------- //
 
-    event RegisterCreditLineCalled(address indexed lender, address indexed creditLine);
-    event RegisterLiquidityPoolCalled(address indexed lender, address indexed liquidityPool);
     event RepayLoanCalled(uint256 indexed loanId, uint256 repayAmount);
 
     // -------------------------------------------- //
@@ -76,18 +74,6 @@ contract LendingMarketMock is ILendingMarket {
         loanId; // To prevent compiler warning about unused variable
         newInterestRate; // To prevent compiler warning about unused variable
         revert Error.NotImplemented();
-    }
-
-    function registerCreditLine(address lender, address creditLine) external {
-        lender; // To prevent compiler warning about unused variable
-        creditLine; // To prevent compiler warning about unused variable
-        emit RegisterCreditLineCalled(lender, creditLine);
-    }
-
-    function registerLiquidityPool(address lender, address liquidityPool) external {
-        lender; // To prevent compiler warning about unused variable
-        liquidityPool; // To prevent compiler warning about unused variable
-        emit RegisterLiquidityPoolCalled(lender, liquidityPool);
     }
 
     function updateCreditLineLender(address creditLine, address newLender) external pure {

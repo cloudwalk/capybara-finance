@@ -12,16 +12,6 @@ interface ILendingMarket {
     //  Events                                      //
     // -------------------------------------------- //
 
-    /// @dev Emitted when a liquidity pool is registered.
-    /// @param lender The address of the liquidity pool lender.
-    /// @param liquidityPool The address of the liquidity pool contract.
-    event LiquidityPoolRegistered(address indexed lender, address indexed liquidityPool);
-
-    /// @dev Emitted when a credit line is registered.
-    /// @param lender The address of the credit line lender.
-    /// @param creditLine The address of the credit line contract.
-    event CreditLineRegistered(address indexed lender, address indexed creditLine);
-
     /// @dev Emitted when the lender of a liquidity pool is updated.
     /// @param liquidityPool The address of the liquidity pool.
     /// @param newLender The address of the new lender.
@@ -176,16 +166,6 @@ interface ILendingMarket {
     /// @param loanId The unique identifier of the loan whose secondary interest rate is to update.
     /// @param newInterestRate The new secondary interest rate of the loan.
     function updateLoanInterestRateSecondary(uint256 loanId, uint256 newInterestRate) external;
-
-    /// @dev Registers a credit line.
-    /// @param lender The address of the credit line lender.
-    /// @param creditLine The address of the credit line.
-    function registerCreditLine(address lender, address creditLine) external;
-
-    /// @dev Registers a liquidity pool.
-    /// @param lender The address of the liquidity pool lender.
-    /// @param liquidityPool The address of the liquidity pool.
-    function registerLiquidityPool(address lender, address liquidityPool) external;
 
     /// @dev Updates the lender of a given credit line.
     /// @param creditLine The address of the credit line to update.

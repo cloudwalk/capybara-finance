@@ -145,34 +145,6 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ILendingMarket
-    function registerCreditLine(address lender, address creditLine) external onlyRole(OWNER_ROLE) {
-        if (lender == address(0) || creditLine == address(0)) {
-            revert Error.ZeroAddress();
-        }
-        if (_creditLineLenders[creditLine] != address(0)) {
-            revert CreditLineAlreadyRegistered();
-        }
-
-        emit CreditLineRegistered(lender, creditLine);
-
-        _creditLineLenders[creditLine] = lender;
-    }
-
-    /// @inheritdoc ILendingMarket
-    function registerLiquidityPool(address lender, address liquidityPool) external onlyRole(OWNER_ROLE) {
-        if (lender == address(0) || liquidityPool == address(0)) {
-            revert Error.ZeroAddress();
-        }
-        if (_liquidityPoolLenders[liquidityPool] != address(0)) {
-            revert LiquidityPoolAlreadyRegistered();
-        }
-
-        emit LiquidityPoolRegistered(lender, liquidityPool);
-
-        _liquidityPoolLenders[liquidityPool] = lender;
-    }
-
-    /// @inheritdoc ILendingMarket
     function updateCreditLineLender(address creditLine, address newLender) external onlyRole(OWNER_ROLE) {
         if (creditLine == address(0) || newLender == address(0)) {
             revert Error.ZeroAddress();

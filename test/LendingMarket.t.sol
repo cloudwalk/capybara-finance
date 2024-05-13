@@ -39,9 +39,6 @@ contract LendingMarketTest is Test {
     event OnBeforeLoanRevocationCalled(uint256 indexed loanId);
     event OnAfterLoanRevocationCalled(uint256 indexed loanId);
 
-    event LiquidityPoolRegistered(address indexed lender, address indexed liquidityPool);
-    event CreditLineRegistered(address indexed lender, address indexed creditLine);
-
     event LiquidityPoolLenderUpdated(
         address indexed liquidityPool,
         address indexed newLender,
@@ -175,8 +172,8 @@ contract LendingMarketTest is Test {
 
     function configureMarket() private {
         vm.startPrank(OWNER);
-        market.registerCreditLine(LENDER, address(creditLine));
-        market.registerLiquidityPool(LENDER, address(liquidityPool));
+        market.updateCreditLineLender(address(creditLine), LENDER);
+        market.updateLiquidityPoolLender(address(liquidityPool), LENDER);
         vm.stopPrank();
 
         vm.prank(LENDER);
@@ -440,103 +437,13 @@ contract LendingMarketTest is Test {
     }
 
     // -------------------------------------------- //
-    //  Test `registerCreditLine` function          //
-    // -------------------------------------------- //
-
-    function test_registerCreditLine_IfOwner() public {
-        assertEq(market.getCreditLineLender(address(creditLine)), address(0));
-
-        vm.expectEmit(true, true, true, true, address(market));
-        emit CreditLineRegistered(LENDER, address(creditLine));
-
-        vm.prank(OWNER);
-        market.registerCreditLine(LENDER, address(creditLine));
-
-        assertEq(market.getCreditLineLender(address(creditLine)), LENDER);
-    }
-
-    function test_registerCreditLine_Revert_IfCallerNotOwner() public {
-        vm.prank(ATTACKER);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IAccessControl.AccessControlUnauthorizedAccount.selector,
-                ATTACKER, OWNER_ROLE)
-        );
-        market.registerCreditLine(LENDER, address(creditLine));
-    }
-
-    function test_registerCreditLine_Revert_IfLenderIsZeroAddress() public {
-        vm.prank(OWNER);
-        vm.expectRevert(Error.ZeroAddress.selector);
-        market.registerCreditLine(address(0), address(creditLine));
-    }
-
-    function test_registerCreditLine_Revert_IfCreditLineIsZeroAddress() public {
-        vm.prank(OWNER);
-        vm.expectRevert(Error.ZeroAddress.selector);
-        market.registerCreditLine(LENDER, address(0));
-    }
-
-    function test_registerCreditLine_Revert_IfCreditLineIsAlreadyRegistered() public {
-        vm.startPrank(OWNER);
-        market.registerCreditLine(LENDER, address(creditLine));
-        vm.expectRevert(LendingMarket.CreditLineAlreadyRegistered.selector);
-        market.registerCreditLine(LENDER, address(creditLine));
-    }
-
-    // -------------------------------------------- //
-    //  Test `registerLiquidityPool` function       //
-    // -------------------------------------------- //
-
-    function test_registerLiquidityPool_IfOwner() public {
-        assertEq(market.getLiquidityPoolLender(address(liquidityPool)), address(0));
-
-        vm.expectEmit(true, true, true, true, address(market));
-        emit LiquidityPoolRegistered(LENDER, address(liquidityPool));
-
-        vm.prank(OWNER);
-        market.registerLiquidityPool(LENDER, address(liquidityPool));
-
-        assertEq(market.getLiquidityPoolLender(address(liquidityPool)), LENDER);
-    }
-
-    function test_registerLiquidityPool_Revert_IfCallerNotOwner() public {
-        vm.prank(ATTACKER);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IAccessControl.AccessControlUnauthorizedAccount.selector,
-                ATTACKER, OWNER_ROLE)
-        );
-        market.registerLiquidityPool(LENDER, address(liquidityPool));
-    }
-
-    function test_registerLiquidityPool_Revert_IfLenderIsZeroAddress() public {
-        vm.prank(OWNER);
-        vm.expectRevert(Error.ZeroAddress.selector);
-        market.registerLiquidityPool(address(0), address(liquidityPool));
-    }
-
-    function test_registerLiquidityPool_Revert_IfLiquidityPoolIsZeroAddress() public {
-        vm.prank(OWNER);
-        vm.expectRevert(Error.ZeroAddress.selector);
-        market.registerLiquidityPool(LENDER, address(0));
-    }
-
-    function test_registerLiquidityPool_Revert_IfLiquidityPoolIsAlreadyRegistered() public {
-        vm.startPrank(OWNER);
-        market.registerLiquidityPool(LENDER, address(liquidityPool));
-        vm.expectRevert(LendingMarket.LiquidityPoolAlreadyRegistered.selector);
-        market.registerLiquidityPool(LENDER, address(liquidityPool));
-    }
-
-    // -------------------------------------------- //
     //  Test `updateCreditLineLender`               //
     // -------------------------------------------- //
 
     function test_updateCreditLineLender() public {
         vm.startPrank(OWNER);
 
-        market.registerCreditLine(LENDER, address(creditLine));
+        market.updateCreditLineLender(address(creditLine), LENDER);
         assertEq(market.getCreditLineLender(address(creditLine)), LENDER);
 
         vm.expectEmit(true, true, true, true, address(market));
@@ -570,7 +477,7 @@ contract LendingMarketTest is Test {
 
     function test_updateCreditLineLender_Revert_IfLenderAlreadyConfigured() public {
         vm.startPrank(OWNER);
-        market.registerCreditLine(LENDER, address(creditLine));
+        market.updateCreditLineLender(address(creditLine), LENDER);
         vm.expectRevert(Error.AlreadyConfigured.selector);
         market.updateCreditLineLender(address(creditLine), LENDER);
     }
@@ -582,7 +489,7 @@ contract LendingMarketTest is Test {
     function test_updateLiquidityPoolLender() public {
         vm.startPrank(OWNER);
 
-        market.registerLiquidityPool(LENDER, address(liquidityPool));
+        market.updateLiquidityPoolLender(address(liquidityPool), LENDER);
         assertEq(market.getLiquidityPoolLender(address(liquidityPool)), LENDER);
 
         vm.expectEmit(true, true, true, true, address(market));
@@ -616,7 +523,7 @@ contract LendingMarketTest is Test {
 
     function test_updateLiquidityPoolLender_Revert_IfLenderAlreadyConfigured() public {
         vm.startPrank(OWNER);
-        market.registerLiquidityPool(LENDER, address(liquidityPool));
+        market.updateLiquidityPoolLender(address(liquidityPool), LENDER);
         vm.expectRevert(Error.AlreadyConfigured.selector);
         market.updateLiquidityPoolLender(address(liquidityPool), LENDER);
     }
@@ -627,8 +534,8 @@ contract LendingMarketTest is Test {
 
     function registerCreditLineAndLiquidityPool(address creditLineLender, address liquidityPoolLender) private {
         vm.startPrank(OWNER);
-        market.registerCreditLine(creditLineLender, address(creditLine));
-        market.registerLiquidityPool(liquidityPoolLender, address(liquidityPool));
+        market.updateCreditLineLender(address(creditLine), creditLineLender);
+        market.updateLiquidityPoolLender(address(liquidityPool), liquidityPoolLender);
         vm.stopPrank();
     }
 
@@ -782,7 +689,7 @@ contract LendingMarketTest is Test {
         Loan.Terms memory terms = mockLoanTerms(BORROWER, BORROW_AMOUNT);
 
         vm.prank(OWNER);
-        market.registerCreditLine(LENDER, address(creditLine));
+        market.updateCreditLineLender(address(creditLine), LENDER);
 
         vm.prank(BORROWER);
         vm.expectRevert(LendingMarket.LiquidityPoolNotRegistered.selector);
@@ -1801,7 +1708,7 @@ contract LendingMarketTest is Test {
         assertEq(market.getCreditLineLender(address(creditLine)), address(0));
 
         vm.prank(OWNER);
-        market.registerCreditLine(LENDER, address(creditLine));
+        market.updateCreditLineLender(address(creditLine), LENDER);
 
         assertEq(market.getCreditLineLender(address(creditLine)), LENDER);
     }
@@ -1810,7 +1717,7 @@ contract LendingMarketTest is Test {
         assertEq(market.getLiquidityPoolLender(address(liquidityPool)), address(0));
 
         vm.prank(OWNER);
-        market.registerLiquidityPool(LENDER, address(liquidityPool));
+        market.updateLiquidityPoolLender(address(liquidityPool), LENDER);
 
         assertEq(market.getLiquidityPoolLender(address(liquidityPool)), LENDER);
     }
