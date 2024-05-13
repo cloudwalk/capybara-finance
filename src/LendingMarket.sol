@@ -218,13 +218,17 @@ contract LendingMarket is
         }
 
         address lender = _creditLineLenders[creditLine];
-        address liquidityPool = _creditLineToLiquidityPool[creditLine];
-
         if (lender == address(0)) {
             revert CreditLineNotRegistered();
         }
+
+        address liquidityPool = _creditLineToLiquidityPool[creditLine];
         if (liquidityPool == address(0)) {
             revert LiquidityPoolNotRegistered();
+        }
+
+        if (lender != _liquidityPoolLenders[liquidityPool]) {
+            revert Error.Unauthorized();
         }
 
         uint256 id = _loanIdCounter++;
