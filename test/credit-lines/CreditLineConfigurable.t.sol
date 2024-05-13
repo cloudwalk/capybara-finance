@@ -5,7 +5,7 @@ pragma solidity 0.8.24;
 import { Test } from "forge-std/Test.sol";
 
 import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
 import { Loan } from "src/common/libraries/Loan.sol";
@@ -50,6 +50,9 @@ contract CreditLineConfigurableTest is Test {
     address private constant BORROWER_3 = address(bytes20(keccak256("borrower_3")));
     address private constant LOAN_TREASURY = address(bytes20(keccak256("loan_treasury")));
 
+    bytes32 private constant OWNER_ROLE = keccak256("OWNER_ROLE");
+    bytes32 private constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
+
     uint64 private constant CREDIT_LINE_CONFIG_MIN_BORROW_AMOUNT = 400;
     uint64 private constant CREDIT_LINE_CONFIG_MAX_BORROW_AMOUNT = 900;
     uint32 private constant CREDIT_LINE_CONFIG_MIN_INTEREST_RATE_PRIMARY = 3;
@@ -93,7 +96,7 @@ contract CreditLineConfigurableTest is Test {
     function configureCreditLine() public returns (ICreditLineConfigurable.CreditLineConfig memory) {
         vm.startPrank(LENDER_1);
         ICreditLineConfigurable.CreditLineConfig memory config = initCreditLineConfig();
-        creditLine.configureAdmin(ADMIN, true);
+        creditLine.grantRole(ADMIN_ROLE, ADMIN);
         creditLine.configureCreditLine(config);
         vm.stopPrank();
         return config;
@@ -243,8 +246,7 @@ contract CreditLineConfigurableTest is Test {
         creditLine = new CreditLineConfigurable();
         creditLine.initialize(MARKET, LENDER_1, TOKEN_1);
         assertEq(creditLine.market(), MARKET);
-        assertEq(creditLine.lender(), LENDER_1);
-        assertEq(creditLine.owner(), LENDER_1);
+        assertEq(creditLine.hasRole(OWNER_ROLE, LENDER_1), true);
         assertEq(creditLine.token(), TOKEN_1);
     }
 
@@ -256,7 +258,7 @@ contract CreditLineConfigurableTest is Test {
 
     function test_initializer_Revert_IfLenderIsZeroAddress() public {
         creditLine = new CreditLineConfigurable();
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableInvalidOwner.selector, address(0)));
+        vm.expectRevert(Error.ZeroAddress.selector);
         creditLine.initialize(MARKET, address(0), TOKEN_1);
     }
 
@@ -293,7 +295,11 @@ contract CreditLineConfigurableTest is Test {
 
     function test_pause_Revert_IfCallerNotOwner() public {
         vm.prank(ATTACKER);
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                ATTACKER, OWNER_ROLE)
+        );
         creditLine.pause();
     }
 
@@ -321,49 +327,12 @@ contract CreditLineConfigurableTest is Test {
         vm.prank(LENDER_1);
         creditLine.pause();
         vm.prank(ATTACKER);
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                ATTACKER, OWNER_ROLE)
+        );
         creditLine.unpause();
-    }
-
-    // -------------------------------------------- //
-    //  Test `configureAdmin` function              //
-    // -------------------------------------------- //
-
-    function test_configureAdmin() public {
-        assertEq(creditLine.isAdmin(ADMIN), false);
-
-        vm.startPrank(LENDER_1);
-
-        vm.expectEmit(true, true, true, true, address(creditLine));
-        emit AdminConfigured(ADMIN, true);
-        creditLine.configureAdmin(ADMIN, true);
-
-        assertEq(creditLine.isAdmin(ADMIN), true);
-
-        vm.expectEmit(true, true, true, true, address(creditLine));
-        emit AdminConfigured(ADMIN, false);
-        creditLine.configureAdmin(ADMIN, false);
-
-        assertEq(creditLine.isAdmin(ADMIN), false);
-    }
-
-    function test_configureAdmin_Revert_IfCallerNotOwner() public {
-        vm.prank(ATTACKER);
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
-        creditLine.configureAdmin(ADMIN, true);
-    }
-
-    function test_configureAdmin_Revert_IfAdminIsZeroAddress() public {
-        vm.prank(LENDER_1);
-        vm.expectRevert(Error.ZeroAddress.selector);
-        creditLine.configureAdmin(address(0), true);
-    }
-
-    function test_configureAdmin_Revert_IfAdminIsAlreadyConfigured() public {
-        vm.startPrank(LENDER_1);
-        creditLine.configureAdmin(ADMIN, true);
-        vm.expectRevert(Error.AlreadyConfigured.selector);
-        creditLine.configureAdmin(ADMIN, true);
     }
 
     // -------------------------------------------- //
@@ -387,7 +356,11 @@ contract CreditLineConfigurableTest is Test {
         ICreditLineConfigurable.CreditLineConfig memory config = initCreditLineConfig();
 
         vm.prank(ATTACKER);
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                ATTACKER, OWNER_ROLE)
+        );
         creditLine.configureCreditLine(config);
     }
 
@@ -483,7 +456,11 @@ contract CreditLineConfigurableTest is Test {
         ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
 
         vm.prank(ATTACKER);
-        vm.expectRevert(Error.Unauthorized.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                ATTACKER, ADMIN_ROLE)
+        );
         creditLine.configureBorrower(BORROWER_1, config);
     }
 
@@ -696,7 +673,11 @@ contract CreditLineConfigurableTest is Test {
             initBorrowerConfigs(block.timestamp);
 
         vm.prank(ATTACKER);
-        vm.expectRevert(Error.Unauthorized.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                ATTACKER, ADMIN_ROLE)
+        );
         creditLine.configureBorrowers(borrowers, configs);
     }
 
@@ -1002,24 +983,6 @@ contract CreditLineConfigurableTest is Test {
         creditLine.configureCreditLine(config);
 
         assertTrueCreditLineConfig(config, creditLine.creditLineConfiguration());
-    }
-
-    function test_isAdmin() public {
-        assertFalse(creditLine.isAdmin(ADMIN));
-
-        vm.prank(LENDER_1);
-        creditLine.configureAdmin(ADMIN, true);
-
-        assertTrue(creditLine.isAdmin(ADMIN));
-
-        vm.prank(LENDER_1);
-        creditLine.configureAdmin(ADMIN, false);
-
-        assertFalse(creditLine.isAdmin(ADMIN));
-    }
-
-    function test_lender() public {
-        assertEq(creditLine.lender(), LENDER_1);
     }
 
     function test_market() public {

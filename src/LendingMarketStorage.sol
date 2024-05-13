@@ -12,9 +12,6 @@ abstract contract LendingMarketStorage {
     //  Storage variables                           //
     // -------------------------------------------- //
 
-    /// @dev The address of the lending registry.
-    address internal _registry;
-
     /// @dev The counter of the NFT token identifiers.
     uint256 internal _tokenIdCounter;
 
@@ -35,5 +32,5 @@ abstract contract LendingMarketStorage {
 
     /// @dev This empty reserved space is put in place to allow future versions
     /// to add new variables without shifting down storage in the inheritance chain.
-    uint256[43] private __gap;
+    uint256[44] private __gap;
 }

@@ -5,7 +5,7 @@ pragma solidity 0.8.24;
 import { Test } from "forge-std/Test.sol";
 
 import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
 import { Loan } from "src/common/libraries/Loan.sol";
@@ -47,6 +47,9 @@ contract LiquidityPoolAccountableTest is Test {
     address private constant LENDER = address(bytes20(keccak256("lender")));
     address private constant ATTACKER = address(bytes20(keccak256("attacker")));
     address private constant TOKEN_SOURCE_NONEXISTENT = address(bytes20(keccak256("token_source_nonexistent")));
+
+    bytes32 private constant OWNER_ROLE = keccak256("OWNER_ROLE");
+    bytes32 private constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
     uint256 private constant LOAN_ID_1 = 1;
     uint256 private constant LOAN_ID_2 = 2;
@@ -121,8 +124,7 @@ contract LiquidityPoolAccountableTest is Test {
         liquidityPool = new LiquidityPoolAccountable();
         liquidityPool.initialize(address(lendingMarket), LENDER);
         assertEq(liquidityPool.market(), address(lendingMarket));
-        assertEq(liquidityPool.lender(), LENDER);
-        assertEq(liquidityPool.owner(), LENDER);
+        assertEq(liquidityPool.hasRole(OWNER_ROLE, LENDER), true);
     }
 
     function test_initializer_Revert_IfMarketIsZeroAddress() public {
@@ -133,7 +135,7 @@ contract LiquidityPoolAccountableTest is Test {
 
     function test_initializer_Revert_IfLenderIsZeroAddress() public {
         liquidityPool = new LiquidityPoolAccountable();
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableInvalidOwner.selector, address(0)));
+        vm.expectRevert(Error.ZeroAddress.selector);
         liquidityPool.initialize(address(lendingMarket), address(0));
     }
 
@@ -164,7 +166,11 @@ contract LiquidityPoolAccountableTest is Test {
 
     function test_pause_Revert_IfCallerNotOwner() public {
         vm.prank(ATTACKER);
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                ATTACKER, OWNER_ROLE)
+        );
         liquidityPool.pause();
     }
 
@@ -192,49 +198,12 @@ contract LiquidityPoolAccountableTest is Test {
         vm.prank(LENDER);
         liquidityPool.pause();
         vm.prank(ATTACKER);
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                ATTACKER, OWNER_ROLE)
+        );
         liquidityPool.unpause();
-    }
-
-    // -------------------------------------------- //
-    //  Test `configureAdmin` function              //
-    // -------------------------------------------- //
-
-    function test_configureAdmin() public {
-        assertEq(liquidityPool.isAdmin(ADMIN), false);
-
-        vm.startPrank(LENDER);
-
-        vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit AdminConfigured(ADMIN, true);
-        liquidityPool.configureAdmin(ADMIN, true);
-
-        assertEq(liquidityPool.isAdmin(ADMIN), true);
-
-        vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit AdminConfigured(ADMIN, false);
-        liquidityPool.configureAdmin(ADMIN, false);
-
-        assertEq(liquidityPool.isAdmin(ADMIN), false);
-    }
-
-    function test_configureAdmin_Revert_IfCallerNotOwner() public {
-        vm.prank(ATTACKER);
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
-        liquidityPool.configureAdmin(ADMIN, true);
-    }
-
-    function test_configureAdmin_Revert_IfAdminIsZeroAddress() public {
-        vm.prank(LENDER);
-        vm.expectRevert(Error.ZeroAddress.selector);
-        liquidityPool.configureAdmin(address(0), true);
-    }
-
-    function test_configureAdmin_Revert_IfAdminIsAlreadyConfigured() public {
-        vm.startPrank(LENDER);
-        liquidityPool.configureAdmin(ADMIN, true);
-        vm.expectRevert(Error.AlreadyConfigured.selector);
-        liquidityPool.configureAdmin(ADMIN, true);
     }
 
     // -------------------------------------------- //
@@ -267,7 +236,11 @@ contract LiquidityPoolAccountableTest is Test {
 
     function test_deposit_Revert_IfCallerNotOwner() public {
         vm.prank(ATTACKER);
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                ATTACKER, OWNER_ROLE)
+        );
         liquidityPool.deposit(address(creditLine), DEPOSIT_AMOUNT_1);
     }
 
@@ -338,7 +311,11 @@ contract LiquidityPoolAccountableTest is Test {
     function test_withdraw_Revert_IfCallerNotOwner() public {
         (uint256 borrowable, uint256 addons) = prepareWithdraw();
         vm.prank(ATTACKER);
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                ATTACKER, OWNER_ROLE)
+        );
         liquidityPool.withdraw(address(creditLine), borrowable, addons);
     }
 
@@ -392,7 +369,11 @@ contract LiquidityPoolAccountableTest is Test {
     function test_rescue_Revert_IfCallerNotOwner() public {
         token.mint(address(liquidityPool), DEPOSIT_AMOUNT_1);
         vm.prank(ATTACKER);
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                ATTACKER, OWNER_ROLE)
+        );
         liquidityPool.rescue(address(token), DEPOSIT_AMOUNT_1);
     }
 
@@ -401,8 +382,9 @@ contract LiquidityPoolAccountableTest is Test {
     // -------------------------------------------- //
 
     function test_autoRepay() public {
-        vm.prank(LENDER);
-        liquidityPool.configureAdmin(ADMIN, true);
+        vm.startPrank(LENDER);
+        liquidityPool.grantRole(ADMIN_ROLE, ADMIN);
+
         (uint256[] memory loanIds, uint256[] memory amounts) = getBatchLoanData();
 
         vm.expectEmit(true, true, true, true, address(liquidityPool));
@@ -413,6 +395,7 @@ contract LiquidityPoolAccountableTest is Test {
             emit RepayLoanCalled(loanIds[i], amounts[i]);
         }
 
+        vm.stopPrank();
         vm.prank(ADMIN);
         liquidityPool.autoRepay(loanIds, amounts);
     }
@@ -421,13 +404,17 @@ contract LiquidityPoolAccountableTest is Test {
         (uint256[] memory loanIds, uint256[] memory amounts) = getBatchLoanData();
 
         vm.prank(ATTACKER);
-        vm.expectRevert(Error.Unauthorized.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                ATTACKER, ADMIN_ROLE)
+        );
         liquidityPool.autoRepay(loanIds, amounts);
     }
 
     function test_autoRepay_Revert_IfArrayLengthMismatch() public {
         vm.prank(LENDER);
-        liquidityPool.configureAdmin(ADMIN, true);
+        liquidityPool.grantRole(ADMIN_ROLE, ADMIN);
 
         (uint256[] memory loanIds, uint256[] memory amounts) = getBatchLoanData();
         uint256[] memory amountsIncorrectLength = new uint256[](2);
@@ -791,26 +778,8 @@ contract LiquidityPoolAccountableTest is Test {
         assertEq(liquidityPool.getCreditLine(LOAN_ID_1), address(creditLine));
     }
 
-    function test_isAdmin() public {
-        assertFalse(liquidityPool.isAdmin(ADMIN));
-
-        vm.prank(LENDER);
-        liquidityPool.configureAdmin(ADMIN, true);
-
-        assertTrue(liquidityPool.isAdmin(ADMIN));
-
-        vm.prank(LENDER);
-        liquidityPool.configureAdmin(ADMIN, false);
-
-        assertFalse(liquidityPool.isAdmin(ADMIN));
-    }
-
     function test_market() public {
         assertEq(liquidityPool.market(), address(lendingMarket));
-    }
-
-    function test_lender() public {
-        assertEq(liquidityPool.lender(), LENDER);
     }
 
     function test_kind() public {

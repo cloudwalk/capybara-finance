@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.24;
 
-import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { AccessControlUpgradeable } from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
 import { Loan } from "../common/libraries/Loan.sol";
@@ -16,8 +16,14 @@ import { ICreditLineConfigurable } from "../common/interfaces/ICreditLineConfigu
 /// @title CreditLineConfigurable contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @dev Implementation of the configurable credit line contract.
-contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICreditLineConfigurable {
+contract CreditLineConfigurable is AccessControlUpgradeable, PausableUpgradeable, ICreditLineConfigurable {
     using SafeCast for uint256;
+
+    /// @dev The role of this contract owner.
+    bytes32 public constant OWNER_ROLE = keccak256("OWNER_ROLE");
+
+    /// @dev The role of this contract admin.
+    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
     // -------------------------------------------- //
     //  Storage variables                           //
@@ -28,9 +34,6 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
 
     /// @dev The address of the credit line token.
     address internal _token;
-
-    /// @dev The mapping of account to its admin status.
-    mapping(address => bool) internal _admins;
 
     /// @dev The mapping of borrower to its configuration.
     mapping(address => BorrowerConfig) internal _borrowers;
@@ -69,14 +72,6 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         _;
     }
 
-    /// @dev Throws if called by any account other than the admin.
-    modifier onlyAdmin() {
-        if (!_admins[msg.sender]) {
-            revert Error.Unauthorized();
-        }
-        _;
-    }
-
     // -------------------------------------------- //
     //  Initializers                                //
     // -------------------------------------------- //
@@ -102,21 +97,27 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
         address lender_,
         address token_
     ) internal onlyInitializing {
-        __Ownable_init_unchained(lender_);
+        __AccessControl_init_unchained();
         __Pausable_init_unchained();
-        __CreditLineConfigurable_init_unchained(market_, token_);
+        __CreditLineConfigurable_init_unchained(market_, token_, lender_);
     }
 
     /// @dev Unchained internal initializer of the upgradable contract.
     /// @param market_ The address of the lending market.
     /// @param token_ The address of the token.
-    function __CreditLineConfigurable_init_unchained(address market_, address token_) internal onlyInitializing {
+    function __CreditLineConfigurable_init_unchained(address market_, address token_, address lender_) internal onlyInitializing {
         if (market_ == address(0)) {
             revert Error.ZeroAddress();
         }
         if (token_ == address(0)) {
             revert Error.ZeroAddress();
         }
+        if (lender_ == address(0)) {
+            revert Error.ZeroAddress();
+        }
+
+        _grantRole(OWNER_ROLE, lender_);
+        _setRoleAdmin(ADMIN_ROLE, OWNER_ROLE);
 
         _market = market_;
         _token = token_;
@@ -127,31 +128,17 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     // -------------------------------------------- //
 
     /// @dev Pauses the contract.
-    function pause() external onlyOwner {
+    function pause() external onlyRole(OWNER_ROLE) {
         _pause();
     }
 
     /// @dev Unpauses the contract.
-    function unpause() external onlyOwner {
+    function unpause() external onlyRole(OWNER_ROLE) {
         _unpause();
     }
 
     /// @inheritdoc ICreditLineConfigurable
-    function configureAdmin(address account, bool adminStatus) external onlyOwner {
-        if (account == address(0)) {
-            revert Error.ZeroAddress();
-        }
-        if (_admins[account] == adminStatus) {
-            revert Error.AlreadyConfigured();
-        }
-
-        _admins[account] = adminStatus;
-
-        emit AdminConfigured(account, adminStatus);
-    }
-
-    /// @inheritdoc ICreditLineConfigurable
-    function configureCreditLine(CreditLineConfig memory config) external onlyOwner {
+    function configureCreditLine(CreditLineConfig memory config) external onlyRole(OWNER_ROLE) {
         if (config.minBorrowAmount > config.maxBorrowAmount) {
             revert InvalidCreditLineConfiguration();
         }
@@ -181,7 +168,10 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     // -------------------------------------------- //
 
     /// @inheritdoc ICreditLineConfigurable
-    function configureBorrower(address borrower, BorrowerConfig memory config) external whenNotPaused onlyAdmin {
+    function configureBorrower(
+        address borrower,
+        BorrowerConfig memory config
+    ) external whenNotPaused onlyRole(ADMIN_ROLE) {
         _configureBorrower(borrower, config);
     }
 
@@ -189,7 +179,7 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
     function configureBorrowers(
         address[] memory borrowers,
         BorrowerConfig[] memory configs
-    ) external whenNotPaused onlyAdmin {
+    ) external whenNotPaused onlyRole(ADMIN_ROLE) {
         if (borrowers.length != configs.length) {
             revert Error.ArrayLengthMismatch();
         }
@@ -290,17 +280,12 @@ contract CreditLineConfigurable is OwnableUpgradeable, PausableUpgradeable, ICre
 
     /// @inheritdoc ICreditLineConfigurable
     function isAdmin(address account) external view returns (bool) {
-        return _admins[account];
+        return hasRole(ADMIN_ROLE, account);
     }
 
     /// @inheritdoc ICreditLine
     function market() external view returns (address) {
         return _market;
-    }
-
-    /// @inheritdoc ICreditLine
-    function lender() external view returns (address) {
-        return owner();
     }
 
     /// @inheritdoc ICreditLine

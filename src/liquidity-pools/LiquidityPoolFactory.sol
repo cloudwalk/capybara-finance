@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.24;
 
-import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { AccessControlUpgradeable } from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 
 import { ILiquidityPool } from "../common/interfaces/core/ILiquidityPool.sol";
 import { ILiquidityPoolFactory } from "../common/interfaces/ILiquidityPoolFactory.sol";
@@ -12,7 +12,10 @@ import { LiquidityPoolAccountable } from "./LiquidityPoolAccountable.sol";
 /// @title LiquidityPoolFactory contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @dev Implementation of the liquidity pool factory contract.
-contract LiquidityPoolFactory is OwnableUpgradeable, ILiquidityPoolFactory {
+contract LiquidityPoolFactory is AccessControlUpgradeable, ILiquidityPoolFactory {
+    /// @dev The role of this contract owner.
+    bytes32 public constant OWNER_ROLE = keccak256("OWNER_ROLE");
+
     // -------------------------------------------- //
     //  Errors                                      //
     // -------------------------------------------- //
@@ -33,12 +36,14 @@ contract LiquidityPoolFactory is OwnableUpgradeable, ILiquidityPoolFactory {
     /// @dev Internal initializer of the upgradable contract.
     /// @param registry_ The address of the lending market registry.
     function __LiquidityPoolFactory_init(address registry_) internal onlyInitializing {
-        __Ownable_init_unchained(registry_);
-        __LiquidityPoolFactory_init_unchained();
+        __AccessControl_init_unchained();
+        __LiquidityPoolFactory_init_unchained(registry_);
     }
 
     /// @dev Unchained internal initializer of the upgradable contract.
-    function __LiquidityPoolFactory_init_unchained() internal onlyInitializing { }
+    function __LiquidityPoolFactory_init_unchained(address registry_) internal onlyInitializing {
+        _grantRole(OWNER_ROLE, registry_);
+    }
 
     // -------------------------------------------- //
     //  Functions                                   //
@@ -50,7 +55,7 @@ contract LiquidityPoolFactory is OwnableUpgradeable, ILiquidityPoolFactory {
         address lender,
         uint16 kind,
         bytes calldata data
-    ) external onlyOwner returns (address) {
+    ) external onlyRole(OWNER_ROLE) returns (address) {
         data; // To prevent compiler warning about unused variable
 
         if (kind != 1) {

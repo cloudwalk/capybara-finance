@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.24;
 
-import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { AccessControlUpgradeable } from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 
 import { ICreditLine } from "../common/interfaces/core/ICreditLine.sol";
 import { ICreditLineFactory } from "../common/interfaces/ICreditLineFactory.sol";
@@ -12,7 +12,10 @@ import { CreditLineConfigurable } from "./CreditLineConfigurable.sol";
 /// @title CreditLineFactory contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @dev Implementation of the credit line factory contract.
-contract CreditLineFactory is OwnableUpgradeable, ICreditLineFactory {
+contract CreditLineFactory is AccessControlUpgradeable, ICreditLineFactory {
+    /// @dev The role of this contract owner.
+    bytes32 public constant OWNER_ROLE = keccak256("OWNER_ROLE");
+
     // -------------------------------------------- //
     //  Errors                                      //
     // -------------------------------------------- //
@@ -33,12 +36,14 @@ contract CreditLineFactory is OwnableUpgradeable, ICreditLineFactory {
     /// @dev Internal initializer of the upgradable contract.
     /// @param registry_ The address of the lending market registry.
     function __CreditLineFactory_init(address registry_) internal onlyInitializing {
-        __Ownable_init_unchained(registry_);
-        __CreditLineFactory_init_unchained();
+        __AccessControl_init_unchained();
+        __CreditLineFactory_init_unchained(registry_);
     }
 
     /// @dev Unchained internal initializer of the upgradable contract.
-    function __CreditLineFactory_init_unchained() internal onlyInitializing { }
+    function __CreditLineFactory_init_unchained(address registry_) internal onlyInitializing {
+        _grantRole(OWNER_ROLE, registry_);
+    }
 
     // -------------------------------------------- //
     //  Functions                                   //
@@ -51,7 +56,7 @@ contract CreditLineFactory is OwnableUpgradeable, ICreditLineFactory {
         address token,
         uint16 kind,
         bytes calldata data
-    ) external onlyOwner returns (address) {
+    ) external onlyRole(OWNER_ROLE) returns (address) {
         data; // To prevent compiler warning about unused variable
 
         if (kind != 1) {

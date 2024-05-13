@@ -5,7 +5,7 @@ pragma solidity 0.8.24;
 import { Test } from "forge-std/Test.sol";
 
 import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.sol";
 
 import { CreditLineConfigurable } from "src/credit-lines/CreditLineConfigurable.sol";
 import { CreditLineFactory } from "src/credit-lines/CreditLineFactory.sol";
@@ -40,6 +40,8 @@ contract CreditLineFactoryTest is Test {
     address private constant REGISTRY_2 = address(bytes20(keccak256("registry_2")));
     address private constant EXPECTED_CONTRACT_ADDRESS = 0x104fBc016F4bb334D775a19E8A6510109AC63E00;
 
+    bytes32 private constant OWNER_ROLE = keccak256("OWNER_ROLE");
+
     uint16 private constant KIND_1 = 1;
     uint16 private constant KIND_2 = 2;
     bytes private constant DATA = "0x123ff";
@@ -60,14 +62,7 @@ contract CreditLineFactoryTest is Test {
     function test_initializer() public {
         factory = new CreditLineFactory();
         factory.initialize(REGISTRY_1);
-        assertEq(factory.owner(), REGISTRY_1);
-    }
-
-    function test_initializer_Revert_IfRegistryIsZeroAddress() public {
-        vm.prank(REGISTRY_1);
-        factory = new CreditLineFactory();
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableInvalidOwner.selector, address(0)));
-        factory.initialize(address(0));
+        assertEq(factory.hasRole(OWNER_ROLE, REGISTRY_1), true);
     }
 
     function test_initialize_Revert_IfCalledSecondTime() public {
@@ -88,7 +83,6 @@ contract CreditLineFactoryTest is Test {
         address creditLine = factory.createCreditLine(MARKET, LENDER, TOKEN, KIND_1, DATA);
 
         assertEq(creditLine, EXPECTED_CONTRACT_ADDRESS);
-        assertEq(CreditLineConfigurable(creditLine).lender(), LENDER);
         assertEq(CreditLineConfigurable(creditLine).market(), MARKET);
         assertEq(CreditLineConfigurable(creditLine).token(), TOKEN);
         assertEq(CreditLineConfigurable(creditLine).kind(), KIND_1);
@@ -102,7 +96,11 @@ contract CreditLineFactoryTest is Test {
 
     function test_createCreditLine_Revert_IfCallerNotRegistry() public {
         vm.prank(ATTACKER);
-        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, ATTACKER));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                ATTACKER, OWNER_ROLE)
+        );
         factory.createCreditLine(MARKET, LENDER, TOKEN, KIND_1, DATA);
     }
 

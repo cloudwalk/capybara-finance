@@ -4,7 +4,7 @@ pragma solidity 0.8.24;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { AccessControlUpgradeable } from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
 import { Loan } from "../common/libraries/Loan.sol";
@@ -19,9 +19,15 @@ import { ILiquidityPoolAccountable } from "../common/interfaces/ILiquidityPoolAc
 /// @title LiquidityPoolAccountable contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @dev Implementation of the accountable liquidity pool contract.
-contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, ILiquidityPoolAccountable {
+contract LiquidityPoolAccountable is AccessControlUpgradeable, PausableUpgradeable, ILiquidityPoolAccountable {
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
+
+    /// @dev The role of this contract owner.
+    bytes32 public constant OWNER_ROLE = keccak256("OWNER_ROLE");
+
+    /// @dev The role of this contract admin.
+    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
     // -------------------------------------------- //
     //  Storage variables                           //
@@ -29,9 +35,6 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
 
     /// @dev The address of the lending market.
     address internal _market;
-
-    /// @dev The mapping of an account to its admin status.
-    mapping(address => bool) internal _admins;
 
     /// @dev The mapping of a loan identifier to a credit line.
     mapping(uint256 => address) internal _creditLines;
@@ -58,14 +61,6 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
         _;
     }
 
-    /// @dev Throws if called by any account other than the admin.
-    modifier onlyAdmin() {
-        if (!_admins[msg.sender]) {
-            revert Error.Unauthorized();
-        }
-        _;
-    }
-
     // -------------------------------------------- //
     //  Initializers                                //
     // -------------------------------------------- //
@@ -81,17 +76,24 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
     /// @param market_ The address of the lending market.
     /// @param lender_ The address of the lender.
     function __LiquidityPoolAccountable_init(address market_, address lender_) internal onlyInitializing {
-        __Ownable_init_unchained(lender_);
+        __AccessControl_init_unchained();
         __Pausable_init_unchained();
-        __LiquidityPoolAccountable_init_unchained(market_);
+        __LiquidityPoolAccountable_init_unchained(market_, lender_);
     }
 
     /// @dev Unchained internal initializer of the upgradable contract.
     /// @param market_ The address of the lending market.
-    function __LiquidityPoolAccountable_init_unchained(address market_) internal onlyInitializing {
+    function __LiquidityPoolAccountable_init_unchained(address market_, address lender_) internal onlyInitializing {
         if (market_ == address(0)) {
             revert Error.ZeroAddress();
         }
+
+        if (lender_ == address(0)) {
+            revert Error.ZeroAddress();
+        }
+
+        _grantRole(OWNER_ROLE, lender_);
+        _setRoleAdmin(ADMIN_ROLE, OWNER_ROLE);
 
         _market = market_;
     }
@@ -101,31 +103,17 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
     // -------------------------------------------- //
 
     /// @dev Pauses the contract.
-    function pause() external onlyOwner {
+    function pause() external onlyRole(OWNER_ROLE) {
         _pause();
     }
 
     /// @dev Unpauses the contract.
-    function unpause() external onlyOwner {
+    function unpause() external onlyRole(OWNER_ROLE) {
         _unpause();
     }
 
     /// @inheritdoc ILiquidityPoolAccountable
-    function configureAdmin(address account, bool adminStatus) external onlyOwner {
-        if (account == address(0)) {
-            revert Error.ZeroAddress();
-        }
-        if (_admins[account] == adminStatus) {
-            revert Error.AlreadyConfigured();
-        }
-
-        _admins[account] = adminStatus;
-
-        emit AdminConfigured(account, adminStatus);
-    }
-
-    /// @inheritdoc ILiquidityPoolAccountable
-    function deposit(address creditLine, uint256 amount) external onlyOwner {
+    function deposit(address creditLine, uint256 amount) external onlyRole(OWNER_ROLE) {
         if (creditLine == address(0)) {
             revert Error.ZeroAddress();
         }
@@ -145,7 +133,7 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
     }
 
     /// @inheritdoc ILiquidityPoolAccountable
-    function withdraw(address creditLine, uint256 borrowableAmount, uint256 addonAmount) external onlyOwner {
+    function withdraw(address creditLine, uint256 borrowableAmount, uint256 addonAmount) external onlyRole(OWNER_ROLE) {
         if (creditLine == address(0)) {
             revert Error.ZeroAddress();
         }
@@ -170,7 +158,7 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
     }
 
     /// @inheritdoc ILiquidityPoolAccountable
-    function rescue(address token, uint256 amount) external onlyOwner {
+    function rescue(address token, uint256 amount) external onlyRole(OWNER_ROLE) {
         if (token == address(0)) {
             revert Error.ZeroAddress();
         }
@@ -184,7 +172,7 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
     }
 
     /// @inheritdoc ILiquidityPoolAccountable
-    function autoRepay(uint256[] memory loanIds, uint256[] memory amounts) external onlyAdmin {
+    function autoRepay(uint256[] memory loanIds, uint256[] memory amounts) external onlyRole(ADMIN_ROLE) {
         if (loanIds.length != amounts.length) {
             revert Error.ArrayLengthMismatch();
         }
@@ -280,17 +268,12 @@ contract LiquidityPoolAccountable is OwnableUpgradeable, PausableUpgradeable, IL
 
     /// @inheritdoc ILiquidityPoolAccountable
     function isAdmin(address account) external view returns (bool) {
-        return _admins[account];
+        return hasRole(ADMIN_ROLE, account);
     }
 
     /// @inheritdoc ILiquidityPool
     function market() external view returns (address) {
         return _market;
-    }
-
-    /// @inheritdoc ILiquidityPool
-    function lender() external view returns (address) {
-        return owner();
     }
 
     /// @inheritdoc ILiquidityPool

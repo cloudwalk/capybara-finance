@@ -12,11 +12,6 @@ interface ILendingMarket {
     //  Events                                      //
     // -------------------------------------------- //
 
-    /// @dev Emitted when the lending market registry is changed.
-    /// @param newRegistry The address of the new registry.
-    /// @param oldRegistry The address of the old registry.
-    event MarketRegistryChanged(address indexed newRegistry, address indexed oldRegistry);
-
     /// @dev Emitted when a liquidity pool is registered.
     /// @param lender The address of the liquidity pool lender.
     /// @param liquidityPool The address of the liquidity pool contract.
@@ -270,7 +265,4 @@ interface ILendingMarket {
     /// @dev Returns time offset and whether it's positive or negative.
     /// The time offset is used to adjust current period of the loan.
     function timeOffset() external view returns (uint256, bool);
-
-    /// @dev Returns the address of the lending market registry.
-    function registry() external view returns (address);
 }

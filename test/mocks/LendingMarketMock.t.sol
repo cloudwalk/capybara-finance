@@ -235,9 +235,4 @@ contract LendingMarketMockTest is Test {
         vm.expectRevert(Error.NotImplemented.selector);
         mock.timeOffset();
     }
-
-    function test_registry() public {
-        vm.expectRevert(Error.NotImplemented.selector);
-        mock.registry();
-    }
 }
