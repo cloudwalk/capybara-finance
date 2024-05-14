@@ -20,4 +20,7 @@ library Constants {
 
     /// @dev The flag that indicates whether the auto repayment is enabled.
     bool internal constant AUTO_REPAYMENT_ENABLED = true;
+
+    /// @dev The factor used for rounding up the loan amounts.
+    uint256 internal constant ROUND_UP_FACTOR = 10000;
 }
