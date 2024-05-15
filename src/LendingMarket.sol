@@ -261,13 +261,13 @@ contract LendingMarket is
             revert Error.InvalidAmount();
         }
 
-        if (repayAmount >= outstandingBalance) {
-            if (repayAmount - outstandingBalance > Constants.ACCURACY_FACTOR) {
-                revert Error.InvalidAmount();
-            }
-            // Full repayment
+        // Full repayment
+        if (repayAmount == Round.roundUp(outstandingBalance, Constants.ACCURACY_FACTOR)) {
             _repayLoan(loanId, loan, repayAmount, repayAmount);
-            return;
+            return;}
+
+        if (repayAmount > outstandingBalance) {
+            revert Error.InvalidAmount();
         }
 
         // Partial repayment
