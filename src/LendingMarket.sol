@@ -183,7 +183,7 @@ contract LendingMarket is
         if (borrowAmount == 0) {
             revert Error.InvalidAmount();
         }
-        if (borrowAmount != Round.roundUp(borrowAmount, Constants.ROUND_UP_FACTOR)) {
+        if (borrowAmount != Round.roundUp(borrowAmount, Constants.AMOUNT_ACCURACY_FACTOR)) {
             revert Error.InvalidAmount();
         }
 
@@ -253,17 +253,17 @@ contract LendingMarket is
 
         // Full repayment
         if (repayAmount == type(uint256).max) {
-            outstandingBalance = Round.roundUp(outstandingBalance, Constants.ROUND_UP_FACTOR);
+            outstandingBalance = Round.roundUp(outstandingBalance, Constants.AMOUNT_ACCURACY_FACTOR);
             _repayLoan(loanId, loan, outstandingBalance, outstandingBalance);
             return;
         }
 
-        if (repayAmount != Round.roundUp(repayAmount, Constants.ROUND_UP_FACTOR)) {
+        if (repayAmount != Round.roundUp(repayAmount, Constants.AMOUNT_ACCURACY_FACTOR)) {
             revert Error.InvalidAmount();
         }
 
         if (repayAmount >= outstandingBalance) {
-            if (repayAmount - outstandingBalance > Constants.ROUND_UP_FACTOR) {
+            if (repayAmount - outstandingBalance > Constants.AMOUNT_ACCURACY_FACTOR) {
                 revert Error.InvalidAmount();
             }
             // Full repayment
