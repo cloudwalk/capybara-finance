@@ -278,7 +278,7 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
             borrowerConfig.addonFixedRate,
             borrowerConfig.addonPeriodRate,
             Constants.INTEREST_RATE_FACTOR
-        ), Constants.AMOUNT_ACCURACY_FACTOR).toUint64();
+        ), Constants.ACCURACY_FACTOR).toUint64();
     }
 
     /// @inheritdoc ICreditLineConfigurable

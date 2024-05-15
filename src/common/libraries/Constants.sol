@@ -22,5 +22,5 @@ library Constants {
     bool internal constant AUTO_REPAYMENT_ENABLED = true;
 
     /// @dev The accuracy factor used for loan amounts calculation.
-    uint256 internal constant AMOUNT_ACCURACY_FACTOR = 10000;
+    uint64 internal constant ACCURACY_FACTOR = 10000;
 }
