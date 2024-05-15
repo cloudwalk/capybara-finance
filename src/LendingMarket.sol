@@ -248,7 +248,7 @@ contract LendingMarket is
         }
 
         Loan.State storage loan = _loans[loanId];
-        (uint256 outstandingBalance,) = _outstandingBalance(loan, _blockTimestamp());
+        (uint256 outstandingBalance, ) = _outstandingBalance(loan, _blockTimestamp());
 
         // Full repayment
         if (repayAmount == type(uint256).max) {
@@ -264,7 +264,8 @@ contract LendingMarket is
         // Full repayment
         if (repayAmount == Round.roundUp(outstandingBalance, Constants.ACCURACY_FACTOR)) {
             _repayLoan(loanId, loan, repayAmount, repayAmount);
-            return;}
+            return;
+        }
 
         if (repayAmount > outstandingBalance) {
             revert Error.InvalidAmount();
@@ -279,7 +280,12 @@ contract LendingMarket is
     /// @param loan The storage state of the loan to update.
     /// @param repayAmount The amount to repay.
     /// @param outstandingBalance The outstanding balance of the loan.
-    function _repayLoan(uint256 loanId, Loan.State storage loan, uint256 repayAmount, uint256 outstandingBalance) internal {
+    function _repayLoan(
+        uint256 loanId,
+        Loan.State storage loan,
+        uint256 repayAmount,
+        uint256 outstandingBalance
+    ) internal {
         if (loan.treasury.code.length == 0) {
             // TBD Add support for EOA liquidity pools.
             revert Error.NotImplemented();
