@@ -49,5 +49,6 @@ library Loan {
     struct Preview {
         uint256 periodIndex;        // The period index that matches the preview timestamp.
         uint256 outstandingBalance; // The outstanding balance of the loan at the previewed period.
+        uint256 accuracyError;      // The accuracy error of the previewed outstanding balance.
     }
 }

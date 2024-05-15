@@ -505,8 +505,9 @@ contract LendingMarket is
         Loan.Preview memory preview;
         Loan.State storage loan = _loans[loanId];
 
-        (preview.outstandingBalance, preview.periodIndex) = _outstandingBalance(loan, timestamp);
-        preview.outstandingBalance = Round.roundUp(preview.outstandingBalance, Constants.AMOUNT_ACCURACY_FACTOR);
+        (preview.accuracyError, preview.periodIndex) = _outstandingBalance(loan, timestamp);
+        preview.outstandingBalance = Round.roundUp(preview.accuracyError, Constants.ACCURACY_FACTOR);
+        preview.accuracyError = preview.outstandingBalance - preview.accuracyError;
 
         return preview;
     }
