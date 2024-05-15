@@ -6,6 +6,7 @@ import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/P
 
 import { Loan } from "../common/libraries/Loan.sol";
 import { Error } from "../common/libraries/Error.sol";
+import { Round } from "../common/libraries/Round.sol";
 import { SafeCast } from "../common/libraries/SafeCast.sol";
 import { Constants } from "../common/libraries/Constants.sol";
 
@@ -271,13 +272,13 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
         terms.durationInPeriods = durationInPeriods.toUint32();
         terms.interestRatePrimary = borrowerConfig.interestRatePrimary;
         terms.interestRateSecondary = borrowerConfig.interestRateSecondary;
-        terms.addonAmount = calculateAddonAmount(
+        terms.addonAmount = Round.roundUp(calculateAddonAmount(
             borrowAmount,
             durationInPeriods,
             borrowerConfig.addonFixedRate,
             borrowerConfig.addonPeriodRate,
             Constants.INTEREST_RATE_FACTOR
-        ).toUint64();
+        ), Constants.AMOUNT_ACCURACY_FACTOR).toUint64();
     }
 
     /// @inheritdoc ICreditLineConfigurable

@@ -210,7 +210,6 @@ contract LendingMarket is
             borrowAmount,
             durationInPeriods
         );
-        terms.addonAmount = Round.roundUp(terms.addonAmount, Constants.ROUND_UP_FACTOR).toUint64();
 
         uint32 blockTimestamp = _blockTimestamp().toUint32();
         uint256 totalBorrowAmount = borrowAmount + terms.addonAmount;
