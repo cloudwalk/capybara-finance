@@ -212,28 +212,30 @@ contract LendingMarketComplexTest is Test {
             skip(Constants.PERIOD_IN_SECONDS * scenario.iterationStep);
 
             Loan.Preview memory previewBefore = lendingMarket.getLoanPreview(loanId, 0);
+            uint256 outstandingBalanceBefore = previewBefore.outstandingBalance + previewBefore.accuracyError;
 
             if (scenario.repaymentAmounts[i] != 0) {
                 lendingMarket.repayLoan(loanId, scenario.repaymentAmounts[i]);
             }
 
             Loan.Preview memory previewAfter = lendingMarket.getLoanPreview(loanId, 0);
+            uint256 outstandingBalanceAfter = previewAfter.outstandingBalance + previewAfter.accuracyError;
 
-            uint256 difference = diff(previewBefore.outstandingBalance, scenario.outstandingBalancesBeforeRepayment[i]);
+            uint256 difference = diff(outstandingBalanceBefore, scenario.outstandingBalancesBeforeRepayment[i]);
             uint256 precision = difference * scenario.precisionFactor / scenario.outstandingBalancesBeforeRepayment[i];
 
             if (precision > scenario.precisionMinimum) {
                 console.log("------------------ Precision error ------------------");
                 console.log("Index: ", i);
                 console.log("Expected balance before repayment: ", scenario.outstandingBalancesBeforeRepayment[i]);
-                console.log("Actual balance before repayment: ", previewBefore.outstandingBalance);
+                console.log("Actual balance before repayment: ", outstandingBalanceBefore);
                 console.log("Payment amount: ", scenario.repaymentAmounts[i]);
                 console.log("Difference: ", difference);
                 revert("Precision error");
             }
 
             require(
-                previewAfter.outstandingBalance == previewBefore.outstandingBalance - scenario.repaymentAmounts[i],
+                outstandingBalanceAfter == outstandingBalanceBefore - scenario.repaymentAmounts[i],
                 "Outstanding balance mismatch after repayment"
             );
         }

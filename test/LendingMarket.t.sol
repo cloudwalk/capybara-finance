@@ -10,6 +10,7 @@ import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/P
 
 import { Loan } from "src/common/libraries/Loan.sol";
 import { Error } from "src/common/libraries/Error.sol";
+import { Round } from "src/common/libraries/Round.sol";
 import { SafeCast } from "src/common/libraries/SafeCast.sol";
 import { Constants } from "src/common/libraries/Constants.sol";
 
@@ -120,15 +121,15 @@ contract LendingMarketTest is Test {
 
     bytes32 private constant OWNER_ROLE = keccak256("OWNER_ROLE");
 
-    uint64 private constant ADDON_AMOUNT = 100;
-    uint64 private constant BORROW_AMOUNT = 100;
+    uint64 private constant ADDON_AMOUNT = 100 * Constants.ACCURACY_FACTOR;
+    uint64 private constant BORROW_AMOUNT = 100 * Constants.ACCURACY_FACTOR;
     uint32 private constant DURATION_IN_PERIODS = 30;
     uint256 private constant LOAN_ID_NONEXISTENT = 111_111_111;
     uint256 private constant INIT_BLOCK_TIMESTAMP = 999_999_999;
     uint256 private constant NEGAVIVE_TIME_SHIFT = 3 hours;
 
-    uint64 private constant CREDIT_LINE_CONFIG_MIN_BORROW_AMOUNT = 400;
-    uint64 private constant CREDIT_LINE_CONFIG_MAX_BORROW_AMOUNT = 900;
+    uint64 private constant CREDIT_LINE_CONFIG_MIN_BORROW_AMOUNT = 400 * Constants.ACCURACY_FACTOR;
+    uint64 private constant CREDIT_LINE_CONFIG_MAX_BORROW_AMOUNT = 900 * Constants.ACCURACY_FACTOR;
     uint32 private constant CREDIT_LINE_CONFIG_MIN_INTEREST_RATE_PRIMARY = 3;
     uint32 private constant CREDIT_LINE_CONFIG_MAX_INTEREST_RATE_PRIMARY = 7;
     uint32 private constant CREDIT_LINE_CONFIG_MIN_INTEREST_RATE_SECONDARY = 4;
@@ -903,7 +904,8 @@ contract LendingMarketTest is Test {
     function test_repayLoan_Revert_IfBorrowerAndInvalidRepayAmount() public {
         configureMarket();
         uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT);
-        uint256 repayAmount = market.getLoanPreview(loanId, 0).outstandingBalance + 1;
+        Loan.Preview memory preview = market.getLoanPreview(loanId, 0);
+        uint256 repayAmount = preview.outstandingBalance * 2;
 
         vm.prank(BORROWER);
         vm.expectRevert(Error.InvalidAmount.selector);
@@ -941,7 +943,8 @@ contract LendingMarketTest is Test {
         uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT);
 
         Loan.State memory loan = market.getLoanState(loanId);
-        uint256 repayAmount = market.getLoanPreview(loanId, 0).outstandingBalance + 1;
+        Loan.Preview memory preview = market.getLoanPreview(loanId, 0);
+        uint256 repayAmount = preview.outstandingBalance * 2;
 
         vm.prank(loan.treasury);
         vm.expectRevert(Error.InvalidAmount.selector);
@@ -991,7 +994,7 @@ contract LendingMarketTest is Test {
 
         skip(Constants.PERIOD_IN_SECONDS * (Constants.COOLDOWN_IN_PERIODS - 1));
 
-        uint256 repayAmount = loan.borrowAmount / 3;
+        uint256 repayAmount = Round.roundUp(loan.borrowAmount / 3, Constants.ACCURACY_FACTOR);
         uint256 revokeAmount = loan.borrowAmount - repayAmount;
 
         token.mint(loan.borrower, repayAmount);
