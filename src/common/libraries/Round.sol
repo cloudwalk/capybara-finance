@@ -6,17 +6,17 @@ pragma solidity 0.8.24;
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @dev Defines upward and downward rounding functions.
 library Round {
-    /// @dev Rounds up a value to the nearest multiple of a precision.
+    /// @dev Rounds up a value to the nearest multiple of an accuracy.
     /// @param value The value to be rounded.
-    /// @param precision The precision to round to.
-    function roundUp(uint256 value, uint256 precision) internal pure returns (uint256) {
-        return (value + precision - 1) / precision * precision;
+    /// @param accuracy The accuracy to which the value should be rounded.
+    function roundUp(uint256 value, uint256 accuracy) internal pure returns (uint256) {
+        return (value + accuracy - 1) / accuracy * accuracy;
     }
 
-    /// @dev Rounds down a value to the nearest multiple of a precision.
+    /// @dev Rounds down a value to the nearest multiple of an accuracy.
     /// @param value The value to be rounded.
-    /// @param precision The precision to round to.
-    function roundDown(uint256 value, uint256 precision) internal pure returns (uint256) {
-        return value / precision * precision;
+    /// @param accuracy The accuracy to which the value should be rounded.
+    function roundDown(uint256 value, uint256 accuracy) internal pure returns (uint256) {
+        return value / accuracy * accuracy;
     }
 }
