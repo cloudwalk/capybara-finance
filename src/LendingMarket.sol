@@ -52,17 +52,11 @@ contract LendingMarket is
     /// @dev Thrown when the loan is already frozen.
     error LoanAlreadyFrozen();
 
-    /// @dev Thrown when the credit line is not registered.
-    error CreditLineNotRegistered();
+    /// @dev Thrown when the credit line is not configured.
+    error CreditLineLenderNotConfigured();
 
-    /// @dev Thrown when the liquidity pool is not registered.
-    error LiquidityPoolNotRegistered();
-
-    /// @dev Thrown when the credit line is already registered.
-    error CreditLineAlreadyRegistered();
-
-    /// @dev Thrown when the liquidity pool is already registered.
-    error LiquidityPoolAlreadyRegistered();
+    /// @dev Thrown when the liquidity pool is not configured.
+    error LiquidityPoolLenderNotConfigured();
 
     /// @dev Thrown when provided interest rate is inappropriate.
     error InappropriateInterestRate();
@@ -145,35 +139,7 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ILendingMarket
-    function registerCreditLine(address lender, address creditLine) external onlyRole(OWNER_ROLE) {
-        if (lender == address(0) || creditLine == address(0)) {
-            revert Error.ZeroAddress();
-        }
-        if (_creditLineLenders[creditLine] != address(0)) {
-            revert CreditLineAlreadyRegistered();
-        }
-
-        emit CreditLineRegistered(lender, creditLine);
-
-        _creditLineLenders[creditLine] = lender;
-    }
-
-    /// @inheritdoc ILendingMarket
-    function registerLiquidityPool(address lender, address liquidityPool) external onlyRole(OWNER_ROLE) {
-        if (lender == address(0) || liquidityPool == address(0)) {
-            revert Error.ZeroAddress();
-        }
-        if (_liquidityPoolLenders[liquidityPool] != address(0)) {
-            revert LiquidityPoolAlreadyRegistered();
-        }
-
-        emit LiquidityPoolRegistered(lender, liquidityPool);
-
-        _liquidityPoolLenders[liquidityPool] = lender;
-    }
-
-    /// @inheritdoc ILendingMarket
-    function updateCreditLineLender(address creditLine, address newLender) external onlyRole(OWNER_ROLE) {
+    function configureCreditLineLender(address creditLine, address newLender) external onlyRole(OWNER_ROLE) {
         if (creditLine == address(0) || newLender == address(0)) {
             revert Error.ZeroAddress();
         }
@@ -181,13 +147,13 @@ contract LendingMarket is
             revert Error.AlreadyConfigured();
         }
 
-        emit CreditLineLenderUpdated(creditLine, newLender, _creditLineLenders[creditLine]);
+        emit CreditLineLenderConfigured(creditLine, newLender, _creditLineLenders[creditLine]);
 
         _creditLineLenders[creditLine] = newLender;
     }
 
     /// @inheritdoc ILendingMarket
-    function updateLiquidityPoolLender(address liquidityPool, address newLender) external onlyRole(OWNER_ROLE) {
+    function configureLiquidityPoolLender(address liquidityPool, address newLender) external onlyRole(OWNER_ROLE) {
         if (liquidityPool == address(0) || newLender == address(0)) {
             revert Error.ZeroAddress();
         }
@@ -195,7 +161,7 @@ contract LendingMarket is
             revert Error.AlreadyConfigured();
         }
 
-        emit LiquidityPoolLenderUpdated(liquidityPool, newLender, _liquidityPoolLenders[liquidityPool]);
+        emit LiquidityPoolLenderConfigured(liquidityPool, newLender, _liquidityPoolLenders[liquidityPool]);
 
         _liquidityPoolLenders[liquidityPool] = newLender;
     }
@@ -218,17 +184,21 @@ contract LendingMarket is
         }
 
         address lender = _creditLineLenders[creditLine];
-        address liquidityPool = _creditLineToLiquidityPool[creditLine];
-
         if (lender == address(0)) {
-            revert CreditLineNotRegistered();
+            revert CreditLineLenderNotConfigured();
         }
+
+        address liquidityPool = _creditLineToLiquidityPool[creditLine];
         if (liquidityPool == address(0)) {
-            revert LiquidityPoolNotRegistered();
+            revert LiquidityPoolLenderNotConfigured();
+        }
+
+        if (lender != _liquidityPoolLenders[liquidityPool]) {
+            revert Error.Unauthorized();
         }
 
         uint256 id = _loanIdCounter++;
-        _loanLenders[id] = lender;
+        _lenders[id].account = lender;
 
         Loan.Terms memory terms = ICreditLine(creditLine).onBeforeLoanTaken(
             id,
@@ -513,13 +483,13 @@ contract LendingMarket is
 
     /// @inheritdoc ILendingMarket
     function isLenderOrAlias(uint256 loanId, address account) public view returns (bool) {
-        address lender = _loanLenders[loanId];
+        address lender = _lenders[loanId].account;
         return account == lender || _hasAlias[lender][account];
     }
 
     /// @inheritdoc ILendingMarket
-    function getLoanLender(uint256 loanId) public view returns (address) {
-        return _loanLenders[loanId];
+    function getLoanLender(uint256 loanId) external view returns (Loan.Lender memory) {
+        return _lenders[loanId];
     }
 
     /// @inheritdoc ILendingMarket
@@ -542,6 +512,7 @@ contract LendingMarket is
         return (Constants.NEGATIVE_TIME_OFFSET, false);
     }
 
+    /// @inheritdoc ILendingMarket
     function loanCounter() external view returns (uint256) {
         return _loanIdCounter;
     }

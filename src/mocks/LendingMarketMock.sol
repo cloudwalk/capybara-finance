@@ -14,8 +14,6 @@ contract LendingMarketMock is ILendingMarket {
     //  Events                                      //
     // -------------------------------------------- //
 
-    event RegisterCreditLineCalled(address indexed lender, address indexed creditLine);
-    event RegisterLiquidityPoolCalled(address indexed lender, address indexed liquidityPool);
     event RepayLoanCalled(uint256 indexed loanId, uint256 repayAmount);
 
     // -------------------------------------------- //
@@ -78,25 +76,13 @@ contract LendingMarketMock is ILendingMarket {
         revert Error.NotImplemented();
     }
 
-    function registerCreditLine(address lender, address creditLine) external {
-        lender; // To prevent compiler warning about unused variable
-        creditLine; // To prevent compiler warning about unused variable
-        emit RegisterCreditLineCalled(lender, creditLine);
-    }
-
-    function registerLiquidityPool(address lender, address liquidityPool) external {
-        lender; // To prevent compiler warning about unused variable
-        liquidityPool; // To prevent compiler warning about unused variable
-        emit RegisterLiquidityPoolCalled(lender, liquidityPool);
-    }
-
-    function updateCreditLineLender(address creditLine, address newLender) external pure {
+    function configureCreditLineLender(address creditLine, address newLender) external pure {
         creditLine; // To prevent compiler warning about unused variable
         newLender; // To prevent compiler warning about unused variable
         revert Error.NotImplemented();
     }
 
-    function updateLiquidityPoolLender(address liquidityPool, address newLender) external pure {
+    function configureLiquidityPoolLender(address liquidityPool, address newLender) external pure {
         liquidityPool; // To prevent compiler warning about unused variable
         newLender; // To prevent compiler warning about unused variable
         revert Error.NotImplemented();
@@ -151,7 +137,7 @@ contract LendingMarketMock is ILendingMarket {
         revert Error.NotImplemented();
     }
 
-    function getLoanLender(uint256 loanId) external view returns (address) {
+    function getLoanLender(uint256 loanId) external view returns (Loan.Lender memory) {
         loanId;
         revert Error.NotImplemented();
     }

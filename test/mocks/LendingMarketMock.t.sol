@@ -17,10 +17,6 @@ contract LendingMarketMockTest is Test {
     //  Events                                      //
     // -------------------------------------------- //
 
-    event RegisterCreditLineCalled(address indexed lender, address indexed creditLine);
-
-    event RegisterLiquidityPoolCalled(address indexed lender, address indexed liquidityPool);
-
     event RepayLoanCalled(uint256 indexed loanId, uint256 repayAmount);
 
     // -------------------------------------------- //
@@ -106,26 +102,14 @@ contract LendingMarketMockTest is Test {
         mock.updateLoanInterestRateSecondary(LOAN_ID, UPDATE_LOAN_INTEREST_RATE_SECONDARY);
     }
 
-    function test_registerCreditLine() public {
-        vm.expectEmit(true, true, true, true, address(mock));
-        emit RegisterCreditLineCalled(LENDER_1, CREDIT_LINE);
-        mock.registerCreditLine(LENDER_1, CREDIT_LINE);
-    }
-
-    function test_registerLiquidityPool() public {
-        vm.expectEmit(true, true, true, true, address(mock));
-        emit RegisterLiquidityPoolCalled(LENDER_1, LIQUIDITY_POOL);
-        mock.registerLiquidityPool(LENDER_1, LIQUIDITY_POOL);
-    }
-
-    function test_updateCreditLineLender() public {
+    function test_configureCreditLineLender() public {
         vm.expectRevert(Error.NotImplemented.selector);
-        mock.updateCreditLineLender(CREDIT_LINE, LENDER_1);
+        mock.configureCreditLineLender(CREDIT_LINE, LENDER_1);
     }
 
-    function test_updateLiquidityPoolLender() public {
+    function test_configureLiquidityPoolLender() public {
         vm.expectRevert(Error.NotImplemented.selector);
-        mock.updateLiquidityPoolLender(LIQUIDITY_POOL, LENDER_1);
+        mock.configureLiquidityPoolLender(LIQUIDITY_POOL, LENDER_1);
     }
 
     function test_assignLiquidityPoolToCreditLine() public {
