@@ -219,21 +219,21 @@ contract LendingMarketComplexTest is Test {
 
             Loan.Preview memory previewAfter = lendingMarket.getLoanPreview(loanId, 0);
 
-            uint256 difference = diff(previewBefore.outstandingBalance, scenario.outstandingBalancesBeforeRepayment[i]);
+            uint256 difference = diff(previewBefore.trackedBalance, scenario.outstandingBalancesBeforeRepayment[i]);
             uint256 precision = difference * scenario.precisionFactor / scenario.outstandingBalancesBeforeRepayment[i];
 
             if (precision > scenario.precisionMinimum) {
                 console.log("------------------ Precision error ------------------");
                 console.log("Index: ", i);
                 console.log("Expected balance before repayment: ", scenario.outstandingBalancesBeforeRepayment[i]);
-                console.log("Actual balance before repayment: ", previewBefore.outstandingBalance);
+                console.log("Actual balance before repayment: ", previewBefore.trackedBalance);
                 console.log("Payment amount: ", scenario.repaymentAmounts[i]);
                 console.log("Difference: ", difference);
                 revert("Precision error");
             }
 
             require(
-                previewAfter.outstandingBalance == previewBefore.outstandingBalance - scenario.repaymentAmounts[i],
+                previewAfter.trackedBalance == previewBefore.trackedBalance - scenario.repaymentAmounts[i],
                 "Outstanding balance mismatch after repayment"
             );
         }

@@ -20,4 +20,7 @@ library Constants {
 
     /// @dev The flag that indicates whether the auto repayment is enabled.
     bool internal constant AUTO_REPAYMENT_ENABLED = true;
+
+    /// @dev The accuracy factor used for loan amounts calculation.
+    uint64 internal constant ACCURACY_FACTOR = 10000;
 }

@@ -10,6 +10,7 @@ import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/P
 
 import { Loan } from "src/common/libraries/Loan.sol";
 import { Error } from "src/common/libraries/Error.sol";
+import { Round } from "src/common/libraries/Round.sol";
 import { Constants } from "src/common/libraries/Constants.sol";
 import { InterestMath } from "src/common/libraries/InterestMath.sol";
 import { SafeCast } from "src/common/libraries/SafeCast.sol";
@@ -182,6 +183,9 @@ contract LendingMarket is
         if (borrowAmount == 0) {
             revert Error.InvalidAmount();
         }
+        if (borrowAmount != Round.roundUp(borrowAmount, Constants.ACCURACY_FACTOR)) {
+            revert Error.InvalidAmount();
+        }
 
         address lender = _creditLineLenders[creditLine];
         if (lender == address(0)) {
@@ -244,28 +248,56 @@ contract LendingMarket is
         }
 
         Loan.State storage loan = _loans[loanId];
+        (uint256 outstandingBalance, ) = _outstandingBalance(loan, _blockTimestamp());
 
+        // Full repayment
+        if (repayAmount == type(uint256).max) {
+            outstandingBalance = Round.roundUp(outstandingBalance, Constants.ACCURACY_FACTOR);
+            _repayLoan(loanId, loan, outstandingBalance, outstandingBalance);
+            return;
+        }
+
+        if (repayAmount != Round.roundUp(repayAmount, Constants.ACCURACY_FACTOR)) {
+            revert Error.InvalidAmount();
+        }
+
+        // Full repayment
+        if (repayAmount == Round.roundUp(outstandingBalance, Constants.ACCURACY_FACTOR)) {
+            _repayLoan(loanId, loan, repayAmount, repayAmount);
+            return;
+        }
+
+        if (repayAmount > outstandingBalance) {
+            revert Error.InvalidAmount();
+        }
+
+        // Partial repayment
+        _repayLoan(loanId, loan, repayAmount, outstandingBalance);
+    }
+
+    /// @dev Updates the loan state and makes the necessary transfers when repaying a loan.
+    /// @param loanId The unique identifier of the loan to repay.
+    /// @param loan The storage state of the loan to update.
+    /// @param repayAmount The amount to repay.
+    /// @param outstandingBalance The outstanding balance of the loan.
+    function _repayLoan(
+        uint256 loanId,
+        Loan.State storage loan,
+        uint256 repayAmount,
+        uint256 outstandingBalance
+    ) internal {
         if (loan.treasury.code.length == 0) {
             // TBD Add support for EOA liquidity pools.
             revert Error.NotImplemented();
         }
 
-        (uint256 outstandingBalance,) = _outstandingBalance(loan, _blockTimestamp());
-
-        if (repayAmount == type(uint256).max) {
-            repayAmount = outstandingBalance;
-        } else if (repayAmount > outstandingBalance) {
-            revert Error.InvalidAmount();
-        }
-
         bool autoRepayment = loan.treasury == msg.sender;
-
+        address payer = autoRepayment ? loan.borrower : msg.sender;
         if (autoRepayment && !Constants.AUTO_REPAYMENT_ENABLED) {
             revert AutoRepaymentNotAllowed();
         }
 
         outstandingBalance -= repayAmount;
-        address payer = autoRepayment ? loan.borrower : msg.sender;
 
         ILiquidityPool(loan.treasury).onBeforeLoanPayment(loanId, repayAmount);
 
@@ -426,6 +458,9 @@ contract LendingMarket is
         }
     }
 
+    /// @dev Updates the loan state and makes the necessary transfers when revoking a loan.
+    /// @param loanId The unique identifier of the loan to revoke.
+    /// @param loan The storage state of the loan to update.
     function _revokeLoan(uint256 loanId, Loan.State storage loan) internal {
         ILiquidityPool(loan.treasury).onBeforeLoanRevocation(loanId);
 
@@ -476,7 +511,8 @@ contract LendingMarket is
         Loan.Preview memory preview;
         Loan.State storage loan = _loans[loanId];
 
-        (preview.outstandingBalance, preview.periodIndex) = _outstandingBalance(loan, timestamp);
+        (preview.trackedBalance, preview.periodIndex) = _outstandingBalance(loan, timestamp);
+        preview.outstandingBalance = Round.roundUp(preview.trackedBalance, Constants.ACCURACY_FACTOR);
 
         return preview;
     }
