@@ -31,6 +31,8 @@ contract LendingMarketTest is Test {
     //  Events                                      //
     // -------------------------------------------- //
 
+    event OnBeforeLoanTakenCalled(uint256 indexed loanId);
+
     event OnBeforeLoanTakenCalled(uint256 indexed loanId, address indexed creditLine);
 
     event OnAfterLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
@@ -745,8 +747,12 @@ contract LendingMarketTest is Test {
         uint256 borrowerBalance = token.balanceOf(BORROWER);
         uint256 liquidityPoolBefore = token.balanceOf(address(liquidityPool));
 
+        vm.expectEmit(true, true, true, true, address(creditLine));
+        emit OnBeforeLoanTakenCalled(loanId);
+
         vm.expectEmit(true, true, true, true, address(liquidityPool));
         emit OnBeforeLoanTakenCalled(loanId, address(creditLine));
+
         vm.expectEmit(true, true, true, true, address(market));
         emit LoanTaken(loanId, BORROWER, totalBorrowAmount, terms.durationInPeriods);
 
@@ -859,8 +865,12 @@ contract LendingMarketTest is Test {
 
         address liquidityPool = market.getActiveLiquidityPool(loan.lender);
 
-        vm.expectEmit(true, true, true, true, liquidityPool);
+        vm.expectEmit(true, true, true, true, address(liquidityPool));
         emit OnAfterLoanPaymentCalled(loanId, partialRepayAmount);
+
+        vm.expectEmit(true, true, true, true, address(creditLine));
+        emit OnAfterLoanPaymentCalled(loanId, partialRepayAmount);
+
         vm.expectEmit(true, true, true, true, address(market));
         emit LoanRepayment(loanId, loan.borrower, loan.borrower, partialRepayAmount, outstandingBalance);
 
@@ -877,8 +887,12 @@ contract LendingMarketTest is Test {
         uint256 fullRepayAmount = market.getLoanPreview(loanId, 0).outstandingBalance;
         token.mint(loan.borrower, fullRepayAmount);
 
-        vm.expectEmit(true, true, true, true, liquidityPool);
+        vm.expectEmit(true, true, true, true, address(liquidityPool));
         emit OnAfterLoanPaymentCalled(loanId, fullRepayAmount);
+
+        vm.expectEmit(true, true, true, true, address(creditLine));
+        emit OnAfterLoanPaymentCalled(loanId, fullRepayAmount);
+
         vm.expectEmit(true, true, true, true, address(market));
         emit LoanRepayment(loanId, loan.borrower, loan.borrower, fullRepayAmount, 0);
 
@@ -1101,6 +1115,9 @@ contract LendingMarketTest is Test {
         vm.expectEmit(true, true, true, true, address(liquidityPool));
         emit OnAfterLoanRevocationCalled(loanId);
 
+        vm.expectEmit(true, true, true, true, address(creditLine));
+        emit OnAfterLoanRevocationCalled(loanId);
+
         vm.expectEmit(true, true, true, true, address(market));
         emit LoanRevoked(loanId);
 
@@ -1134,6 +1151,9 @@ contract LendingMarketTest is Test {
         uint256 borrowerBalance = token.balanceOf(loan.borrower);
 
         vm.expectEmit(true, true, true, true, address(liquidityPool));
+        emit OnAfterLoanRevocationCalled(loanId);
+
+        vm.expectEmit(true, true, true, true, address(creditLine));
         emit OnAfterLoanRevocationCalled(loanId);
 
         vm.expectEmit(true, true, true, true, address(market));
@@ -1170,6 +1190,9 @@ contract LendingMarketTest is Test {
         uint256 borrowerBalance = token.balanceOf(loan.borrower);
 
         vm.expectEmit(true, true, true, true, address(liquidityPool));
+        emit OnAfterLoanRevocationCalled(loanId);
+
+        vm.expectEmit(true, true, true, true, address(creditLine));
         emit OnAfterLoanRevocationCalled(loanId);
 
         vm.expectEmit(true, true, true, true, address(market));
