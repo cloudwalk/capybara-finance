@@ -79,6 +79,8 @@ contract LendingMarketComplexTest is Test {
 
         creditLine.grantRole(ADMIN_ROLE, ADMIN);
         lendingMarket.assignLiquidityPoolToCreditLine(address(creditLine), address(liquidityPool));
+        lendingMarket.setActiveLiquidityPool(address(liquidityPool));
+        lendingMarket.setActiveCreditLine(address(creditLine));
 
         vm.stopPrank();
 
@@ -137,7 +139,6 @@ contract LendingMarketComplexTest is Test {
         returns (ICreditLineConfigurable.CreditLineConfig memory)
     {
         return ICreditLineConfigurable.CreditLineConfig({
-            treasury: address(liquidityPool),
             minDurationInPeriods: 0,
             maxDurationInPeriods: type(uint32).max,
             minBorrowAmount: 0,
@@ -206,7 +207,7 @@ contract LendingMarketComplexTest is Test {
 
         vm.startPrank(BORROWER);
 
-        uint256 loanId = lendingMarket.takeLoan(address(creditLine), scenario.borrowAmount, scenario.durationInPeriods);
+        uint256 loanId = lendingMarket.takeLoan(LENDER, scenario.borrowAmount, scenario.durationInPeriods);
 
         for (uint256 i = 0; i < scenario.repaymentAmounts.length; i++) {
             skip(Constants.PERIOD_IN_SECONDS * scenario.iterationStep);

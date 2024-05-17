@@ -49,7 +49,6 @@ contract CreditLineConfigurableTest is Test {
     address private constant BORROWER_1 = address(bytes20(keccak256("borrower_1")));
     address private constant BORROWER_2 = address(bytes20(keccak256("borrower_2")));
     address private constant BORROWER_3 = address(bytes20(keccak256("borrower_3")));
-    address private constant LOAN_TREASURY = address(bytes20(keccak256("loan_treasury")));
 
     bytes32 private constant OWNER_ROLE = keccak256("OWNER_ROLE");
     bytes32 private constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
@@ -148,7 +147,6 @@ contract CreditLineConfigurableTest is Test {
         ICreditLineConfigurable.CreditLineConfig memory config2
     ) internal {
         assertTrue(
-            config1.treasury == config2.treasury &&
             config1.minDurationInPeriods == config2.minDurationInPeriods &&
             config1.maxDurationInPeriods == config2.maxDurationInPeriods &&
             config1.minBorrowAmount == config2.minBorrowAmount &&
@@ -169,7 +167,6 @@ contract CreditLineConfigurableTest is Test {
         ICreditLineConfigurable.CreditLineConfig memory config2
     ) internal {
         assertFalse(
-            config1.treasury == config2.treasury &&
             config1.minDurationInPeriods == config2.minDurationInPeriods &&
             config1.maxDurationInPeriods == config2.maxDurationInPeriods &&
             config1.minBorrowAmount == config2.minBorrowAmount &&
@@ -224,7 +221,6 @@ contract CreditLineConfigurableTest is Test {
 
     function initCreditLineConfig() private pure returns (ICreditLineConfigurable.CreditLineConfig memory) {
         return ICreditLineConfigurable.CreditLineConfig({
-            treasury: LOAN_TREASURY,
             minDurationInPeriods: CREDIT_LINE_CONFIG_MIN_DURATION_IN_PERIODS,
             maxDurationInPeriods: CREDIT_LINE_CONFIG_MAX_DURATION_IN_PERIODS,
             minBorrowAmount: CREDIT_LINE_CONFIG_MIN_BORROW_AMOUNT,
@@ -802,7 +798,6 @@ contract CreditLineConfigurableTest is Test {
         );
 
         assertEq(terms.token, creditLine.token());
-        assertEq(terms.treasury, creditLineConfig.treasury);
         assertEq(terms.durationInPeriods, DURATION_IN_PERIODS);
         assertEq(terms.interestRatePrimary, borrowerConfig.interestRatePrimary);
         assertEq(terms.interestRateSecondary, borrowerConfig.interestRateSecondary);

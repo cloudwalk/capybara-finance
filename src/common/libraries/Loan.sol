@@ -18,11 +18,11 @@ library Loan {
         uint64 borrowAmount;          // The initial borrow amount of the loan, excluding the addon.
         uint32 startTimestamp;        // The timestamp when the loan was created (stated).
         // Slot 2
-        address borrower;             // The address of the borrower.
+        address lender;               // The address of the lender
         uint64 addonAmount;           // The amount of the loan addon (extra charges or fees).
         uint32 durationInPeriods;     // The total duration of the loan determined by the number of periods.
         // Slot 3
-        address treasury;             // The address of the loan treasury.
+        address borrower;             // The address of the borrower.
         uint32 interestRatePrimary;   // The primary interest rate that is applied to the loan.
         uint32 interestRateSecondary; // The secondary interest rate that is applied to the loan.
         // uint32 __reserved;             // Reserved for future use.
@@ -37,12 +37,11 @@ library Loan {
     struct Terms {
         // Slot 1
         address token;                // The address of the token to be used for the loan.
+        uint64 addonAmount;           // The amount of the loan addon (extra charges or fees).
         uint32 durationInPeriods;     // The total duration of the loan determined by the number of periods.
+        // Slot 2
         uint32 interestRatePrimary;   // The primary interest rate to be applied to the loan.
         uint32 interestRateSecondary; // The secondary interest rate to be applied to the loan.
-        // Slot 2
-        address treasury;             // The address of the loan treasury.
-        uint64 addonAmount;           // The amount of the loan addon (extra charges or fees).
     }
 
     /// @dev A struct that defines the preview of the loan.

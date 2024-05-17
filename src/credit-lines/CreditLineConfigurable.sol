@@ -268,7 +268,6 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
         }
 
         terms.token = _token;
-        terms.treasury = _config.treasury;
         terms.durationInPeriods = durationInPeriods.toUint32();
         terms.interestRatePrimary = borrowerConfig.interestRatePrimary;
         terms.interestRateSecondary = borrowerConfig.interestRateSecondary;

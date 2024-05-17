@@ -145,12 +145,12 @@ interface ILendingMarket {
     // -------------------------------------------- //
 
     /// @dev Takes a loan.
-    /// @param creditLine The address of the credit line to take the loan from.
+    /// @param lender The address of the lender to take the loan from.
     /// @param borrowAmount The desired amount of tokens to borrow.
     /// @param durationInPeriods The desired duration of the loan in periods.
     /// @return The unique identifier of the loan.
     function takeLoan(
-        address creditLine,
+        address lender,
         uint256 borrowAmount,
         uint256 durationInPeriods
     ) external returns (uint256);
