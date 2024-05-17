@@ -18,9 +18,7 @@ contract CreditLineMockTest is Test {
     // -------------------------------------------- //
 
     event OnBeforeLoanTakenCalled(uint256 indexed loanId);
-    event OnAfterLoanTakenCalled(uint256 indexed loanId);
 
-    event OnBeforeLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
     event OnAfterLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
 
     event OnBeforeLoanRevocationCalled(uint256 indexed loanId);
@@ -128,20 +126,6 @@ contract CreditLineMockTest is Test {
         vm.expectEmit(true, true, true, true, address(mock));
         emit OnBeforeLoanTakenCalled(LOAN_ID);
         result = mock.onBeforeLoanTaken(LOAN_ID);
-        assertEq(result, true);
-    }
-
-    function test_onBeforeLoanPayment() public {
-        vm.expectEmit(true, true, true, true, address(mock));
-        emit OnBeforeLoanPaymentCalled(LOAN_ID, REPAY_AMOUNT);
-        bool result = mock.onBeforeLoanPayment(LOAN_ID, REPAY_AMOUNT);
-        assertEq(result, false);
-
-        mock.mockOnBeforeLoanPaymentResult(true);
-
-        vm.expectEmit(true, true, true, true, address(mock));
-        emit OnBeforeLoanPaymentCalled(LOAN_ID, REPAY_AMOUNT);
-        result = mock.onBeforeLoanPayment(LOAN_ID, REPAY_AMOUNT);
         assertEq(result, true);
     }
 

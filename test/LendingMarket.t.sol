@@ -32,9 +32,7 @@ contract LendingMarketTest is Test {
     // -------------------------------------------- //
 
     event OnBeforeLoanTakenCalled(uint256 indexed loanId, address indexed creditLine);
-    event OnAfterLoanTakenCalled(uint256 indexed loanId, address indexed creditLine);
 
-    event OnBeforeLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
     event OnAfterLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
 
     event OnBeforeLoanRevocationCalled(uint256 indexed loanId);
@@ -863,8 +861,6 @@ contract LendingMarketTest is Test {
         address liquidityPool = market.getActiveLiquidityPool(loan.lender);
 
         vm.expectEmit(true, true, true, true, liquidityPool);
-        emit OnBeforeLoanPaymentCalled(loanId, partialRepayAmount);
-        vm.expectEmit(true, true, true, true, liquidityPool);
         emit OnAfterLoanPaymentCalled(loanId, partialRepayAmount);
         vm.expectEmit(true, true, true, true, address(market));
         emit LoanRepayment(loanId, loan.borrower, loan.borrower, partialRepayAmount, outstandingBalance);
@@ -882,8 +878,6 @@ contract LendingMarketTest is Test {
         uint256 fullRepayAmount = market.getLoanPreview(loanId, 0).outstandingBalance;
         token.mint(loan.borrower, fullRepayAmount);
 
-        vm.expectEmit(true, true, true, true, liquidityPool);
-        emit OnBeforeLoanPaymentCalled(loanId, fullRepayAmount);
         vm.expectEmit(true, true, true, true, liquidityPool);
         emit OnAfterLoanPaymentCalled(loanId, fullRepayAmount);
         vm.expectEmit(true, true, true, true, address(market));

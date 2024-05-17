@@ -16,7 +16,6 @@ contract CreditLineMock is ICreditLine {
 
     event OnBeforeLoanTakenCalled(uint256 indexed loanId);
 
-    event OnBeforeLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
     event OnAfterLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
 
     event OnBeforeLoanRevocationCalled(uint256 indexed loanId);
@@ -31,7 +30,6 @@ contract CreditLineMock is ICreditLine {
 
     bool private _onBeforeLoanTakenResult;
 
-    bool private _onBeforeLoanPaymentResult;
     bool private _onAfterLoanPaymentResult;
 
     bool private _onBeforeLoanRevocationResult;
@@ -55,11 +53,6 @@ contract CreditLineMock is ICreditLine {
     function onBeforeLoanTaken(uint256 loanId) external returns (bool) {
         emit OnBeforeLoanTakenCalled(loanId);
         return _onBeforeLoanTakenResult;
-    }
-
-    function onBeforeLoanPayment(uint256 loanId, uint256 repayAmount) external returns (bool) {
-        emit OnBeforeLoanPaymentCalled(loanId, repayAmount);
-        return _onBeforeLoanPaymentResult;
     }
 
     function onAfterLoanPayment(uint256 loanId, uint256 repayAmount) external returns (bool) {
@@ -112,10 +105,6 @@ contract CreditLineMock is ICreditLine {
 
     function mockOnBeforeLoanTakenResult(bool result) external {
         _onBeforeLoanTakenResult = result;
-    }
-
-    function mockOnBeforeLoanPaymentResult(bool result) external {
-        _onBeforeLoanPaymentResult = result;
     }
 
     function mockOnAfterLoanPaymentResult(bool result) external {

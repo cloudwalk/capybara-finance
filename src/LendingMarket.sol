@@ -345,9 +345,6 @@ contract LendingMarket is
 
         outstandingBalance -= repayAmount;
 
-        ICreditLine(creditLine).onBeforeLoanPayment(loanId, repayAmount);
-        ILiquidityPool(liquidityPool).onBeforeLoanPayment(loanId, repayAmount);
-
         loan.repaidAmount += repayAmount.toUint64();
         loan.trackedBalance = outstandingBalance.toUint64();
         loan.trackedTimestamp = _blockTimestamp().toUint32();

@@ -472,30 +472,6 @@ contract LiquidityPoolAccountableTest is Test {
     }
 
     // -------------------------------------------- //
-    //  Test `onBeforeLoanPayment` function         //
-    // -------------------------------------------- //
-
-    function test_onBeforeLoanPayment() public {
-        vm.prank(address(lendingMarket));
-        assertEq(liquidityPool.onBeforeLoanPayment(LOAN_ID_1, DEPOSIT_AMOUNT_1), true);
-    }
-
-    function test_onBeforeLoanPayment_Revert_IfContractIsPaused() public {
-        vm.prank(PAUSER);
-        liquidityPool.pause();
-
-        vm.prank(address(lendingMarket));
-        vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
-        liquidityPool.onBeforeLoanPayment(LOAN_ID_1, DEPOSIT_AMOUNT_1);
-    }
-
-    function test_onBeforeLoanPayment_Revert_IfCallerNotMarket() public {
-        vm.prank(ATTACKER);
-        vm.expectRevert(Error.Unauthorized.selector);
-        liquidityPool.onBeforeLoanPayment(LOAN_ID_1, DEPOSIT_AMOUNT_1);
-    }
-
-    // -------------------------------------------- //
     //  Test `onAfterLoanPayment` function          //
     // -------------------------------------------- //
 
