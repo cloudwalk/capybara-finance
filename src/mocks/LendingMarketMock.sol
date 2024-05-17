@@ -22,6 +22,8 @@ contract LendingMarketMock is ILendingMarket {
 
     mapping(uint256 => Loan.State) private _loanStates;
 
+    address _getActiveCreditLineResult;
+
     // -------------------------------------------- //
     //  ILendingMarket functions                    //
     // -------------------------------------------- //
@@ -112,7 +114,7 @@ contract LendingMarketMock is ILendingMarket {
 
     function getActiveCreditLine(address lender) external view returns (address) {
         lender; // To prevent compiler warning about unused variable
-        revert Error.NotImplemented();
+        return _getActiveCreditLineResult;
     }
 
     function getActiveLiquidityPool(address lender) external view returns (address) {
@@ -184,5 +186,9 @@ contract LendingMarketMock is ILendingMarket {
 
     function mockLoanState(uint256 loanId, Loan.State memory state) external {
         _loanStates[loanId] = state;
+    }
+
+    function mockGetActiveCreditLineResult(address creditLine) external {
+        _getActiveCreditLineResult = creditLine;
     }
 }

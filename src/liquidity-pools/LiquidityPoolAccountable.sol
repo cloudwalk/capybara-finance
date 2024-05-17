@@ -209,11 +209,10 @@ contract LiquidityPoolAccountable is AccessControlExtUpgradeable, PausableUpgrad
     // -------------------------------------------- //
 
     /// @inheritdoc ILiquidityPool
-    function onBeforeLoanTaken(
-        uint256 loanId,
-        address creditLine
-    ) external whenNotPaused onlyMarket returns (bool) {
+    function onBeforeLoanTaken(uint256 loanId) external whenNotPaused onlyMarket returns (bool) {
         Loan.State memory loan = ILendingMarket(_market).getLoanState(loanId);
+        address creditLine = ILendingMarket(_market).getActiveCreditLine(loan.lender);
+
         CreditLineBalance storage balance = _creditLineBalances[creditLine];
         balance.borrowable -= loan.borrowAmount + loan.addonAmount;
         balance.addons += loan.addonAmount;

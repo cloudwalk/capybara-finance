@@ -25,6 +25,7 @@ contract CreditLineMock is ICreditLine {
     // -------------------------------------------- //
 
     address private _tokenAddress;
+
     mapping(address => mapping(uint256 => Loan.Terms)) private _loanTerms;
 
     bool private _onBeforeLoanTakenResult;
@@ -36,17 +37,6 @@ contract CreditLineMock is ICreditLine {
     // -------------------------------------------- //
     //  ICreditLine functions                       //
     // -------------------------------------------- //
-
-    function onBeforeLoanTaken(
-        uint256 loanId,
-        address borrower,
-        uint256 borrowAmount,
-        uint256 durationInPeriods
-    ) external view returns (Loan.Terms memory terms) {
-        durationInPeriods; // To prevent compiler warning about unused variable
-        loanId; // To prevent compiler warning about unused variable
-        return _loanTerms[borrower][borrowAmount];
-    }
 
     function onBeforeLoanTaken(uint256 loanId) external returns (bool) {
         emit OnBeforeLoanTakenCalled(loanId);

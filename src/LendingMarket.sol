@@ -275,7 +275,7 @@ contract LendingMarket is
         });
 
         ICreditLine(creditLine).onBeforeLoanTaken(id);
-        ILiquidityPool(liquidityPool).onBeforeLoanTaken(id, creditLine);
+        ILiquidityPool(liquidityPool).onBeforeLoanTaken(id);
 
         IERC20(terms.token).safeTransferFrom(liquidityPool, msg.sender, borrowAmount);
 

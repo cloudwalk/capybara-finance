@@ -54,36 +54,6 @@ contract CreditLineMockTest is Test {
     //  ICreditLine functions                       //
     // -------------------------------------------- //
 
-    function test_onBeforeLoanTaken_Terms() public {
-        Loan.Terms memory terms = mock.onBeforeLoanTaken(LOAN_ID, BORROWER, BORROW_AMOUNT, DURATION_IN_PERIODS);
-
-        assertEq(terms.token, address(0));
-        assertEq(terms.durationInPeriods, 0);
-        assertEq(terms.interestRatePrimary, 0);
-        assertEq(terms.interestRateSecondary, 0);
-        assertEq(terms.addonAmount, 0);
-
-        mock.mockLoanTerms(
-            BORROWER,
-            BORROW_AMOUNT,
-            Loan.Terms({
-                token: TERMS_TOKEN,
-                durationInPeriods: TERMS_DURATION_IN_PERIODS,
-                interestRatePrimary: TERMS_INTEREST_RATE_PRIMARY,
-                interestRateSecondary: TERMS_INTEREST_RATE_SECONDARY,
-                addonAmount: TERMS_ADDON_AMOUNT
-            })
-        );
-
-        terms = mock.onBeforeLoanTaken(LOAN_ID, BORROWER, BORROW_AMOUNT, DURATION_IN_PERIODS);
-
-        assertEq(terms.token, TERMS_TOKEN);
-        assertEq(terms.durationInPeriods, TERMS_DURATION_IN_PERIODS);
-        assertEq(terms.interestRatePrimary, TERMS_INTEREST_RATE_PRIMARY);
-        assertEq(terms.interestRateSecondary, TERMS_INTEREST_RATE_SECONDARY);
-        assertEq(terms.addonAmount, TERMS_ADDON_AMOUNT);
-    }
-
     function test_determineLoanTerms() public {
         Loan.Terms memory terms = mock.determineLoanTerms(BORROWER, BORROW_AMOUNT, DURATION_IN_PERIODS);
 

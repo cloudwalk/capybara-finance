@@ -13,7 +13,7 @@ contract LiquidityPoolMock is ILiquidityPool {
     //  Events                                      //
     // -------------------------------------------- //
 
-    event OnBeforeLoanTakenCalled(uint256 indexed loanId, address indexed creditLine);
+    event OnBeforeLoanTakenCalled(uint256 indexed loanId);
 
     event OnAfterLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
 
@@ -33,8 +33,8 @@ contract LiquidityPoolMock is ILiquidityPool {
     //  ILiquidityPool functions                    //
     // -------------------------------------------- //
 
-    function onBeforeLoanTaken(uint256 loanId, address creditLine) external returns (bool) {
-        emit OnBeforeLoanTakenCalled(loanId, creditLine);
+    function onBeforeLoanTaken(uint256 loanId) external returns (bool) {
+        emit OnBeforeLoanTakenCalled(loanId);
         return _onBeforeLoanTakenResult;
     }
 
