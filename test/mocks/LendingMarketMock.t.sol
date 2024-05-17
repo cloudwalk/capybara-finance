@@ -189,11 +189,6 @@ contract LendingMarketMockTest is Test {
         mock.hasAlias(LENDER_1, LENDER_2);
     }
 
-    function test_getLoanLender() public {
-        vm.expectRevert(Error.NotImplemented.selector);
-        mock.getLoanLender(LOAN_ID);
-    }
-
     function test_interestRateFactor() public {
         vm.expectRevert(Error.NotImplemented.selector);
         mock.interestRateFactor();

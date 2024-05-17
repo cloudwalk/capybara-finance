@@ -248,8 +248,6 @@ contract LendingMarket is
         }
 
         uint256 id = _loanIdCounter++;
-        _lenders[id].account = lender;
-
         Loan.Terms memory terms = ICreditLine(creditLine).determineLoanTerms(
             msg.sender,
             borrowAmount,
@@ -549,13 +547,8 @@ contract LendingMarket is
 
     /// @inheritdoc ILendingMarket
     function isLenderOrAlias(uint256 loanId, address account) public view returns (bool) {
-        address lender = _lenders[loanId].account;
+        address lender = _loans[loanId].lender;
         return account == lender || _hasAlias[lender][account];
-    }
-
-    /// @inheritdoc ILendingMarket
-    function getLoanLender(uint256 loanId) external view returns (Loan.Lender memory) {
-        return _lenders[loanId];
     }
 
     /// @inheritdoc ILendingMarket

@@ -697,7 +697,6 @@ contract LendingMarketTest is Test {
 
         assertEq(loan.token, terms.token);
         assertEq(loan.borrower, BORROWER);
-        assertEq(market.getLoanLender(loanId).account, LENDER);
         assertEq(loan.lender, LENDER);
         assertEq(loan.startTimestamp, blockTimestamp());
         assertEq(loan.trackedTimestamp, blockTimestamp());
