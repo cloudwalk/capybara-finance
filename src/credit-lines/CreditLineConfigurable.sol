@@ -244,7 +244,9 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
         Loan.State memory loan = ILendingMarket(_market).getLoanState(loanId);
         if (loan.trackedBalance == 0) {
             BorrowerConfig storage borrowerConfig = _borrowers[loan.borrower];
-            borrowerConfig.maxBorrowAmount += loan.borrowAmount + loan.addonAmount;
+            if (borrowerConfig.borrowPolicy == BorrowPolicy.DecreaseIncrease) {
+                borrowerConfig.maxBorrowAmount += loan.borrowAmount + loan.addonAmount;
+            }
         }
 
         return true;
@@ -256,7 +258,12 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
     }
 
     function onAfterLoanRevocation(uint256 loanId) external whenNotPaused onlyMarket returns (bool) {
-        loanId; // To prevent compiler warning about unused variable
+        Loan.State memory loan = ILendingMarket(_market).getLoanState(loanId);
+        BorrowerConfig storage borrowerConfig = _borrowers[loan.borrower];
+        if (borrowerConfig.borrowPolicy == BorrowPolicy.DecreaseIncrease) {
+            borrowerConfig.maxBorrowAmount += loan.borrowAmount + loan.addonAmount;
+        }
+
         return true;
     }
 

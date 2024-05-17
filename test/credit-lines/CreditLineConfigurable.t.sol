@@ -940,6 +940,71 @@ contract CreditLineConfigurableTest is Test {
         creditLine.onAfterLoanPayment(1, 10);
     }
 
+    // -------------------------------------------- //
+    //  Test `onAfterLoanRevocation` function       //
+    // -------------------------------------------- //
+
+    function test_onAfterLoanRevocation_Policy_DecreaseIncrease() public {
+        configureCreditLine();
+
+        ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
+        config.borrowPolicy = ICreditLineConfigurable.BorrowPolicy.DecreaseIncrease;
+
+        vm.prank(ADMIN);
+        creditLine.configureBorrower(BORROWER_1, config);
+
+        assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, config.maxBorrowAmount);
+
+        uint64 addonAmount = 10;
+        Loan.State memory loan = initLoanState();
+        loan.borrower = BORROWER_1;
+        loan.borrowAmount = config.minBorrowAmount;
+        loan.addonAmount = addonAmount;
+        loan.trackedBalance = config.minBorrowAmount + addonAmount;
+        lendingMarket.mockLoanState(1, loan);
+
+        vm.prank(address(lendingMarket));
+        creditLine.onBeforeLoanTaken(1);
+
+        assertEq(
+            creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount,
+            config.maxBorrowAmount - (config.minBorrowAmount + addonAmount)
+        );
+
+        vm.prank(address(lendingMarket));
+        creditLine.onAfterLoanRevocation(1);
+
+        assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, config.maxBorrowAmount);
+    }
+
+    function test_onAfterLoanRevocation_Revert_IfContractIsPaused() public {
+        configureCreditLine();
+
+        ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
+
+        vm.prank(ADMIN);
+        creditLine.configureBorrower(BORROWER_1, config);
+
+        vm.prank(PAUSER);
+        creditLine.pause();
+
+        vm.prank(ATTACKER);
+        vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
+        creditLine.onAfterLoanRevocation(1);
+    }
+
+    function test_onAfterLoanRevocation_Revert_IfCallerIsNotMarket() public {
+        configureCreditLine();
+
+        ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
+
+        vm.prank(ADMIN);
+        creditLine.configureBorrower(BORROWER_1, config);
+
+        vm.prank(ATTACKER);
+        vm.expectRevert(Error.Unauthorized.selector);
+        creditLine.onAfterLoanRevocation(1);
+    }
 
     // -------------------------------------------- //
     //  Test `determineLoanTerms` function          //
