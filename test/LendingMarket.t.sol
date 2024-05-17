@@ -1051,7 +1051,7 @@ contract LendingMarketTest is Test {
         market.repayLoan(loanId, repayAmount);
     }
 
-    function test_repayLoan_Revert_IfTreasuryAndLoanIsRepaid() public {
+    function test_repayLoan_Revert_IfLenderAndLoanIsRepaid() public {
         configureMarket();
 
         uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT);
@@ -1065,7 +1065,7 @@ contract LendingMarketTest is Test {
         market.repayLoan(loanId, repayAmount);
     }
 
-    function test_repayLoan_Revert_IfTreasuryAndRepayAmountIsZero() public {
+    function test_repayLoan_Revert_IfLenderAndRepayAmountIsZero() public {
         configureMarket();
         uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT);
 
@@ -1077,7 +1077,7 @@ contract LendingMarketTest is Test {
         market.repayLoan(loanId, repayAmount);
     }
 
-    function test_repayLoan_Revert_IfTreasuryAndInvalidRepayAmount() public {
+    function test_repayLoan_Revert_IfLenderAndInvalidRepayAmount() public {
         configureMarket();
         uint256 loanId = createLoan(BORROWER, BORROW_AMOUNT);
 
