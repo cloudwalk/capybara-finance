@@ -168,6 +168,56 @@ contract LendingMarket is
     }
 
     // -------------------------------------------- //
+    //  Lender functions                            //
+    // -------------------------------------------- //
+
+    /// @inheritdoc ILendingMarket
+    function setActiveCreditLine(address creditLine) external whenNotPaused {
+        address lender = _creditLineLenders[creditLine];
+
+        if (lender == address(0)) {
+            revert CreditLineLenderNotConfigured();
+        }
+        if (lender != msg.sender) {
+            revert Error.Unauthorized();
+        }
+        if (creditLine == _activeCreditLines[msg.sender]) {
+            revert Error.AlreadyConfigured();
+        }
+
+        emit ActiveCreditLineChanged(
+            msg.sender,
+            creditLine,
+            _activeCreditLines[msg.sender]
+        );
+
+        _activeCreditLines[msg.sender] = creditLine;
+    }
+
+    /// @inheritdoc ILendingMarket
+    function setActiveLiquidityPool(address liquidityPool) external whenNotPaused {
+        address lender = _liquidityPoolLenders[liquidityPool];
+
+        if (lender == address(0)) {
+            revert LiquidityPoolLenderNotConfigured();
+        }
+        if (lender != msg.sender) {
+            revert Error.Unauthorized();
+        }
+        if (liquidityPool == _activeLiquidityPools[msg.sender]) {
+            revert Error.AlreadyConfigured();
+        }
+
+        emit ActiveLiquidityPoolChanged(
+            msg.sender,
+            liquidityPool,
+            _activeLiquidityPools[msg.sender]
+        );
+
+        _activeLiquidityPools[msg.sender] = liquidityPool;
+    }
+
+    // -------------------------------------------- //
     //  Borrower functions                          //
     // -------------------------------------------- //
 
@@ -481,6 +531,16 @@ contract LendingMarket is
     // -------------------------------------------- //
     //  View functions                              //
     // -------------------------------------------- //
+
+    /// @inheritdoc ILendingMarket
+    function getActiveCreditLine(address lender) external view returns (address) {
+        return _activeCreditLines[lender];
+    }
+
+    /// @inheritdoc ILendingMarket
+    function getActiveLiquidityPool(address lender) external view returns (address) {
+        return _activeLiquidityPools[lender];
+    }
 
     /// @inheritdoc ILendingMarket
     function getCreditLineLender(address creditLine) external view returns (address) {

@@ -32,6 +32,26 @@ interface ILendingMarket {
         address indexed oldLender
     );
 
+    /// @dev Emitted when the active credit line is changed.
+    /// @param lender The address of the lender account.
+    /// @param newCreditLine The address of the new active credit line.
+    /// @param oldCreditLine The address of the old active credit line.
+    event ActiveCreditLineChanged(
+        address indexed lender,
+        address indexed newCreditLine,
+        address indexed oldCreditLine
+    );
+
+    /// @dev Emitted when the active liquidity pool is changed.
+    /// @param lender The address of the lender account.
+    /// @param newLiquidityPool The address of the new active liquidity pool.
+    /// @param oldLiquidityPool The address of the old active liquidity pool.
+    event ActiveLiquidityPoolChanged(
+        address indexed lender,
+        address indexed newLiquidityPool,
+        address indexed oldLiquidityPool
+    );
+
     /// @dev Emitted when a loan is taken.
     /// @param loanId The unique identifier of the loan.
     /// @param borrower The address of the borrower of the loan.
@@ -167,6 +187,14 @@ interface ILendingMarket {
     /// @param newInterestRate The new secondary interest rate of the loan.
     function updateLoanInterestRateSecondary(uint256 loanId, uint256 newInterestRate) external;
 
+    /// @dev Sets the active credit line.
+    /// @param creditLine The address of the credit line to set as active.
+    function setActiveCreditLine(address creditLine) external;
+
+    /// @dev Sets the active liquidity pool.
+    /// @param liquidityPool The address of the liquidity pool to set as active.
+    function setActiveLiquidityPool(address liquidityPool) external;
+
     /// @dev Configures the lender of a credit line.
     /// @param creditLine The address of the credit line to update.
     /// @param newLender The address of the new lender of the credit line.
@@ -198,6 +226,16 @@ interface ILendingMarket {
     // -------------------------------------------- //
     //  View functions                              //
     // -------------------------------------------- //
+
+    /// @dev Gets the active credit line of a lender.
+    /// @param lender The address of the lender to check.
+    /// @return The address of the active credit line.
+    function getActiveCreditLine(address lender) external view returns (address);
+
+    /// @dev Gets the active liquidity pool of a lender.
+    /// @param lender The address of the lender to check.
+    /// @return The address of the active liquidity pool.
+    function getActiveLiquidityPool(address lender) external view returns (address);
 
     /// @dev Gets the lender of a credit line.
     /// @param creditLine The address of the credit line to check.
