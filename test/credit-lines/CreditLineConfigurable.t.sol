@@ -13,6 +13,8 @@ import { Error } from "src/common/libraries/Error.sol";
 import { SafeCast } from "src/common/libraries/SafeCast.sol";
 import { Constants } from "src/common/libraries/Constants.sol";
 
+import { LendingMarketMock } from "src/mocks/LendingMarketMock.sol";
+
 import { ICreditLineConfigurable } from "src/common/interfaces/ICreditLineConfigurable.sol";
 import { CreditLineConfigurable } from "src/credit-lines/CreditLineConfigurable.sol";
 
@@ -35,6 +37,7 @@ contract CreditLineConfigurableTest is Test {
     //  Storage variables                           //
     // -------------------------------------------- //
 
+    LendingMarketMock private lendingMarket;
     CreditLineConfigurable private creditLine;
 
     address private constant ADMIN = address(bytes20(keccak256("admin")));
@@ -88,8 +91,9 @@ contract CreditLineConfigurableTest is Test {
 
     function setUp() public {
         vm.startPrank(DEPLOYER);
+        lendingMarket = new LendingMarketMock();
         creditLine = new CreditLineConfigurable();
-        creditLine.initialize(LENDER_1, MARKET, TOKEN_1);
+        creditLine.initialize(LENDER_1, address(lendingMarket), TOKEN_1);
         vm.stopPrank();
 
         vm.startPrank(LENDER_1);
@@ -233,6 +237,24 @@ contract CreditLineConfigurableTest is Test {
             maxAddonFixedRate: CREDIT_LINE_CONFIG_MAX_ADDON_FIXED_RATE,
             minAddonPeriodRate: CREDIT_LINE_CONFIG_MIN_ADDON_PERIOD_RATE,
             maxAddonPeriodRate: CREDIT_LINE_CONFIG_MAX_ADDON_PERIOD_RATE
+        });
+    }
+
+    function initLoanState() private view returns (Loan.State memory) {
+        return Loan.State({
+            token: address(0),
+            borrower: address(0),
+            lender: address(0),
+            durationInPeriods: 0,
+            interestRatePrimary: 0,
+            interestRateSecondary: 0,
+            startTimestamp: 0,
+            freezeTimestamp: 0,
+            trackedTimestamp: 0,
+            borrowAmount: 0,
+            trackedBalance: 0,
+            repaidAmount: 0,
+            addonAmount: 0
         });
     }
 
@@ -707,8 +729,15 @@ contract CreditLineConfigurableTest is Test {
 
         assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, config.maxBorrowAmount);
 
-        vm.prank(MARKET);
-        creditLine.onBeforeLoanTaken(1, BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS);
+        uint64 addonAmount = 10;
+        Loan.State memory loan = initLoanState();
+        loan.borrower = BORROWER_1;
+        loan.borrowAmount =  config.minBorrowAmount;
+        loan.addonAmount = addonAmount;
+        lendingMarket.mockLoanState(1, loan);
+
+        vm.prank(address(lendingMarket));
+        creditLine.onBeforeLoanTaken(1);
 
         assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, config.maxBorrowAmount);
     }
@@ -724,8 +753,15 @@ contract CreditLineConfigurableTest is Test {
 
         assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, config.maxBorrowAmount);
 
-        vm.prank(MARKET);
-        creditLine.onBeforeLoanTaken(1,BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS);
+        uint64 addonAmount = 10;
+        Loan.State memory loan = initLoanState();
+        loan.borrower = BORROWER_1;
+        loan.borrowAmount =  config.minBorrowAmount;
+        loan.addonAmount = addonAmount;
+        lendingMarket.mockLoanState(1, loan);
+
+        vm.prank(address(lendingMarket));
+        creditLine.onBeforeLoanTaken(1);
 
         assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, 0);
     }
@@ -741,12 +777,19 @@ contract CreditLineConfigurableTest is Test {
 
         assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, config.maxBorrowAmount);
 
-        vm.prank(MARKET);
-        creditLine.onBeforeLoanTaken(1, BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS);
+        uint64 addonAmount = 10;
+        Loan.State memory loan = initLoanState();
+        loan.borrower = BORROWER_1;
+        loan.borrowAmount = config.minBorrowAmount;
+        loan.addonAmount = addonAmount;
+        lendingMarket.mockLoanState(1, loan);
+
+        vm.prank(address(lendingMarket));
+        creditLine.onBeforeLoanTaken(1);
 
         assertEq(
             creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount,
-            config.maxBorrowAmount - config.minBorrowAmount
+            config.maxBorrowAmount - (config.minBorrowAmount + addonAmount)
         );
     }
 
@@ -763,7 +806,7 @@ contract CreditLineConfigurableTest is Test {
 
         vm.prank(ATTACKER);
         vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
-        creditLine.onBeforeLoanTaken(1, BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS);
+        creditLine.onBeforeLoanTaken(1);
     }
 
     function test_onBeforeLoanTaken_Revert_IfCallerIsNotMarket() public {
@@ -776,7 +819,7 @@ contract CreditLineConfigurableTest is Test {
 
         vm.prank(ATTACKER);
         vm.expectRevert(Error.Unauthorized.selector);
-        creditLine.onBeforeLoanTaken(1, BORROWER_1, config.minBorrowAmount, DURATION_IN_PERIODS);
+        creditLine.onBeforeLoanTaken(1);
     }
 
     // -------------------------------------------- //
@@ -982,7 +1025,7 @@ contract CreditLineConfigurableTest is Test {
     }
 
     function test_market() public {
-        assertEq(creditLine.market(), MARKET);
+        assertEq(creditLine.market(), address(lendingMarket));
     }
 
     function test_token() public {

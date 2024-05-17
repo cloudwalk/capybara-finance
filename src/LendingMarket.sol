@@ -250,15 +250,13 @@ contract LendingMarket is
         uint256 id = _loanIdCounter++;
         _lenders[id].account = lender;
 
-        Loan.Terms memory terms = ICreditLine(creditLine).onBeforeLoanTaken(
-            id,
+        Loan.Terms memory terms = ICreditLine(creditLine).determineLoanTerms(
             msg.sender,
             borrowAmount,
             durationInPeriods
         );
-
-        uint32 blockTimestamp = _blockTimestamp().toUint32();
         uint256 totalBorrowAmount = borrowAmount + terms.addonAmount;
+        uint32 blockTimestamp = _blockTimestamp().toUint32();
 
         _loans[id] = Loan.State({
             token: terms.token,

@@ -11,6 +11,7 @@ import { SafeCast } from "../common/libraries/SafeCast.sol";
 import { Constants } from "../common/libraries/Constants.sol";
 
 import { ICreditLine } from "../common/interfaces/core/ICreditLine.sol";
+import { ILendingMarket } from "../common/interfaces/core/ILendingMarket.sol";
 import { ICreditLineConfigurable } from "../common/interfaces/ICreditLineConfigurable.sol";
 import { AccessControlExtUpgradeable } from "../common/AccessControlExtUpgradeable.sol";
 
@@ -211,55 +212,44 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
     // -------------------------------------------- //
 
     /// @inheritdoc ICreditLine
-    function onBeforeLoanTaken(
-        uint256 loanId,
-        address borrower,
-        uint256 borrowAmount,
-        uint256 durationInPeriods
-    ) external whenNotPaused onlyMarket returns (Loan.Terms memory terms) {
-        loanId; // To prevent compiler warning about unused variable
-
-        terms = determineLoanTerms(borrower, borrowAmount, durationInPeriods);
-
-        BorrowerConfig storage borrowerConfig = _borrowers[borrower];
+    function onBeforeLoanTaken(uint256 loanId) external whenNotPaused onlyMarket returns (bool) {
+        Loan.State memory loan = ILendingMarket(_market).getLoanState(loanId);
+        BorrowerConfig storage borrowerConfig = _borrowers[loan.borrower];
 
         if (borrowerConfig.borrowPolicy == BorrowPolicy.Keep) {
             // Do nothing to the borrower's max borrow amount configuration
         } else if (borrowerConfig.borrowPolicy == BorrowPolicy.Decrease) {
-            borrowerConfig.maxBorrowAmount -= borrowAmount.toUint64();
+            borrowerConfig.maxBorrowAmount -= loan.borrowAmount + loan.addonAmount;
         } else { // borrowerConfig.borrowPolicy == BorrowPolicy.Reset
             borrowerConfig.maxBorrowAmount = 0;
         }
+
+        return true;
     }
 
-    function onBeforeLoanTaken(uint256 loanId) external returns (bool) {
+    function onAfterLoanTaken(uint256 loanId) external whenNotPaused onlyMarket returns (bool) {
         loanId; // To prevent compiler warning about unused variable
         return true;
     }
 
-    function onAfterLoanTaken(uint256 loanId) external returns (bool) {
-        loanId; // To prevent compiler warning about unused variable
-        return true;
-    }
-
-    function onBeforeLoanPayment(uint256 loanId, uint256 repayAmount) external returns (bool) {
+    function onBeforeLoanPayment(uint256 loanId, uint256 repayAmount) external whenNotPaused onlyMarket returns (bool) {
         loanId; // To prevent compiler warning about unused variable
         repayAmount; // To prevent compiler warning about unused variable
         return true;
     }
 
-    function onAfterLoanPayment(uint256 loanId, uint256 repayAmount) external returns (bool) {
+    function onAfterLoanPayment(uint256 loanId, uint256 repayAmount) external whenNotPaused onlyMarket returns (bool) {
         loanId; // To prevent compiler warning about unused variable
         repayAmount; // To prevent compiler warning about unused variable
         return true;
     }
 
-    function onBeforeLoanRevocation(uint256 loanId) external returns (bool) {
+    function onBeforeLoanRevocation(uint256 loanId) external whenNotPaused onlyMarket returns (bool) {
         loanId; // To prevent compiler warning about unused variable
         return true;
     }
 
-    function onAfterLoanRevocation(uint256 loanId) external returns (bool) {
+    function onAfterLoanRevocation(uint256 loanId) external whenNotPaused onlyMarket returns (bool) {
         loanId; // To prevent compiler warning about unused variable
         return true;
     }
