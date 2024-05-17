@@ -40,11 +40,14 @@ contract LiquidityPoolAccountable is AccessControlExtUpgradeable, PausableUpgrad
     /// @dev The address of the lending market.
     address internal _market;
 
-    /// @dev The mapping of a loan identifier to a credit line.
-    mapping(uint256 => address) internal _creditLines;
+    /// @dev The address of the underlying token.
+    address internal _token;
 
-    /// @dev Mapping of a credit line to its token balance.
-    mapping(address => CreditLineBalance) internal _creditLineBalances;
+    /// @dev The borrowable balance of the liquidity pool.
+    uint64 internal _borrowableBalance;
+
+    /// @dev The addons balance of the liquidity pool.
+    uint64 internal _addonsBalance;
 
     // -------------------------------------------- //
     //  Errors                                      //
@@ -72,33 +75,51 @@ contract LiquidityPoolAccountable is AccessControlExtUpgradeable, PausableUpgrad
     /// @dev Initializer of the upgradable contract.
     /// @param lender_ The address of the liquidity pool lender.
     /// @param market_ The address of the lending market.
+    /// @param token_ The address of the token.
     /// See details https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable.
-    function initialize(address lender_, address market_) external initializer {
-        __LiquidityPoolAccountable_init(lender_, market_);
+    function initialize(
+        address lender_,
+        address market_,
+        address token_
+    ) external initializer {
+        __LiquidityPoolAccountable_init(lender_, market_, token_);
     }
 
     /// @dev Internal initializer of the upgradable contract.
     /// @param lender_ The address of the liquidity pool lender.
     /// @param market_ The address of the lending market.
+    /// @param token_ The address of the token.
     /// See details https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable.
-    function __LiquidityPoolAccountable_init(address lender_, address market_) internal onlyInitializing {
+    function __LiquidityPoolAccountable_init(
+        address lender_,
+        address market_,
+        address token_
+    ) internal onlyInitializing {
         __Context_init_unchained();
         __ERC165_init_unchained();
         __AccessControl_init_unchained();
         __AccessControlExt_init_unchained();
         __Pausable_init_unchained();
-        __LiquidityPoolAccountable_init_unchained(lender_, market_);
+        __LiquidityPoolAccountable_init_unchained(lender_, market_, token_);
     }
 
     /// @dev Unchained internal initializer of the upgradable contract.
     /// @param lender_ The address of the liquidity pool lender.
     /// @param market_ The address of the lending market.
+    /// @param token_ The address of the token.
     /// See details https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable.
-    function __LiquidityPoolAccountable_init_unchained(address lender_, address market_) internal onlyInitializing {
+    function __LiquidityPoolAccountable_init_unchained(
+        address lender_,
+        address market_,
+        address token_
+    ) internal onlyInitializing {
         if (lender_ == address(0)) {
             revert Error.ZeroAddress();
         }
         if (market_ == address(0)) {
+            revert Error.ZeroAddress();
+        }
+        if (token_ == address(0)) {
             revert Error.ZeroAddress();
         }
 
@@ -107,6 +128,7 @@ contract LiquidityPoolAccountable is AccessControlExtUpgradeable, PausableUpgrad
         _setRoleAdmin(PAUSER_ROLE, OWNER_ROLE);
 
         _market = market_;
+        _token = token_;
     }
 
     // -------------------------------------------- //
@@ -128,48 +150,42 @@ contract LiquidityPoolAccountable is AccessControlExtUpgradeable, PausableUpgrad
     // -------------------------------------------- //
 
     /// @inheritdoc ILiquidityPoolAccountable
-    function deposit(address creditLine, uint256 amount) external onlyRole(OWNER_ROLE) {
-        if (creditLine == address(0)) {
-            revert Error.ZeroAddress();
-        }
+    function deposit(uint256 amount) external onlyRole(OWNER_ROLE) {
         if (amount == 0) {
             revert Error.InvalidAmount();
         }
 
-        IERC20 token = IERC20(ICreditLine(creditLine).token());
+        IERC20 token = IERC20(_token);
+
         if (token.allowance(address(this), _market) == 0) {
             token.approve(_market, type(uint256).max);
         }
 
-        _creditLineBalances[creditLine].borrowable += amount.toUint64();
+        _borrowableBalance += amount.toUint64();
         token.safeTransferFrom(msg.sender, address(this), amount);
 
-        emit Deposit(creditLine, amount);
+        emit Deposit(amount);
     }
 
     /// @inheritdoc ILiquidityPoolAccountable
-    function withdraw(address creditLine, uint256 borrowableAmount, uint256 addonAmount) external onlyRole(OWNER_ROLE) {
-        if (creditLine == address(0)) {
-            revert Error.ZeroAddress();
-        }
+    function withdraw(uint256 borrowableAmount, uint256 addonAmount) external onlyRole(OWNER_ROLE) {
         if (borrowableAmount == 0 && addonAmount == 0) {
             revert Error.InvalidAmount();
         }
 
-        CreditLineBalance storage balance = _creditLineBalances[creditLine];
-        if (balance.borrowable < borrowableAmount) {
+        if (_borrowableBalance < borrowableAmount) {
             revert InsufficientBalance();
         }
-        if (balance.addons < addonAmount) {
+        if (_addonsBalance < addonAmount) {
             revert InsufficientBalance();
         }
 
-        balance.borrowable -= borrowableAmount.toUint64();
-        balance.addons -= addonAmount.toUint64();
+        _borrowableBalance -= borrowableAmount.toUint64();
+        _addonsBalance -= addonAmount.toUint64();
 
-        IERC20(ICreditLine(creditLine).token()).safeTransfer(msg.sender, borrowableAmount + addonAmount);
+        IERC20(_token).safeTransfer(msg.sender, borrowableAmount + addonAmount);
 
-        emit Withdrawal(creditLine, borrowableAmount, addonAmount);
+        emit Withdrawal(borrowableAmount, addonAmount);
     }
 
     /// @inheritdoc ILiquidityPoolAccountable
@@ -211,42 +227,26 @@ contract LiquidityPoolAccountable is AccessControlExtUpgradeable, PausableUpgrad
     /// @inheritdoc ILiquidityPool
     function onBeforeLoanTaken(uint256 loanId) external whenNotPaused onlyMarket returns (bool) {
         Loan.State memory loan = ILendingMarket(_market).getLoanState(loanId);
-        address creditLine = ILendingMarket(_market).getActiveCreditLine(loan.lender);
-
-        CreditLineBalance storage balance = _creditLineBalances[creditLine];
-        balance.borrowable -= loan.borrowAmount + loan.addonAmount;
-        balance.addons += loan.addonAmount;
-
-        _creditLines[loanId] = creditLine;
-
+        _borrowableBalance -= loan.borrowAmount + loan.addonAmount;
+        _addonsBalance += loan.addonAmount;
         return true;
     }
 
     /// @inheritdoc ILiquidityPool
     function onAfterLoanPayment(uint256 loanId, uint256 amount) external whenNotPaused onlyMarket returns (bool) {
-        address creditLine = _creditLines[loanId];
-        if (creditLine != address(0)) {
-            _creditLineBalances[creditLine].borrowable += amount.toUint64();
-        }
-
+        _borrowableBalance += amount.toUint64();
         return true;
     }
 
     /// @inheritdoc ILiquidityPool
     function onAfterLoanRevocation(uint256 loanId) external whenNotPaused onlyMarket returns (bool) {
-        address creditLine = _creditLines[loanId];
-
-        if (creditLine != address(0)) {
-            CreditLineBalance storage balance = _creditLineBalances[creditLine];
-            Loan.State memory loan = ILendingMarket(_market).getLoanState(loanId);
-            if (loan.borrowAmount > loan.repaidAmount) {
-                balance.borrowable = balance.borrowable + (loan.borrowAmount - loan.repaidAmount) + loan.addonAmount;
-            } else if (loan.borrowAmount != loan.repaidAmount) {
-                balance.borrowable = balance.borrowable - (loan.repaidAmount - loan.borrowAmount) + loan.addonAmount;
-            }
-            balance.addons -= loan.addonAmount;
+        Loan.State memory loan = ILendingMarket(_market).getLoanState(loanId);
+        if (loan.borrowAmount > loan.repaidAmount) {
+            _borrowableBalance = _borrowableBalance + (loan.borrowAmount - loan.repaidAmount) + loan.addonAmount;
+        } else if (loan.borrowAmount != loan.repaidAmount) {
+            _borrowableBalance = _borrowableBalance - (loan.repaidAmount - loan.borrowAmount) + loan.addonAmount;
         }
-
+        _addonsBalance -= loan.addonAmount;
         return true;
     }
 
@@ -255,13 +255,8 @@ contract LiquidityPoolAccountable is AccessControlExtUpgradeable, PausableUpgrad
     // -------------------------------------------- //
 
     /// @inheritdoc ILiquidityPoolAccountable
-    function getCreditLineBalance(address creditLine) external view returns (CreditLineBalance memory) {
-        return _creditLineBalances[creditLine];
-    }
-
-    /// @inheritdoc ILiquidityPoolAccountable
-    function getCreditLine(uint256 loanId) external view returns (address) {
-        return _creditLines[loanId];
+    function getBalances() external view returns (uint256, uint256) {
+        return (_borrowableBalance, _addonsBalance);
     }
 
     /// @inheritdoc ILiquidityPoolAccountable

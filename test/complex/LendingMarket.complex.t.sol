@@ -65,7 +65,7 @@ contract LendingMarketComplexTest is Test {
 
         // Deploy liquidity pool
         liquidityPool = new LiquidityPoolAccountable();
-        liquidityPool.initialize(LENDER, address(lendingMarket));
+        liquidityPool.initialize(LENDER, address(lendingMarket), address(token));
 
         // Register credit line and liquidity pool
         lendingMarket.configureCreditLineLender(address(creditLine), LENDER);
@@ -98,7 +98,7 @@ contract LendingMarketComplexTest is Test {
         // Configure liquidity pool and credit line
         vm.startPrank(LENDER);
         token.approve(address(liquidityPool), type(uint256).max);
-        liquidityPool.deposit(address(creditLine), scenario.borrowAmount);
+        liquidityPool.deposit(scenario.borrowAmount);
         creditLine.configureCreditLine(createCreditLineConfig(scenario));
         vm.stopPrank();
 
