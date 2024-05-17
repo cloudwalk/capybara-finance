@@ -750,8 +750,6 @@ contract LendingMarketTest is Test {
 
         vm.expectEmit(true, true, true, true, address(liquidityPool));
         emit OnBeforeLoanTakenCalled(loanId, address(creditLine));
-        vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit OnAfterLoanTakenCalled(loanId, address(creditLine));
         vm.expectEmit(true, true, true, true, address(market));
         emit LoanTaken(loanId, BORROWER, totalBorrowAmount, terms.durationInPeriods);
 

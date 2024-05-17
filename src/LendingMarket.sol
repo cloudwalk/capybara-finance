@@ -279,9 +279,6 @@ contract LendingMarket is
 
         IERC20(terms.token).safeTransferFrom(liquidityPool, msg.sender, borrowAmount);
 
-        ILiquidityPool(liquidityPool).onAfterLoanTaken(id, creditLine);
-        ICreditLine(creditLine).onAfterLoanTaken(id);
-
         emit LoanTaken(id, msg.sender, totalBorrowAmount, terms.durationInPeriods);
 
         return id;

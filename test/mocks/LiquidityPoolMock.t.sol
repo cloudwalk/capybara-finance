@@ -62,20 +62,6 @@ contract LiquidityPoolMockTest is Test {
         assertEq(result, true);
     }
 
-    function test_onAfterLoanTaken() public {
-        vm.expectEmit(true, true, true, true, address(mock));
-        emit OnAfterLoanTakenCalled(LOAN_ID, CREDIT_LINE);
-        bool result = mock.onAfterLoanTaken(LOAN_ID, CREDIT_LINE);
-        assertEq(result, false);
-
-        mock.mockOnAfterLoanTakenResult(true);
-
-        vm.expectEmit(true, true, true, true, address(mock));
-        emit OnAfterLoanTakenCalled(LOAN_ID, CREDIT_LINE);
-        result = mock.onAfterLoanTaken(LOAN_ID, CREDIT_LINE);
-        assertEq(result, true);
-    }
-
     function test_onBeforeLoanPayment() public {
         vm.expectEmit(true, true, true, true, address(mock));
         emit OnBeforeLoanPaymentCalled(LOAN_ID, REPAY_AMOUNT);

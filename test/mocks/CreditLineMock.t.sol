@@ -131,20 +131,6 @@ contract CreditLineMockTest is Test {
         assertEq(result, true);
     }
 
-    function test_onAfterLoanTaken() public {
-        vm.expectEmit(true, true, true, true, address(mock));
-        emit OnAfterLoanTakenCalled(LOAN_ID);
-        bool result = mock.onAfterLoanTaken(LOAN_ID);
-        assertEq(result, false);
-
-        mock.mockOnAfterLoanTakenResult(true);
-
-        vm.expectEmit(true, true, true, true, address(mock));
-        emit OnAfterLoanTakenCalled(LOAN_ID);
-        result = mock.onAfterLoanTaken(LOAN_ID);
-        assertEq(result, true);
-    }
-
     function test_onBeforeLoanPayment() public {
         vm.expectEmit(true, true, true, true, address(mock));
         emit OnBeforeLoanPaymentCalled(LOAN_ID, REPAY_AMOUNT);
