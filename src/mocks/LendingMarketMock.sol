@@ -100,12 +100,6 @@ contract LendingMarketMock is ILendingMarket {
         revert Error.NotImplemented();
     }
 
-    function assignLiquidityPoolToCreditLine(address creditLine, address liquidityPool) external pure {
-        creditLine; // To prevent compiler warning about unused variable
-        liquidityPool; // To prevent compiler warning about unused variable
-        revert Error.NotImplemented();
-    }
-
     function configureAlias(address account, bool isAlias) external pure {
         account; // To prevent compiler warning about unused variable
         isAlias; // To prevent compiler warning about unused variable
@@ -129,11 +123,6 @@ contract LendingMarketMock is ILendingMarket {
 
     function getLiquidityPoolLender(address lender) external pure returns (address) {
         lender; // To prevent compiler warning about unused variable
-        revert Error.NotImplemented();
-    }
-
-    function getLiquidityPoolByCreditLine(address creditLine) external pure returns (address) {
-        creditLine; // To prevent compiler warning about unused variable
         revert Error.NotImplemented();
     }
 

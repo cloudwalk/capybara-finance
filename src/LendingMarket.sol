@@ -458,28 +458,6 @@ contract LendingMarket is
         _hasAlias[msg.sender][account] = isAlias;
     }
 
-    /// @inheritdoc ILendingMarket
-    function assignLiquidityPoolToCreditLine(address creditLine, address liquidityPool) external whenNotPaused {
-        if (creditLine == address(0) || liquidityPool == address(0)) {
-            revert Error.ZeroAddress();
-        }
-
-        address oldLiquidityPool = _creditLineToLiquidityPool[creditLine];
-        if (oldLiquidityPool != address(0)) {
-            // TBD Check if updating the liquidity pool associated with the credit line
-            // will have any unexpected side effects during the loan lifecycle.
-            revert Error.NotImplemented();
-        }
-
-        if (_creditLineLenders[creditLine] != msg.sender || _liquidityPoolLenders[liquidityPool] != msg.sender) {
-            revert Error.Unauthorized();
-        }
-
-        emit LiquidityPoolAssignedToCreditLine(creditLine, liquidityPool, oldLiquidityPool);
-
-        _creditLineToLiquidityPool[creditLine] = liquidityPool;
-    }
-
     // -------------------------------------------- //
     //  Borrower and lender functions               //
     // -------------------------------------------- //
@@ -547,11 +525,6 @@ contract LendingMarket is
     /// @inheritdoc ILendingMarket
     function getLiquidityPoolLender(address liquidityPool) external view returns (address) {
         return _liquidityPoolLenders[liquidityPool];
-    }
-
-    /// @inheritdoc ILendingMarket
-    function getLiquidityPoolByCreditLine(address creditLine) external view returns (address) {
-        return _creditLineToLiquidityPool[creditLine];
     }
 
     /// @inheritdoc ILendingMarket

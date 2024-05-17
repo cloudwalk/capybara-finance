@@ -111,11 +111,6 @@ contract LendingMarketMockTest is Test {
         mock.configureLiquidityPoolLender(LIQUIDITY_POOL, LENDER_1);
     }
 
-    function test_assignLiquidityPoolToCreditLine() public {
-        vm.expectRevert(Error.NotImplemented.selector);
-        mock.assignLiquidityPoolToCreditLine(CREDIT_LINE, LIQUIDITY_POOL);
-    }
-
     function test_configureAlias() public {
         vm.expectRevert(Error.NotImplemented.selector);
         mock.configureAlias(LENDER_2, true);
@@ -129,11 +124,6 @@ contract LendingMarketMockTest is Test {
     function test_getLiquidityPoolLender() public {
         vm.expectRevert(Error.NotImplemented.selector);
         mock.getLiquidityPoolLender(LIQUIDITY_POOL);
-    }
-
-    function test_getLiquidityPoolByCreditLine() public {
-        vm.expectRevert(Error.NotImplemented.selector);
-        mock.getLiquidityPoolByCreditLine(CREDIT_LINE);
     }
 
     function test_getLoanState() public {

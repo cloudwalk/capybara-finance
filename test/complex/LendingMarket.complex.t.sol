@@ -78,7 +78,6 @@ contract LendingMarketComplexTest is Test {
         vm.startPrank(LENDER);
 
         creditLine.grantRole(ADMIN_ROLE, ADMIN);
-        lendingMarket.assignLiquidityPoolToCreditLine(address(creditLine), address(liquidityPool));
         lendingMarket.setActiveLiquidityPool(address(liquidityPool));
         lendingMarket.setActiveCreditLine(address(creditLine));
 
