@@ -241,11 +241,6 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
         return true;
     }
 
-    function onBeforeLoanRevocation(uint256 loanId) external whenNotPaused onlyMarket returns (bool) {
-        loanId; // To prevent compiler warning about unused variable
-        return true;
-    }
-
     function onAfterLoanRevocation(uint256 loanId) external whenNotPaused onlyMarket returns (bool) {
         Loan.State memory loan = ILendingMarket(_market).getLoanState(loanId);
         BorrowerConfig storage borrowerConfig = _borrowers[loan.borrower];

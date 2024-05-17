@@ -20,10 +20,6 @@ interface ILiquidityPool {
     /// @param repayAmount The amount of tokens that was repaid.
     function onAfterLoanPayment(uint256 loanId, uint256 repayAmount) external returns (bool);
 
-    /// @dev A hook that is triggered by the associated market before the loan revocation.
-    /// @param loanId The unique identifier of the loan being revoked.
-    function onBeforeLoanRevocation(uint256 loanId) external returns (bool);
-
     /// @dev A hook that is triggered by the associated market after the loan revocation.
     /// @param loanId The unique identifier of the loan being revoked.
     function onAfterLoanRevocation(uint256 loanId) external returns (bool);

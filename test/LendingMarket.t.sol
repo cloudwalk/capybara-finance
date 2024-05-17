@@ -35,7 +35,6 @@ contract LendingMarketTest is Test {
 
     event OnAfterLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
 
-    event OnBeforeLoanRevocationCalled(uint256 indexed loanId);
     event OnAfterLoanRevocationCalled(uint256 indexed loanId);
 
     event ActiveCreditLineChanged(
@@ -1100,13 +1099,10 @@ contract LendingMarketTest is Test {
         uint256 borrowerBalance = token.balanceOf(loan.borrower);
 
         vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit OnBeforeLoanRevocationCalled(loanId);
+        emit OnAfterLoanRevocationCalled(loanId);
 
         vm.expectEmit(true, true, true, true, address(market));
         emit LoanRevoked(loanId);
-
-        vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit OnAfterLoanRevocationCalled(loanId);
 
         vm.prank(caller);
         market.revokeLoan(loanId);
@@ -1138,13 +1134,10 @@ contract LendingMarketTest is Test {
         uint256 borrowerBalance = token.balanceOf(loan.borrower);
 
         vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit OnBeforeLoanRevocationCalled(loanId);
+        emit OnAfterLoanRevocationCalled(loanId);
 
         vm.expectEmit(true, true, true, true, address(market));
         emit LoanRevoked(loanId);
-
-        vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit OnAfterLoanRevocationCalled(loanId);
 
         vm.prank(caller);
         market.revokeLoan(loanId);
@@ -1177,13 +1170,10 @@ contract LendingMarketTest is Test {
         uint256 borrowerBalance = token.balanceOf(loan.borrower);
 
         vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit OnBeforeLoanRevocationCalled(loanId);
+        emit OnAfterLoanRevocationCalled(loanId);
 
         vm.expectEmit(true, true, true, true, address(market));
         emit LoanRevoked(loanId);
-
-        vm.expectEmit(true, true, true, true, address(liquidityPool));
-        emit OnAfterLoanRevocationCalled(loanId);
 
         vm.prank(caller);
         market.revokeLoan(loanId);

@@ -17,7 +17,6 @@ contract LiquidityPoolMock is ILiquidityPool {
 
     event OnAfterLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
 
-    event OnBeforeLoanRevocationCalled(uint256 indexed loanId);
     event OnAfterLoanRevocationCalled(uint256 indexed loanId);
 
     // -------------------------------------------- //
@@ -28,7 +27,6 @@ contract LiquidityPoolMock is ILiquidityPool {
 
     bool private _onAfterLoanPaymentResult;
 
-    bool private _onBeforeLoanRevocationResult;
     bool private _onAfterLoanRevocationResult;
 
     // -------------------------------------------- //
@@ -43,11 +41,6 @@ contract LiquidityPoolMock is ILiquidityPool {
     function onAfterLoanPayment(uint256 loanId, uint256 repayAmount) external returns (bool) {
         emit OnAfterLoanPaymentCalled(loanId, repayAmount);
         return _onAfterLoanPaymentResult;
-    }
-
-    function onBeforeLoanRevocation(uint256 loanId) external returns (bool) {
-        emit OnBeforeLoanRevocationCalled(loanId);
-        return _onBeforeLoanRevocationResult;
     }
 
     function onAfterLoanRevocation(uint256 loanId) external returns (bool) {
@@ -73,10 +66,6 @@ contract LiquidityPoolMock is ILiquidityPool {
 
     function mockOnAfterLoanPaymentResult(bool result) external {
         _onAfterLoanPaymentResult = result;
-    }
-
-    function mockOnBeforeLoanRevocationResult(bool result) external {
-        _onBeforeLoanRevocationResult = result;
     }
 
     function mockOnAfterLoanRevocationResult(bool result) external {

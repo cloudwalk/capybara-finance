@@ -510,9 +510,6 @@ contract LendingMarket is
         address creditLine = _activeCreditLines[loan.lender];
         address liquidityPool = _activeLiquidityPools[loan.lender];
 
-        ICreditLine(creditLine).onBeforeLoanRevocation(loanId);
-        ILiquidityPool(liquidityPool).onBeforeLoanRevocation(loanId);
-
         loan.trackedBalance = 0;
         loan.trackedTimestamp = _blockTimestamp().toUint32();
 
@@ -522,10 +519,10 @@ contract LendingMarket is
             IERC20(loan.token).transferFrom(liquidityPool, loan.borrower, loan.repaidAmount - loan.borrowAmount);
         }
 
-        emit LoanRevoked(loanId);
-
         ILiquidityPool(liquidityPool).onAfterLoanRevocation(loanId);
         ICreditLine(creditLine).onAfterLoanRevocation(loanId);
+
+        emit LoanRevoked(loanId);
     }
 
     // -------------------------------------------- //
