@@ -11,11 +11,33 @@ import { ICreditLine } from "../common/interfaces/core/ICreditLine.sol";
 /// @dev Mock of the `CreditLine` contract used for testing.
 contract CreditLineMock is ICreditLine {
     // -------------------------------------------- //
+    //  Events                                      //
+    // -------------------------------------------- //
+
+    event OnBeforeLoanTakenCalled(uint256 indexed loanId);
+    event OnAfterLoanTakenCalled(uint256 indexed loanId);
+
+    event OnBeforeLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
+    event OnAfterLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
+
+    event OnBeforeLoanRevocationCalled(uint256 indexed loanId);
+    event OnAfterLoanRevocationCalled(uint256 indexed loanId);
+
+    // -------------------------------------------- //
     //  Storage variables                           //
     // -------------------------------------------- //
 
     address private _tokenAddress;
     mapping(address => mapping(uint256 => Loan.Terms)) private _loanTerms;
+
+    bool private _onBeforeLoanTakenResult;
+    bool private _onAfterLoanTakenResult;
+
+    bool private _onBeforeLoanPaymentResult;
+    bool private _onAfterLoanPaymentResult;
+
+    bool private _onBeforeLoanRevocationResult;
+    bool private _onAfterLoanRevocationResult;
 
     // -------------------------------------------- //
     //  ICreditLine functions                       //
@@ -30,6 +52,36 @@ contract CreditLineMock is ICreditLine {
         durationInPeriods; // To prevent compiler warning about unused variable
         loanId; // To prevent compiler warning about unused variable
         return _loanTerms[borrower][borrowAmount];
+    }
+
+    function onBeforeLoanTaken(uint256 loanId) external returns (bool) {
+        emit OnBeforeLoanTakenCalled(loanId);
+        return _onBeforeLoanTakenResult;
+    }
+
+    function onAfterLoanTaken(uint256 loanId) external returns (bool) {
+        emit OnAfterLoanTakenCalled(loanId);
+        return _onAfterLoanTakenResult;
+    }
+
+    function onBeforeLoanPayment(uint256 loanId, uint256 repayAmount) external returns (bool) {
+        emit OnBeforeLoanPaymentCalled(loanId, repayAmount);
+        return _onBeforeLoanPaymentResult;
+    }
+
+    function onAfterLoanPayment(uint256 loanId, uint256 repayAmount) external returns (bool) {
+        emit OnAfterLoanPaymentCalled(loanId, repayAmount);
+        return _onAfterLoanPaymentResult;
+    }
+
+    function onBeforeLoanRevocation(uint256 loanId) external returns (bool) {
+        emit OnBeforeLoanRevocationCalled(loanId);
+        return _onBeforeLoanRevocationResult;
+    }
+
+    function onAfterLoanRevocation(uint256 loanId) external returns (bool) {
+        emit OnAfterLoanRevocationCalled(loanId);
+        return _onAfterLoanRevocationResult;
     }
 
     function determineLoanTerms(
@@ -63,5 +115,29 @@ contract CreditLineMock is ICreditLine {
 
     function mockLoanTerms(address borrower, uint256 amount, Loan.Terms memory terms) external {
         _loanTerms[borrower][amount] = terms;
+    }
+
+    function mockOnBeforeLoanTakenResult(bool result) external {
+        _onBeforeLoanTakenResult = result;
+    }
+
+    function mockOnAfterLoanTakenResult(bool result) external {
+        _onAfterLoanTakenResult = result;
+    }
+
+    function mockOnBeforeLoanPaymentResult(bool result) external {
+        _onBeforeLoanPaymentResult = result;
+    }
+
+    function mockOnAfterLoanPaymentResult(bool result) external {
+        _onAfterLoanPaymentResult = result;
+    }
+
+    function mockOnBeforeLoanRevocationResult(bool result) external {
+        _onBeforeLoanRevocationResult = result;
+    }
+
+    function mockOnAfterLoanRevocationResult(bool result) external {
+        _onAfterLoanRevocationResult = result;
     }
 }

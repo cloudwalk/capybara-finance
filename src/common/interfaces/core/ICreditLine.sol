@@ -25,6 +25,32 @@ interface ICreditLine {
         uint256 durationInPeriods
     ) external returns (Loan.Terms memory terms);
 
+    /// @dev A hook that is triggered by the associated market before a loan is taken.
+    /// @param loanId The unique identifier of the loan being taken.
+    function onBeforeLoanTaken(uint256 loanId) external returns (bool);
+
+    /// @dev A hook that is triggered by the associated market after a loan is taken.
+    /// @param loanId The unique identifier of the loan being taken.
+    function onAfterLoanTaken(uint256 loanId) external returns (bool);
+
+    /// @dev A hook that is triggered by the associated market before the loan payment.
+    /// @param loanId The unique identifier of the loan being paid.
+    /// @param repayAmount The amount of tokens to be repaid.
+    function onBeforeLoanPayment(uint256 loanId, uint256 repayAmount) external returns (bool);
+
+    /// @dev A hook that is triggered by the associated market after the loan payment.
+    /// @param loanId The unique identifier of the loan being paid.
+    /// @param repayAmount The amount of tokens that was repaid.
+    function onAfterLoanPayment(uint256 loanId, uint256 repayAmount) external returns (bool);
+
+    /// @dev A hook that is triggered by the associated market before the loan revocation.
+    /// @param loanId The unique identifier of the loan being revoked.
+    function onBeforeLoanRevocation(uint256 loanId) external returns (bool);
+
+    /// @dev A hook that is triggered by the associated market after the loan revocation.
+    /// @param loanId The unique identifier of the loan being revoked.
+    function onAfterLoanRevocation(uint256 loanId) external returns (bool);
+
     /// @dev Retrieves the loan terms for the provided borrower, amount, and loan duration.
     /// @param borrower The address of the borrower.
     /// @param borrowAmount The desired amount of tokens to borrow.

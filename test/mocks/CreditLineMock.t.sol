@@ -14,6 +14,19 @@ import { CreditLineMock } from "src/mocks/CreditLineMock.sol";
 /// @dev Contains tests for the `CreditLineMock` contract.
 contract CreditLineMockTest is Test {
     // -------------------------------------------- //
+    //  Events                                      //
+    // -------------------------------------------- //
+
+    event OnBeforeLoanTakenCalled(uint256 indexed loanId);
+    event OnAfterLoanTakenCalled(uint256 indexed loanId);
+
+    event OnBeforeLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
+    event OnAfterLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
+
+    event OnBeforeLoanRevocationCalled(uint256 indexed loanId);
+    event OnAfterLoanRevocationCalled(uint256 indexed loanId);
+
+    // -------------------------------------------- //
     //  Storage variables                           //
     // -------------------------------------------- //
 
@@ -21,6 +34,7 @@ contract CreditLineMockTest is Test {
 
     uint256 private constant LOAN_ID = 1;
     uint256 private constant BORROW_AMOUNT = 100;
+    uint256 private constant REPAY_AMOUNT = 100;
     uint256 private constant DURATION_IN_PERIODS = 30;
     address private constant BORROWER = address(bytes20(keccak256("borrower")));
 
@@ -40,10 +54,10 @@ contract CreditLineMockTest is Test {
     }
 
     // -------------------------------------------- //
-    //  ICreditLine        functions                //
+    //  ICreditLine functions                       //
     // -------------------------------------------- //
 
-    function test_onBeforeLoanTaken() public {
+    function test_onBeforeLoanTaken_Terms() public {
         Loan.Terms memory terms = mock.onBeforeLoanTaken(LOAN_ID, BORROWER, BORROW_AMOUNT, DURATION_IN_PERIODS);
 
         assertEq(terms.token, address(0));
@@ -101,6 +115,90 @@ contract CreditLineMockTest is Test {
         assertEq(terms.interestRatePrimary, TERMS_INTEREST_RATE_PRIMARY);
         assertEq(terms.interestRateSecondary, TERMS_INTEREST_RATE_SECONDARY);
         assertEq(terms.addonAmount, TERMS_ADDON_AMOUNT);
+    }
+
+    function test_onBeforeLoanTaken() public {
+        vm.expectEmit(true, true, true, true, address(mock));
+        emit OnBeforeLoanTakenCalled(LOAN_ID);
+        bool result = mock.onBeforeLoanTaken(LOAN_ID);
+        assertEq(result, false);
+
+        mock.mockOnBeforeLoanTakenResult(true);
+
+        vm.expectEmit(true, true, true, true, address(mock));
+        emit OnBeforeLoanTakenCalled(LOAN_ID);
+        result = mock.onBeforeLoanTaken(LOAN_ID);
+        assertEq(result, true);
+    }
+
+    function test_onAfterLoanTaken() public {
+        vm.expectEmit(true, true, true, true, address(mock));
+        emit OnAfterLoanTakenCalled(LOAN_ID);
+        bool result = mock.onAfterLoanTaken(LOAN_ID);
+        assertEq(result, false);
+
+        mock.mockOnAfterLoanTakenResult(true);
+
+        vm.expectEmit(true, true, true, true, address(mock));
+        emit OnAfterLoanTakenCalled(LOAN_ID);
+        result = mock.onAfterLoanTaken(LOAN_ID);
+        assertEq(result, true);
+    }
+
+    function test_onBeforeLoanPayment() public {
+        vm.expectEmit(true, true, true, true, address(mock));
+        emit OnBeforeLoanPaymentCalled(LOAN_ID, REPAY_AMOUNT);
+        bool result = mock.onBeforeLoanPayment(LOAN_ID, REPAY_AMOUNT);
+        assertEq(result, false);
+
+        mock.mockOnBeforeLoanPaymentResult(true);
+
+        vm.expectEmit(true, true, true, true, address(mock));
+        emit OnBeforeLoanPaymentCalled(LOAN_ID, REPAY_AMOUNT);
+        result = mock.onBeforeLoanPayment(LOAN_ID, REPAY_AMOUNT);
+        assertEq(result, true);
+    }
+
+    function test_onAfterLoanPayment() public {
+        vm.expectEmit(true, true, true, true, address(mock));
+        emit OnAfterLoanPaymentCalled(LOAN_ID, REPAY_AMOUNT);
+        bool result = mock.onAfterLoanPayment(LOAN_ID, REPAY_AMOUNT);
+        assertEq(result, false);
+
+        mock.mockOnAfterLoanPaymentResult(true);
+
+        vm.expectEmit(true, true, true, true, address(mock));
+        emit OnAfterLoanPaymentCalled(LOAN_ID, REPAY_AMOUNT);
+        result = mock.onAfterLoanPayment(LOAN_ID, REPAY_AMOUNT);
+        assertEq(result, true);
+    }
+
+    function test_onBeforeLoanRevocation() public {
+        vm.expectEmit(true, true, true, true, address(mock));
+        emit OnBeforeLoanRevocationCalled(LOAN_ID);
+        bool result = mock.onBeforeLoanRevocation(LOAN_ID);
+        assertEq(result, false);
+
+        mock.mockOnBeforeLoanRevocationResult(true);
+
+        vm.expectEmit(true, true, true, true, address(mock));
+        emit OnBeforeLoanRevocationCalled(LOAN_ID);
+        result = mock.onBeforeLoanRevocation(LOAN_ID);
+        assertEq(result, true);
+    }
+
+    function test_onAfterLoanRevocation() public {
+        vm.expectEmit(true, true, true, true, address(mock));
+        emit OnAfterLoanRevocationCalled(LOAN_ID);
+        bool result = mock.onAfterLoanRevocation(LOAN_ID);
+        assertEq(result, false);
+
+        mock.mockOnAfterLoanRevocationResult(true);
+
+        vm.expectEmit(true, true, true, true, address(mock));
+        emit OnAfterLoanRevocationCalled(LOAN_ID);
+        result = mock.onAfterLoanRevocation(LOAN_ID);
+        assertEq(result, true);
     }
 
     function test_market() public {

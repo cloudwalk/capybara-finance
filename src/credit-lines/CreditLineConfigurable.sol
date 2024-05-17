@@ -232,6 +232,38 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
         }
     }
 
+    function onBeforeLoanTaken(uint256 loanId) external returns (bool) {
+        loanId; // To prevent compiler warning about unused variable
+        return true;
+    }
+
+    function onAfterLoanTaken(uint256 loanId) external returns (bool) {
+        loanId; // To prevent compiler warning about unused variable
+        return true;
+    }
+
+    function onBeforeLoanPayment(uint256 loanId, uint256 repayAmount) external returns (bool) {
+        loanId; // To prevent compiler warning about unused variable
+        repayAmount; // To prevent compiler warning about unused variable
+        return true;
+    }
+
+    function onAfterLoanPayment(uint256 loanId, uint256 repayAmount) external returns (bool) {
+        loanId; // To prevent compiler warning about unused variable
+        repayAmount; // To prevent compiler warning about unused variable
+        return true;
+    }
+
+    function onBeforeLoanRevocation(uint256 loanId) external returns (bool) {
+        loanId; // To prevent compiler warning about unused variable
+        return true;
+    }
+
+    function onAfterLoanRevocation(uint256 loanId) external returns (bool) {
+        loanId; // To prevent compiler warning about unused variable
+        return true;
+    }
+
     // -------------------------------------------- //
     //  View functions                              //
     // -------------------------------------------- //

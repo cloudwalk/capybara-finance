@@ -276,11 +276,13 @@ contract LendingMarket is
             addonAmount: terms.addonAmount
         });
 
+        ICreditLine(creditLine).onBeforeLoanTaken(id);
         ILiquidityPool(liquidityPool).onBeforeLoanTaken(id, creditLine);
 
         IERC20(terms.token).safeTransferFrom(liquidityPool, msg.sender, borrowAmount);
 
         ILiquidityPool(liquidityPool).onAfterLoanTaken(id, creditLine);
+        ICreditLine(creditLine).onAfterLoanTaken(id);
 
         emit LoanTaken(id, msg.sender, totalBorrowAmount, terms.durationInPeriods);
 
@@ -332,15 +334,15 @@ contract LendingMarket is
         uint256 repayAmount,
         uint256 outstandingBalance
     ) internal {
-        address lender = _lenders[loanId].account;
-        address liquidityPool = _activeLiquidityPools[lender];
+        address creditLine = _activeCreditLines[loan.lender];
+        address liquidityPool = _activeLiquidityPools[loan.lender];
 
         if (liquidityPool.code.length == 0) {
             // TBD Add support for EOA liquidity pools.
             revert Error.NotImplemented();
         }
 
-        bool autoRepayment = lender == msg.sender;
+        bool autoRepayment = loan.lender == msg.sender;
         address payer = autoRepayment ? loan.borrower : msg.sender;
         if (autoRepayment && !Constants.AUTO_REPAYMENT_ENABLED) {
             revert AutoRepaymentNotAllowed();
@@ -348,6 +350,7 @@ contract LendingMarket is
 
         outstandingBalance -= repayAmount;
 
+        ICreditLine(creditLine).onBeforeLoanPayment(loanId, repayAmount);
         ILiquidityPool(liquidityPool).onBeforeLoanPayment(loanId, repayAmount);
 
         loan.repaidAmount += repayAmount.toUint64();
@@ -357,6 +360,7 @@ contract LendingMarket is
         IERC20(loan.token).transferFrom(payer, liquidityPool, repayAmount);
 
         ILiquidityPool(liquidityPool).onAfterLoanPayment(loanId, repayAmount);
+        ICreditLine(creditLine).onAfterLoanPayment(loanId, repayAmount);
 
         emit LoanRepayment(loanId, payer, loan.borrower, repayAmount, outstandingBalance);
     }
@@ -511,8 +515,10 @@ contract LendingMarket is
     /// @param loanId The unique identifier of the loan to revoke.
     /// @param loan The storage state of the loan to update.
     function _revokeLoan(uint256 loanId, Loan.State storage loan) internal {
+        address creditLine = _activeCreditLines[loan.lender];
         address liquidityPool = _activeLiquidityPools[loan.lender];
 
+        ICreditLine(creditLine).onBeforeLoanRevocation(loanId);
         ILiquidityPool(liquidityPool).onBeforeLoanRevocation(loanId);
 
         loan.trackedBalance = 0;
@@ -527,6 +533,7 @@ contract LendingMarket is
         emit LoanRevoked(loanId);
 
         ILiquidityPool(liquidityPool).onAfterLoanRevocation(loanId);
+        ICreditLine(creditLine).onAfterLoanRevocation(loanId);
     }
 
     // -------------------------------------------- //
