@@ -218,7 +218,7 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
 
         if (borrowerConfig.borrowPolicy == BorrowPolicy.Keep) {
             // Do nothing to the borrower's max borrow amount configuration
-        } else if (borrowerConfig.borrowPolicy == BorrowPolicy.Decrease) {
+        } else if (borrowerConfig.borrowPolicy == BorrowPolicy.Decrease || borrowerConfig.borrowPolicy == BorrowPolicy.DecreaseIncrease) {
             borrowerConfig.maxBorrowAmount -= loan.borrowAmount + loan.addonAmount;
         } else { // borrowerConfig.borrowPolicy == BorrowPolicy.Reset
             borrowerConfig.maxBorrowAmount = 0;
@@ -239,8 +239,14 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
     }
 
     function onAfterLoanPayment(uint256 loanId, uint256 repayAmount) external whenNotPaused onlyMarket returns (bool) {
-        loanId; // To prevent compiler warning about unused variable
         repayAmount; // To prevent compiler warning about unused variable
+
+        Loan.State memory loan = ILendingMarket(_market).getLoanState(loanId);
+        if (loan.trackedBalance == 0) {
+            BorrowerConfig storage borrowerConfig = _borrowers[loan.borrower];
+            borrowerConfig.maxBorrowAmount += loan.borrowAmount + loan.addonAmount;
+        }
+
         return true;
     }
 

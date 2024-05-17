@@ -793,6 +793,33 @@ contract CreditLineConfigurableTest is Test {
         );
     }
 
+    function test_onBeforeLoanTaken_Policy_DecreaseIncrease() public {
+        configureCreditLine();
+
+        ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
+        config.borrowPolicy = ICreditLineConfigurable.BorrowPolicy.DecreaseIncrease;
+
+        vm.prank(ADMIN);
+        creditLine.configureBorrower(BORROWER_1, config);
+
+        assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, config.maxBorrowAmount);
+
+        uint64 addonAmount = 10;
+        Loan.State memory loan = initLoanState();
+        loan.borrower = BORROWER_1;
+        loan.borrowAmount = config.minBorrowAmount;
+        loan.addonAmount = addonAmount;
+        lendingMarket.mockLoanState(1, loan);
+
+        vm.prank(address(lendingMarket));
+        creditLine.onBeforeLoanTaken(1);
+
+        assertEq(
+            creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount,
+            config.maxBorrowAmount - (config.minBorrowAmount + addonAmount)
+        );
+    }
+
     function test_onBeforeLoanTaken_Revert_IfContractIsPaused() public {
         configureCreditLine();
 
@@ -821,6 +848,98 @@ contract CreditLineConfigurableTest is Test {
         vm.expectRevert(Error.Unauthorized.selector);
         creditLine.onBeforeLoanTaken(1);
     }
+
+    // -------------------------------------------- //
+    //  Test `onAfterLoanPayment` function          //
+    // -------------------------------------------- //
+
+    function test_onAfterLoanPayment_Policy_DecreaseIncrease() public {
+        configureCreditLine();
+
+        ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
+        config.borrowPolicy = ICreditLineConfigurable.BorrowPolicy.DecreaseIncrease;
+
+        vm.prank(ADMIN);
+        creditLine.configureBorrower(BORROWER_1, config);
+
+        assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, config.maxBorrowAmount);
+
+        vm.prank(ADMIN);
+        creditLine.configureBorrower(BORROWER_1, config);
+
+        assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, config.maxBorrowAmount);
+
+        uint64 addonAmount = 10;
+        Loan.State memory loan = initLoanState();
+        loan.borrower = BORROWER_1;
+        loan.borrowAmount = config.minBorrowAmount;
+        loan.addonAmount = addonAmount;
+        loan.trackedBalance = config.minBorrowAmount + addonAmount;
+        lendingMarket.mockLoanState(1, loan);
+
+        vm.prank(address(lendingMarket));
+        creditLine.onBeforeLoanTaken(1);
+
+        assertEq(
+            creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount,
+            config.maxBorrowAmount - (config.minBorrowAmount + addonAmount)
+        );
+
+        // Partial repayment
+
+        uint64 repayAmount = loan.trackedBalance / 2;
+        loan.trackedBalance -= repayAmount;
+        lendingMarket.mockLoanState(1, loan);
+
+        vm.prank(address(lendingMarket));
+        creditLine.onAfterLoanPayment(1, repayAmount);
+
+        assertEq(
+            creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount,
+            config.maxBorrowAmount - (config.minBorrowAmount + addonAmount)
+        );
+
+        // Full repayment
+
+        repayAmount = loan.trackedBalance;
+        loan.trackedBalance = 0;
+        lendingMarket.mockLoanState(1, loan);
+
+        vm.prank(address(lendingMarket));
+        creditLine.onAfterLoanPayment(1, repayAmount);
+
+        assertEq(creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount, config.maxBorrowAmount);
+    }
+
+    function test_onAfterLoanPayment_Revert_IfContractIsPaused() public {
+        configureCreditLine();
+
+        ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
+
+        vm.prank(ADMIN);
+        creditLine.configureBorrower(BORROWER_1, config);
+
+        vm.prank(PAUSER);
+        creditLine.pause();
+
+        vm.prank(ATTACKER);
+        vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
+        creditLine.onAfterLoanPayment(1, 10);
+    }
+
+    function test_onAfterLoanPayment_Revert_IfCallerIsNotMarket() public {
+        configureCreditLine();
+
+        ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
+
+        vm.prank(ADMIN);
+        creditLine.configureBorrower(BORROWER_1, config);
+
+        vm.prank(ATTACKER);
+        vm.expectRevert(Error.Unauthorized.selector);
+        creditLine.onAfterLoanPayment(1, 10);
+    }
+
 
     // -------------------------------------------- //
     //  Test `determineLoanTerms` function          //

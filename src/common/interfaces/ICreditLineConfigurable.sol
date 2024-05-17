@@ -20,9 +20,10 @@ interface ICreditLineConfigurable is ICreditLine {
     /// - Keep ----- Do not change anything about the borrow allowance.
     /// - Decrease - Decrease the borrow allowance after each loan taken.
     enum BorrowPolicy {
-        Reset,    // 0
-        Keep,     // 1
-        Decrease  // 2
+        Reset,           // 0
+        Keep,            // 1
+        Decrease,        // 2
+        DecreaseIncrease // 3
     }
 
     /// @dev A struct that defines credit line configuration.
