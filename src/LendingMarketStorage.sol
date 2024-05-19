@@ -24,16 +24,19 @@ abstract contract LendingMarketStorage {
     /// @dev The mapping of liquidity pool to associated lender.
     mapping(address => address) internal _liquidityPoolLenders;
 
+    /// @dev The mapping of program identifier to associated lender.
+    mapping(bytes32 => address) internal _programLenders;
+
+    /// @dev The mapping of program identifier to associated credit line.
+    mapping(bytes32 => address) internal _programCreditLines;
+
+    /// @dev The mapping of program identifier to associated liquidity pool.
+    mapping(bytes32 => address) internal _programLiquidityPools;
+
     /// @dev The mapping of lender to its aliases (True if alias exists).
     mapping(address => mapping(address => bool)) internal _hasAlias;
 
-    /// @dev The mapping of lender to its active credit line.
-    mapping(address => address) internal _activeCreditLines;
-
-    /// @dev The mapping of lender to its active liquidity pool.
-    mapping(address => address) internal _activeLiquidityPools;
-
     /// @dev This empty reserved space is put in place to allow future versions
     /// to add new variables without shifting down storage in the inheritance chain.
-    uint256[43] private __gap;
+    uint256[42] private __gap;
 }

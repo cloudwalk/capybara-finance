@@ -12,45 +12,6 @@ interface ILendingMarket {
     //  Events                                      //
     // -------------------------------------------- //
 
-    /// @dev Emitted when the lender of a liquidity pool is configured.
-    /// @param liquidityPool The address of the liquidity pool.
-    /// @param newLender The address of the new lender.
-    /// @param oldLender The address of the old lender.
-    event LiquidityPoolLenderConfigured(
-        address indexed liquidityPool,
-        address indexed newLender,
-        address indexed oldLender
-    );
-
-    /// @dev Emitted when the lender of a credit line is configured.
-    /// @param creditLine The address of the credit line.
-    /// @param newLender The address of the new lender.
-    /// @param oldLender The address of the old lender.
-    event CreditLineLenderConfigured(
-        address indexed creditLine,
-        address indexed newLender,
-        address indexed oldLender
-    );
-
-    /// @dev Emitted when the active credit line is changed.
-    /// @param lender The address of the lender account.
-    /// @param newCreditLine The address of the new active credit line.
-    /// @param oldCreditLine The address of the old active credit line.
-    event ActiveCreditLineChanged(
-        address indexed lender,
-        address indexed newCreditLine,
-        address indexed oldCreditLine
-    );
-
-    /// @dev Emitted when the active liquidity pool is changed.
-    /// @param lender The address of the lender account.
-    /// @param newLiquidityPool The address of the new active liquidity pool.
-    /// @param oldLiquidityPool The address of the old active liquidity pool.
-    event ActiveLiquidityPoolChanged(
-        address indexed lender,
-        address indexed newLiquidityPool,
-        address indexed oldLiquidityPool
-    );
 
     /// @dev Emitted when a loan is taken.
     /// @param loanId The unique identifier of the loan.
@@ -120,6 +81,41 @@ interface ILendingMarket {
         uint256 indexed oldInterestRate
     );
 
+
+    /// @dev Emitted when a new credit line is registered.
+    /// @param lender The address of the lender who registered the credit line.
+    /// @param creditLine The address of the credit line registered.
+    event CreditLineRegistered(
+        address indexed lender,
+        address indexed creditLine
+    );
+
+    /// @dev Emitted when a new liquidity pool is registered.
+    /// @param lender The address of the lender who registered the liquidity pool.
+    /// @param liquidityPool The address of the liquidity pool registered.
+    event LiquidityPoolRegistered(
+        address indexed lender,
+        address indexed liquidityPool
+    );
+
+    /// @dev Emitted when a new program is created.
+    /// @param lender The address of the lender who created the program.
+    /// @param programId The unique identifier of the program.
+    event ProgramCreated(
+        address indexed lender,
+        bytes32 indexed programId
+    );
+
+    /// @dev Emitted when a program is updated.
+    /// @param programId The unique identifier of the program.
+    /// @param creditLine The address of the credit line associated with the program.
+    /// @param liquidityPool The address of the liquidity pool associated with the program.
+    event ProgramUpdated(
+        bytes32 indexed programId,
+        address indexed creditLine,
+        address indexed liquidityPool
+    );
+
     /// @dev Emitted when a lender alias is configured.
     /// @param lender The address of the lender account.
     /// @param account The address of the alias account.
@@ -130,27 +126,17 @@ interface ILendingMarket {
         bool isAlias
     );
 
-    /// @dev Emitted when a liquidity pool is assigned to a credit line.
-    /// @param creditLine The address of the credit line.
-    /// @param newLiquidityPool The address of the new liquidity pool.
-    /// @param oldLiquidityPool The address of the old liquidity pool.
-    event LiquidityPoolAssignedToCreditLine(
-        address indexed creditLine,
-        address indexed newLiquidityPool,
-        address indexed oldLiquidityPool
-    );
-
     // -------------------------------------------- //
     //  Borrower functions                          //
     // -------------------------------------------- //
 
     /// @dev Takes a loan.
-    /// @param lender The address of the lender to take the loan from.
+    /// @param programId The identifier of the program to take the loan from.
     /// @param borrowAmount The desired amount of tokens to borrow.
     /// @param durationInPeriods The desired duration of the loan in periods.
     /// @return The unique identifier of the loan.
     function takeLoan(
-        address lender,
+        bytes32 programId,
         uint256 borrowAmount,
         uint256 durationInPeriods
     ) external returns (uint256);
@@ -163,6 +149,26 @@ interface ILendingMarket {
     // -------------------------------------------- //
     //  Lender functions                            //
     // -------------------------------------------- //
+
+    /// @dev Registers a credit line.
+    /// @param creditLine The address of the credit line to register.
+    function registerCreditLine(address creditLine) external;
+
+    /// @dev Registers a liquidity pool.
+    /// @param liquidityPool The address of the liquidity pool to register.
+    function registerLiquidityPool(address liquidityPool) external;
+
+    /// @dev Creates a new program.
+    /// @param programId The unique identifier of the program to create.
+    /// @param creditLine The address of the credit line to associate with the program.
+    /// @param liquidityPool The address of the liquidity pool to associate with the program.
+    function createProgram(bytes32 programId, address creditLine, address liquidityPool) external;
+
+    /// @dev Updates an existing program.
+    /// @param programId The unique identifier of the program to update.
+    /// @param creditLine The address of the credit line to associate with the program.
+    /// @param liquidityPool The address of the liquidity pool to associate with the program.
+    function updateProgram(bytes32 programId, address creditLine, address liquidityPool) external;
 
     /// @dev Freezes a loan.
     /// @param loanId The unique identifier of the loan to freeze.
@@ -187,24 +193,6 @@ interface ILendingMarket {
     /// @param newInterestRate The new secondary interest rate of the loan.
     function updateLoanInterestRateSecondary(uint256 loanId, uint256 newInterestRate) external;
 
-    /// @dev Sets the active credit line.
-    /// @param creditLine The address of the credit line to set as active.
-    function setActiveCreditLine(address creditLine) external;
-
-    /// @dev Sets the active liquidity pool.
-    /// @param liquidityPool The address of the liquidity pool to set as active.
-    function setActiveLiquidityPool(address liquidityPool) external;
-
-    /// @dev Configures the lender of a credit line.
-    /// @param creditLine The address of the credit line to update.
-    /// @param newLender The address of the new lender of the credit line.
-    function configureCreditLineLender(address creditLine, address newLender) external;
-
-    /// @dev Configures the lender of a liquidity pool.
-    /// @param liquidityPool The address of the liquidity pool to update.
-    /// @param newLender The address of the new lender of the liquidity pool.
-    function configureLiquidityPoolLender(address liquidityPool, address newLender) external;
-
     /// @dev Configures an alias for a lender.
     /// @param account The address to configure as an alias.
     /// @param isAlias True if the account is an alias, otherwise false.
@@ -222,16 +210,6 @@ interface ILendingMarket {
     //  View functions                              //
     // -------------------------------------------- //
 
-    /// @dev Gets the active credit line of a lender.
-    /// @param lender The address of the lender to check.
-    /// @return The address of the active credit line.
-    function getActiveCreditLine(address lender) external view returns (address);
-
-    /// @dev Gets the active liquidity pool of a lender.
-    /// @param lender The address of the lender to check.
-    /// @return The address of the active liquidity pool.
-    function getActiveLiquidityPool(address lender) external view returns (address);
-
     /// @dev Gets the lender of a credit line.
     /// @param creditLine The address of the credit line to check.
     /// @return The lender address of the credit line.
@@ -241,6 +219,21 @@ interface ILendingMarket {
     /// @param liquidityPool The address of the liquidity pool to check.
     /// @return The lender address of the liquidity pool.
     function getLiquidityPoolLender(address liquidityPool) external view returns (address);
+
+    /// @dev Gets the lender of a program.
+    /// @param programId The unique identifier of the program to check.
+    /// @return The lender address of the program.
+    function getProgramLender(bytes32 programId) external view returns (address);
+
+    /// @dev Gets the credit line associated with a program.
+    /// @param programId The unique identifier of the program to check.
+    /// @return The address of the credit line associated with the program.
+    function getProgramCreditLine(bytes32 programId) external view returns (address);
+
+    /// @dev Gets the liquidity pool associated with a program.
+    /// @param programId The unique identifier of the program to check.
+    /// @return The address of the liquidity pool associated with the program.
+    function getProgramLiquidityPool(bytes32 programId) external view returns (address);
 
     /// @dev Gets the stored state of a given loan.
     /// @param loanId The unique identifier of the loan to check.

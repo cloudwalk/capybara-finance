@@ -37,6 +37,7 @@ contract LendingMarketComplexTest is Test {
     address private constant BORROWER = address(bytes20(keccak256("borrower")));
     address private constant ADDON_RECIPIENT = address(bytes20(keccak256("recipient")));
 
+    bytes32 private constant PROGRAM_ID = keccak256("PROGRAM_ID");
     bytes32 private constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
     uint256 private constant ZERO_VALUE = 0;
@@ -67,10 +68,6 @@ contract LendingMarketComplexTest is Test {
         liquidityPool = new LiquidityPoolAccountable();
         liquidityPool.initialize(LENDER, address(lendingMarket), address(token));
 
-        // Register credit line and liquidity pool
-        lendingMarket.configureCreditLineLender(address(creditLine), LENDER);
-        lendingMarket.configureLiquidityPoolLender(address(liquidityPool), LENDER);
-
         vm.stopPrank();
 
         // Switch to the lender
@@ -78,8 +75,10 @@ contract LendingMarketComplexTest is Test {
         vm.startPrank(LENDER);
 
         creditLine.grantRole(ADMIN_ROLE, ADMIN);
-        lendingMarket.setActiveLiquidityPool(address(liquidityPool));
-        lendingMarket.setActiveCreditLine(address(creditLine));
+
+        lendingMarket.registerCreditLine(address(creditLine));
+        lendingMarket.registerLiquidityPool(address(liquidityPool));
+        lendingMarket.createProgram(PROGRAM_ID, address(creditLine), address(liquidityPool));
 
         vm.stopPrank();
 
@@ -206,7 +205,7 @@ contract LendingMarketComplexTest is Test {
 
         vm.startPrank(BORROWER);
 
-        uint256 loanId = lendingMarket.takeLoan(LENDER, scenario.borrowAmount, scenario.durationInPeriods);
+        uint256 loanId = lendingMarket.takeLoan(PROGRAM_ID, scenario.borrowAmount, scenario.durationInPeriods);
 
         for (uint256 i = 0; i < scenario.repaymentAmounts.length; i++) {
             skip(Constants.PERIOD_IN_SECONDS * scenario.iterationStep);

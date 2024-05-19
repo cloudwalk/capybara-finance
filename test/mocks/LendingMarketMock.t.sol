@@ -52,6 +52,8 @@ contract LendingMarketMockTest is Test {
     uint256 private constant UPDATE_LOAN_INTEREST_RATE_PRIMARY = 300;
     uint256 private constant UPDATE_LOAN_INTEREST_RATE_SECONDARY = 400;
 
+    bytes32 private constant PROGRAM_ID = keccak256("PROGRAM_ID");
+
     // -------------------------------------------- //
     //  Setup and configuration                     //
     // -------------------------------------------- //
@@ -66,7 +68,7 @@ contract LendingMarketMockTest is Test {
 
     function test_takeLoan() public {
         vm.expectRevert(Error.NotImplemented.selector);
-        mock.takeLoan(CREDIT_LINE, BORROW_AMOUNT, DURATION_IN_PERIODS);
+        mock.takeLoan(PROGRAM_ID, BORROW_AMOUNT, DURATION_IN_PERIODS);
     }
 
     function test_repayLoan() public {
@@ -101,16 +103,6 @@ contract LendingMarketMockTest is Test {
         mock.updateLoanInterestRateSecondary(LOAN_ID, UPDATE_LOAN_INTEREST_RATE_SECONDARY);
     }
 
-    function test_configureCreditLineLender() public {
-        vm.expectRevert(Error.NotImplemented.selector);
-        mock.configureCreditLineLender(CREDIT_LINE, LENDER_1);
-    }
-
-    function test_configureLiquidityPoolLender() public {
-        vm.expectRevert(Error.NotImplemented.selector);
-        mock.configureLiquidityPoolLender(LIQUIDITY_POOL, LENDER_1);
-    }
-
     function test_configureAlias() public {
         vm.expectRevert(Error.NotImplemented.selector);
         mock.configureAlias(LENDER_2, true);
@@ -131,7 +123,7 @@ contract LendingMarketMockTest is Test {
 
         assertEq(loan.token, address(0));
         assertEq(loan.borrower, address(0));
-        assertEq(loan.lender, address(0));
+        assertEq(loan.programId, bytes32(0));
         assertEq(loan.durationInPeriods, 0);
         assertEq(loan.interestRatePrimary, 0);
         assertEq(loan.interestRateSecondary, 0);
@@ -148,7 +140,7 @@ contract LendingMarketMockTest is Test {
             Loan.State({
                 token: TOKEN,
                 borrower: BORROWER,
-                lender: LENDER_1,
+                programId: PROGRAM_ID,
                 durationInPeriods: STATE_DURATION_IN_PERIODS,
                 interestRatePrimary: STATE_INTEREST_RATE_PRIMARY,
                 interestRateSecondary: STATE_INTEREST_RATE_SECONDARY,
@@ -166,7 +158,7 @@ contract LendingMarketMockTest is Test {
 
         assertEq(loan.token, TOKEN);
         assertEq(loan.borrower, BORROWER);
-        assertEq(loan.lender, LENDER_1);
+        assertEq(loan.programId, PROGRAM_ID);
         assertEq(loan.durationInPeriods, STATE_DURATION_IN_PERIODS);
         assertEq(loan.interestRatePrimary, STATE_INTEREST_RATE_PRIMARY);
         assertEq(loan.interestRateSecondary, STATE_INTEREST_RATE_SECONDARY);

@@ -15,12 +15,13 @@ library Loan {
     struct State {
         // Slot 1
         address token;                // The address of the token used for the loan.
-        uint64 borrowAmount;          // The initial borrow amount of the loan, excluding the addon.
+        bytes32 programId;            // The program identifier the loan is associated with.
         uint32 startTimestamp;        // The timestamp when the loan was created (stated).
-        // Slot 2
-        address lender;               // The address of the lender
-        uint64 addonAmount;           // The amount of the loan addon (extra charges or fees).
         uint32 durationInPeriods;     // The total duration of the loan determined by the number of periods.
+        // Slot 2
+        uint64 borrowAmount;          // The initial borrow amount of the loan, excluding the addon.
+        uint64 addonAmount;           // The amount of the loan addon (extra charges or fees).
+        // uint128 __reserved;        // Reserved for future use.
         // Slot 3
         address borrower;             // The address of the borrower.
         uint32 interestRatePrimary;   // The primary interest rate that is applied to the loan.

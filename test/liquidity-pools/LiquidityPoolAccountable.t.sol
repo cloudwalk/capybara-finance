@@ -108,7 +108,7 @@ contract LiquidityPoolAccountableTest is Test {
         return Loan.State({
             token: address(token),
             borrower: address(0),
-            lender: address(0),
+            programId: bytes32(0),
             durationInPeriods: 0,
             interestRatePrimary: 0,
             interestRateSecondary: 0,
@@ -268,7 +268,6 @@ contract LiquidityPoolAccountableTest is Test {
         loan.borrowAmount = DEPOSIT_AMOUNT_1;
         loan.addonAmount = ADDON_AMOUNT;
         lendingMarket.mockLoanState(LOAN_ID_1, loan);
-        lendingMarket.mockGetActiveCreditLineResult(address(creditLine));
 
         vm.prank(LENDER);
         liquidityPool.deposit(depositAmount);
