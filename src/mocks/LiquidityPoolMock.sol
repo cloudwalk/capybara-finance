@@ -23,6 +23,8 @@ contract LiquidityPoolMock is ILiquidityPool {
     //  Storage variables                           //
     // -------------------------------------------- //
 
+    address private _tokenAddress;
+
     bool private _onBeforeLoanTakenResult;
 
     bool private _onAfterLoanPaymentResult;
@@ -56,9 +58,17 @@ contract LiquidityPoolMock is ILiquidityPool {
         revert Error.NotImplemented();
     }
 
+    function token() external view returns (address) {
+        return _tokenAddress;
+    }
+
     // -------------------------------------------- //
     //  Mock functions                              //
     // -------------------------------------------- //
+
+    function mockTokenAddress(address tokenAddress) external {
+        _tokenAddress = tokenAddress;
+    }
 
     function mockOnBeforeLoanTakenResult(bool result) external {
         _onBeforeLoanTakenResult = result;

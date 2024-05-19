@@ -268,4 +268,9 @@ contract LiquidityPoolAccountable is AccessControlExtUpgradeable, PausableUpgrad
     function market() external view returns (address) {
         return _market;
     }
+
+    /// @inheritdoc ILiquidityPool
+    function token() external view returns (address) {
+        return _token;
+    }
 }

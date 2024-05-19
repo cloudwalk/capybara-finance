@@ -25,4 +25,7 @@ interface ILiquidityPool {
 
     /// @dev Returns the address of the associated lending market.
     function market() external view returns (address);
+
+    /// @dev Returns the address of the credit line token.
+    function token() external view returns (address);
 }

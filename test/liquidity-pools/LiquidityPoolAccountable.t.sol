@@ -130,6 +130,7 @@ contract LiquidityPoolAccountableTest is Test {
         liquidityPool = new LiquidityPoolAccountable();
         liquidityPool.initialize(LENDER, address(lendingMarket), address(token));
         assertEq(liquidityPool.market(), address(lendingMarket));
+        assertEq(liquidityPool.token(), address(token));
         assertEq(liquidityPool.hasRole(OWNER_ROLE, LENDER), true);
     }
 
