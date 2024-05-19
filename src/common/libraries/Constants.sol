@@ -10,17 +10,11 @@ library Constants {
     uint256 internal constant PERIOD_IN_SECONDS = 24 hours;
 
     /// @dev The negative time offset applied to the loan period.
-    uint256 internal constant NEGATIVE_TIME_OFFSET = 3 hours;
+    int256 internal constant TIME_OFFSET = -3 hours;
 
     /// @dev The rate factor used for the interest rate calculations.
     uint256 internal constant INTEREST_RATE_FACTOR = 10 ** 9;
 
-    /// @dev The number of periods before which the loan can be revoked.
-    uint256 internal constant COOLDOWN_IN_PERIODS = 3;
-
-    /// @dev The flag that indicates whether the auto repayment is enabled.
-    bool internal constant AUTO_REPAYMENT_ENABLED = true;
-
     /// @dev The accuracy factor used for loan amounts calculation.
-    uint64 internal constant ACCURACY_FACTOR = 10000;
+    uint256 internal constant ACCURACY_FACTOR = 10000;
 }

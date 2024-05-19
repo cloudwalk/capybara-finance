@@ -8,16 +8,15 @@ import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/I
 import { AccessControlUpgradeable } from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
+import { AccessControlExtUpgradeable } from "src/common/AccessControlExtUpgradeable.sol";
+import { Borrower } from "src/common/libraries/Borrower.sol";
+import { Constants } from "src/common/libraries/Constants.sol";
+import { LendingMath } from "src/common/libraries/LendingMath.sol";
 import { Loan } from "src/common/libraries/Loan.sol";
 import { Error } from "src/common/libraries/Error.sol";
-import { Round } from "src/common/libraries/Round.sol";
-import { Constants } from "src/common/libraries/Constants.sol";
-import { InterestMath } from "src/common/libraries/InterestMath.sol";
 import { SafeCast } from "src/common/libraries/SafeCast.sol";
 
 import { ILendingMarket } from "src/common/interfaces/core/ILendingMarket.sol";
-import { ILiquidityPool } from "src/common/interfaces/core/ILiquidityPool.sol";
-import { ICreditLine } from "src/common/interfaces/core/ICreditLine.sol";
 
 import { LendingMarketStorage } from "./LendingMarketStorage.sol";
 
@@ -25,11 +24,11 @@ import { LendingMarketStorage } from "./LendingMarketStorage.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @dev Implementation of the lending market contract.
 contract LendingMarket is
-    LendingMarketStorage,
-    Initializable,
-    AccessControlUpgradeable,
-    PausableUpgradeable,
-    ILendingMarket
+LendingMarketStorage,
+Initializable,
+AccessControlExtUpgradeable,
+PausableUpgradeable,
+ILendingMarket
 {
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
@@ -37,64 +36,11 @@ contract LendingMarket is
     /// @dev The role of this contract owner.
     bytes32 public constant OWNER_ROLE = keccak256("OWNER_ROLE");
 
-    // -------------------------------------------- //
-    //  Errors                                      //
-    // -------------------------------------------- //
+    /// @dev TODO
+    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
-    /// @dev Thrown when the loan does not exist.
-    error LoanNotExist();
-
-    /// @dev Thrown when the loan is not frozen.
-    error LoanNotFrozen();
-
-    /// @dev Thrown when the loan is already repaid.
-    error LoanAlreadyRepaid();
-
-    /// @dev Thrown when the loan is already frozen.
-    error LoanAlreadyFrozen();
-
-    /// @dev Thrown when the credit line is not configured.
-    error CreditLineLenderNotConfigured();
-
-    /// @dev Thrown when the liquidity pool is not configured.
-    error LiquidityPoolLenderNotConfigured();
-
-    /// @dev Thrown when provided interest rate is inappropriate.
-    error InappropriateInterestRate();
-
-    /// @dev Thrown when provided loan duration is inappropriate.
-    error InappropriateLoanDuration();
-
-    /// @dev Thrown when loan auto repayment is not allowed.
-    error AutoRepaymentNotAllowed();
-
-    /// @dev Thrown when the cooldown period has passed.
-    error CooldownPeriodHasPassed();
-
-    // -------------------------------------------- //
-    //  Modifiers                                   //
-    // -------------------------------------------- //
-
-    /// @dev Throws if called by any account other than the lender or its alias.
-    /// @param loanId The unique identifier of the loan to check.
-    modifier onlyLenderOrAlias(uint256 loanId) {
-        if (!isLenderOrAlias(loanId, msg.sender)) {
-            revert Error.Unauthorized();
-        }
-        _;
-    }
-
-    /// @dev Throws if the loan does not exist or has already been repaid.
-    /// @param loanId The unique identifier of the loan to check.
-    modifier onlyOngoingLoan(uint256 loanId) {
-        if (_loans[loanId].token == address(0)) {
-            revert LoanNotExist();
-        }
-        if (_loans[loanId].trackedBalance == 0) {
-            revert LoanAlreadyRepaid();
-        }
-        _;
-    }
+    /// @dev TODO
+    bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
 
     // -------------------------------------------- //
     //  Initializers                                //
@@ -123,6 +69,8 @@ contract LendingMarket is
     /// See details https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable.
     function __LendingMarket_init_unchained(address owner_) internal onlyInitializing {
         _grantRole(OWNER_ROLE, owner_);
+        _setRoleAdmin(ADMIN_ROLE, OWNER_ROLE);
+        _setRoleAdmin(MANAGER_ROLE, OWNER_ROLE);
     }
 
     // -------------------------------------------- //
@@ -139,189 +87,165 @@ contract LendingMarket is
         _unpause();
     }
 
-    /// @inheritdoc ILendingMarket
-    function configureCreditLineLender(address creditLine, address newLender) external onlyRole(OWNER_ROLE) {
-        if (creditLine == address(0) || newLender == address(0)) {
-            revert Error.ZeroAddress();
-        }
-        if (_creditLineLenders[creditLine] == newLender) {
-            revert Error.AlreadyConfigured();
-        }
-
-        emit CreditLineLenderConfigured(creditLine, newLender, _creditLineLenders[creditLine]);
-
-        _creditLineLenders[creditLine] = newLender;
-    }
-
-    /// @inheritdoc ILendingMarket
-    function configureLiquidityPoolLender(address liquidityPool, address newLender) external onlyRole(OWNER_ROLE) {
-        if (liquidityPool == address(0) || newLender == address(0)) {
-            revert Error.ZeroAddress();
-        }
-        if (_liquidityPoolLenders[liquidityPool] == newLender) {
-            revert Error.AlreadyConfigured();
-        }
-
-        emit LiquidityPoolLenderConfigured(liquidityPool, newLender, _liquidityPoolLenders[liquidityPool]);
-
-        _liquidityPoolLenders[liquidityPool] = newLender;
-    }
-
     // -------------------------------------------- //
-    //  Borrower functions                          //
+    //  Admin functions                             //
     // -------------------------------------------- //
 
-    /// @inheritdoc ILendingMarket
-    function takeLoan(
-        address creditLine,
-        uint256 borrowAmount,
-        uint256 durationInPeriods
-    ) external whenNotPaused returns (uint256) {
-        if (creditLine == address(0)) {
-            revert Error.ZeroAddress();
+    /// @dev TODO
+    function createBorrowerConfig(
+        bytes32 configId,
+        Borrower.Config calldata newConfig
+    ) external whenNotPaused onlyRole(ADMIN_ROLE) {
+        if (configId == bytes32(0)) {
+            revert Error.ConfigIdInvalid();
         }
-        if (borrowAmount == 0) {
-            revert Error.InvalidAmount();
+        if (_borrowerConfigs[configId].expiration != 0) {
+            revert Error.AlreadyConfigured();
         }
-        if (borrowAmount != Round.roundUp(borrowAmount, Constants.ACCURACY_FACTOR)) {
+        _checkBorrowerConfig(newConfig);
+        _borrowerConfigs[configId] = newConfig;
+        emit BorrowerConfigCreated(configId);
+    }
+
+    /// @dev TODO
+    function assignConfigToBorrowers(
+        bytes32 newConfigId,
+        address[] calldata borrowers
+    ) external whenNotPaused onlyRole(ADMIN_ROLE) {
+        if (newConfigId == bytes32(0)) {
+            revert Error.ConfigIdInvalid();
+        }
+        uint256 len = borrowers.length;
+        for (uint256 i = 0; i < len; ++i) {
+            address borrower = borrowers[i];
+            _assignConfigToBorrower(borrower, newConfigId);
+        }
+    }
+
+    /// @dev TODO
+    function deposit(uint256 amount) external whenNotPaused onlyRole(ADMIN_ROLE) {
+        if (amount == 0) {
             revert Error.InvalidAmount();
         }
 
-        address lender = _creditLineLenders[creditLine];
-        if (lender == address(0)) {
-            revert CreditLineLenderNotConfigured();
+        _poolBalance += amount.toUint64();
+        IERC20(_token).safeTransferFrom(msg.sender, address(this), amount);
+
+        emit Deposit(amount);
+    }
+
+    /// @dev TODO
+    function withdraw(uint256 poolAmount, uint256 addonAmount) external whenNotPaused onlyRole(ADMIN_ROLE) {
+        if (poolAmount == 0 && addonAmount == 0) {
+            revert Error.InvalidAmount();
+        }
+        if (_poolBalance < poolAmount) {
+            revert Error.PoolBalanceInsufficient();
+        }
+        if (_addonBalance < addonAmount) {
+            revert Error.AddonBalanceInsufficient();
         }
 
-        address liquidityPool = _creditLineToLiquidityPool[creditLine];
-        if (liquidityPool == address(0)) {
-            revert LiquidityPoolLenderNotConfigured();
+        unchecked {
+            _poolBalance -= poolAmount.toUint64();
+            _addonBalance -= addonAmount.toUint64();
         }
 
-        if (lender != _liquidityPoolLenders[liquidityPool]) {
-            revert Error.Unauthorized();
+        IERC20(_token).safeTransfer(msg.sender, poolAmount + addonAmount);
+
+        emit Withdrawal(poolAmount, addonAmount);
+    }
+
+    /// @dev TODO
+    function rescue(address token_, uint256 amount) external whenNotPaused onlyRole(ADMIN_ROLE) {
+        if (token_ == address(0)) {
+            revert Error.ZeroAddress();
+        }
+        if (amount == 0) {
+            revert Error.InvalidAmount();
         }
 
-        uint256 id = _loanIdCounter++;
-        _lenders[id].account = lender;
+        IERC20(token_).safeTransfer(msg.sender, amount);
 
-        Loan.Terms memory terms = ICreditLine(creditLine).onBeforeLoanTaken(
-            id,
-            msg.sender,
-            borrowAmount,
-            durationInPeriods
-        );
+        emit Rescue(token_, amount);
+    }
 
-        uint32 blockTimestamp = _blockTimestamp().toUint32();
-        uint256 totalBorrowAmount = borrowAmount + terms.addonAmount;
+    // -------------------------------------------- //
+    //  Manager functions                           //
+    // -------------------------------------------- //
 
-        _loans[id] = Loan.State({
-            token: terms.token,
-            borrower: msg.sender,
-            treasury: terms.treasury,
-            startTimestamp: blockTimestamp,
-            durationInPeriods: terms.durationInPeriods,
-            interestRatePrimary: terms.interestRatePrimary,
-            interestRateSecondary: terms.interestRateSecondary,
-            borrowAmount: borrowAmount.toUint64(),
-            trackedBalance: totalBorrowAmount.toUint64(),
-            repaidAmount: 0,
-            trackedTimestamp: blockTimestamp,
-            freezeTimestamp: 0,
-            addonAmount: terms.addonAmount
+    /// @inheritdoc ILendingMarket
+    function takeLoanFor(
+        address borrower,
+        uint256 loanAmount,
+        uint256 addonAmount,
+        uint256 durationInPeriods,
+        uint256 interestRatePrimary,
+        uint256 interestRateSecondary
+    ) external whenNotPaused onlyRole(MANAGER_ROLE) returns (uint256) {
+        Loan.Terms memory terms = Loan.Terms({
+            borrower: borrower,
+            loanAmount: loanAmount,
+            addonAmount: addonAmount,
+            durationInPeriods: durationInPeriods,
+            interestRatePrimary: interestRatePrimary,
+            interestRateSecondary: interestRateSecondary
         });
-
-        ILiquidityPool(liquidityPool).onBeforeLoanTaken(id, creditLine);
-
-        IERC20(terms.token).safeTransferFrom(liquidityPool, msg.sender, borrowAmount);
-
-        ILiquidityPool(liquidityPool).onAfterLoanTaken(id, creditLine);
-
-        emit LoanTaken(id, msg.sender, totalBorrowAmount, terms.durationInPeriods);
-
-        return id;
+        return _takeLoan(terms);
     }
 
     /// @inheritdoc ILendingMarket
-    function repayLoan(uint256 loanId, uint256 repayAmount) external whenNotPaused onlyOngoingLoan(loanId) {
-        if (repayAmount == 0) {
-            revert Error.InvalidAmount();
+    function autoRepayLoans(
+        uint256[] calldata loanIds,
+        uint256[] calldata amounts
+    ) external whenNotPaused onlyRole(MANAGER_ROLE) {
+        uint256 len = loanIds.length;
+        if (len != amounts.length) {
+            revert Error.ArrayLengthMismatch();
         }
-
-        Loan.State storage loan = _loans[loanId];
-        (uint256 outstandingBalance, ) = _outstandingBalance(loan, _blockTimestamp());
-
-        // Full repayment
-        if (repayAmount == type(uint256).max) {
-            outstandingBalance = Round.roundUp(outstandingBalance, Constants.ACCURACY_FACTOR);
-            _repayLoan(loanId, loan, outstandingBalance, outstandingBalance);
-            return;
+        for (uint256 i = 0; i < len; ++i) {
+            uint256 loanId = loanIds[i];
+            uint256 amount = amounts[i];
+            if (_isLoanOngoing(_loans[loanId])) {
+                _repayLoan(
+                    loanId,
+                    amount,
+                    address(this) // source
+                );
+            } else {
+                revert Error.LoanStateInappropriate(loanId);
+            }
         }
-
-        if (repayAmount != Round.roundUp(repayAmount, Constants.ACCURACY_FACTOR)) {
-            revert Error.InvalidAmount();
-        }
-
-        // Full repayment
-        if (repayAmount == Round.roundUp(outstandingBalance, Constants.ACCURACY_FACTOR)) {
-            _repayLoan(loanId, loan, repayAmount, repayAmount);
-            return;
-        }
-
-        if (repayAmount > outstandingBalance) {
-            revert Error.InvalidAmount();
-        }
-
-        // Partial repayment
-        _repayLoan(loanId, loan, repayAmount, outstandingBalance);
     }
 
-    /// @dev Updates the loan state and makes the necessary transfers when repaying a loan.
-    /// @param loanId The unique identifier of the loan to repay.
-    /// @param loan The storage state of the loan to update.
-    /// @param repayAmount The amount to repay.
-    /// @param outstandingBalance The outstanding balance of the loan.
-    function _repayLoan(
-        uint256 loanId,
-        Loan.State storage loan,
-        uint256 repayAmount,
-        uint256 outstandingBalance
-    ) internal {
-        if (loan.treasury.code.length == 0) {
-            // TBD Add support for EOA liquidity pools.
-            revert Error.NotImplemented();
-        }
+    /// @inheritdoc ILendingMarket
+    function revokeLoan(uint256 loanId) external whenNotPaused onlyRole(MANAGER_ROLE) {
+        Loan.State storage loan = _loans[loanId];
+        _checkLoanOngoing(loan);
 
-        bool autoRepayment = loan.treasury == msg.sender;
-        address payer = autoRepayment ? loan.borrower : msg.sender;
-        if (autoRepayment && !Constants.AUTO_REPAYMENT_ENABLED) {
-            revert AutoRepaymentNotAllowed();
-        }
-
-        outstandingBalance -= repayAmount;
-
-        ILiquidityPool(loan.treasury).onBeforeLoanPayment(loanId, repayAmount);
-
-        loan.repaidAmount += repayAmount.toUint64();
-        loan.trackedBalance = outstandingBalance.toUint64();
+        loan.trackedBalance = 0;
         loan.trackedTimestamp = _blockTimestamp().toUint32();
+        _processLoanFinishing(loan);
 
-        IERC20(loan.token).transferFrom(payer, loan.treasury, repayAmount);
+        if (loan.repaidAmount < loan.loanAmount) {
+            IERC20(_token).safeTransferFrom(loan.borrower, address(this), loan.loanAmount - loan.repaidAmount);
+            _poolBalance = _poolBalance + (loan.loanAmount - loan.repaidAmount) + loan.addonAmount;
+        } else if (loan.repaidAmount != loan.loanAmount) {
+            _poolBalance = _poolBalance - (loan.repaidAmount - loan.loanAmount) + loan.addonAmount;
+            IERC20(_token).safeTransfer(loan.borrower, loan.repaidAmount - loan.loanAmount);
+        }
+        _addonBalance -= loan.addonAmount;
 
-        ILiquidityPool(loan.treasury).onAfterLoanPayment(loanId, repayAmount);
-
-        emit LoanRepayment(loanId, payer, loan.borrower, repayAmount, outstandingBalance);
+        emit LoanRevoked(loanId, msg.sender);
     }
 
-    // -------------------------------------------- //
-    //  Lender functions                            //
-    // -------------------------------------------- //
-
     /// @inheritdoc ILendingMarket
-    function freeze(uint256 loanId) external whenNotPaused onlyOngoingLoan(loanId) onlyLenderOrAlias(loanId) {
+    function freeze(uint256 loanId) external whenNotPaused onlyRole(MANAGER_ROLE) {
         Loan.State storage loan = _loans[loanId];
+        _checkLoanOngoing(loan);
 
         if (loan.freezeTimestamp != 0) {
-            revert LoanAlreadyFrozen();
+            revert Error.LoanAlreadyFrozen();
         }
 
         loan.freezeTimestamp = _blockTimestamp().toUint32();
@@ -330,11 +254,12 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ILendingMarket
-    function unfreeze(uint256 loanId) external whenNotPaused onlyOngoingLoan(loanId) onlyLenderOrAlias(loanId) {
+    function unfreeze(uint256 loanId) external whenNotPaused onlyRole(MANAGER_ROLE) {
         Loan.State storage loan = _loans[loanId];
+        _checkLoanOngoing(loan);
 
         if (loan.freezeTimestamp == 0) {
-            revert LoanNotFrozen();
+            revert Error.LoanNotFrozen();
         }
 
         uint256 currentPeriodIndex = _periodIndex(_blockTimestamp(), Constants.PERIOD_IN_SECONDS);
@@ -355,11 +280,12 @@ contract LendingMarket is
     function updateLoanDuration(
         uint256 loanId,
         uint256 newDurationInPeriods
-    ) external whenNotPaused onlyOngoingLoan(loanId) onlyLenderOrAlias(loanId) {
+    ) external whenNotPaused onlyRole(MANAGER_ROLE) {
         Loan.State storage loan = _loans[loanId];
+        _checkLoanOngoing(loan);
 
         if (newDurationInPeriods <= loan.durationInPeriods) {
-            revert InappropriateLoanDuration();
+            revert Error.LoanDurationInappropriate();
         }
 
         emit LoanDurationUpdated(loanId, newDurationInPeriods, loan.durationInPeriods);
@@ -371,11 +297,12 @@ contract LendingMarket is
     function updateLoanInterestRatePrimary(
         uint256 loanId,
         uint256 newInterestRate
-    ) external whenNotPaused onlyOngoingLoan(loanId) onlyLenderOrAlias(loanId) {
+    ) external whenNotPaused onlyRole(MANAGER_ROLE) {
         Loan.State storage loan = _loans[loanId];
+        _checkLoanOngoing(loan);
 
         if (newInterestRate >= loan.interestRatePrimary) {
-            revert InappropriateInterestRate();
+            revert Error.InterestRateInappropriate();
         }
 
         emit LoanInterestRatePrimaryUpdated(loanId, newInterestRate, loan.interestRatePrimary);
@@ -387,11 +314,12 @@ contract LendingMarket is
     function updateLoanInterestRateSecondary(
         uint256 loanId,
         uint256 newInterestRate
-    ) external whenNotPaused onlyOngoingLoan(loanId) onlyLenderOrAlias(loanId) {
+    ) external whenNotPaused onlyRole(MANAGER_ROLE) {
         Loan.State storage loan = _loans[loanId];
+        _checkLoanOngoing(loan);
 
         if (newInterestRate >= loan.interestRateSecondary) {
-            revert InappropriateInterestRate();
+            revert Error.InterestRateInappropriate();
         }
 
         emit LoanInterestRateSecondaryUpdated(loanId, newInterestRate, loan.interestRateSecondary);
@@ -399,103 +327,22 @@ contract LendingMarket is
         loan.interestRateSecondary = newInterestRate.toUint32();
     }
 
-    /// @inheritdoc ILendingMarket
-    function configureAlias(address account, bool isAlias) external whenNotPaused {
-        if (account == address(0)) {
-            revert Error.ZeroAddress();
-        }
-        if (_hasAlias[msg.sender][account] == isAlias) {
-            revert Error.AlreadyConfigured();
-        }
-
-        emit LenderAliasConfigured(msg.sender, account, isAlias);
-
-        _hasAlias[msg.sender][account] = isAlias;
-    }
-
-    /// @inheritdoc ILendingMarket
-    function assignLiquidityPoolToCreditLine(address creditLine, address liquidityPool) external whenNotPaused {
-        if (creditLine == address(0) || liquidityPool == address(0)) {
-            revert Error.ZeroAddress();
-        }
-
-        address oldLiquidityPool = _creditLineToLiquidityPool[creditLine];
-        if (oldLiquidityPool != address(0)) {
-            // TBD Check if updating the liquidity pool associated with the credit line
-            // will have any unexpected side effects during the loan lifecycle.
-            revert Error.NotImplemented();
-        }
-
-        if (_creditLineLenders[creditLine] != msg.sender || _liquidityPoolLenders[liquidityPool] != msg.sender) {
-            revert Error.Unauthorized();
-        }
-
-        emit LiquidityPoolAssignedToCreditLine(creditLine, liquidityPool, oldLiquidityPool);
-
-        _creditLineToLiquidityPool[creditLine] = liquidityPool;
-    }
-
     // -------------------------------------------- //
-    //  Borrower and lender functions               //
+    //  Borrower functions                          //
     // -------------------------------------------- //
 
     /// @inheritdoc ILendingMarket
-    function revokeLoan(uint256 loanId) external whenNotPaused onlyOngoingLoan(loanId) {
-        Loan.State storage loan = _loans[loanId];
-        address sender = msg.sender;
-
-        if (sender == loan.borrower) {
-            uint256 currentPeriodIndex = _periodIndex(_blockTimestamp(), Constants.PERIOD_IN_SECONDS);
-            uint256 startPeriodIndex = _periodIndex(loan.startTimestamp, Constants.PERIOD_IN_SECONDS);
-            if (currentPeriodIndex - startPeriodIndex >= Constants.COOLDOWN_IN_PERIODS) {
-                revert CooldownPeriodHasPassed();
-            }
-            _revokeLoan(loanId, loan);
-        } else if (isLenderOrAlias(loanId, msg.sender)) {
-            _revokeLoan(loanId, loan);
-        } else {
-            revert Error.Unauthorized();
-        }
-    }
-
-    /// @dev Updates the loan state and makes the necessary transfers when revoking a loan.
-    /// @param loanId The unique identifier of the loan to revoke.
-    /// @param loan The storage state of the loan to update.
-    function _revokeLoan(uint256 loanId, Loan.State storage loan) internal {
-        ILiquidityPool(loan.treasury).onBeforeLoanRevocation(loanId);
-
-        loan.trackedBalance = 0;
-        loan.trackedTimestamp = _blockTimestamp().toUint32();
-
-        if (loan.repaidAmount < loan.borrowAmount) {
-            IERC20(loan.token).transferFrom(loan.borrower, loan.treasury, loan.borrowAmount - loan.repaidAmount);
-        } else if (loan.repaidAmount != loan.borrowAmount) {
-            IERC20(loan.token).transferFrom(loan.treasury, loan.borrower, loan.repaidAmount - loan.borrowAmount);
-        }
-
-        emit LoanRevoked(loanId);
-
-        ILiquidityPool(loan.treasury).onAfterLoanRevocation(loanId);
+    function repayLoan(uint256 loanId, uint256 amount) external {
+        _repayLoan(
+            loanId,
+            amount,
+            msg.sender // source
+        );
     }
 
     // -------------------------------------------- //
     //  View functions                              //
     // -------------------------------------------- //
-
-    /// @inheritdoc ILendingMarket
-    function getCreditLineLender(address creditLine) external view returns (address) {
-        return _creditLineLenders[creditLine];
-    }
-
-    /// @inheritdoc ILendingMarket
-    function getLiquidityPoolLender(address liquidityPool) external view returns (address) {
-        return _liquidityPoolLenders[liquidityPool];
-    }
-
-    /// @inheritdoc ILendingMarket
-    function getLiquidityPoolByCreditLine(address creditLine) external view returns (address) {
-        return _creditLineToLiquidityPool[creditLine];
-    }
 
     /// @inheritdoc ILendingMarket
     function getLoanState(uint256 loanId) external view returns (Loan.State memory) {
@@ -512,77 +359,301 @@ contract LendingMarket is
         Loan.State storage loan = _loans[loanId];
 
         (preview.trackedBalance, preview.periodIndex) = _outstandingBalance(loan, timestamp);
-        preview.outstandingBalance = Round.roundUp(preview.trackedBalance, Constants.ACCURACY_FACTOR);
+        preview.outstandingBalance = LendingMath.roundUp(preview.trackedBalance, Constants.ACCURACY_FACTOR);
 
         return preview;
     }
 
-    /// @inheritdoc ILendingMarket
-    function isLenderOrAlias(uint256 loanId, address account) public view returns (bool) {
-        address lender = _lenders[loanId].account;
-        return account == lender || _hasAlias[lender][account];
+    /// @dev TODO
+    function getBorrowerConfigByAddress(address borrower) external view returns (Borrower.Config memory) {
+        return _getBorrowerConfig(borrower);
+    }
+
+    /// @dev TODO
+    function getBorrowerConfigById(bytes32 id) external view returns (Borrower.Config memory) {
+        return _borrowerConfigs[id];
+    }
+
+    /// @dev TODO
+    function getBorrowerConfigId(address borrower) external view returns (bytes32) {
+        return _borrowerConfigIds[borrower];
     }
 
     /// @inheritdoc ILendingMarket
-    function getLoanLender(uint256 loanId) external view returns (Loan.Lender memory) {
-        return _lenders[loanId];
-    }
-
-    /// @inheritdoc ILendingMarket
-    function hasAlias(address lender, address account) external view returns (bool) {
-        return _hasAlias[lender][account];
-    }
-
-    /// @inheritdoc ILendingMarket
-    function interestRateFactor() external view returns (uint256) {
+    function interestRateFactor() external pure returns (uint256) {
         return Constants.INTEREST_RATE_FACTOR;
     }
 
     /// @inheritdoc ILendingMarket
-    function periodInSeconds() external view returns (uint256) {
+    function periodInSeconds() external pure returns (uint256) {
         return Constants.PERIOD_IN_SECONDS;
     }
 
     /// @inheritdoc ILendingMarket
-    function timeOffset() external view returns (uint256, bool) {
-        return (Constants.NEGATIVE_TIME_OFFSET, false);
+    function timeOffset() external pure returns (int256) {
+        return Constants.TIME_OFFSET;
     }
 
     /// @inheritdoc ILendingMarket
     function loanCounter() external view returns (uint256) {
-        return _loanIdCounter;
+        return _loanCounter;
+    }
+
+    /// @dev TODO
+    function token() external view returns (address) {
+        return _token;
+    }
+
+    /// @dev TODO
+    function poolBalance() external view returns (uint256) {
+        return _poolBalance;
+    }
+
+    /// @dev TODO
+    function addonBalance() external view returns (uint256) {
+        return _addonBalance;
     }
 
     /// @dev Calculates the period index that corresponds the specified timestamp.
     /// @param timestamp The timestamp to calculate the period index.
-    /// @param periodInSeconds The period duration in seconds.
-    function calculatePeriodIndex(uint256 timestamp, uint256 periodInSeconds) external pure returns (uint256) {
-        return _periodIndex(timestamp, periodInSeconds);
+    /// @param periodInSeconds_ The period duration in seconds.
+    function calculatePeriodIndex(uint256 timestamp, uint256 periodInSeconds_) external pure returns (uint256) {
+        return _periodIndex(timestamp, periodInSeconds_);
     }
 
     /// @dev Calculates the outstanding balance of a loan.
     /// @param originalBalance The balance of the loan at the beginning.
     /// @param numberOfPeriods The number of periods to calculate the outstanding balance.
     /// @param interestRate The interest rate applied to the loan.
-    /// @param interestRateFactor The interest rate factor.
+    /// @param interestRateFactor_ The interest rate factor.
     function calculateOutstandingBalance(
         uint256 originalBalance,
         uint256 numberOfPeriods,
         uint256 interestRate,
-        uint256 interestRateFactor
+        uint256 interestRateFactor_
     ) external pure returns (uint256) {
-        return
-            InterestMath.calculateOutstandingBalance(
-                originalBalance,
-                numberOfPeriods,
-                interestRate,
-                interestRateFactor
-            );
+        return LendingMath.calculateOutstandingBalance(
+            originalBalance,
+            numberOfPeriods,
+            interestRate,
+            interestRateFactor_
+        );
     }
 
     // -------------------------------------------- //
     //  Internal functions                          //
     // -------------------------------------------- //
+
+    function _isLoanOngoing(Loan.State storage loan) internal view returns (bool) {
+        return loan.borrower != address(0) && loan.trackedBalance != 0;
+    }
+
+    function _checkLoanOngoing(Loan.State storage loan) internal view {
+        if (_isLoanOngoing(loan)) {
+            return;
+        }
+        if (loan.borrower == address(0)) {
+            revert Error.LoanNonExistent();
+        } else {
+            revert Error.LoanAlreadyRepaid();
+        }
+    }
+
+    /// @dev TODO
+    function _takeLoan(Loan.Terms memory terms) internal returns (uint256 loanId) {
+        Borrower.State storage borrowerState = _borrowerStates[terms.borrower];
+        Borrower.Config storage borrowerConfig = _getBorrowerConfig(terms.borrower);
+        uint256 oldBorrowerAllowance = _getBorrowAllowance(borrowerState, borrowerConfig);
+        _checkLoanPossibility(terms, oldBorrowerAllowance, borrowerConfig, borrowerState);
+
+        loanId = _loanCounter++;
+        uint32 blockTimestamp = _blockTimestamp().toUint32();
+        uint64 totalLoanAmount = (terms.loanAmount + terms.addonAmount).toUint64();
+        uint64 addonAmount = terms.addonAmount.toUint64();
+
+        _loans[loanId] = Loan.State({
+            borrower: terms.borrower,
+            loanAmount: totalLoanAmount,
+            startTimestamp: blockTimestamp,
+            repaidAmount: 0,
+            trackedBalance: totalLoanAmount,
+            trackedTimestamp: blockTimestamp,
+            freezeTimestamp: 0,
+            durationInPeriods: terms.durationInPeriods.toUint32(),
+            addonAmount: addonAmount,
+            interestRatePrimary: terms.interestRatePrimary.toUint32(),
+            interestRateSecondary: terms.interestRateSecondary.toUint32()
+        });
+
+        _poolBalance -= totalLoanAmount;
+        _addonBalance += addonAmount;
+
+        ++borrowerState.totalLoanCounter;
+        ++borrowerState.activeLoanCounter;
+        borrowerState.allowance = _defineNewBorrowerAllowance(
+            oldBorrowerAllowance,
+            totalLoanAmount,
+            borrowerConfig
+        ).toUint64();
+
+        IERC20(_token).safeTransfer(terms.borrower, terms.loanAmount);
+
+        emit LoanTaken(
+            loanId,
+            terms.borrower,
+            terms.loanAmount,
+            terms.durationInPeriods,
+            terms.addonAmount,
+            terms.interestRatePrimary,
+            terms.interestRateSecondary,
+            msg.sender
+        );
+
+        return loanId;
+    }
+
+    /// @dev TODO
+    function _defineNewBorrowerAllowance(
+        uint256 oldBorrowerAllowance,
+        uint256 totalLoanAmount,
+        Borrower.Config storage borrowerConfig
+    ) internal returns (uint256) {
+        if (borrowerConfig.allowancePolicy == Borrower.AllowancePolicy.Keep) {
+            return oldBorrowerAllowance;
+        } else if (
+            borrowerConfig.allowancePolicy == Borrower.AllowancePolicy.Decrease ||
+            borrowerConfig.allowancePolicy == Borrower.AllowancePolicy.Iterate
+        ) {
+            return oldBorrowerAllowance - totalLoanAmount;
+        }
+
+        return 0;
+    }
+
+    /// @dev
+    function _getBorrowerConfig(address borrower) internal view returns (Borrower.Config storage) {
+        bytes32 configId = _borrowerConfigIds[borrower];
+        Borrower.Config storage config = _borrowerConfigs[configId];
+        if (config.expiration == 0) {
+            revert Error.BorrowerNonConfigured();
+        }
+        return config;
+    }
+
+    /// @dev TODO
+    function _checkBorrowerConfig(Borrower.Config calldata config) internal pure {
+        if (config.expiration == 0 || config.maxLoanAmount == 0 || config.maxActiveLoanCounter == 0) {
+            revert Error.BorrowerConfigInvalid();
+        }
+    }
+
+    /// @dev TODO
+    function _assignConfigToBorrower(address borrower, bytes32 newConfigId) internal {
+        bytes32 oldConfigId = _borrowerConfigIds[borrower];
+        if (oldConfigId != newConfigId) {
+            _borrowerConfigIds[borrower] = newConfigId;
+            emit BorrowerConfigAssigned(borrower, newConfigId, oldConfigId);
+        }
+    }
+
+    /// @dev TODO
+    function _checkLoanPossibility(
+        Loan.Terms memory terms,
+        uint256 borrowerAllowance,
+        Borrower.Config storage borrowerConfig,
+        Borrower.State storage borrowerState
+    ) internal view {
+        uint256 loanAmount = terms.loanAmount;
+        if (loanAmount == 0) {
+            revert Error.InvalidAmount();
+        }
+        if (loanAmount != LendingMath.roundUp(loanAmount, Constants.ACCURACY_FACTOR)) {
+            revert Error.InvalidAmount();
+        }
+        if (loanAmount > borrowerConfig.maxLoanAmount) {
+            revert Error.InvalidAmount();
+        }
+        if (loanAmount < borrowerConfig.minLoanAmount) {
+            revert Error.InvalidAmount();
+        }
+        if (_blockTimestamp() >= borrowerConfig.expiration) {
+            revert Error.BorrowerConfigExpired();
+        }
+        if (borrowerAllowance < loanAmount) {
+            revert Error.BorrowerAllowanceInsufficient();
+        }
+        if (borrowerState.activeLoanCounter + 1 > borrowerConfig.maxActiveLoanCounter) {
+            revert Error.ActiveLoanCounterExceeded();
+        }
+        if (_poolBalance < loanAmount + terms.addonAmount) {
+            revert Error.PoolBalanceInsufficient();
+        }
+    }
+
+    function _getBorrowAllowance(
+        Borrower.State storage borrowerState,
+        Borrower.Config storage borrowerConfig
+    ) internal view returns (uint256) {
+        if (borrowerState.totalLoanCounter == 0) {
+            return borrowerConfig.maxLoanAmount;
+        } else {
+            return borrowerState.allowance;
+        }
+    }
+
+    function _repayLoan(uint256 loanId, uint256 amount, address source) internal {
+        if (amount == 0) {
+            revert Error.InvalidAmount();
+        }
+
+        Loan.State storage loan = _loans[loanId];
+
+        (uint256 outstandingBalance,) = _outstandingBalance(loan, _blockTimestamp());
+
+        if (amount == type(uint256).max) {
+            amount = LendingMath.roundUp(outstandingBalance, Constants.ACCURACY_FACTOR);
+            outstandingBalance = 0;
+        } else {
+            if (amount != LendingMath.roundUp(amount, Constants.ACCURACY_FACTOR)) {
+                revert Error.InvalidAmount();
+            }
+            uint256 roundedOutstandingBalance = LendingMath.roundUp(outstandingBalance, Constants.ACCURACY_FACTOR);
+            if (amount < roundedOutstandingBalance) {
+                outstandingBalance -= amount;
+            } else {
+                if (amount > roundedOutstandingBalance) {
+                    revert Error.InvalidAmount();
+                }
+                outstandingBalance = 0;
+            }
+        }
+
+        loan.repaidAmount += amount.toUint64();
+        loan.trackedBalance = outstandingBalance.toUint64();
+        loan.trackedTimestamp = _blockTimestamp().toUint32();
+        _poolBalance += amount.toUint64();
+        if (outstandingBalance == 0) {
+            _processLoanFinishing(loan);
+        }
+
+        IERC20(_token).safeTransferFrom(source, address(this), amount);
+
+        emit LoanRepayment(loanId, loan.borrower, source, amount, outstandingBalance, msg.sender);
+    }
+
+    function _processLoanFinishing(Loan.State storage loan) internal {
+        address borrower = loan.borrower;
+        Borrower.State storage borrowerSate = _borrowerStates[borrower];
+        Borrower.Config storage borrowerConfig = _getBorrowerConfig(borrower);
+        uint64 borrowerAllowance = borrowerSate.allowance;
+        Borrower.AllowancePolicy policy = borrowerConfig.allowancePolicy;
+        if (policy == Borrower.AllowancePolicy.Iterate) {
+            borrowerAllowance += loan.loanAmount;
+        }
+
+        borrowerSate.activeLoanCounter -= 1;
+        borrowerSate.allowance = borrowerAllowance;
+    }
 
     /// @dev Calculates the outstanding balance of a loan.
     /// @param loan The loan to calculate the outstanding balance for.
@@ -606,28 +677,28 @@ contract LendingMarket is
             uint256 startPeriodIndex = _periodIndex(loan.startTimestamp, Constants.PERIOD_IN_SECONDS);
             uint256 duePeriodIndex = startPeriodIndex + loan.durationInPeriods;
             if (periodIndex < duePeriodIndex) {
-                outstandingBalance = InterestMath.calculateOutstandingBalance(
+                outstandingBalance = LendingMath.calculateOutstandingBalance(
                     outstandingBalance,
                     periodIndex - trackedPeriodIndex,
                     loan.interestRatePrimary,
                     Constants.INTEREST_RATE_FACTOR
                 );
             } else if (trackedPeriodIndex >= duePeriodIndex) {
-                outstandingBalance = InterestMath.calculateOutstandingBalance(
+                outstandingBalance = LendingMath.calculateOutstandingBalance(
                     outstandingBalance,
                     periodIndex - trackedPeriodIndex,
                     loan.interestRateSecondary,
                     Constants.INTEREST_RATE_FACTOR
                 );
             } else {
-                outstandingBalance = InterestMath.calculateOutstandingBalance(
+                outstandingBalance = LendingMath.calculateOutstandingBalance(
                     outstandingBalance,
                     duePeriodIndex - trackedPeriodIndex,
                     loan.interestRatePrimary,
                     Constants.INTEREST_RATE_FACTOR
                 );
                 if (periodIndex > duePeriodIndex) {
-                    outstandingBalance = InterestMath.calculateOutstandingBalance(
+                    outstandingBalance = LendingMath.calculateOutstandingBalance(
                         outstandingBalance,
                         periodIndex - duePeriodIndex,
                         loan.interestRateSecondary,
@@ -639,12 +710,16 @@ contract LendingMarket is
     }
 
     /// @dev Calculates the period index that corresponds the specified timestamp.
-    function _periodIndex(uint256 timestamp, uint256 periodInSeconds) internal pure returns (uint256) {
-        return (timestamp / periodInSeconds);
+    function _periodIndex(uint256 timestamp, uint256 periodInSeconds_) internal pure returns (uint256) {
+        return (timestamp / periodInSeconds_);
     }
 
     /// @dev Returns the current block timestamp.
     function _blockTimestamp() internal view virtual returns (uint256) {
-        return block.timestamp - Constants.NEGATIVE_TIME_OFFSET;
+        if (Constants.TIME_OFFSET < 0) {
+            return block.timestamp - uint256(- Constants.TIME_OFFSET);
+        } else {
+            return block.timestamp + uint256(Constants.TIME_OFFSET);
+        }
     }
 }

@@ -4,10 +4,10 @@ pragma solidity 0.8.24;
 
 import { ABDKMath64x64 } from "./ABDKMath64x64.sol";
 
-/// @title InterestMath library
+/// @title LendingMath.sol library
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @dev Defines interest calculation functions.
-library InterestMath {
+library LendingMath {
     // -------------------------------------------- //
     //  Functions                                   //
     // -------------------------------------------- //
@@ -35,5 +35,19 @@ library InterestMath {
             outstandingBalance += 1;
         }
         return outstandingBalance;
+    }
+
+    /// @dev Rounds up a value to the nearest multiple of an accuracy.
+    /// @param value The value to be rounded.
+    /// @param accuracy The accuracy to which the value should be rounded.
+    function roundUp(uint256 value, uint256 accuracy) internal pure returns (uint256) {
+        return (value + accuracy - 1) / accuracy * accuracy;
+    }
+
+    /// @dev Rounds down a value to the nearest multiple of an accuracy.
+    /// @param value The value to be rounded.
+    /// @param accuracy The accuracy to which the value should be rounded.
+    function roundDown(uint256 value, uint256 accuracy) internal pure returns (uint256) {
+        return value / accuracy * accuracy;
     }
 }
