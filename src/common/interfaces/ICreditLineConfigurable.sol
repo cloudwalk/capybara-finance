@@ -22,8 +22,8 @@ interface ICreditLineConfigurable is ICreditLine {
     enum BorrowPolicy {
         Reset,           // 0
         Keep,            // 1
-        Decrease,        // 2
-        DecreaseIncrease // 3
+        Iterate,         // 2
+        Decrease         // 3
     }
 
     /// @dev A struct that defines credit line configuration.

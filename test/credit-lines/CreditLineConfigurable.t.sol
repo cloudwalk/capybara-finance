@@ -795,11 +795,11 @@ contract CreditLineConfigurableTest is Test {
         );
     }
 
-    function test_onBeforeLoanTaken_Policy_DecreaseIncrease() public {
+    function test_onBeforeLoanTaken_Policy_Iterate() public {
         configureCreditLine();
 
         ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
-        config.borrowPolicy = ICreditLineConfigurable.BorrowPolicy.DecreaseIncrease;
+        config.borrowPolicy = ICreditLineConfigurable.BorrowPolicy.Iterate;
 
         vm.prank(ADMIN);
         creditLine.configureBorrower(BORROWER_1, config);
@@ -855,11 +855,11 @@ contract CreditLineConfigurableTest is Test {
     //  Test `onAfterLoanPayment` function          //
     // -------------------------------------------- //
 
-    function test_onAfterLoanPayment_Policy_DecreaseIncrease() public {
+    function test_onAfterLoanPayment_Policy_Iterate() public {
         configureCreditLine();
 
         ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
-        config.borrowPolicy = ICreditLineConfigurable.BorrowPolicy.DecreaseIncrease;
+        config.borrowPolicy = ICreditLineConfigurable.BorrowPolicy.Iterate;
 
         vm.prank(ADMIN);
         creditLine.configureBorrower(BORROWER_1, config);
@@ -946,11 +946,11 @@ contract CreditLineConfigurableTest is Test {
     //  Test `onAfterLoanRevocation` function       //
     // -------------------------------------------- //
 
-    function test_onAfterLoanRevocation_Policy_DecreaseIncrease() public {
+    function test_onAfterLoanRevocation_Policy_Iterate() public {
         configureCreditLine();
 
         ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
-        config.borrowPolicy = ICreditLineConfigurable.BorrowPolicy.DecreaseIncrease;
+        config.borrowPolicy = ICreditLineConfigurable.BorrowPolicy.Iterate;
 
         vm.prank(ADMIN);
         creditLine.configureBorrower(BORROWER_1, config);
