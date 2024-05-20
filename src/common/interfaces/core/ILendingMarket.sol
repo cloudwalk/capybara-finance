@@ -117,6 +117,13 @@ interface ILendingMarket {
     /// @param amount The amount of tokens rescued.
     event Rescue(address indexed token, uint256 amount);
 
+    /// @dev TODO
+    event BorrowerAllowanceUpdated(
+        address indexed borrower,
+        uint256 newAllowance,
+        uint256 oldAllowance
+    );
+
     // -------------------------------------------- //
     //  Admin functions                             //
     // -------------------------------------------- //
@@ -146,6 +153,9 @@ interface ILendingMarket {
     /// @param token_ The address of the token to rescue.
     /// @param amount The amount of tokens to rescue.
     function rescue(address token_, uint256 amount) external;
+
+    /// @dev TODO
+    function changeBorrowerAllowance(address borrower, int256 changeAmount) external;
 
     // -------------------------------------------- //
     //  Manager functions                           //
@@ -233,6 +243,9 @@ interface ILendingMarket {
 
     /// @dev TODO
     function getBorrowerConfigId(address borrower) external view returns (bytes32);
+
+    /// @dev TODO
+    function getBorrowerState(address borrower) external view returns (Borrower.State memory);
 
     /// @dev Returns the rate factor used to for interest rate calculations.
     function interestRateFactor() external view returns (uint256);

@@ -24,11 +24,11 @@ import { LendingMarketStorage } from "./LendingMarketStorage.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @dev Implementation of the lending market contract.
 contract LendingMarket is
-LendingMarketStorage,
-Initializable,
-AccessControlExtUpgradeable,
-PausableUpgradeable,
-ILendingMarket
+    LendingMarketStorage,
+    Initializable,
+    AccessControlExtUpgradeable,
+    PausableUpgradeable,
+    ILendingMarket
 {
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
@@ -168,6 +168,32 @@ ILendingMarket
         IERC20(token_).safeTransfer(msg.sender, amount);
 
         emit Rescue(token_, amount);
+    }
+
+    /// @dev TODO
+    function changeBorrowerAllowance(
+        address borrower,
+        int256 changeAmount
+    ) whenNotPaused onlyRole(ADMIN_ROLE) external {
+        if (borrower == address(0)) {
+            revert Error.ZeroAddress();
+        }
+        Borrower.State storage state = _borrowerStates[borrower];
+        int256 oldAllowance = int256(uint256(state.allowance));
+        int256 newAllowance;
+        if (changeAmount == type(int256).min) {
+            newAllowance = 0;
+        } else {
+            newAllowance = oldAllowance + changeAmount;
+            if (newAllowance < 0) {
+                revert Error.InvalidAmount();
+            }
+        }
+        if (newAllowance == oldAllowance) {
+            revert Error.AlreadyConfigured();
+        }
+        state.allowance = uint256(newAllowance).toUint64();
+        emit BorrowerAllowanceUpdated(borrower, uint256(newAllowance), uint256(oldAllowance));
     }
 
     // -------------------------------------------- //
@@ -377,6 +403,11 @@ ILendingMarket
     /// @dev TODO
     function getBorrowerConfigId(address borrower) external view returns (bytes32) {
         return _borrowerConfigIds[borrower];
+    }
+
+    /// @dev TODO
+    function getBorrowerState(address borrower) external view returns (Borrower.State memory) {
+        return _borrowerStates[borrower];
     }
 
     /// @inheritdoc ILendingMarket
