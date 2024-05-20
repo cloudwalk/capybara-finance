@@ -37,17 +37,21 @@ contract LiquidityPoolAccountable is AccessControlExtUpgradeable, PausableUpgrad
     //  Storage variables                           //
     // -------------------------------------------- //
 
-    /// @dev The address of the lending market.
-    address internal _market;
-
     /// @dev The address of the underlying token.
     address internal _token;
+
+    /// @dev The address of the associated market.
+    address internal _market;
 
     /// @dev The borrowable balance of the liquidity pool.
     uint64 internal _borrowableBalance;
 
     /// @dev The addons balance of the liquidity pool.
     uint64 internal _addonsBalance;
+
+    /// @dev This empty reserved space is put in place to allow future versions
+    /// to add new variables without shifting down storage in the inheritance chain.
+    uint256[46] private __gap;
 
     // -------------------------------------------- //
     //  Errors                                      //
