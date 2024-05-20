@@ -9,16 +9,6 @@ import "./core/ILiquidityPool.sol";
 /// @dev Defines the accountable liquidity pool contract functions and events.
 interface ILiquidityPoolAccountable is ILiquidityPool {
     // -------------------------------------------- //
-    //  Structs and enums                           //
-    // -------------------------------------------- //
-
-    /// @dev A struct that defines the credit line balance.
-    struct CreditLineBalance {
-        uint64 borrowable; // The amount of tokens that can be borrowed.
-        uint64 addons;     // The amount of tokens that are locked as addons.
-    }
-
-    // -------------------------------------------- //
     //  Events                                      //
     // -------------------------------------------- //
 
