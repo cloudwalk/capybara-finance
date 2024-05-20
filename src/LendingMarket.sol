@@ -316,13 +316,9 @@ contract LendingMarket is
 
     /// @inheritdoc ILendingMarket
     function createProgram(
-        uint32 programId,
         address creditLine,
         address liquidityPool
     ) external whenNotPaused {
-        if (programId == 0) {
-            revert ProgramNotExist();
-        }
         if (creditLine == address(0)) {
             revert Error.ZeroAddress();
         }
@@ -330,15 +326,15 @@ contract LendingMarket is
             revert Error.ZeroAddress();
         }
 
-        if (_programLenders[programId] != address(0)) {
-            revert Error.AlreadyConfigured();
-        }
         if (_creditLineLenders[creditLine] != msg.sender) {
             revert Error.Unauthorized();
         }
         if (_liquidityPoolLenders[liquidityPool] != msg.sender) {
             revert Error.Unauthorized();
         }
+
+        _programIdCounter++;
+        uint32 programId = _programIdCounter;
 
         emit ProgramCreated(msg.sender, programId);
         emit ProgramUpdated(programId, creditLine, liquidityPool);

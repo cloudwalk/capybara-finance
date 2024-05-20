@@ -155,7 +155,7 @@ contract LendingMarketTest is Test {
         vm.startPrank(LENDER);
         market.registerCreditLine(address(creditLine));
         market.registerLiquidityPool(address(liquidityPool));
-        market.createProgram(PROGRAM_ID, address(creditLine), address(liquidityPool));
+        market.createProgram(address(creditLine), address(liquidityPool));
         vm.stopPrank();
 
         vm.prank(BORROWER);

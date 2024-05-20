@@ -159,10 +159,9 @@ interface ILendingMarket {
     function registerLiquidityPool(address liquidityPool) external;
 
     /// @dev Creates a new program.
-    /// @param programId The unique identifier of the program to create.
     /// @param creditLine The address of the credit line to associate with the program.
     /// @param liquidityPool The address of the liquidity pool to associate with the program.
-    function createProgram(uint32 programId, address creditLine, address liquidityPool) external;
+    function createProgram(address creditLine, address liquidityPool) external;
 
     /// @dev Updates an existing program.
     /// @param programId The unique identifier of the program to update.

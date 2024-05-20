@@ -78,7 +78,7 @@ contract LendingMarketComplexTest is Test {
 
         lendingMarket.registerCreditLine(address(creditLine));
         lendingMarket.registerLiquidityPool(address(liquidityPool));
-        lendingMarket.createProgram(PROGRAM_ID, address(creditLine), address(liquidityPool));
+        lendingMarket.createProgram(address(creditLine), address(liquidityPool));
 
         vm.stopPrank();
 

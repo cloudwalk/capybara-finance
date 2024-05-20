@@ -36,8 +36,7 @@ contract LendingMarketMock is ILendingMarket {
         revert Error.NotImplemented();
     }
 
-    function createProgram(uint32 programId, address creditLine, address liquidityPool) external {
-        programId; // To prevent compiler warning about unused variable
+    function createProgram(address creditLine, address liquidityPool) external {
         creditLine; // To prevent compiler warning about unused variable
         liquidityPool; // To prevent compiler warning about unused variable
         revert Error.NotImplemented();
