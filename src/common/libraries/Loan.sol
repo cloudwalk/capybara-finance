@@ -6,11 +6,6 @@ pragma solidity 0.8.24;
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @dev Defines the common types used for loan management.
 library Loan {
-    /// @dev A struct that defines the lender of a loan.
-    struct Lender {
-        address account; // The address of the lender.
-    }
-
     /// @dev A struct that defines the stored state of a loan.
     struct State {
         // Slot 1
