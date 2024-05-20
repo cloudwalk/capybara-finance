@@ -269,7 +269,7 @@ contract LendingMarket is
         loan.trackedBalance = outstandingBalance.toUint64();
         loan.trackedTimestamp = _blockTimestamp().toUint32();
 
-        IERC20(loan.token).transferFrom(payer, liquidityPool, repayAmount);
+        IERC20(loan.token).safeTransferFrom(payer, liquidityPool, repayAmount);
 
         ILiquidityPool(liquidityPool).onAfterLoanPayment(loanId, repayAmount);
         ICreditLine(creditLine).onAfterLoanPayment(loanId, repayAmount);
@@ -502,9 +502,9 @@ contract LendingMarket is
         loan.trackedTimestamp = _blockTimestamp().toUint32();
 
         if (loan.repaidAmount < loan.borrowAmount) {
-            IERC20(loan.token).transferFrom(loan.borrower, liquidityPool, loan.borrowAmount - loan.repaidAmount);
+            IERC20(loan.token).safeTransferFrom(loan.borrower, liquidityPool, loan.borrowAmount - loan.repaidAmount);
         } else if (loan.repaidAmount != loan.borrowAmount) {
-            IERC20(loan.token).transferFrom(liquidityPool, loan.borrower, loan.repaidAmount - loan.borrowAmount);
+            IERC20(loan.token).safeTransferFrom(liquidityPool, loan.borrower, loan.repaidAmount - loan.borrowAmount);
         }
 
         ILiquidityPool(liquidityPool).onAfterLoanRevocation(loanId);
