@@ -682,7 +682,7 @@ contract LendingMarket is
         return (timestamp / periodInSeconds);
     }
 
-    /// @dev Returns the current block timestamp.
+    /// @dev Returns the current block timestamp with the time offset applied.
     function _blockTimestamp() internal view virtual returns (uint256) {
         return block.timestamp - Constants.NEGATIVE_TIME_OFFSET;
     }

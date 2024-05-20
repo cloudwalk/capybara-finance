@@ -270,7 +270,7 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
 
         BorrowerConfig storage borrowerConfig = _borrowers[borrower];
 
-        if (block.timestamp > borrowerConfig.expiration) {
+        if (_blockTimestamp() > borrowerConfig.expiration) {
             revert BorrowerConfigurationExpired();
         }
         if (borrowAmount > borrowerConfig.maxBorrowAmount) {
@@ -414,5 +414,10 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
         _borrowers[borrower] = config;
 
         emit BorrowerConfigured(address(this), borrower);
+    }
+
+    /// @dev Returns the current block timestamp with the time offset applied.
+    function _blockTimestamp() private view returns (uint256) {
+        return block.timestamp - Constants.NEGATIVE_TIME_OFFSET;
     }
 }

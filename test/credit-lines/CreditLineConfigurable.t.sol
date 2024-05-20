@@ -100,6 +100,8 @@ contract CreditLineConfigurableTest is Test {
         creditLine.grantRole(PAUSER_ROLE, PAUSER);
         creditLine.grantRole(ADMIN_ROLE, ADMIN);
         vm.stopPrank();
+
+        skip(Constants.NEGATIVE_TIME_OFFSET);
     }
 
     function configureCreditLine() public returns (ICreditLineConfigurable.CreditLineConfig memory) {
@@ -1091,7 +1093,7 @@ contract CreditLineConfigurableTest is Test {
         configureCreditLine();
 
         ICreditLineConfigurable.BorrowerConfig memory config = initBorrowerConfig(block.timestamp);
-        config.expiration = (block.timestamp - 1).toUint32();
+        config.expiration = (block.timestamp - Constants.NEGATIVE_TIME_OFFSET - 1).toUint32();
 
         vm.prank(ADMIN);
         creditLine.configureBorrower(BORROWER_1, config);
