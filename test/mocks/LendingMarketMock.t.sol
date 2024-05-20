@@ -52,7 +52,7 @@ contract LendingMarketMockTest is Test {
     uint256 private constant UPDATE_LOAN_INTEREST_RATE_PRIMARY = 300;
     uint256 private constant UPDATE_LOAN_INTEREST_RATE_SECONDARY = 400;
 
-    bytes32 private constant PROGRAM_ID = keccak256("PROGRAM_ID");
+    uint32 private constant PROGRAM_ID = 1;
 
     // -------------------------------------------- //
     //  Setup and configuration                     //
@@ -123,7 +123,7 @@ contract LendingMarketMockTest is Test {
 
         assertEq(loan.token, address(0));
         assertEq(loan.borrower, address(0));
-        assertEq(loan.programId, bytes32(0));
+        assertEq(loan.programId, 0);
         assertEq(loan.durationInPeriods, 0);
         assertEq(loan.interestRatePrimary, 0);
         assertEq(loan.interestRateSecondary, 0);

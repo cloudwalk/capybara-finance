@@ -71,6 +71,9 @@ contract LendingMarket is
     /// @dev Thrown when the cooldown period has passed.
     error CooldownPeriodHasPassed();
 
+    /// @dev Thrown when the program does not exist.
+    error ProgramNotExist();
+
     // -------------------------------------------- //
     //  Modifiers                                   //
     // -------------------------------------------- //
@@ -145,12 +148,12 @@ contract LendingMarket is
 
     /// @inheritdoc ILendingMarket
     function takeLoan(
-        bytes32 programId,
+        uint32 programId,
         uint256 borrowAmount,
         uint256 durationInPeriods
     ) external whenNotPaused returns (uint256) {
-        if (programId == bytes32(0)) {
-            revert Error.ZeroHash();
+        if (programId == 0) {
+            revert ProgramNotExist();
         }
         if (borrowAmount == 0) {
             revert Error.InvalidAmount();
@@ -313,12 +316,12 @@ contract LendingMarket is
 
     /// @inheritdoc ILendingMarket
     function createProgram(
-        bytes32 programId,
+        uint32 programId,
         address creditLine,
         address liquidityPool
     ) external whenNotPaused {
-        if (programId == bytes32(0)) {
-            revert Error.ZeroHash();
+        if (programId == 0) {
+            revert ProgramNotExist();
         }
         if (creditLine == address(0)) {
             revert Error.ZeroAddress();
@@ -347,12 +350,12 @@ contract LendingMarket is
 
     /// @inheritdoc ILendingMarket
     function updateProgram(
-        bytes32 programId,
+        uint32 programId,
         address creditLine,
         address liquidityPool
     ) external whenNotPaused {
-        if (programId == bytes32(0)) {
-            revert Error.ZeroHash();
+        if (programId == 0) {
+            revert ProgramNotExist();
         }
 
         if (_programLenders[programId] != msg.sender) {
@@ -517,17 +520,17 @@ contract LendingMarket is
     //  View functions                              //
     // -------------------------------------------- //
     /// @inheritdoc ILendingMarket
-    function getProgramLender(bytes32 programId) external view returns (address) {
+    function getProgramLender(uint32 programId) external view returns (address) {
         return _programLenders[programId];
     }
 
     /// @inheritdoc ILendingMarket
-    function getProgramCreditLine(bytes32 programId) external view returns (address) {
+    function getProgramCreditLine(uint32 programId) external view returns (address) {
         return _programCreditLines[programId];
     }
 
     /// @inheritdoc ILendingMarket
-    function getProgramLiquidityPool(bytes32 programId) external view returns (address) {
+    function getProgramLiquidityPool(uint32 programId) external view returns (address) {
         return _programLiquidityPools[programId];
     }
 

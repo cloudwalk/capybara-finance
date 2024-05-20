@@ -37,7 +37,7 @@ contract LendingMarketComplexTest is Test {
     address private constant BORROWER = address(bytes20(keccak256("borrower")));
     address private constant ADDON_RECIPIENT = address(bytes20(keccak256("recipient")));
 
-    bytes32 private constant PROGRAM_ID = keccak256("PROGRAM_ID");
+    uint32 private constant PROGRAM_ID = 1;
     bytes32 private constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
     uint256 private constant ZERO_VALUE = 0;

@@ -246,7 +246,7 @@ contract CreditLineConfigurableTest is Test {
         return Loan.State({
             token: address(0),
             borrower: address(0),
-            programId: bytes32(0),
+            programId: 0,
             durationInPeriods: 0,
             interestRatePrimary: 0,
             interestRateSecondary: 0,

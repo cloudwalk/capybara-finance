@@ -25,13 +25,13 @@ abstract contract LendingMarketStorage {
     mapping(address => address) internal _liquidityPoolLenders;
 
     /// @dev The mapping of program identifier to associated lender.
-    mapping(bytes32 => address) internal _programLenders;
+    mapping(uint32 => address) internal _programLenders;
 
     /// @dev The mapping of program identifier to associated credit line.
-    mapping(bytes32 => address) internal _programCreditLines;
+    mapping(uint32 => address) internal _programCreditLines;
 
     /// @dev The mapping of program identifier to associated liquidity pool.
-    mapping(bytes32 => address) internal _programLiquidityPools;
+    mapping(uint32 => address) internal _programLiquidityPools;
 
     /// @dev The mapping of lender to its aliases (True if alias exists).
     mapping(address => mapping(address => bool)) internal _hasAlias;

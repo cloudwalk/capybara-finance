@@ -8,15 +8,16 @@ pragma solidity 0.8.24;
 library Loan {
     /// @dev A struct that defines the stored state of a loan.
     struct State {
-        // Slot 1
-        address token;                // The address of the token used for the loan.
-        bytes32 programId;            // The program identifier the loan is associated with.
-        uint32 startTimestamp;        // The timestamp when the loan was created (stated).
-        uint32 durationInPeriods;     // The total duration of the loan determined by the number of periods.
-        // Slot 2
+        // Slot1
+        uint32 programId;             // The unique identifier of the program.
         uint64 borrowAmount;          // The initial borrow amount of the loan, excluding the addon.
         uint64 addonAmount;           // The amount of the loan addon (extra charges or fees).
-        // uint128 __reserved;        // Reserved for future use.
+        uint32 startTimestamp;        // The timestamp when the loan was created (stated).
+        uint32 durationInPeriods;     // The total duration of the loan determined by the number of periods.
+        // uint32 __reserved;         // Reserved for future use.
+        // Slot 2
+        address token;                // The address of the token used for the loan.
+        // uint96 __reserved;         // Reserved for future use.
         // Slot 3
         address borrower;             // The address of the borrower.
         uint32 interestRatePrimary;   // The primary interest rate that is applied to the loan.

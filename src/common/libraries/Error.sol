@@ -9,9 +9,6 @@ library Error {
     /// @dev Thrown when the caller is not authorized.
     error Unauthorized();
 
-    /// @dev Thrown when the specified hash is zero.
-    error ZeroHash();
-
     /// @dev Thrown when the specified address is zero.
     error ZeroAddress();
 

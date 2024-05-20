@@ -103,7 +103,7 @@ interface ILendingMarket {
     /// @param programId The unique identifier of the program.
     event ProgramCreated(
         address indexed lender,
-        bytes32 indexed programId
+        uint32 indexed programId
     );
 
     /// @dev Emitted when a program is updated.
@@ -111,7 +111,7 @@ interface ILendingMarket {
     /// @param creditLine The address of the credit line associated with the program.
     /// @param liquidityPool The address of the liquidity pool associated with the program.
     event ProgramUpdated(
-        bytes32 indexed programId,
+        uint32 indexed programId,
         address indexed creditLine,
         address indexed liquidityPool
     );
@@ -136,7 +136,7 @@ interface ILendingMarket {
     /// @param durationInPeriods The desired duration of the loan in periods.
     /// @return The unique identifier of the loan.
     function takeLoan(
-        bytes32 programId,
+        uint32 programId,
         uint256 borrowAmount,
         uint256 durationInPeriods
     ) external returns (uint256);
@@ -162,13 +162,13 @@ interface ILendingMarket {
     /// @param programId The unique identifier of the program to create.
     /// @param creditLine The address of the credit line to associate with the program.
     /// @param liquidityPool The address of the liquidity pool to associate with the program.
-    function createProgram(bytes32 programId, address creditLine, address liquidityPool) external;
+    function createProgram(uint32 programId, address creditLine, address liquidityPool) external;
 
     /// @dev Updates an existing program.
     /// @param programId The unique identifier of the program to update.
     /// @param creditLine The address of the credit line to associate with the program.
     /// @param liquidityPool The address of the liquidity pool to associate with the program.
-    function updateProgram(bytes32 programId, address creditLine, address liquidityPool) external;
+    function updateProgram(uint32 programId, address creditLine, address liquidityPool) external;
 
     /// @dev Freezes a loan.
     /// @param loanId The unique identifier of the loan to freeze.
@@ -223,17 +223,17 @@ interface ILendingMarket {
     /// @dev Gets the lender of a program.
     /// @param programId The unique identifier of the program to check.
     /// @return The lender address of the program.
-    function getProgramLender(bytes32 programId) external view returns (address);
+    function getProgramLender(uint32 programId) external view returns (address);
 
     /// @dev Gets the credit line associated with a program.
     /// @param programId The unique identifier of the program to check.
     /// @return The address of the credit line associated with the program.
-    function getProgramCreditLine(bytes32 programId) external view returns (address);
+    function getProgramCreditLine(uint32 programId) external view returns (address);
 
     /// @dev Gets the liquidity pool associated with a program.
     /// @param programId The unique identifier of the program to check.
     /// @return The address of the liquidity pool associated with the program.
-    function getProgramLiquidityPool(bytes32 programId) external view returns (address);
+    function getProgramLiquidityPool(uint32 programId) external view returns (address);
 
     /// @dev Gets the stored state of a given loan.
     /// @param loanId The unique identifier of the loan to check.

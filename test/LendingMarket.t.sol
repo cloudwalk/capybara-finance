@@ -98,7 +98,7 @@ contract LendingMarketTest is Test {
     address private constant CREDIT_LINE = address(bytes20(keccak256("credit_line")));
     address private constant LENDER_ALIAS = address(bytes20(keccak256("lender_alias")));
 
-    bytes32 private constant PROGRAM_ID = keccak256("PROGRAM_ID");
+    uint32 private constant PROGRAM_ID = 1;
     bytes32 private constant OWNER_ROLE = keccak256("OWNER_ROLE");
 
     uint64 private constant ADDON_AMOUNT = 100 * Constants.ACCURACY_FACTOR;
@@ -491,7 +491,7 @@ contract LendingMarketTest is Test {
 
         vm.prank(BORROWER);
         vm.expectRevert(Error.ZeroAddress.selector);
-        market.takeLoan(bytes32(0), BORROW_AMOUNT, terms.durationInPeriods);
+        market.takeLoan(0, BORROW_AMOUNT, terms.durationInPeriods);
     }
 
     function test_takeLoan_Revert_IfCreditLineIsNotRegistered() public {

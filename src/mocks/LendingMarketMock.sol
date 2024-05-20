@@ -36,14 +36,14 @@ contract LendingMarketMock is ILendingMarket {
         revert Error.NotImplemented();
     }
 
-    function createProgram(bytes32 programId, address creditLine, address liquidityPool) external {
+    function createProgram(uint32 programId, address creditLine, address liquidityPool) external {
         programId; // To prevent compiler warning about unused variable
         creditLine; // To prevent compiler warning about unused variable
         liquidityPool; // To prevent compiler warning about unused variable
         revert Error.NotImplemented();
     }
 
-    function updateProgram(bytes32 programId, address creditLine, address liquidityPool) external {
+    function updateProgram(uint32 programId, address creditLine, address liquidityPool) external {
         programId; // To prevent compiler warning about unused variable
         creditLine; // To prevent compiler warning about unused variable
         liquidityPool; // To prevent compiler warning about unused variable
@@ -51,7 +51,7 @@ contract LendingMarketMock is ILendingMarket {
     }
 
     function takeLoan(
-        bytes32 programId,
+        uint32 programId,
         uint256 borrowAmount,
         uint256 durationInPeriods
     ) external pure returns (uint256) {
@@ -116,17 +116,17 @@ contract LendingMarketMock is ILendingMarket {
         revert Error.NotImplemented();
     }
 
-    function getProgramLender(bytes32 programId) external view returns (address) {
+    function getProgramLender(uint32 programId) external view returns (address) {
         programId; // To prevent compiler warning about unused variable
         revert Error.NotImplemented();
     }
 
-    function getProgramCreditLine(bytes32 programId) external view returns (address) {
+    function getProgramCreditLine(uint32 programId) external view returns (address) {
         programId; // To prevent compiler warning about unused variable
         revert Error.NotImplemented();
     }
 
-    function getProgramLiquidityPool(bytes32 programId) external view returns (address) {
+    function getProgramLiquidityPool(uint32 programId) external view returns (address) {
         programId; // To prevent compiler warning about unused variable
         revert Error.NotImplemented();
     }
