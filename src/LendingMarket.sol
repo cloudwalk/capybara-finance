@@ -230,11 +230,15 @@ contract LendingMarket is
             addonAmount: terms.addonAmount
         });
 
-        ILiquidityPool(liquidityPool).onBeforeLoanTaken(id, creditLine);
+        bool eoa = terms.treasury.code.length == 0;
 
-        IERC20(terms.token).safeTransferFrom(liquidityPool, msg.sender, borrowAmount);
-
-        ILiquidityPool(liquidityPool).onAfterLoanTaken(id, creditLine);
+        if (eoa) {
+            IERC20(terms.token).safeTransferFrom(liquidityPool, msg.sender, borrowAmount);
+        } else {
+            ILiquidityPool(liquidityPool).onBeforeLoanTaken(id, creditLine);
+            IERC20(terms.token).safeTransferFrom(liquidityPool, msg.sender, borrowAmount);
+            ILiquidityPool(liquidityPool).onAfterLoanTaken(id, creditLine);
+        }
 
         emit LoanTaken(id, msg.sender, totalBorrowAmount, terms.durationInPeriods);
 
@@ -286,11 +290,6 @@ contract LendingMarket is
         uint256 repayAmount,
         uint256 outstandingBalance
     ) internal {
-        if (loan.treasury.code.length == 0) {
-            // TBD Add support for EOA liquidity pools.
-            revert Error.NotImplemented();
-        }
-
         bool autoRepayment = loan.treasury == msg.sender;
         address payer = autoRepayment ? loan.borrower : msg.sender;
         if (autoRepayment && !Constants.AUTO_REPAYMENT_ENABLED) {
@@ -299,7 +298,11 @@ contract LendingMarket is
 
         outstandingBalance -= repayAmount;
 
-        ILiquidityPool(loan.treasury).onBeforeLoanPayment(loanId, repayAmount);
+        bool eoa = loan.treasury.code.length == 0;
+
+        if (!eoa) {
+            ILiquidityPool(loan.treasury).onBeforeLoanPayment(loanId, repayAmount);
+        }
 
         loan.repaidAmount += repayAmount.toUint64();
         loan.trackedBalance = outstandingBalance.toUint64();
@@ -307,7 +310,9 @@ contract LendingMarket is
 
         IERC20(loan.token).transferFrom(payer, loan.treasury, repayAmount);
 
-        ILiquidityPool(loan.treasury).onAfterLoanPayment(loanId, repayAmount);
+        if (!eoa) {
+            ILiquidityPool(loan.treasury).onAfterLoanPayment(loanId, repayAmount);
+        }
 
         emit LoanRepayment(loanId, payer, loan.borrower, repayAmount, outstandingBalance);
     }
@@ -462,7 +467,11 @@ contract LendingMarket is
     /// @param loanId The unique identifier of the loan to revoke.
     /// @param loan The storage state of the loan to update.
     function _revokeLoan(uint256 loanId, Loan.State storage loan) internal {
-        ILiquidityPool(loan.treasury).onBeforeLoanRevocation(loanId);
+        bool eoa = loan.treasury.code.length == 0;
+
+        if (!eoa) {
+            ILiquidityPool(loan.treasury).onBeforeLoanRevocation(loanId);
+        }
 
         loan.trackedBalance = 0;
         loan.trackedTimestamp = _blockTimestamp().toUint32();
@@ -475,7 +484,9 @@ contract LendingMarket is
 
         emit LoanRevoked(loanId);
 
-        ILiquidityPool(loan.treasury).onAfterLoanRevocation(loanId);
+        if (!eoa) {
+            ILiquidityPool(loan.treasury).onAfterLoanRevocation(loanId);
+        }
     }
 
     // -------------------------------------------- //
