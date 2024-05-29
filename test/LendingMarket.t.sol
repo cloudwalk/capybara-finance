@@ -118,6 +118,8 @@ contract LendingMarketTest is Test {
     address private constant CREDIT_LINE = address(bytes20(keccak256("credit_line")));
     address private constant LENDER_ALIAS = address(bytes20(keccak256("lender_alias")));
     address private constant LOAN_TREASURY = address(bytes20(keccak256("loan_treasury")));
+    address private constant EOA_TREASURY = address(bytes20(keccak256("eoa_treasury")));
+
 
     bytes32 private constant OWNER_ROLE = keccak256("OWNER_ROLE");
 
@@ -602,7 +604,7 @@ contract LendingMarketTest is Test {
     //  Test `takeLoan` function                    //
     // -------------------------------------------- //
 
-    function test_takeLoan() public {
+    function test_takeLoan_Pool_Treasury() public {
         configureMarket();
 
         Loan.Terms memory terms = mockLoanTerms(BORROWER, BORROW_AMOUNT);
@@ -636,6 +638,64 @@ contract LendingMarketTest is Test {
         assertEq(loan.borrower, BORROWER);
         assertEq(market.getLoanLender(loanId).account, LENDER);
         assertEq(loan.treasury, terms.treasury);
+        assertEq(loan.startTimestamp, blockTimestamp());
+        assertEq(loan.trackedTimestamp, blockTimestamp());
+        assertEq(loan.freezeTimestamp, 0);
+        assertEq(loan.borrowAmount, BORROW_AMOUNT);
+        assertEq(loan.trackedBalance, totalBorrowAmount);
+        assertEq(loan.repaidAmount, 0);
+        assertEq(loan.addonAmount, terms.addonAmount);
+        assertEq(loan.durationInPeriods, terms.durationInPeriods);
+        assertEq(loan.interestRatePrimary, terms.interestRatePrimary);
+        assertEq(loan.interestRateSecondary, terms.interestRateSecondary);
+    }
+
+    function test_takeLoan_EOA_Treasury() public {
+        vm.startPrank(OWNER);
+        market.configureCreditLineLender(address(creditLine), LENDER);
+        market.configureLiquidityPoolLender(EOA_TREASURY, LENDER);
+        vm.stopPrank();
+
+        vm.prank(LENDER);
+        market.assignLiquidityPoolToCreditLine(address(creditLine), EOA_TREASURY);
+
+        vm.prank(BORROWER);
+        token.approve(address(market), type(uint256).max);
+
+        vm.prank(EOA_TREASURY);
+        token.approve(address(market), type(uint256).max);
+
+        Loan.Terms memory terms = mockLoanTerms(BORROWER, BORROW_AMOUNT);
+        terms.treasury = EOA_TREASURY;
+
+        creditLine.mockLoanTerms(BORROWER, BORROW_AMOUNT, terms);
+
+        uint256 totalBorrowAmount = BORROW_AMOUNT + terms.addonAmount;
+        uint256 loanId = 0;
+
+        token.mint(EOA_TREASURY, BORROW_AMOUNT);
+
+        uint256 borrowerBalance = token.balanceOf(BORROWER);
+        uint256 liquidityPoolBefore = token.balanceOf(EOA_TREASURY);
+
+        vm.expectEmit(true, true, true, true, address(market));
+        emit LoanTaken(loanId, BORROWER, totalBorrowAmount, terms.durationInPeriods);
+
+        assertEq(market.loanCounter(), 0); // number of loans taken
+
+        vm.prank(BORROWER);
+        assertEq(market.takeLoan(address(creditLine), BORROW_AMOUNT, terms.durationInPeriods), loanId);
+        assertEq(market.loanCounter(), 1); // number of loans taken
+
+        Loan.State memory loan = market.getLoanState(loanId);
+
+        assertEq(token.balanceOf(BORROWER), borrowerBalance + BORROW_AMOUNT);
+        assertEq(token.balanceOf(EOA_TREASURY), liquidityPoolBefore - BORROW_AMOUNT);
+
+        assertEq(loan.token, terms.token);
+        assertEq(loan.borrower, BORROWER);
+        assertEq(market.getLoanLender(loanId).account, LENDER);
+        assertEq(loan.treasury, EOA_TREASURY);
         assertEq(loan.startTimestamp, blockTimestamp());
         assertEq(loan.trackedTimestamp, blockTimestamp());
         assertEq(loan.freezeTimestamp, 0);
@@ -847,6 +907,41 @@ contract LendingMarketTest is Test {
 
         vm.prank(BORROWER);
         market.repayLoan(loanId, type(uint256).max);
+
+        assertEq(market.getLoanPreview(loanId, 0).outstandingBalance, 0);
+    }
+
+    function test_repayLoan_IfTreasuryIsEOAAccount() public {
+        vm.startPrank(OWNER);
+        market.configureCreditLineLender(address(creditLine), LENDER);
+        market.configureLiquidityPoolLender(EOA_TREASURY, LENDER);
+        vm.stopPrank();
+
+        vm.prank(LENDER);
+        market.assignLiquidityPoolToCreditLine(address(creditLine), EOA_TREASURY);
+
+        vm.prank(BORROWER);
+        token.approve(address(market), type(uint256).max);
+
+        vm.prank(EOA_TREASURY);
+        token.approve(address(market), type(uint256).max);
+
+        Loan.Terms memory terms = mockLoanTerms(BORROWER, BORROW_AMOUNT);
+        terms.treasury = EOA_TREASURY;
+        creditLine.mockLoanTerms(BORROWER, BORROW_AMOUNT, terms);
+        token.mint(EOA_TREASURY, BORROW_AMOUNT + terms.addonAmount);
+
+        vm.prank(BORROWER);
+        uint256 loanId = market.takeLoan(address(creditLine), BORROW_AMOUNT, terms.durationInPeriods);
+
+        uint256 outstandingBalance = market.getLoanPreview(loanId, 0).outstandingBalance;
+        token.mint(BORROWER, outstandingBalance);
+
+        vm.expectEmit(true, true, true, true, address(market));
+        emit LoanRepayment(loanId, BORROWER, BORROWER, outstandingBalance, 0);
+
+        vm.prank(BORROWER);
+        market.repayLoan(loanId, outstandingBalance);
 
         assertEq(market.getLoanPreview(loanId, 0).outstandingBalance, 0);
     }
@@ -1100,6 +1195,50 @@ contract LendingMarketTest is Test {
         vm.prank(LENDER);
         market.configureAlias(LENDER_ALIAS, true);
         revokeLoanIfRepaidAmountGreaterThanBorrowAmount(LENDER_ALIAS);
+    }
+
+    function test_revokeLoan_IfTreasuryIsEOA() public {
+        vm.startPrank(OWNER);
+        market.configureCreditLineLender(address(creditLine), LENDER);
+        market.configureLiquidityPoolLender(EOA_TREASURY, LENDER);
+        vm.stopPrank();
+
+        vm.prank(LENDER);
+        market.assignLiquidityPoolToCreditLine(address(creditLine), EOA_TREASURY);
+
+        vm.prank(BORROWER);
+        token.approve(address(market), type(uint256).max);
+
+        vm.prank(EOA_TREASURY);
+        token.approve(address(market), type(uint256).max);
+
+        Loan.Terms memory terms = mockLoanTerms(BORROWER, BORROW_AMOUNT);
+        terms.treasury = EOA_TREASURY;
+
+        creditLine.mockLoanTerms(BORROWER, BORROW_AMOUNT, terms);
+        token.mint(EOA_TREASURY, BORROW_AMOUNT + terms.addonAmount);
+
+        vm.prank(BORROWER);
+        uint256 loanId = market.takeLoan(address(creditLine), BORROW_AMOUNT, terms.durationInPeriods);
+
+        Loan.State memory loan = market.getLoanState(loanId);
+        assertTrue(Constants.COOLDOWN_IN_PERIODS >= 2);
+
+        skip(Constants.PERIOD_IN_SECONDS * (Constants.COOLDOWN_IN_PERIODS - 1));
+
+        uint256 borrowerBalance = token.balanceOf(loan.borrower);
+        uint256 treasuryBalance = token.balanceOf(loan.treasury);
+
+        vm.expectEmit(true, true, true, true, address(market));
+        emit LoanRevoked(loanId);
+
+        vm.prank(LENDER);
+        market.revokeLoan(loanId);
+
+        loan = market.getLoanState(loanId);
+        assertEq(loan.trackedBalance, 0);
+        assertEq(token.balanceOf(loan.borrower), borrowerBalance - loan.borrowAmount);
+        assertEq(token.balanceOf(address(loan.treasury)), treasuryBalance + loan.borrowAmount);
     }
 
     function test_revokeLoan_Revert_IfContractIsPaused() public {
