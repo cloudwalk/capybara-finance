@@ -25,6 +25,7 @@ contract LiquidityPoolAccountableUUPSTest is Test {
 
     LiquidityPoolAccountableUUPS private proxy;
 
+    address private constant TOKEN = address(bytes20(keccak256("token")));
     address private constant MARKET = address(bytes20(keccak256("market")));
     address private constant LENDER = address(bytes20(keccak256("lender")));
     address private constant ATTACKER = address(bytes20(keccak256("attacker")));
@@ -39,7 +40,7 @@ contract LiquidityPoolAccountableUUPSTest is Test {
         proxy = LiquidityPoolAccountableUUPS(
             address(new ERC1967Proxy(address(new LiquidityPoolAccountableUUPS()), ""))
         );
-        proxy.initialize(LENDER, MARKET);
+        proxy.initialize(LENDER, MARKET, TOKEN);
     }
 
     // -------------------------------------------- //

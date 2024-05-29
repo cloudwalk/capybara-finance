@@ -20,26 +20,24 @@ interface ICreditLineConfigurable is ICreditLine {
     /// - Keep ----- Do not change anything about the borrow allowance.
     /// - Decrease - Decrease the borrow allowance after each loan taken.
     enum BorrowPolicy {
-        Reset,    // 0
-        Keep,     // 1
-        Decrease  // 2
+        Reset,           // 0
+        Keep,            // 1
+        Iterate,         // 2
+        Decrease         // 3
     }
 
     /// @dev A struct that defines credit line configuration.
     struct CreditLineConfig {
         // Slot 1
-        address treasury;                // The address of the loan treasury.
-        uint32 minDurationInPeriods;     // The minimum duration of the loan determined in periods.
-        uint32 maxDurationInPeriods;     // The maximum duration of the loan determined in periods.
-        // uint32 __reserved;            // Reserved for future use.
-        // Slot 2
         uint64 minBorrowAmount;          // The minimum amount of tokens the borrower can take as a loan.
         uint64 maxBorrowAmount;          // The maximum amount of tokens the borrower can take as a loan.
         uint32 minInterestRatePrimary;   // The minimum primary interest rate to be applied to the loan.
         uint32 maxInterestRatePrimary;   // The maximum primary interest rate to be applied to the loan.
         uint32 minInterestRateSecondary; // The minimum secondary interest rate to be applied to the loan.
         uint32 maxInterestRateSecondary; // The maximum secondary interest rate to be applied to the loan.
-        // Slot 3
+        // Slot 2
+        uint32 minDurationInPeriods;     // The minimum duration of the loan determined in periods.
+        uint32 maxDurationInPeriods;     // The maximum duration of the loan determined in periods.
         uint32 minAddonFixedRate;        // The minimum fixed rate for the loan addon calculation.
         uint32 maxAddonFixedRate;        // The maximum fixed rate for the loan addon calculation.
         uint32 minAddonPeriodRate;       // The minimum period rate for the loan addon calculation.

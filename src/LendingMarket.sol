@@ -71,6 +71,9 @@ contract LendingMarket is
     /// @dev Thrown when the cooldown period has passed.
     error CooldownPeriodHasPassed();
 
+    /// @dev Thrown when the program does not exist.
+    error ProgramNotExist();
+
     // -------------------------------------------- //
     //  Modifiers                                   //
     // -------------------------------------------- //
@@ -139,46 +142,18 @@ contract LendingMarket is
         _unpause();
     }
 
-    /// @inheritdoc ILendingMarket
-    function configureCreditLineLender(address creditLine, address newLender) external onlyRole(OWNER_ROLE) {
-        if (creditLine == address(0) || newLender == address(0)) {
-            revert Error.ZeroAddress();
-        }
-        if (_creditLineLenders[creditLine] == newLender) {
-            revert Error.AlreadyConfigured();
-        }
-
-        emit CreditLineLenderConfigured(creditLine, newLender, _creditLineLenders[creditLine]);
-
-        _creditLineLenders[creditLine] = newLender;
-    }
-
-    /// @inheritdoc ILendingMarket
-    function configureLiquidityPoolLender(address liquidityPool, address newLender) external onlyRole(OWNER_ROLE) {
-        if (liquidityPool == address(0) || newLender == address(0)) {
-            revert Error.ZeroAddress();
-        }
-        if (_liquidityPoolLenders[liquidityPool] == newLender) {
-            revert Error.AlreadyConfigured();
-        }
-
-        emit LiquidityPoolLenderConfigured(liquidityPool, newLender, _liquidityPoolLenders[liquidityPool]);
-
-        _liquidityPoolLenders[liquidityPool] = newLender;
-    }
-
     // -------------------------------------------- //
     //  Borrower functions                          //
     // -------------------------------------------- //
 
     /// @inheritdoc ILendingMarket
     function takeLoan(
-        address creditLine,
+        uint32 programId,
         uint256 borrowAmount,
         uint256 durationInPeriods
     ) external whenNotPaused returns (uint256) {
-        if (creditLine == address(0)) {
-            revert Error.ZeroAddress();
+        if (programId == 0) {
+            revert ProgramNotExist();
         }
         if (borrowAmount == 0) {
             revert Error.InvalidAmount();
@@ -187,37 +162,29 @@ contract LendingMarket is
             revert Error.InvalidAmount();
         }
 
-        address lender = _creditLineLenders[creditLine];
-        if (lender == address(0)) {
+        address creditLine = _programCreditLines[programId];
+        if (creditLine == address(0)) {
             revert CreditLineLenderNotConfigured();
         }
 
-        address liquidityPool = _creditLineToLiquidityPool[creditLine];
+        address liquidityPool = _programLiquidityPools[programId];
         if (liquidityPool == address(0)) {
             revert LiquidityPoolLenderNotConfigured();
         }
 
-        if (lender != _liquidityPoolLenders[liquidityPool]) {
-            revert Error.Unauthorized();
-        }
-
         uint256 id = _loanIdCounter++;
-        _lenders[id].account = lender;
-
-        Loan.Terms memory terms = ICreditLine(creditLine).onBeforeLoanTaken(
-            id,
+        Loan.Terms memory terms = ICreditLine(creditLine).determineLoanTerms(
             msg.sender,
             borrowAmount,
             durationInPeriods
         );
-
-        uint32 blockTimestamp = _blockTimestamp().toUint32();
         uint256 totalBorrowAmount = borrowAmount + terms.addonAmount;
+        uint32 blockTimestamp = _blockTimestamp().toUint32();
 
         _loans[id] = Loan.State({
             token: terms.token,
             borrower: msg.sender,
-            treasury: terms.treasury,
+            programId: programId,
             startTimestamp: blockTimestamp,
             durationInPeriods: terms.durationInPeriods,
             interestRatePrimary: terms.interestRatePrimary,
@@ -230,11 +197,10 @@ contract LendingMarket is
             addonAmount: terms.addonAmount
         });
 
-        ILiquidityPool(liquidityPool).onBeforeLoanTaken(id, creditLine);
+        ICreditLine(creditLine).onBeforeLoanTaken(id);
+        ILiquidityPool(liquidityPool).onBeforeLoanTaken(id);
 
         IERC20(terms.token).safeTransferFrom(liquidityPool, msg.sender, borrowAmount);
-
-        ILiquidityPool(liquidityPool).onAfterLoanTaken(id, creditLine);
 
         emit LoanTaken(id, msg.sender, totalBorrowAmount, terms.durationInPeriods);
 
@@ -286,12 +252,15 @@ contract LendingMarket is
         uint256 repayAmount,
         uint256 outstandingBalance
     ) internal {
-        if (loan.treasury.code.length == 0) {
+        address creditLine = _programCreditLines[loan.programId];
+        address liquidityPool = _programLiquidityPools[loan.programId];
+
+        if (liquidityPool.code.length == 0) {
             // TBD Add support for EOA liquidity pools.
             revert Error.NotImplemented();
         }
 
-        bool autoRepayment = loan.treasury == msg.sender;
+        bool autoRepayment = _programLenders[loan.programId] == msg.sender;
         address payer = autoRepayment ? loan.borrower : msg.sender;
         if (autoRepayment && !Constants.AUTO_REPAYMENT_ENABLED) {
             revert AutoRepaymentNotAllowed();
@@ -299,15 +268,14 @@ contract LendingMarket is
 
         outstandingBalance -= repayAmount;
 
-        ILiquidityPool(loan.treasury).onBeforeLoanPayment(loanId, repayAmount);
-
         loan.repaidAmount += repayAmount.toUint64();
         loan.trackedBalance = outstandingBalance.toUint64();
         loan.trackedTimestamp = _blockTimestamp().toUint32();
 
-        IERC20(loan.token).transferFrom(payer, loan.treasury, repayAmount);
+        IERC20(loan.token).safeTransferFrom(payer, liquidityPool, repayAmount);
 
-        ILiquidityPool(loan.treasury).onAfterLoanPayment(loanId, repayAmount);
+        ILiquidityPool(liquidityPool).onAfterLoanPayment(loanId, repayAmount);
+        ICreditLine(creditLine).onAfterLoanPayment(loanId, repayAmount);
 
         emit LoanRepayment(loanId, payer, loan.borrower, repayAmount, outstandingBalance);
     }
@@ -315,6 +283,92 @@ contract LendingMarket is
     // -------------------------------------------- //
     //  Lender functions                            //
     // -------------------------------------------- //
+
+    /// @inheritdoc ILendingMarket
+    function registerCreditLine(address creditLine) external whenNotPaused {
+        if (creditLine == address(0)) {
+            revert Error.ZeroAddress();
+        }
+
+        if (_creditLineLenders[creditLine] != address(0)) {
+            revert Error.AlreadyConfigured();
+        }
+
+        emit CreditLineRegistered(msg.sender, creditLine);
+
+        _creditLineLenders[creditLine] = msg.sender;
+    }
+
+    /// @inheritdoc ILendingMarket
+    function registerLiquidityPool(address liquidityPool) external whenNotPaused {
+        if (liquidityPool == address(0)) {
+            revert Error.ZeroAddress();
+        }
+
+        if (_liquidityPoolLenders[liquidityPool] != address(0)) {
+            revert Error.AlreadyConfigured();
+        }
+
+        emit LiquidityPoolRegistered(msg.sender, liquidityPool);
+
+        _liquidityPoolLenders[liquidityPool] = msg.sender;
+    }
+
+    /// @inheritdoc ILendingMarket
+    function createProgram(
+        address creditLine,
+        address liquidityPool
+    ) external whenNotPaused {
+        if (creditLine == address(0)) {
+            revert Error.ZeroAddress();
+        }
+        if (liquidityPool == address(0)) {
+            revert Error.ZeroAddress();
+        }
+
+        if (_creditLineLenders[creditLine] != msg.sender) {
+            revert Error.Unauthorized();
+        }
+        if (_liquidityPoolLenders[liquidityPool] != msg.sender) {
+            revert Error.Unauthorized();
+        }
+
+        _programIdCounter++;
+        uint32 programId = _programIdCounter;
+
+        emit ProgramCreated(msg.sender, programId);
+        emit ProgramUpdated(programId, creditLine, liquidityPool);
+
+        _programLenders[programId] = msg.sender;
+        _programCreditLines[programId] = creditLine;
+        _programLiquidityPools[programId] = liquidityPool;
+    }
+
+    /// @inheritdoc ILendingMarket
+    function updateProgram(
+        uint32 programId,
+        address creditLine,
+        address liquidityPool
+    ) external whenNotPaused {
+        if (programId == 0) {
+            revert ProgramNotExist();
+        }
+
+        if (_programLenders[programId] != msg.sender) {
+            revert Error.Unauthorized();
+        }
+        if (_creditLineLenders[creditLine] != msg.sender) {
+            revert Error.Unauthorized();
+        }
+        if (_liquidityPoolLenders[liquidityPool] != msg.sender) {
+            revert Error.Unauthorized();
+        }
+
+        emit ProgramUpdated(programId, creditLine, liquidityPool);
+
+        _programCreditLines[programId] = creditLine;
+        _programLiquidityPools[programId] = liquidityPool;
+    }
 
     /// @inheritdoc ILendingMarket
     function freeze(uint256 loanId) external whenNotPaused onlyOngoingLoan(loanId) onlyLenderOrAlias(loanId) {
@@ -413,28 +467,6 @@ contract LendingMarket is
         _hasAlias[msg.sender][account] = isAlias;
     }
 
-    /// @inheritdoc ILendingMarket
-    function assignLiquidityPoolToCreditLine(address creditLine, address liquidityPool) external whenNotPaused {
-        if (creditLine == address(0) || liquidityPool == address(0)) {
-            revert Error.ZeroAddress();
-        }
-
-        address oldLiquidityPool = _creditLineToLiquidityPool[creditLine];
-        if (oldLiquidityPool != address(0)) {
-            // TBD Check if updating the liquidity pool associated with the credit line
-            // will have any unexpected side effects during the loan lifecycle.
-            revert Error.NotImplemented();
-        }
-
-        if (_creditLineLenders[creditLine] != msg.sender || _liquidityPoolLenders[liquidityPool] != msg.sender) {
-            revert Error.Unauthorized();
-        }
-
-        emit LiquidityPoolAssignedToCreditLine(creditLine, liquidityPool, oldLiquidityPool);
-
-        _creditLineToLiquidityPool[creditLine] = liquidityPool;
-    }
-
     // -------------------------------------------- //
     //  Borrower and lender functions               //
     // -------------------------------------------- //
@@ -462,25 +494,41 @@ contract LendingMarket is
     /// @param loanId The unique identifier of the loan to revoke.
     /// @param loan The storage state of the loan to update.
     function _revokeLoan(uint256 loanId, Loan.State storage loan) internal {
-        ILiquidityPool(loan.treasury).onBeforeLoanRevocation(loanId);
+        address creditLine = _programCreditLines[loan.programId];
+        address liquidityPool = _programLiquidityPools[loan.programId];
 
         loan.trackedBalance = 0;
         loan.trackedTimestamp = _blockTimestamp().toUint32();
 
         if (loan.repaidAmount < loan.borrowAmount) {
-            IERC20(loan.token).transferFrom(loan.borrower, loan.treasury, loan.borrowAmount - loan.repaidAmount);
+            IERC20(loan.token).safeTransferFrom(loan.borrower, liquidityPool, loan.borrowAmount - loan.repaidAmount);
         } else if (loan.repaidAmount != loan.borrowAmount) {
-            IERC20(loan.token).transferFrom(loan.treasury, loan.borrower, loan.repaidAmount - loan.borrowAmount);
+            IERC20(loan.token).safeTransferFrom(liquidityPool, loan.borrower, loan.repaidAmount - loan.borrowAmount);
         }
 
-        emit LoanRevoked(loanId);
+        ILiquidityPool(liquidityPool).onAfterLoanRevocation(loanId);
+        ICreditLine(creditLine).onAfterLoanRevocation(loanId);
 
-        ILiquidityPool(loan.treasury).onAfterLoanRevocation(loanId);
+        emit LoanRevoked(loanId);
     }
 
     // -------------------------------------------- //
     //  View functions                              //
     // -------------------------------------------- //
+    /// @inheritdoc ILendingMarket
+    function getProgramLender(uint32 programId) external view returns (address) {
+        return _programLenders[programId];
+    }
+
+    /// @inheritdoc ILendingMarket
+    function getProgramCreditLine(uint32 programId) external view returns (address) {
+        return _programCreditLines[programId];
+    }
+
+    /// @inheritdoc ILendingMarket
+    function getProgramLiquidityPool(uint32 programId) external view returns (address) {
+        return _programLiquidityPools[programId];
+    }
 
     /// @inheritdoc ILendingMarket
     function getCreditLineLender(address creditLine) external view returns (address) {
@@ -490,11 +538,6 @@ contract LendingMarket is
     /// @inheritdoc ILendingMarket
     function getLiquidityPoolLender(address liquidityPool) external view returns (address) {
         return _liquidityPoolLenders[liquidityPool];
-    }
-
-    /// @inheritdoc ILendingMarket
-    function getLiquidityPoolByCreditLine(address creditLine) external view returns (address) {
-        return _creditLineToLiquidityPool[creditLine];
     }
 
     /// @inheritdoc ILendingMarket
@@ -519,13 +562,8 @@ contract LendingMarket is
 
     /// @inheritdoc ILendingMarket
     function isLenderOrAlias(uint256 loanId, address account) public view returns (bool) {
-        address lender = _lenders[loanId].account;
+        address lender = _programLenders[_loans[loanId].programId];
         return account == lender || _hasAlias[lender][account];
-    }
-
-    /// @inheritdoc ILendingMarket
-    function getLoanLender(uint256 loanId) external view returns (Loan.Lender memory) {
-        return _lenders[loanId];
     }
 
     /// @inheritdoc ILendingMarket
@@ -643,7 +681,7 @@ contract LendingMarket is
         return (timestamp / periodInSeconds);
     }
 
-    /// @dev Returns the current block timestamp.
+    /// @dev Returns the current block timestamp with the time offset applied.
     function _blockTimestamp() internal view virtual returns (uint256) {
         return block.timestamp - Constants.NEGATIVE_TIME_OFFSET;
     }

@@ -13,55 +13,36 @@ contract LiquidityPoolMock is ILiquidityPool {
     //  Events                                      //
     // -------------------------------------------- //
 
-    event OnBeforeLoanTakenCalled(uint256 indexed loanId, address indexed creditLine);
-    event OnAfterLoanTakenCalled(uint256 indexed loanId, address indexed creditLine);
+    event OnBeforeLoanTakenCalled(uint256 indexed loanId);
 
-    event OnBeforeLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
     event OnAfterLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
 
-    event OnBeforeLoanRevocationCalled(uint256 indexed loanId);
     event OnAfterLoanRevocationCalled(uint256 indexed loanId);
 
     // -------------------------------------------- //
     //  Storage variables                           //
     // -------------------------------------------- //
 
-    bool private _onBeforeLoanTakenResult;
-    bool private _onAfterLoanTakenResult;
+    address private _tokenAddress;
 
-    bool private _onBeforeLoanPaymentResult;
+    bool private _onBeforeLoanTakenResult;
+
     bool private _onAfterLoanPaymentResult;
 
-    bool private _onBeforeLoanRevocationResult;
     bool private _onAfterLoanRevocationResult;
 
     // -------------------------------------------- //
     //  ILiquidityPool functions                    //
     // -------------------------------------------- //
 
-    function onBeforeLoanTaken(uint256 loanId, address creditLine) external returns (bool) {
-        emit OnBeforeLoanTakenCalled(loanId, creditLine);
+    function onBeforeLoanTaken(uint256 loanId) external returns (bool) {
+        emit OnBeforeLoanTakenCalled(loanId);
         return _onBeforeLoanTakenResult;
-    }
-
-    function onAfterLoanTaken(uint256 loanId, address creditLine) external returns (bool) {
-        emit OnAfterLoanTakenCalled(loanId, creditLine);
-        return _onAfterLoanTakenResult;
-    }
-
-    function onBeforeLoanPayment(uint256 loanId, uint256 repayAmount) external returns (bool) {
-        emit OnBeforeLoanPaymentCalled(loanId, repayAmount);
-        return _onBeforeLoanPaymentResult;
     }
 
     function onAfterLoanPayment(uint256 loanId, uint256 repayAmount) external returns (bool) {
         emit OnAfterLoanPaymentCalled(loanId, repayAmount);
         return _onAfterLoanPaymentResult;
-    }
-
-    function onBeforeLoanRevocation(uint256 loanId) external returns (bool) {
-        emit OnBeforeLoanRevocationCalled(loanId);
-        return _onBeforeLoanRevocationResult;
     }
 
     function onAfterLoanRevocation(uint256 loanId) external returns (bool) {
@@ -77,28 +58,24 @@ contract LiquidityPoolMock is ILiquidityPool {
         revert Error.NotImplemented();
     }
 
+    function token() external view returns (address) {
+        return _tokenAddress;
+    }
+
     // -------------------------------------------- //
     //  Mock functions                              //
     // -------------------------------------------- //
+
+    function mockTokenAddress(address tokenAddress) external {
+        _tokenAddress = tokenAddress;
+    }
 
     function mockOnBeforeLoanTakenResult(bool result) external {
         _onBeforeLoanTakenResult = result;
     }
 
-    function mockOnAfterLoanTakenResult(bool result) external {
-        _onAfterLoanTakenResult = result;
-    }
-
-    function mockOnBeforeLoanPaymentResult(bool result) external {
-        _onBeforeLoanPaymentResult = result;
-    }
-
     function mockOnAfterLoanPaymentResult(bool result) external {
         _onAfterLoanPaymentResult = result;
-    }
-
-    function mockOnBeforeLoanRevocationResult(bool result) external {
-        _onBeforeLoanRevocationResult = result;
     }
 
     function mockOnAfterLoanRevocationResult(bool result) external {

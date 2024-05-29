@@ -14,6 +14,16 @@ import { CreditLineMock } from "src/mocks/CreditLineMock.sol";
 /// @dev Contains tests for the `CreditLineMock` contract.
 contract CreditLineMockTest is Test {
     // -------------------------------------------- //
+    //  Events                                      //
+    // -------------------------------------------- //
+
+    event OnBeforeLoanTakenCalled(uint256 indexed loanId);
+
+    event OnAfterLoanPaymentCalled(uint256 indexed loanId, uint256 indexed repayAmount);
+
+    event OnAfterLoanRevocationCalled(uint256 indexed loanId);
+
+    // -------------------------------------------- //
     //  Storage variables                           //
     // -------------------------------------------- //
 
@@ -21,11 +31,11 @@ contract CreditLineMockTest is Test {
 
     uint256 private constant LOAN_ID = 1;
     uint256 private constant BORROW_AMOUNT = 100;
+    uint256 private constant REPAY_AMOUNT = 100;
     uint256 private constant DURATION_IN_PERIODS = 30;
     address private constant BORROWER = address(bytes20(keccak256("borrower")));
 
     address private constant TERMS_TOKEN = address(bytes20(keccak256("token")));
-    address private constant TERMS_TREASURY = address(bytes20(keccak256("treasury")));
 
     uint32 private constant TERMS_DURATION_IN_PERIODS = 200;
     uint32 private constant TERMS_INTEREST_RATE_PRIMARY = 400;
@@ -41,47 +51,13 @@ contract CreditLineMockTest is Test {
     }
 
     // -------------------------------------------- //
-    //  ICreditLine        functions                //
+    //  ICreditLine functions                       //
     // -------------------------------------------- //
-
-    function test_onBeforeLoanTaken() public {
-        Loan.Terms memory terms = mock.onBeforeLoanTaken(LOAN_ID, BORROWER, BORROW_AMOUNT, DURATION_IN_PERIODS);
-
-        assertEq(terms.token, address(0));
-        assertEq(terms.treasury, address(0));
-        assertEq(terms.durationInPeriods, 0);
-        assertEq(terms.interestRatePrimary, 0);
-        assertEq(terms.interestRateSecondary, 0);
-        assertEq(terms.addonAmount, 0);
-
-        mock.mockLoanTerms(
-            BORROWER,
-            BORROW_AMOUNT,
-            Loan.Terms({
-                token: TERMS_TOKEN,
-                treasury: TERMS_TREASURY,
-                durationInPeriods: TERMS_DURATION_IN_PERIODS,
-                interestRatePrimary: TERMS_INTEREST_RATE_PRIMARY,
-                interestRateSecondary: TERMS_INTEREST_RATE_SECONDARY,
-                addonAmount: TERMS_ADDON_AMOUNT
-            })
-        );
-
-        terms = mock.onBeforeLoanTaken(LOAN_ID, BORROWER, BORROW_AMOUNT, DURATION_IN_PERIODS);
-
-        assertEq(terms.token, TERMS_TOKEN);
-        assertEq(terms.treasury, TERMS_TREASURY);
-        assertEq(terms.durationInPeriods, TERMS_DURATION_IN_PERIODS);
-        assertEq(terms.interestRatePrimary, TERMS_INTEREST_RATE_PRIMARY);
-        assertEq(terms.interestRateSecondary, TERMS_INTEREST_RATE_SECONDARY);
-        assertEq(terms.addonAmount, TERMS_ADDON_AMOUNT);
-    }
 
     function test_determineLoanTerms() public {
         Loan.Terms memory terms = mock.determineLoanTerms(BORROWER, BORROW_AMOUNT, DURATION_IN_PERIODS);
 
         assertEq(terms.token, address(0));
-        assertEq(terms.treasury, address(0));
         assertEq(terms.durationInPeriods, 0);
         assertEq(terms.interestRatePrimary, 0);
         assertEq(terms.interestRateSecondary, 0);
@@ -92,7 +68,6 @@ contract CreditLineMockTest is Test {
             BORROW_AMOUNT,
             Loan.Terms({
                 token: TERMS_TOKEN,
-                treasury: TERMS_TREASURY,
                 durationInPeriods: TERMS_DURATION_IN_PERIODS,
                 interestRatePrimary: TERMS_INTEREST_RATE_PRIMARY,
                 interestRateSecondary: TERMS_INTEREST_RATE_SECONDARY,
@@ -103,11 +78,52 @@ contract CreditLineMockTest is Test {
         terms = mock.determineLoanTerms(BORROWER, BORROW_AMOUNT, DURATION_IN_PERIODS);
 
         assertEq(terms.token, TERMS_TOKEN);
-        assertEq(terms.treasury, TERMS_TREASURY);
         assertEq(terms.durationInPeriods, TERMS_DURATION_IN_PERIODS);
         assertEq(terms.interestRatePrimary, TERMS_INTEREST_RATE_PRIMARY);
         assertEq(terms.interestRateSecondary, TERMS_INTEREST_RATE_SECONDARY);
         assertEq(terms.addonAmount, TERMS_ADDON_AMOUNT);
+    }
+
+    function test_onBeforeLoanTaken() public {
+        vm.expectEmit(true, true, true, true, address(mock));
+        emit OnBeforeLoanTakenCalled(LOAN_ID);
+        bool result = mock.onBeforeLoanTaken(LOAN_ID);
+        assertEq(result, false);
+
+        mock.mockOnBeforeLoanTakenResult(true);
+
+        vm.expectEmit(true, true, true, true, address(mock));
+        emit OnBeforeLoanTakenCalled(LOAN_ID);
+        result = mock.onBeforeLoanTaken(LOAN_ID);
+        assertEq(result, true);
+    }
+
+    function test_onAfterLoanPayment() public {
+        vm.expectEmit(true, true, true, true, address(mock));
+        emit OnAfterLoanPaymentCalled(LOAN_ID, REPAY_AMOUNT);
+        bool result = mock.onAfterLoanPayment(LOAN_ID, REPAY_AMOUNT);
+        assertEq(result, false);
+
+        mock.mockOnAfterLoanPaymentResult(true);
+
+        vm.expectEmit(true, true, true, true, address(mock));
+        emit OnAfterLoanPaymentCalled(LOAN_ID, REPAY_AMOUNT);
+        result = mock.onAfterLoanPayment(LOAN_ID, REPAY_AMOUNT);
+        assertEq(result, true);
+    }
+
+    function test_onAfterLoanRevocation() public {
+        vm.expectEmit(true, true, true, true, address(mock));
+        emit OnAfterLoanRevocationCalled(LOAN_ID);
+        bool result = mock.onAfterLoanRevocation(LOAN_ID);
+        assertEq(result, false);
+
+        mock.mockOnAfterLoanRevocationResult(true);
+
+        vm.expectEmit(true, true, true, true, address(mock));
+        emit OnAfterLoanRevocationCalled(LOAN_ID);
+        result = mock.onAfterLoanRevocation(LOAN_ID);
+        assertEq(result, true);
     }
 
     function test_market() public {

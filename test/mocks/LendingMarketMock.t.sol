@@ -28,7 +28,6 @@ contract LendingMarketMockTest is Test {
     address private constant TOKEN = address(bytes20(keccak256("token")));
     address private constant LENDER_1 = address(bytes20(keccak256("lender_1")));
     address private constant LENDER_2 = address(bytes20(keccak256("lender_2")));
-    address private constant TREASURY = address(bytes20(keccak256("treasury")));
     address private constant BORROWER = address(bytes20(keccak256("borrower")));
     address private constant CREDIT_LINE = address(bytes20(keccak256("credit_line")));
     address private constant LIQUIDITY_POOL = address(bytes20(keccak256("liquidity_pool")));
@@ -53,6 +52,8 @@ contract LendingMarketMockTest is Test {
     uint256 private constant UPDATE_LOAN_INTEREST_RATE_PRIMARY = 300;
     uint256 private constant UPDATE_LOAN_INTEREST_RATE_SECONDARY = 400;
 
+    uint32 private constant PROGRAM_ID = 1;
+
     // -------------------------------------------- //
     //  Setup and configuration                     //
     // -------------------------------------------- //
@@ -67,7 +68,7 @@ contract LendingMarketMockTest is Test {
 
     function test_takeLoan() public {
         vm.expectRevert(Error.NotImplemented.selector);
-        mock.takeLoan(CREDIT_LINE, BORROW_AMOUNT, DURATION_IN_PERIODS);
+        mock.takeLoan(PROGRAM_ID, BORROW_AMOUNT, DURATION_IN_PERIODS);
     }
 
     function test_repayLoan() public {
@@ -102,21 +103,6 @@ contract LendingMarketMockTest is Test {
         mock.updateLoanInterestRateSecondary(LOAN_ID, UPDATE_LOAN_INTEREST_RATE_SECONDARY);
     }
 
-    function test_configureCreditLineLender() public {
-        vm.expectRevert(Error.NotImplemented.selector);
-        mock.configureCreditLineLender(CREDIT_LINE, LENDER_1);
-    }
-
-    function test_configureLiquidityPoolLender() public {
-        vm.expectRevert(Error.NotImplemented.selector);
-        mock.configureLiquidityPoolLender(LIQUIDITY_POOL, LENDER_1);
-    }
-
-    function test_assignLiquidityPoolToCreditLine() public {
-        vm.expectRevert(Error.NotImplemented.selector);
-        mock.assignLiquidityPoolToCreditLine(CREDIT_LINE, LIQUIDITY_POOL);
-    }
-
     function test_configureAlias() public {
         vm.expectRevert(Error.NotImplemented.selector);
         mock.configureAlias(LENDER_2, true);
@@ -132,17 +118,12 @@ contract LendingMarketMockTest is Test {
         mock.getLiquidityPoolLender(LIQUIDITY_POOL);
     }
 
-    function test_getLiquidityPoolByCreditLine() public {
-        vm.expectRevert(Error.NotImplemented.selector);
-        mock.getLiquidityPoolByCreditLine(CREDIT_LINE);
-    }
-
     function test_getLoanState() public {
         Loan.State memory loan = mock.getLoanState(LOAN_ID);
 
         assertEq(loan.token, address(0));
         assertEq(loan.borrower, address(0));
-        assertEq(loan.treasury, address(0));
+        assertEq(loan.programId, 0);
         assertEq(loan.durationInPeriods, 0);
         assertEq(loan.interestRatePrimary, 0);
         assertEq(loan.interestRateSecondary, 0);
@@ -159,7 +140,7 @@ contract LendingMarketMockTest is Test {
             Loan.State({
                 token: TOKEN,
                 borrower: BORROWER,
-                treasury: TREASURY,
+                programId: PROGRAM_ID,
                 durationInPeriods: STATE_DURATION_IN_PERIODS,
                 interestRatePrimary: STATE_INTEREST_RATE_PRIMARY,
                 interestRateSecondary: STATE_INTEREST_RATE_SECONDARY,
@@ -177,7 +158,7 @@ contract LendingMarketMockTest is Test {
 
         assertEq(loan.token, TOKEN);
         assertEq(loan.borrower, BORROWER);
-        assertEq(loan.treasury, TREASURY);
+        assertEq(loan.programId, PROGRAM_ID);
         assertEq(loan.durationInPeriods, STATE_DURATION_IN_PERIODS);
         assertEq(loan.interestRatePrimary, STATE_INTEREST_RATE_PRIMARY);
         assertEq(loan.interestRateSecondary, STATE_INTEREST_RATE_SECONDARY);
@@ -198,11 +179,6 @@ contract LendingMarketMockTest is Test {
     function test_hasAlias() public {
         vm.expectRevert(Error.NotImplemented.selector);
         mock.hasAlias(LENDER_1, LENDER_2);
-    }
-
-    function test_getLoanLender() public {
-        vm.expectRevert(Error.NotImplemented.selector);
-        mock.getLoanLender(LOAN_ID);
     }
 
     function test_interestRateFactor() public {

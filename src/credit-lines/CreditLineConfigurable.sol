@@ -11,6 +11,7 @@ import { SafeCast } from "../common/libraries/SafeCast.sol";
 import { Constants } from "../common/libraries/Constants.sol";
 
 import { ICreditLine } from "../common/interfaces/core/ICreditLine.sol";
+import { ILendingMarket } from "../common/interfaces/core/ILendingMarket.sol";
 import { ICreditLineConfigurable } from "../common/interfaces/ICreditLineConfigurable.sol";
 import { AccessControlExtUpgradeable } from "../common/AccessControlExtUpgradeable.sol";
 
@@ -33,17 +34,21 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
     //  Storage variables                           //
     // -------------------------------------------- //
 
-    /// @dev The address of the lending market.
-    address internal _market;
-
     /// @dev The address of the underlying token.
     address internal _token;
+
+    /// @dev The address of the associated market.
+    address internal _market;
 
     /// @dev The structure of the credit line configuration.
     CreditLineConfig internal _config;
 
     /// @dev The mapping of borrower to borrower configuration.
     mapping(address => BorrowerConfig) internal _borrowers;
+
+    /// @dev This empty reserved space is put in place to allow future versions
+    /// to add new variables without shifting down storage in the inheritance chain.
+    uint256[46] private __gap;
 
     // -------------------------------------------- //
     //  Errors                                      //
@@ -211,25 +216,43 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
     // -------------------------------------------- //
 
     /// @inheritdoc ICreditLine
-    function onBeforeLoanTaken(
-        uint256 loanId,
-        address borrower,
-        uint256 borrowAmount,
-        uint256 durationInPeriods
-    ) external whenNotPaused onlyMarket returns (Loan.Terms memory terms) {
-        loanId; // To prevent compiler warning about unused variable
-
-        terms = determineLoanTerms(borrower, borrowAmount, durationInPeriods);
-
-        BorrowerConfig storage borrowerConfig = _borrowers[borrower];
+    function onBeforeLoanTaken(uint256 loanId) external whenNotPaused onlyMarket returns (bool) {
+        Loan.State memory loan = ILendingMarket(_market).getLoanState(loanId);
+        BorrowerConfig storage borrowerConfig = _borrowers[loan.borrower];
 
         if (borrowerConfig.borrowPolicy == BorrowPolicy.Keep) {
             // Do nothing to the borrower's max borrow amount configuration
-        } else if (borrowerConfig.borrowPolicy == BorrowPolicy.Decrease) {
-            borrowerConfig.maxBorrowAmount -= borrowAmount.toUint64();
+        } else if (borrowerConfig.borrowPolicy == BorrowPolicy.Decrease || borrowerConfig.borrowPolicy == BorrowPolicy.Iterate) {
+            borrowerConfig.maxBorrowAmount -= loan.borrowAmount + loan.addonAmount;
         } else { // borrowerConfig.borrowPolicy == BorrowPolicy.Reset
             borrowerConfig.maxBorrowAmount = 0;
         }
+
+        return true;
+    }
+
+    function onAfterLoanPayment(uint256 loanId, uint256 repayAmount) external whenNotPaused onlyMarket returns (bool) {
+        repayAmount; // To prevent compiler warning about unused variable
+
+        Loan.State memory loan = ILendingMarket(_market).getLoanState(loanId);
+        if (loan.trackedBalance == 0) {
+            BorrowerConfig storage borrowerConfig = _borrowers[loan.borrower];
+            if (borrowerConfig.borrowPolicy == BorrowPolicy.Iterate) {
+                borrowerConfig.maxBorrowAmount += loan.borrowAmount + loan.addonAmount;
+            }
+        }
+
+        return true;
+    }
+
+    function onAfterLoanRevocation(uint256 loanId) external whenNotPaused onlyMarket returns (bool) {
+        Loan.State memory loan = ILendingMarket(_market).getLoanState(loanId);
+        BorrowerConfig storage borrowerConfig = _borrowers[loan.borrower];
+        if (borrowerConfig.borrowPolicy == BorrowPolicy.Iterate) {
+            borrowerConfig.maxBorrowAmount += loan.borrowAmount + loan.addonAmount;
+        }
+
+        return true;
     }
 
     // -------------------------------------------- //
@@ -251,7 +274,7 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
 
         BorrowerConfig storage borrowerConfig = _borrowers[borrower];
 
-        if (block.timestamp > borrowerConfig.expiration) {
+        if (_blockTimestamp() > borrowerConfig.expiration) {
             revert BorrowerConfigurationExpired();
         }
         if (borrowAmount > borrowerConfig.maxBorrowAmount) {
@@ -268,7 +291,6 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
         }
 
         terms.token = _token;
-        terms.treasury = _config.treasury;
         terms.durationInPeriods = durationInPeriods.toUint32();
         terms.interestRatePrimary = borrowerConfig.interestRatePrimary;
         terms.interestRateSecondary = borrowerConfig.interestRateSecondary;
@@ -396,5 +418,10 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
         _borrowers[borrower] = config;
 
         emit BorrowerConfigured(address(this), borrower);
+    }
+
+    /// @dev Returns the current block timestamp with the time offset applied.
+    function _blockTimestamp() private view returns (uint256) {
+        return block.timestamp - Constants.NEGATIVE_TIME_OFFSET;
     }
 }
