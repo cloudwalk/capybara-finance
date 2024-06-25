@@ -37,9 +37,6 @@ contract LendingMarket is
     /// @dev The role of this contract owner.
     bytes32 public constant OWNER_ROLE = keccak256("OWNER_ROLE");
 
-    /// @dev The role of manager that can take loans for other accounts.
-    bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
-
     // -------------------------------------------- //
     //  Errors                                      //
     // -------------------------------------------- //
@@ -129,7 +126,6 @@ contract LendingMarket is
     /// See details https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable.
     function __LendingMarket_init_unchained(address owner_) internal onlyInitializing {
         _setRoleAdmin(OWNER_ROLE, OWNER_ROLE);
-        _setRoleAdmin(MANAGER_ROLE, OWNER_ROLE);
         _grantRole(OWNER_ROLE, owner_);
     }
 
@@ -173,7 +169,10 @@ contract LendingMarket is
         uint256 borrowAmount,
         uint256 addonAmount,
         uint256 durationInPeriods
-    ) external whenNotPaused onlyRole(MANAGER_ROLE) returns (uint256) {
+    ) external whenNotPaused returns (uint256) {
+        if (!_isLenderOrAlias(programId, msg.sender)) {
+            revert Error.Unauthorized();
+        }
         int256 addon = int256(uint256(addonAmount.toUint64()));
         return _takeLoan(
             borrower,
@@ -612,8 +611,7 @@ contract LendingMarket is
 
     /// @inheritdoc ILendingMarket
     function isLenderOrAlias(uint256 loanId, address account) public view returns (bool) {
-        address lender = _programLenders[_loans[loanId].programId];
-        return account == lender || _hasAlias[lender][account];
+        return _isLenderOrAlias(_loans[loanId].programId, account);
     }
 
     /// @inheritdoc ILendingMarket
@@ -671,6 +669,14 @@ contract LendingMarket is
     // -------------------------------------------- //
     //  Internal functions                          //
     // -------------------------------------------- //
+
+    /// @dev Checks if the provided account is a lender or an alias for a lender of a given lending program.
+    /// @param programId The identifier of the program to check.
+    /// @param account The address to check whether it's a lender or an alias.
+    function _isLenderOrAlias(uint32 programId, address account) public view returns (bool) {
+        address lender = _programLenders[programId];
+        return account == lender || _hasAlias[lender][account];
+    }
 
     /// @dev Calculates the outstanding balance of a loan.
     /// @param loan The loan to calculate the outstanding balance for.
