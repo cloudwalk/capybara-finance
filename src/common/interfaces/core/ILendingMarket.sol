@@ -141,6 +141,21 @@ interface ILendingMarket {
         uint256 durationInPeriods
     ) external returns (uint256);
 
+    /// @dev Takes a loan for a provided account. Can be called only by an account with a special role.
+    /// @param borrower The account for whom the loan is taken.
+    /// @param programId The identifier of the program to take the loan from.
+    /// @param borrowAmount The desired amount of tokens to borrow.
+    /// @param addonAmount The off-chain calculated addon amount for the loan.
+    /// @param durationInPeriods The desired duration of the loan in periods.
+    /// @return The unique identifier of the loan.
+    function takeLoanFor(
+        address borrower,
+        uint32 programId,
+        uint256 borrowAmount,
+        uint256 addonAmount,
+        uint256 durationInPeriods
+    ) external returns (uint256);
+
     /// @dev Repays a loan.
     /// @param loanId The unique identifier of the loan to repay.
     /// @param repayAmount The amount to repay or `type(uint256).max` to repay the remaining balance of the loan.
