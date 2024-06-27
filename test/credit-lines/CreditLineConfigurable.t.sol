@@ -791,7 +791,7 @@ contract CreditLineConfigurableTest is Test {
 
         assertEq(
             creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount,
-            config.maxBorrowAmount - (config.minBorrowAmount + addonAmount)
+            config.maxBorrowAmount - config.minBorrowAmount
         );
     }
 
@@ -818,7 +818,7 @@ contract CreditLineConfigurableTest is Test {
 
         assertEq(
             creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount,
-            config.maxBorrowAmount - (config.minBorrowAmount + addonAmount)
+            config.maxBorrowAmount - config.minBorrowAmount
         );
     }
 
@@ -884,7 +884,7 @@ contract CreditLineConfigurableTest is Test {
 
         assertEq(
             creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount,
-            config.maxBorrowAmount - (config.minBorrowAmount + addonAmount)
+            config.maxBorrowAmount - config.minBorrowAmount
         );
 
         // Partial repayment
@@ -898,7 +898,7 @@ contract CreditLineConfigurableTest is Test {
 
         assertEq(
             creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount,
-            config.maxBorrowAmount - (config.minBorrowAmount + addonAmount)
+            config.maxBorrowAmount - config.minBorrowAmount
         );
 
         // Full repayment
@@ -970,7 +970,7 @@ contract CreditLineConfigurableTest is Test {
 
         assertEq(
             creditLine.getBorrowerConfiguration(BORROWER_1).maxBorrowAmount,
-            config.maxBorrowAmount - (config.minBorrowAmount + addonAmount)
+            config.maxBorrowAmount - config.minBorrowAmount
         );
 
         vm.prank(address(lendingMarket));
