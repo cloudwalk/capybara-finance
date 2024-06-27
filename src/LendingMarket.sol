@@ -173,6 +173,9 @@ contract LendingMarket is
         if (!_isLenderOrAlias(programId, msg.sender)) {
             revert Error.Unauthorized();
         }
+        if (borrower == address(0)) {
+            revert Error.ZeroAddress();
+        }
         int256 addon = int256(uint256(addonAmount.toUint64()));
         return _takeLoan(
             borrower,

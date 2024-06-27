@@ -575,6 +575,14 @@ contract LendingMarketTest is Test {
         market.takeLoanFor(BORROWER, PROGRAM_ID, BORROW_AMOUNT, terms.addonAmount, terms.durationInPeriods);
     }
 
+    function test_takeLoanFor_Revert_IfBorrowerIsZero() public {
+        configureMarket();
+        Loan.Terms memory terms = mockLoanTerms(BORROWER, BORROW_AMOUNT);
+        vm.prank(LENDER);
+        vm.expectRevert(Error.ZeroAddress.selector);
+        market.takeLoanFor(address(0), PROGRAM_ID, BORROW_AMOUNT, terms.addonAmount, terms.durationInPeriods);
+    }
+
     function test_takeLoanFor_Revert_IfBorrowAmountIsZero() public {
         configureMarket();
         Loan.Terms memory terms = mockLoanTerms(BORROWER, BORROW_AMOUNT);
