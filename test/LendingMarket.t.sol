@@ -580,6 +580,26 @@ contract LendingMarketTest is Test {
         market.takeLoanFor(BORROWER, PROGRAM_ID, BORROW_AMOUNT, terms.addonAmount, terms.durationInPeriods);
     }
 
+    function test_takeLoanFor_Revert_IfCreditLineIsZeroAddress() public {
+        configureMarket();
+        Loan.Terms memory terms = mockLoanTerms(BORROWER, BORROW_AMOUNT);
+        vm.prank(address(0));
+        market.configureAlias(LENDER_ALIAS, true);
+        vm.prank(LENDER_ALIAS);
+        vm.expectRevert(LendingMarket.ProgramNotExist.selector);
+        market.takeLoanFor(BORROWER, 0, BORROW_AMOUNT, terms.addonAmount, terms.durationInPeriods);
+    }
+
+    function test_takeLoanFor_Revert_IfCreditLineIsNotRegistered() public {
+        Loan.Terms memory terms = mockLoanTerms(BORROWER, BORROW_AMOUNT);
+        vm.prank(address(0));
+        market.configureAlias(LENDER_ALIAS, true);
+
+        vm.prank(LENDER_ALIAS);
+        vm.expectRevert(LendingMarket.CreditLineLenderNotConfigured.selector);
+        market.takeLoanFor(BORROWER, PROGRAM_ID, BORROW_AMOUNT, terms.addonAmount, terms.durationInPeriods);
+    }
+
     // -------------------------------------------- //
     //  Test `repayLoan` function                   //
     // -------------------------------------------- //
