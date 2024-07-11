@@ -176,12 +176,11 @@ contract LendingMarket is
         if (borrower == address(0)) {
             revert Error.ZeroAddress();
         }
-        int256 addon = int256(uint256(addonAmount.toUint64()));
         return _takeLoan(
             borrower,
             programId,
             borrowAmount,
-            addon,
+            int256(addonAmount),
             durationInPeriods
         );
     }
