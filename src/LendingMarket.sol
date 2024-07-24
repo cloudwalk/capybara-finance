@@ -125,6 +125,7 @@ contract LendingMarket is
     /// @param owner_ The owner of the contract.
     /// See details https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable.
     function __LendingMarket_init_unchained(address owner_) internal onlyInitializing {
+        _setRoleAdmin(OWNER_ROLE, OWNER_ROLE);
         _grantRole(OWNER_ROLE, owner_);
     }
 
@@ -152,6 +153,53 @@ contract LendingMarket is
         uint256 borrowAmount,
         uint256 durationInPeriods
     ) external whenNotPaused returns (uint256) {
+        return _takeLoan(
+            _msgSender(), // borrower
+            programId,
+            borrowAmount,
+            -1,           // addonAmount -- calculate internally
+            durationInPeriods
+        );
+    }
+
+    /// @inheritdoc ILendingMarket
+    function takeLoanFor(
+        address borrower,
+        uint32 programId,
+        uint256 borrowAmount,
+        uint256 addonAmount,
+        uint256 durationInPeriods
+    ) external whenNotPaused returns (uint256) {
+        if (!_isLenderOrAlias(programId, msg.sender)) {
+            revert Error.Unauthorized();
+        }
+        if (borrower == address(0)) {
+            revert Error.ZeroAddress();
+        }
+        return _takeLoan(
+            borrower,
+            programId,
+            borrowAmount,
+            int256(addonAmount),
+            durationInPeriods
+        );
+    }
+
+    /// @dev Takes a loan for a provided account internally.
+    /// @param borrower The account for whom the loan is taken.
+    /// @param programId The identifier of the program to take the loan from.
+    /// @param borrowAmount The desired amount of tokens to borrow.
+    /// @param addonAmount If not negative, the off-chain calculated addon amount (extra charges or fees) for the loan,
+    ///        otherwise a flag to calculated the addon amount internally.
+    /// @param durationInPeriods The desired duration of the loan in periods.
+    /// @return The unique identifier of the loan.
+    function _takeLoan(
+        address borrower,
+        uint32 programId,
+        uint256 borrowAmount,
+        int256 addonAmount,
+        uint256 durationInPeriods
+    ) internal returns (uint256) {
         if (programId == 0) {
             revert ProgramNotExist();
         }
@@ -174,16 +222,19 @@ contract LendingMarket is
 
         uint256 id = _loanIdCounter++;
         Loan.Terms memory terms = ICreditLine(creditLine).determineLoanTerms(
-            msg.sender,
+            borrower,
             borrowAmount,
             durationInPeriods
         );
+        if (addonAmount >= 0) {
+            terms.addonAmount = uint256(addonAmount).toUint64();
+        }
         uint256 totalBorrowAmount = borrowAmount + terms.addonAmount;
         uint32 blockTimestamp = _blockTimestamp().toUint32();
 
         _loans[id] = Loan.State({
             token: terms.token,
-            borrower: msg.sender,
+            borrower: borrower,
             programId: programId,
             startTimestamp: blockTimestamp,
             durationInPeriods: terms.durationInPeriods,
@@ -200,9 +251,9 @@ contract LendingMarket is
         ICreditLine(creditLine).onBeforeLoanTaken(id);
         ILiquidityPool(liquidityPool).onBeforeLoanTaken(id);
 
-        IERC20(terms.token).safeTransferFrom(liquidityPool, msg.sender, borrowAmount);
+        IERC20(terms.token).safeTransferFrom(liquidityPool, borrower, borrowAmount);
 
-        emit LoanTaken(id, msg.sender, totalBorrowAmount, terms.durationInPeriods);
+        emit LoanTaken(id, borrower, totalBorrowAmount, terms.durationInPeriods);
 
         return id;
     }
@@ -562,8 +613,7 @@ contract LendingMarket is
 
     /// @inheritdoc ILendingMarket
     function isLenderOrAlias(uint256 loanId, address account) public view returns (bool) {
-        address lender = _programLenders[_loans[loanId].programId];
-        return account == lender || _hasAlias[lender][account];
+        return _isLenderOrAlias(_loans[loanId].programId, account);
     }
 
     /// @inheritdoc ILendingMarket
@@ -621,6 +671,14 @@ contract LendingMarket is
     // -------------------------------------------- //
     //  Internal functions                          //
     // -------------------------------------------- //
+
+    /// @dev Checks if the provided account is a lender or an alias for a lender of a given lending program.
+    /// @param programId The identifier of the program to check.
+    /// @param account The address to check whether it's a lender or an alias.
+    function _isLenderOrAlias(uint32 programId, address account) public view returns (bool) {
+        address lender = _programLenders[programId];
+        return account == lender || _hasAlias[lender][account];
+    }
 
     /// @dev Calculates the outstanding balance of a loan.
     /// @param loan The loan to calculate the outstanding balance for.

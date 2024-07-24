@@ -417,9 +417,14 @@ contract LendingMarketTest is Test {
     //  Test `takeLoan` function                    //
     // -------------------------------------------- //
 
-    function test_takeLoan() public {
-        configureMarket();
+    struct TakeLoanData {
+        Loan.Terms terms;
+        uint256 loanId;
+        uint256 borrowerBalanceBefore;
+        uint256 liquidityPoolBalanceBefore;
+    }
 
+    function prepareLoanExpectations() private returns (TakeLoanData memory) {
         Loan.Terms memory terms = mockLoanTerms(BORROWER, BORROW_AMOUNT);
         uint256 totalBorrowAmount = BORROW_AMOUNT + terms.addonAmount;
         uint256 loanId = 0;
@@ -427,7 +432,7 @@ contract LendingMarketTest is Test {
         token.mint(address(liquidityPool), BORROW_AMOUNT);
 
         uint256 borrowerBalance = token.balanceOf(BORROWER);
-        uint256 liquidityPoolBefore = token.balanceOf(address(liquidityPool));
+        uint256 liquidityPoolBalance = token.balanceOf(address(liquidityPool));
 
         vm.expectEmit(true, true, true, true, address(creditLine));
         emit OnBeforeLoanTakenCalled(loanId);
@@ -440,14 +445,24 @@ contract LendingMarketTest is Test {
 
         assertEq(market.loanCounter(), 0); // number of loans taken
 
-        vm.prank(BORROWER);
-        assertEq(market.takeLoan(PROGRAM_ID, BORROW_AMOUNT, terms.durationInPeriods), loanId);
+        return TakeLoanData({
+            terms: terms,
+            loanId: loanId,
+            borrowerBalanceBefore: borrowerBalance,
+            liquidityPoolBalanceBefore: liquidityPoolBalance
+        });
+    }
+
+    function compareLoanState(TakeLoanData memory takeLoanData) private {
+        Loan.Terms memory terms = takeLoanData.terms;
+        uint256 totalBorrowAmount = BORROW_AMOUNT + terms.addonAmount;
+
         assertEq(market.loanCounter(), 1); // number of loans taken
 
-        Loan.State memory loan = market.getLoanState(loanId);
+        Loan.State memory loan = market.getLoanState(takeLoanData.loanId);
 
-        assertEq(token.balanceOf(BORROWER), borrowerBalance + BORROW_AMOUNT);
-        assertEq(token.balanceOf(address(liquidityPool)), liquidityPoolBefore - BORROW_AMOUNT);
+        assertEq(token.balanceOf(BORROWER), takeLoanData.borrowerBalanceBefore + BORROW_AMOUNT);
+        assertEq(token.balanceOf(address(liquidityPool)), takeLoanData.liquidityPoolBalanceBefore - BORROW_AMOUNT);
 
         assertEq(loan.token, terms.token);
         assertEq(loan.borrower, BORROWER);
@@ -462,6 +477,14 @@ contract LendingMarketTest is Test {
         assertEq(loan.durationInPeriods, terms.durationInPeriods);
         assertEq(loan.interestRatePrimary, terms.interestRatePrimary);
         assertEq(loan.interestRateSecondary, terms.interestRateSecondary);
+    }
+
+    function test_takeLoan() public {
+        configureMarket();
+        TakeLoanData memory takeLoanData = prepareLoanExpectations();
+        vm.prank(BORROWER);
+        assertEq(market.takeLoan(PROGRAM_ID, BORROW_AMOUNT, takeLoanData.terms.durationInPeriods), takeLoanData.loanId);
+        compareLoanState(takeLoanData);
     }
 
     function test_takeLoan_Revert_IfContractIsPaused() public {
@@ -485,21 +508,112 @@ contract LendingMarketTest is Test {
         market.takeLoan(PROGRAM_ID, 0, terms.durationInPeriods);
     }
 
-    function test_takeLoan_Revert_IfCreditLineIsZeroAddress() public {
+    function test_takeLoan_Revert_IfProgramIdIsZero() public {
         configureMarket();
         Loan.Terms memory terms = mockLoanTerms(BORROWER, BORROW_AMOUNT);
 
         vm.prank(BORROWER);
-        vm.expectRevert(Error.ZeroAddress.selector);
+        vm.expectRevert(LendingMarket.ProgramNotExist.selector);
         market.takeLoan(0, BORROW_AMOUNT, terms.durationInPeriods);
     }
 
-    function test_takeLoan_Revert_IfCreditLineIsNotRegistered() public {
+    function test_takeLoan_Revert_IfMarketIsNotConfigured() public {
         Loan.Terms memory terms = mockLoanTerms(BORROWER, BORROW_AMOUNT);
 
         vm.prank(BORROWER);
         vm.expectRevert(LendingMarket.CreditLineLenderNotConfigured.selector);
         market.takeLoan(PROGRAM_ID, BORROW_AMOUNT, terms.durationInPeriods);
+    }
+
+    // -------------------------------------------- //
+    //  Test `takeLoanFor` function                 //
+    // -------------------------------------------- //
+
+    function test_takeLoanFor_ifCalledByLenderAlias() public {
+        configureMarket();
+        vm.prank(LENDER);
+        market.configureAlias(LENDER_ALIAS, true);
+        TakeLoanData memory takeLoanData = prepareLoanExpectations();
+
+        vm.prank(LENDER_ALIAS);
+        assertEq(market.takeLoanFor(
+            BORROWER,
+            PROGRAM_ID,
+            BORROW_AMOUNT,
+            takeLoanData.terms.addonAmount,
+            takeLoanData.terms.durationInPeriods
+        ), takeLoanData.loanId);
+
+        compareLoanState(takeLoanData);
+    }
+
+    function test_takeLoanFor_ifCalledByLender() public {
+        configureMarket();
+        TakeLoanData memory takeLoanData = prepareLoanExpectations();
+
+        vm.prank(LENDER);
+        assertEq(market.takeLoanFor(
+            BORROWER,
+            PROGRAM_ID,
+            BORROW_AMOUNT,
+            takeLoanData.terms.addonAmount,
+            takeLoanData.terms.durationInPeriods
+        ), takeLoanData.loanId);
+
+        compareLoanState(takeLoanData);
+    }
+
+    function test_takeLoanFor_Revert_IfContractIsPaused() public {
+        configureMarket();
+        Loan.Terms memory terms = mockLoanTerms(BORROWER, BORROW_AMOUNT);
+
+        vm.prank(OWNER);
+        market.pause();
+
+        vm.prank(LENDER);
+        vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
+        market.takeLoanFor(BORROWER, PROGRAM_ID, BORROW_AMOUNT, terms.addonAmount, terms.durationInPeriods);
+    }
+
+    function test_takeLoanFor_Revert_IfBorrowerIsZero() public {
+        configureMarket();
+        Loan.Terms memory terms = mockLoanTerms(BORROWER, BORROW_AMOUNT);
+        vm.prank(LENDER);
+        vm.expectRevert(Error.ZeroAddress.selector);
+        market.takeLoanFor(address(0), PROGRAM_ID, BORROW_AMOUNT, terms.addonAmount, terms.durationInPeriods);
+    }
+
+    function test_takeLoanFor_Revert_IfBorrowAmountIsZero() public {
+        configureMarket();
+        Loan.Terms memory terms = mockLoanTerms(BORROWER, BORROW_AMOUNT);
+        vm.prank(LENDER);
+        vm.expectRevert(Error.InvalidAmount.selector);
+        market.takeLoanFor(BORROWER, PROGRAM_ID, 0, terms.addonAmount, terms.durationInPeriods);
+    }
+
+    function test_takeLoanFor_Revert_IfUnauthorized() public {
+        configureMarket();
+        Loan.Terms memory terms = mockLoanTerms(BORROWER, BORROW_AMOUNT);
+
+        vm.prank(DEPLOYER);
+        vm.expectRevert(Error.Unauthorized.selector);
+        market.takeLoanFor(BORROWER, PROGRAM_ID, BORROW_AMOUNT, terms.addonAmount, terms.durationInPeriods);
+    }
+
+    function test_takeLoanFor_Revert_IfProgramIdIsZero() public {
+        configureMarket();
+        Loan.Terms memory terms = mockLoanTerms(BORROWER, BORROW_AMOUNT);
+        vm.prank(LENDER);
+        vm.expectRevert(Error.Unauthorized.selector);
+        market.takeLoanFor(BORROWER, 0, BORROW_AMOUNT, terms.addonAmount, terms.durationInPeriods);
+    }
+
+    function test_takeLoanFor_Revert_IfMarketIsNotConfigured() public {
+        Loan.Terms memory terms = mockLoanTerms(BORROWER, BORROW_AMOUNT);
+
+        vm.prank(LENDER);
+        vm.expectRevert(Error.Unauthorized.selector);
+        market.takeLoanFor(BORROWER, PROGRAM_ID, BORROW_AMOUNT, terms.addonAmount, terms.durationInPeriods);
     }
 
     // -------------------------------------------- //
