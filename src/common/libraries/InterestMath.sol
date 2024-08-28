@@ -36,4 +36,55 @@ library InterestMath {
         }
         return outstandingBalance;
     }
+
+    function calculateOutstandingBalance2(
+        uint256 originalBalance,
+        uint256 numberOfPeriods,
+        uint256 interestRate,
+        uint256 interestRateFactor
+    ) internal view returns (uint256) {
+        int128 interestRateFactor128 = int128(int256(interestRateFactor << 64));
+        int128 originalBalance128 = int128 (int256 (originalBalance << 64));
+        int128 R = int128(int256(interestRate << 64));
+
+        int128 X = ABDKMath64x64.pow(
+            ABDKMath64x64.divu(
+                uint64(uint128(ABDKMath64x64.add(R, interestRateFactor128) >> 64)),
+                interestRateFactor
+            ),
+            numberOfPeriods);
+
+        uint64 numerator = uint64 (uint128 (ABDKMath64x64.mul(ABDKMath64x64.mul(originalBalance128, R), X) >> 64));
+        uint64 denominator = uint64 (uint128 ((ABDKMath64x64.mul(interestRateFactor128, (X - (1 << 64)))) >> 64));
+        int128 res = ABDKMath64x64.divu(numerator, denominator);
+        uint256 outstandingBalance = uint64 (uint128 (res >> 64));
+
+        return outstandingBalance;
+    }
+
+    function calculateOutstandingBalance3(
+        uint256 originalBalance,
+        uint256 numberOfPeriods,
+        uint256 interestRate,
+        uint256 interestRateFactor
+    ) internal view returns (uint256) {
+        int128 interestRateFactor128 = ABDKMath64x64.fromUInt(interestRateFactor);
+
+        int128 R = ABDKMath64x64.fromUInt(interestRate);
+        int128 X = ABDKMath64x64.pow(
+            ABDKMath64x64.divu(
+                ABDKMath64x64.toUInt(
+                    ABDKMath64x64.add(R, interestRateFactor128)
+                ),
+                ABDKMath64x64.toUInt(interestRateFactor128)
+            ),
+            numberOfPeriods);
+
+        int128 numerator = ABDKMath64x64.mul(ABDKMath64x64.mul(ABDKMath64x64.fromUInt(originalBalance), R), X);
+        int128 denominator = ABDKMath64x64.mul(interestRateFactor128, (X - (1 << 64)));
+        int128 res = ABDKMath64x64.divu(ABDKMath64x64.toUInt(numerator), ABDKMath64x64.toUInt(denominator));
+        uint256 outstandingBalance = ABDKMath64x64.toUInt(res);
+
+        return outstandingBalance;
+    }
 }

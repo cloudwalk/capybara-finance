@@ -241,4 +241,47 @@ library ABDKMath64x64 {
             return uint128(result);
         }
     }
+
+    /**
+     * Calculate x + y.  Revert on overflow.
+     *
+     * @param x signed 64.64-bit fixed point number
+     * @param y signed 64.64-bit fixed point number
+     * @return signed 64.64-bit fixed point number
+     */
+    function add(int128 x, int128 y) internal pure returns (int128) {
+        unchecked {
+            int256 result = int256(x) + y;
+            require (result >= MIN_64x64 && result <= MAX_64x64);
+            return int128 (result);
+        }
+    }
+
+    /**
+     * Convert signed 64.64 fixed point number into unsigned 64-bit integer
+     * number rounding down.  Revert on underflow.
+     *
+     * @param x signed 64.64-bit fixed point number
+     * @return unsigned 64-bit integer number
+     */
+    function toUInt(int128 x) internal pure returns (uint64) {
+        unchecked {
+            require (x >= 0);
+            return uint64 (uint128 (x >> 64));
+        }
+    }
+
+    /**
+     * Convert unsigned 256-bit integer number into signed 64.64-bit fixed point
+     * number.  Revert on overflow.
+     *
+     * @param x unsigned 256-bit integer number
+     * @return signed 64.64-bit fixed point number
+     */
+    function fromUInt(uint256 x) internal pure returns (int128) {
+        unchecked {
+            require (x <= 0x7FFFFFFFFFFFFFFF);
+            return int128 (int256 (x << 64));
+        }
+    }
 }
