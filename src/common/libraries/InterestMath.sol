@@ -87,4 +87,24 @@ library InterestMath {
 
         return outstandingBalance;
     }
+
+    function calculateOutstandingBalance4(
+        uint256 originalBalance,
+        uint256 numberOfPeriods,
+        uint256 interestRate,
+        uint256 interestRateFactor
+    ) internal view returns (uint256) {
+        // The equivalent formula: floor(originalBalance * x * interestRate * 2^64 / ((x-1) * 2^64 )
+        // Where:
+        //   a. x = (1 + interestRate / interestRateFactor)^numberOfPeriods;
+        //   b. division operator `/` and power operator `^` take into account the fractional part;
+        //   c. the `floor()` function returns an integer with the dropped fractional part
+        int128 onePlusRateValue = ABDKMath64x64.divu(interestRateFactor + interestRate, interestRateFactor);
+        int128 x = ABDKMath64x64.pow(onePlusRateValue, numberOfPeriods);
+        int128 xMinus1 = x - int128(int256(1 << 64));
+        uint256 X = uint256(int256(x));
+        uint256 XMinus1 = uint256(int256(xMinus1));
+        uint256 result = originalBalance * interestRate * X / (interestRateFactor * XMinus1);
+        return result;
+    }
 }
