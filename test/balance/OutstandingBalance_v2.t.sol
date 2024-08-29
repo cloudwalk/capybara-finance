@@ -24,7 +24,7 @@ contract LendingMarketComplexTest is Test {
     }
 
     function test_balance_v2() public {
-        uint256 originalBalance = 5000000000;
+        uint256 originalBalance = 100000000;
         numberOfPeriods = [3, 6, 9, 12, 24, 36];
 //        interestRates = [4167, 8333, 12500, 16667, 25000, 41667, 125000, 250000]; //5,10,15,20,30,50,150,300 %
         interestRates = [8333, 41667, 125000, 250000, 416667]; //10,50,150,300,500 %
@@ -32,7 +32,7 @@ contract LendingMarketComplexTest is Test {
         uint256 interestRateFactor = 1000000;
         for (uint256 j = 0; j < interestRates.length; j++) {
             for (uint256 i = 0; i < numberOfPeriods.length; i++) {
-                uint256 outstandingBalance = balanceCalculationContract.calculateOutstandingBalance2(
+                uint256 outstandingBalance = balanceCalculationContract.calculateOutstandingBalance4(
                     originalBalance,
                     numberOfPeriods[i],
                     interestRates[j],
@@ -43,5 +43,31 @@ contract LendingMarketComplexTest is Test {
             }
             console.log("\n\n");
         }
+    }
+
+    function test_balance_v2_v4() public {
+        uint256 originalBalance = 5000000000;
+        uint256 numberOfPeriods2 = 3;
+        uint256 interestRate = 41666666667;
+        uint256 interestRateFactor = 1000000000000;
+
+        uint256 outstandingBalance2 = balanceCalculationContract.calculateOutstandingBalance2(
+            originalBalance,
+            numberOfPeriods2,
+            interestRate,
+            interestRateFactor
+        );
+        console.log("R2  : ", interestRate);
+        console.log("C2  : ", outstandingBalance2);
+
+        uint256 outstandingBalance4 = balanceCalculationContract.calculateOutstandingBalance4(
+            originalBalance,
+            numberOfPeriods2,
+            interestRate,
+            interestRateFactor
+        );
+        console.log("R4  : ", interestRate);
+        console.log("C4  : ", outstandingBalance4);
+
     }
 }
