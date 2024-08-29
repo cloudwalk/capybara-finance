@@ -58,4 +58,19 @@ contract OutstandingBalance_v2
             interestRateFactor
         );
     }
+
+    function calculateOutstandingBalance4(
+        uint256 originalBalance,
+        uint256 numberOfPeriods,
+        uint256 interestRate,
+        uint256 interestRateFactor
+    ) external view returns (uint256) {
+        return
+            InterestMath.calculateOutstandingBalance4(
+            originalBalance,
+            numberOfPeriods,
+            interestRate,
+            interestRateFactor
+        );
+    }
 }
