@@ -4,6 +4,8 @@ pragma solidity 0.8.24;
 
 import { Error } from "../common/libraries/Error.sol";
 import { ILiquidityPool } from "../common/interfaces/core/ILiquidityPool.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { ILendingMarket } from "../common/interfaces/core/ILendingMarket.sol";
 
 /// @title LiquidityPoolMock contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
@@ -80,5 +82,13 @@ contract LiquidityPoolMock is ILiquidityPool {
 
     function mockOnAfterLoanRevocationResult(bool result) external {
         _onAfterLoanRevocationResult = result;
+    }
+
+    function approveMarket(address _market, address token) external {
+        IERC20(token).approve(_market, type(uint56).max);
+    }
+
+    function autoRepay(address _market, uint256 loanId, uint256 repayAmount) external {
+        ILendingMarket(_market).repayLoan(loanId, repayAmount);
     }
 }

@@ -8,16 +8,16 @@ import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/I
 import { AccessControlUpgradeable } from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
-import { Loan } from "src/common/libraries/Loan.sol";
-import { Error } from "src/common/libraries/Error.sol";
-import { Round } from "src/common/libraries/Round.sol";
-import { Constants } from "src/common/libraries/Constants.sol";
-import { InterestMath } from "src/common/libraries/InterestMath.sol";
-import { SafeCast } from "src/common/libraries/SafeCast.sol";
+import { Loan } from "./common/libraries/Loan.sol";
+import { Error } from "./common/libraries/Error.sol";
+import { Round } from "./common/libraries/Round.sol";
+import { Constants } from "./common/libraries/Constants.sol";
+import { InterestMath } from "./common/libraries/InterestMath.sol";
+import { SafeCast } from "./common/libraries/SafeCast.sol";
 
-import { ILendingMarket } from "src/common/interfaces/core/ILendingMarket.sol";
-import { ILiquidityPool } from "src/common/interfaces/core/ILiquidityPool.sol";
-import { ICreditLine } from "src/common/interfaces/core/ICreditLine.sol";
+import { ILendingMarket } from "./common/interfaces/core/ILendingMarket.sol";
+import { ILiquidityPool } from "./common/interfaces/core/ILiquidityPool.sol";
+import { ICreditLine } from "./common/interfaces/core/ICreditLine.sol";
 
 import { LendingMarketStorage } from "./LendingMarketStorage.sol";
 

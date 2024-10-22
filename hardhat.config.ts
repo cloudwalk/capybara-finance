@@ -1,7 +1,6 @@
 import { HardhatUserConfig } from "hardhat/config";
 
 import "@nomicfoundation/hardhat-toolbox";
-import "@nomicfoundation/hardhat-foundry";
 import "@openzeppelin/hardhat-upgrades";
 import "hardhat-contract-sizer";
 import "hardhat-gas-reporter";
@@ -36,7 +35,7 @@ const config: HardhatUserConfig = {
       accounts: process.env.CW_TESTNET_PK
         ? [process.env.CW_TESTNET_PK]
         : {
-          mnemonic: process.env.CW_TESTNET_MNEMONIC || ""
+          mnemonic: process.env.CW_TESTNET_MNEMONIC ?? ""
         }
     },
     cw_mainnet: {
@@ -44,7 +43,7 @@ const config: HardhatUserConfig = {
       accounts: process.env.CW_MAINNET_PK
         ? [process.env.CW_MAINNET_PK]
         : {
-          mnemonic: process.env.CW_MAINNET_MNEMONIC || ""
+          mnemonic: process.env.CW_MAINNET_MNEMONIC ?? ""
         }
     }
   },

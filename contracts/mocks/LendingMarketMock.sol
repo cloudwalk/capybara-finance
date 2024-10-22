@@ -5,6 +5,8 @@ pragma solidity 0.8.24;
 import { Loan } from "../common/libraries/Loan.sol";
 import { Error } from "../common/libraries/Error.sol";
 import { ILendingMarket } from "../common/interfaces/core/ILendingMarket.sol";
+import { ILiquidityPool } from "../common/interfaces/core/ILiquidityPool.sol";
+import { ICreditLine } from "../common/interfaces/core/ICreditLine.sol";
 
 /// @title LendingMarketMock contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
@@ -15,6 +17,7 @@ contract LendingMarketMock is ILendingMarket {
     // -------------------------------------------- //
 
     event RepayLoanCalled(uint256 indexed loanId, uint256 repayAmount);
+    event HookCallResult(bool result);
 
     // -------------------------------------------- //
     //  Storage variables                           //
@@ -189,5 +192,29 @@ contract LendingMarketMock is ILendingMarket {
 
     function mockLoanState(uint256 loanId, Loan.State memory state) external {
         _loanStates[loanId] = state;
+    }
+
+    function callOnBeforeLoanTakenLiquidityPool(address liquidityPool, uint256 loanId) external {
+        emit HookCallResult(ILiquidityPool(liquidityPool).onBeforeLoanTaken(loanId));
+    }
+
+    function callOnBeforeLoanTakenCreditLine(address creditLine, uint256 loanId) external {
+        emit HookCallResult(ICreditLine(creditLine).onBeforeLoanTaken(loanId));
+    }
+
+    function callOnAfterLoanPaymentLiquidityPool(address liquidityPool, uint256 loanId, uint256 amount) external {
+        emit HookCallResult(ILiquidityPool(liquidityPool).onAfterLoanPayment(loanId, amount));
+    }
+
+    function callOnAfterLoanPaymentCreditLine(address creditLine, uint256 loanId, uint256 repayAmount) external {
+        emit HookCallResult(ICreditLine(creditLine).onAfterLoanPayment(loanId, repayAmount));
+    }
+
+    function callOnAfterLoanRevocationLiquidityPool(address liquidityPool, uint256 loanId) external {
+        emit HookCallResult(ILiquidityPool(liquidityPool).onAfterLoanRevocation(loanId));
+    }
+
+    function callOnAfterLoanRevocationCreditLine(address creditLine, uint256 loanId) external {
+        emit HookCallResult(ICreditLine(creditLine).onAfterLoanRevocation(loanId));
     }
 }
