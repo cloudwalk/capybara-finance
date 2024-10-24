@@ -251,7 +251,7 @@ describe("Contract 'LendingMarket'", async () => {
     };
   }
 
-  async function deployLendingMarket(): Promise<{ market: Contract, marketUnderLender: Contract }> {
+  async function deployLendingMarket(): Promise<{ market: Contract; marketUnderLender: Contract }> {
     let market = await upgrades.deployProxy(lendingMarketFactory, [owner.address]);
 
     market = connect(market, owner); // Explicitly specifying the initial account

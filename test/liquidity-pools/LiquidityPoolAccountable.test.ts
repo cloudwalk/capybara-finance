@@ -237,7 +237,6 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
 
   describe("Function 'deposit()'", async () => {
     async function depositAndCheck(liquidityPool: Contract): Promise<TransactionResponse> {
-
       const balanceBefore = await liquidityPool.getBalances();
 
       const tx: Promise<TransactionResponse> = liquidityPool.deposit(DEPOSIT_AMOUNT);
@@ -558,7 +557,11 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
       });
 
       await proveTx(market.callOnBeforeLoanTakenLiquidityPool(getAddress(liquidityPool), DEFAULT_LOAN_ID));
-      await proveTx(market.callOnAfterLoanPaymentLiquidityPool(getAddress(liquidityPool), DEFAULT_LOAN_ID, DEFAULT_REPAY_AMOUNT));
+      await proveTx(market.callOnAfterLoanPaymentLiquidityPool(
+        getAddress(liquidityPool),
+        DEFAULT_LOAN_ID,
+        DEFAULT_REPAY_AMOUNT
+      ));
 
       await expect(market.callOnAfterLoanRevocationLiquidityPool(getAddress(liquidityPool), DEFAULT_LOAN_ID))
         .to.emit(market, EVENT_NAME_HOOK_CALL_RESULT)
