@@ -2,8 +2,8 @@ import { ethers, upgrades } from "hardhat";
 import { expect } from "chai";
 import { Contract, ContractFactory } from "ethers";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
-import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { checkContractUupsUpgrading, connect } from "../../test-utils/eth";
+import { setUpFixture } from "../../test-utils/common";
 
 const ERROR_NAME_ACCESS_CONTROL_UNAUTHORIZED = "AccessControlUnauthorizedAccount";
 
@@ -41,7 +41,7 @@ describe("Contract 'CreditLineConfigurableUUPS'", async () => {
 
   describe("Function 'initialize()'", async () => {
     it("Configures the contract as expected", async () => {
-      const { creditLine } = await loadFixture(deployCreditLine);
+      const { creditLine } = await setUpFixture(deployCreditLine);
 
       expect(await creditLine.hasRole(OWNER_ROLE, lender.address)).to.eq(true);
       expect(await creditLine.market()).to.eq(market.address);
@@ -51,12 +51,12 @@ describe("Contract 'CreditLineConfigurableUUPS'", async () => {
 
   describe("Function 'upgradeToAndCall()'", async () => {
     it("Executes as expected", async () => {
-      const { creditLine } = await loadFixture(deployCreditLine);
+      const { creditLine } = await setUpFixture(deployCreditLine);
       await checkContractUupsUpgrading(creditLine, creditLineFactory);
     });
 
     it("Is reverted if the caller is not the owner", async () => {
-      const { creditLine } = await loadFixture(deployCreditLine);
+      const { creditLine } = await setUpFixture(deployCreditLine);
 
       await expect(connect(creditLine, attacker).upgradeToAndCall(attacker.address, "0x"))
         .to.be.revertedWithCustomError(creditLine, ERROR_NAME_ACCESS_CONTROL_UNAUTHORIZED)

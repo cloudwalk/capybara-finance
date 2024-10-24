@@ -2,8 +2,8 @@ import { ethers, upgrades } from "hardhat";
 import { expect } from "chai";
 import { Contract, ContractFactory } from "ethers";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
-import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { getAddress, proveTx, connect } from "../../test-utils/eth";
+import { checkEquality, setUpFixture } from "../../test-utils/common";
 
 interface CreditLineConfig {
   minBorrowAmount: number;
@@ -67,7 +67,7 @@ enum BorrowPolicy {
   Reset = 0,
   Keep = 1,
   Iterate = 2,
-  Decrease = 3,
+  Decrease = 3
 }
 
 const ERROR_NAME_ALREADY_INITIALIZED = "InvalidInitialization";
@@ -96,7 +96,7 @@ const PAUSER_ROLE = ethers.id("PAUSER_ROLE");
 const ZERO_ADDRESS = ethers.ZeroAddress;
 const DEFAULT_MIN_DURATION_IN_PERIODS = 7;
 const DEFAULT_MAX_DURATION_IN_PERIODS = 14;
-const DEFAULT_MIN_BORROW_AMOUNT = 100;
+const DEFAULT_MIN_BORROW_AMOUNT = 10_000_000;
 const DEFAULT_MAX_BORROW_AMOUNT = 100_000_000;
 const DEFAULT_MIN_INTEREST_RATE_PRIMARY = 1;
 const DEFAULT_MAX_INTEREST_RATE_PRIMARY = 10;
@@ -143,7 +143,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     market = await marketFactory.deploy() as Contract;
     await market.waitForDeployment();
     market = connect(market, deployer); // Explicitly specifying the initial account
-    marketAddress =getAddress(market);
+    marketAddress = getAddress(market);
   });
 
   function createDefaultCreditLineConfiguration(): CreditLineConfig {
@@ -174,7 +174,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       interestRatePrimary: DEFAULT_MIN_INTEREST_RATE_PRIMARY,
       interestRateSecondary: DEFAULT_MIN_INTEREST_RATE_SECONDARY,
       addonFixedRate: DEFAULT_MIN_ADDON_FIXED_RATE,
-      addonPeriodRate: DEFAULT_MIN_ADDON_PERIOD_RATE,
+      addonPeriodRate: DEFAULT_MIN_ADDON_PERIOD_RATE
     };
   }
 
@@ -184,12 +184,12 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     borrowerConfig: BorrowerConfig
   ): LoanTerms {
     const addonAmount = calculateAddonAmount(
-        borrowAmount,
-        durationInPeriods,
-        borrowerConfig.addonFixedRate,
-        borrowerConfig.addonPeriodRate,
-        INTEREST_RATE_FACTOR
-      );
+      borrowAmount,
+      durationInPeriods,
+      borrowerConfig.addonFixedRate,
+      borrowerConfig.addonPeriodRate,
+      INTEREST_RATE_FACTOR
+    );
     return {
       token: token.address,
       interestRatePrimary: borrowerConfig.interestRatePrimary,
@@ -199,8 +199,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     };
   }
 
-  async function prepareLoan(): Promise<LoanState>
-  {
+  async function prepareLoan(): Promise<LoanState> {
     const loanState: LoanState = {
       programId: 0,
       borrowAmount: BORROW_AMOUNT,
@@ -230,33 +229,6 @@ describe("Contract 'CreditLineConfigurable'", async () => {
   ): number {
     const addonRate = addonPeriodRate * durationInPeriods + addonFixedRate;
     return Math.floor((borrowAmount * addonRate) / (interestRateFactor - addonRate));
-  }
-
-  function compareCreditLineConfigs(actualConfig: CreditLineConfig, expectedConfig: CreditLineConfig) {
-    Object.keys(expectedConfig).forEach(property => {
-      expect(actualConfig[property]).to.eq(
-        expectedConfig[property],
-        `Mismatch in the "${property}" property of the credit line config`
-      );
-    });
-  }
-
-  function compareBorrowerConfigs(actualConfig: BorrowerConfig, expectedConfig: BorrowerConfig) {
-    Object.keys(expectedConfig).forEach(property => {
-      expect(actualConfig[property]).to.eq(
-        expectedConfig[property],
-        `Mismatch in the "${property}" property of the borrower config`
-      );
-    });
-  }
-
-  function compareLoanTerms(actualTerms: LoanTerms, expectedTerms: LoanTerms) {
-    Object.keys(expectedTerms).forEach(property => {
-      expect(actualTerms[property]).to.eq(
-        expectedTerms[property],
-        `Mismatch in the "${property}" property of the loan terms`
-      );
-    });
   }
 
   async function prepareDataForBatchBorrowerConfig(borrowersNumber: number): Promise<{
@@ -291,7 +263,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       token.address
     ]);
     await creditLine.waitForDeployment();
-    creditLine = creditLine.connect(lender) as Contract; // Explicitly specifying the initial account
+    creditLine = connect(creditLine, lender); // Explicitly specifying the initial account
 
     await proveTx(creditLine.grantRole(PAUSER_ROLE, lender.address));
 
@@ -305,7 +277,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     const { creditLine } = await deployCreditLine();
 
     await proveTx(creditLine.grantRole(ADMIN_ROLE, admin.address));
-    const creditLineUnderAdmin = creditLine.connect(admin) as Contract;
+    const creditLineUnderAdmin = connect(creditLine, admin);
     const initialCreditLineConfig = createDefaultCreditLineConfiguration();
     await proveTx(creditLine.configureCreditLine(initialCreditLineConfig));
 
@@ -326,7 +298,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
 
   describe("Function 'initialize()'", async () => {
     it("Configures the contract as expected", async () => {
-      const { creditLine } = await loadFixture(deployCreditLine);
+      const { creditLine } = await setUpFixture(deployCreditLine);
       expect(await creditLine.hasRole(OWNER_ROLE, lender.address)).to.eq(true);
       expect(await creditLine.isAdmin(lender.address)).to.eq(false);
       expect(await creditLine.token()).to.eq(token.address);
@@ -359,7 +331,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
 
     it("Is reverted if called a second time", async () => {
-      const { creditLine } = await loadFixture(deployCreditLine);
+      const { creditLine } = await setUpFixture(deployCreditLine);
 
       await expect(creditLine.initialize(marketAddress, lender.address, token.address))
         .to.be.revertedWithCustomError(creditLine, ERROR_NAME_ALREADY_INITIALIZED);
@@ -368,7 +340,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
 
   describe("Function 'pause()'", async () => {
     it("Executes as expected and emits the correct event", async () => {
-      const { creditLine } = await loadFixture(deployCreditLine);
+      const { creditLine } = await setUpFixture(deployCreditLine);
 
       await expect(creditLine.pause())
         .to.emit(creditLine, EVENT_NAME_PAUSED)
@@ -377,16 +349,15 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
 
     it("Is reverted if the caller is not the pauser", async () => {
-      const { creditLine } = await loadFixture(deployCreditLine);
+      const { creditLine } = await setUpFixture(deployCreditLine);
 
-      await expect((creditLine.connect(attacker) as Contract).pause())
-        .to.be.revertedWithCustomError(creditLineFactory,
-          ERROR_NAME_ACCESS_CONTROL_UNAUTHORIZED)
+      await expect(connect(creditLine, attacker).pause())
+        .to.be.revertedWithCustomError(creditLineFactory, ERROR_NAME_ACCESS_CONTROL_UNAUTHORIZED)
         .withArgs(attacker.address, PAUSER_ROLE);
     });
 
     it("Is reverted if the contract is already paused", async () => {
-      const { creditLine } = await loadFixture(deployCreditLine);
+      const { creditLine } = await setUpFixture(deployCreditLine);
 
       await proveTx(creditLine.pause());
       await expect(creditLine.pause())
@@ -396,7 +367,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
 
   describe("Function 'unpause()'", async () => {
     it("Executes as expected and emits the correct event", async () => {
-      const { creditLine } = await loadFixture(deployCreditLine);
+      const { creditLine } = await setUpFixture(deployCreditLine);
 
       await proveTx(creditLine.pause());
       expect(await creditLine.paused()).to.eq(true);
@@ -409,16 +380,15 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
 
     it("Is reverted if the caller is not the owner", async () => {
-      const { creditLine } = await loadFixture(deployCreditLine);
+      const { creditLine } = await setUpFixture(deployCreditLine);
 
-      await expect((creditLine.connect(attacker) as Contract).unpause())
-        .to.be.revertedWithCustomError(creditLineFactory,
-          ERROR_NAME_ACCESS_CONTROL_UNAUTHORIZED)
+      await expect(connect(creditLine, attacker).unpause())
+        .to.be.revertedWithCustomError(creditLineFactory, ERROR_NAME_ACCESS_CONTROL_UNAUTHORIZED)
         .withArgs(attacker.address, PAUSER_ROLE);
     });
 
     it("Is reverted if the contract is not paused yet", async () => {
-      const { creditLine } = await loadFixture(deployCreditLine);
+      const { creditLine } = await setUpFixture(deployCreditLine);
 
       await expect(creditLine.unpause())
         .to.be.revertedWithCustomError(creditLine, ERROR_NAME_NOT_PAUSED);
@@ -427,7 +397,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
 
   describe("Function 'configureCreditLine()'", async () => {
     it("Executes as expected and emits the correct event", async () => {
-      const { creditLine } = await loadFixture(deployCreditLine);
+      const { creditLine } = await setUpFixture(deployCreditLine);
       const config = createDefaultCreditLineConfiguration();
 
       await expect(creditLine.configureCreditLine(config))
@@ -436,28 +406,26 @@ describe("Contract 'CreditLineConfigurable'", async () => {
 
       const onChainConfig: CreditLineConfig = await creditLine.creditLineConfiguration();
 
-      compareCreditLineConfigs(onChainConfig, config);
+      checkEquality(onChainConfig, config);
     });
 
     it("Is reverted if the caller is not the owner", async () => {
-      const { creditLine } = await loadFixture(deployCreditLine);
+      const { creditLine } = await setUpFixture(deployCreditLine);
       const config = createDefaultCreditLineConfiguration();
 
-      await expect((creditLine.connect(attacker) as Contract).configureCreditLine(config))
-        .to.be.revertedWithCustomError(creditLineFactory,
-          ERROR_NAME_ACCESS_CONTROL_UNAUTHORIZED)
+      await expect(connect(creditLine, attacker).configureCreditLine(config))
+        .to.be.revertedWithCustomError(creditLineFactory, ERROR_NAME_ACCESS_CONTROL_UNAUTHORIZED)
         .withArgs(attacker.address, OWNER_ROLE);
 
       // Even an admin cannot configure a credit line
       await proveTx(creditLine.grantRole(ADMIN_ROLE, admin.address));
-      await expect((creditLine.connect(admin) as Contract).configureCreditLine(config))
-        .to.be.revertedWithCustomError(creditLineFactory,
-          ERROR_NAME_ACCESS_CONTROL_UNAUTHORIZED)
+      await expect(connect(creditLine, admin).configureCreditLine(config))
+        .to.be.revertedWithCustomError(creditLineFactory, ERROR_NAME_ACCESS_CONTROL_UNAUTHORIZED)
         .withArgs(admin.address, OWNER_ROLE);
     });
 
     it("Is reverted if the min borrow amount is bigger than the max one", async () => {
-      const { creditLine } = await loadFixture(deployCreditLine);
+      const { creditLine } = await setUpFixture(deployCreditLine);
       const config = createDefaultCreditLineConfiguration();
 
       config.minBorrowAmount = config.maxBorrowAmount + 1;
@@ -467,7 +435,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
 
     it("Is reverted if the min loan duration is bigger than the max one", async () => {
-      const { creditLine } = await loadFixture(deployCreditLine);
+      const { creditLine } = await setUpFixture(deployCreditLine);
       const config = createDefaultCreditLineConfiguration();
 
       config.minDurationInPeriods = config.maxDurationInPeriods + 1;
@@ -477,7 +445,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
 
     it("Is reverted if the min primary interest rate is bigger than the max one", async () => {
-      const { creditLine } = await loadFixture(deployCreditLine);
+      const { creditLine } = await setUpFixture(deployCreditLine);
       const config = createDefaultCreditLineConfiguration();
 
       config.minInterestRatePrimary = config.maxInterestRatePrimary + 1;
@@ -487,7 +455,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
 
     it("Is reverted if the min secondary interest rate is bigger than the max one", async () => {
-      const { creditLine } = await loadFixture(deployCreditLine);
+      const { creditLine } = await setUpFixture(deployCreditLine);
       const config = createDefaultCreditLineConfiguration();
 
       config.minInterestRateSecondary = config.maxInterestRateSecondary + 1;
@@ -497,7 +465,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
 
     it("Is reverted if the min addon fixed rate is bigger than the max one", async () => {
-      const { creditLine } = await loadFixture(deployCreditLine);
+      const { creditLine } = await setUpFixture(deployCreditLine);
       const config = createDefaultCreditLineConfiguration();
 
       config.minAddonFixedRate = config.maxAddonFixedRate + 1;
@@ -507,7 +475,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
 
     it("Is reverted if the min addon period rate is bigger than the max one", async () => {
-      const { creditLine } = await loadFixture(deployCreditLine);
+      const { creditLine } = await setUpFixture(deployCreditLine);
       const config = createDefaultCreditLineConfiguration();
 
       config.minAddonPeriodRate = config.maxAddonPeriodRate + 1;
@@ -519,7 +487,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
 
   describe("Function 'configureBorrower()'", async () => {
     it("Executes as expected and emits the correct event if is called by an admin", async () => {
-      const { creditLineUnderAdmin } = await loadFixture(deployAndConfigureCreditLine);
+      const { creditLineUnderAdmin } = await setUpFixture(deployAndConfigureCreditLine);
       const config = createDefaultBorrowerConfiguration();
 
       await expect(creditLineUnderAdmin.configureBorrower(borrower.address, config))
@@ -528,25 +496,25 @@ describe("Contract 'CreditLineConfigurable'", async () => {
 
       const onChainConfig: BorrowerConfig = await creditLineUnderAdmin.getBorrowerConfiguration(borrower.address);
 
-      compareBorrowerConfigs(onChainConfig, config);
+      checkEquality(onChainConfig, config);
     });
 
     it("Is reverted if the caller is not an admin", async () => {
-      const { creditLine } = await loadFixture(deployAndConfigureCreditLine);
+      const { creditLine } = await setUpFixture(deployAndConfigureCreditLine);
       const config = createDefaultBorrowerConfiguration();
 
-      await expect((creditLine.connect(attacker) as Contract).configureBorrower(attacker.address, config))
+      await expect(connect(creditLine, attacker).configureBorrower(attacker.address, config))
         .to.be.revertedWithCustomError(creditLine, ERROR_NAME_ACCESS_CONTROL_UNAUTHORIZED)
         .withArgs(attacker.address, ADMIN_ROLE);
 
       // Even the lender cannot configure a borrower
-      await expect((creditLine.connect(lender) as Contract).configureBorrower(attacker.address, config))
+      await expect(connect(creditLine, lender).configureBorrower(attacker.address, config))
         .to.be.revertedWithCustomError(creditLine, ERROR_NAME_ACCESS_CONTROL_UNAUTHORIZED)
         .withArgs(lender.address, ADMIN_ROLE);
     });
 
     it("Is reverted if the contract is paused", async () => {
-      const { creditLine, creditLineUnderAdmin } = await loadFixture(deployAndConfigureCreditLine);
+      const { creditLine, creditLineUnderAdmin } = await setUpFixture(deployAndConfigureCreditLine);
       const config = createDefaultBorrowerConfiguration();
 
       await proveTx(creditLine.pause());
@@ -556,7 +524,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
 
     it("Is reverted if the borrower address is zero", async () => {
-      const { creditLineUnderAdmin } = await loadFixture(deployAndConfigureCreditLine);
+      const { creditLineUnderAdmin } = await setUpFixture(deployAndConfigureCreditLine);
       const config = createDefaultBorrowerConfiguration();
 
       await expect(creditLineUnderAdmin.configureBorrower(
@@ -566,7 +534,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
 
     it("Is reverted if the min borrow amount is greater than the max one", async () => {
-      const { creditLineUnderAdmin } = await loadFixture(deployAndConfigureCreditLine);
+      const { creditLineUnderAdmin } = await setUpFixture(deployAndConfigureCreditLine);
       const config = createDefaultBorrowerConfiguration();
 
       config.minBorrowAmount = DEFAULT_MAX_BORROW_AMOUNT + 1;
@@ -576,7 +544,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
 
     it("Is reverted if the min borrow amount is less than credit line`s one", async () => {
-      const { creditLineUnderAdmin } = await loadFixture(deployAndConfigureCreditLine);
+      const { creditLineUnderAdmin } = await setUpFixture(deployAndConfigureCreditLine);
       const config = createDefaultBorrowerConfiguration();
 
       config.minBorrowAmount = DEFAULT_MIN_BORROW_AMOUNT - 1;
@@ -586,7 +554,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
 
     it("Is reverted if the max borrow amount is greater than credit line`s one", async () => {
-      const { creditLineUnderAdmin } = await loadFixture(deployAndConfigureCreditLine);
+      const { creditLineUnderAdmin } = await setUpFixture(deployAndConfigureCreditLine);
       const config = createDefaultBorrowerConfiguration();
 
       config.maxBorrowAmount = DEFAULT_MAX_BORROW_AMOUNT + 1;
@@ -596,7 +564,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
 
     it("Is reverted if the min duration in periods is greater than the max one", async () => {
-      const { creditLineUnderAdmin } = await loadFixture(deployAndConfigureCreditLine);
+      const { creditLineUnderAdmin } = await setUpFixture(deployAndConfigureCreditLine);
       const config = createDefaultBorrowerConfiguration();
 
       config.minDurationInPeriods = DEFAULT_MAX_DURATION_IN_PERIODS + 1;
@@ -606,7 +574,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
 
     it("Is reverted if the min loan duration is less than credit line`s one", async () => {
-      const { creditLineUnderAdmin } = await loadFixture(deployAndConfigureCreditLine);
+      const { creditLineUnderAdmin } = await setUpFixture(deployAndConfigureCreditLine);
       const config = createDefaultBorrowerConfiguration();
 
       config.minDurationInPeriods = DEFAULT_MIN_DURATION_IN_PERIODS - 1;
@@ -616,7 +584,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
 
     it("Is reverted if the max loan duration is greater than credit line`s one", async () => {
-      const { creditLineUnderAdmin } = await loadFixture(deployAndConfigureCreditLine);
+      const { creditLineUnderAdmin } = await setUpFixture(deployAndConfigureCreditLine);
       const config = createDefaultBorrowerConfiguration();
 
       config.maxDurationInPeriods = DEFAULT_MAX_DURATION_IN_PERIODS + 1;
@@ -626,7 +594,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
 
     it("Is reverted if the primary interest rate is less than credit line`s minimum one", async () => {
-      const { creditLineUnderAdmin } = await loadFixture(deployAndConfigureCreditLine);
+      const { creditLineUnderAdmin } = await setUpFixture(deployAndConfigureCreditLine);
       const config = createDefaultBorrowerConfiguration();
 
       config.interestRatePrimary = DEFAULT_MIN_INTEREST_RATE_PRIMARY - 1;
@@ -636,7 +604,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
 
     it("Is reverted if the primary interest rate is greater than credit line`s maximum one", async () => {
-      const { creditLineUnderAdmin } = await loadFixture(deployAndConfigureCreditLine);
+      const { creditLineUnderAdmin } = await setUpFixture(deployAndConfigureCreditLine);
       const config = createDefaultBorrowerConfiguration();
 
       config.interestRatePrimary = DEFAULT_MAX_INTEREST_RATE_PRIMARY + 1;
@@ -646,7 +614,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
 
     it("Is reverted if the secondary interest rate is less than credit line`s minimum one", async () => {
-      const { creditLineUnderAdmin } = await loadFixture(deployAndConfigureCreditLine);
+      const { creditLineUnderAdmin } = await setUpFixture(deployAndConfigureCreditLine);
       const config = createDefaultBorrowerConfiguration();
 
       config.interestRateSecondary = DEFAULT_MIN_INTEREST_RATE_SECONDARY - 1;
@@ -656,7 +624,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
 
     it("Is reverted if the secondary interest rate is greater than credit line`s maximum one", async () => {
-      const { creditLineUnderAdmin } = await loadFixture(deployAndConfigureCreditLine);
+      const { creditLineUnderAdmin } = await setUpFixture(deployAndConfigureCreditLine);
       const config = createDefaultBorrowerConfiguration();
 
       config.interestRateSecondary = DEFAULT_MAX_INTEREST_RATE_SECONDARY + 1;
@@ -666,7 +634,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
 
     it("Is reverted if the addon fixed rate is less than credit line`s minimum one", async () => {
-      const { creditLineUnderAdmin } = await loadFixture(deployAndConfigureCreditLine);
+      const { creditLineUnderAdmin } = await setUpFixture(deployAndConfigureCreditLine);
       const config = createDefaultBorrowerConfiguration();
 
       config.addonFixedRate = DEFAULT_MIN_ADDON_FIXED_RATE - 1;
@@ -676,7 +644,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
 
     it("Is reverted if the addon fixed rate is greater than credit line`s maximum one", async () => {
-      const { creditLineUnderAdmin } = await loadFixture(deployAndConfigureCreditLine);
+      const { creditLineUnderAdmin } = await setUpFixture(deployAndConfigureCreditLine);
       const config = createDefaultBorrowerConfiguration();
 
       config.addonFixedRate = DEFAULT_MAX_ADDON_FIXED_RATE + 1;
@@ -686,7 +654,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
 
     it("Is reverted if the addon period rate is less than credit line`s minimum one", async () => {
-      const { creditLineUnderAdmin } = await loadFixture(deployAndConfigureCreditLine);
+      const { creditLineUnderAdmin } = await setUpFixture(deployAndConfigureCreditLine);
       const config = createDefaultBorrowerConfiguration();
 
       config.addonPeriodRate = DEFAULT_MIN_ADDON_PERIOD_RATE - 1;
@@ -696,7 +664,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
 
     it("Is reverted if the addon period rate is greater than credit line`s maximum one", async () => {
-      const { creditLineUnderAdmin } = await loadFixture(deployAndConfigureCreditLine);
+      const { creditLineUnderAdmin } = await setUpFixture(deployAndConfigureCreditLine);
       const config = createDefaultBorrowerConfiguration();
 
       config.addonPeriodRate = DEFAULT_MAX_ADDON_PERIOD_RATE + 1;
@@ -708,7 +676,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
 
   describe("Function 'configureBorrowers()'", async () => {
     it("Executes as expected and emits correct events if is called by an admin", async () => {
-      const { creditLineUnderAdmin } = await loadFixture(deployAndConfigureCreditLine);
+      const { creditLineUnderAdmin } = await setUpFixture(deployAndConfigureCreditLine);
       const { borrowers, configs } = await prepareDataForBatchBorrowerConfig(BORROWERS_NUMBER);
 
       const tx = creditLineUnderAdmin.configureBorrowers(borrowers, configs);
@@ -720,26 +688,26 @@ describe("Contract 'CreditLineConfigurable'", async () => {
           .withArgs(creditLineAddress, borrowers[i]);
         const expectedConfig = configs[i];
         const actualConfig = await creditLineUnderAdmin.getBorrowerConfiguration(borrowers[i]);
-        compareBorrowerConfigs(actualConfig, expectedConfig);
+        checkEquality(actualConfig, expectedConfig);
       }
     });
 
     it("Is reverted if the caller is not an admin", async () => {
-      const { creditLine } = await loadFixture(deployAndConfigureCreditLine);
+      const { creditLine } = await setUpFixture(deployAndConfigureCreditLine);
       const { borrowers, configs } = await prepareDataForBatchBorrowerConfig(BORROWERS_NUMBER);
 
-      await expect((creditLine.connect(attacker) as Contract).configureBorrowers(borrowers, configs))
+      await expect(connect(creditLine, attacker).configureBorrowers(borrowers, configs))
         .to.be.revertedWithCustomError(creditLine, ERROR_NAME_ACCESS_CONTROL_UNAUTHORIZED)
         .withArgs(attacker.address, ADMIN_ROLE);
 
       // Even the lender cannot configure a borrower
-      await expect((creditLine.connect(lender) as Contract).configureBorrowers(borrowers, configs))
+      await expect(connect(creditLine, lender).configureBorrowers(borrowers, configs))
         .to.be.revertedWithCustomError(creditLine, ERROR_NAME_ACCESS_CONTROL_UNAUTHORIZED)
         .withArgs(lender.address, ADMIN_ROLE);
     });
 
     it("Is reverted if the contract is paused", async () => {
-      const { creditLine, creditLineUnderAdmin } = await loadFixture(deployAndConfigureCreditLine);
+      const { creditLine, creditLineUnderAdmin } = await setUpFixture(deployAndConfigureCreditLine);
       const { borrowers, configs } = await prepareDataForBatchBorrowerConfig(BORROWERS_NUMBER);
 
       await proveTx(creditLine.pause());
@@ -749,7 +717,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
 
     it("Is reverted if the length of arrays is different", async () => {
-      const { creditLineUnderAdmin } = await loadFixture(deployAndConfigureCreditLine);
+      const { creditLineUnderAdmin } = await setUpFixture(deployAndConfigureCreditLine);
       const { borrowers, configs } = await prepareDataForBatchBorrowerConfig(BORROWERS_NUMBER);
 
       borrowers.push(attacker.address);
@@ -761,7 +729,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
 
   describe("Function 'onBeforeLoanTaken()'", async () => {
     async function executeAndCheck(borrowPolicy: BorrowPolicy) {
-      const { creditLine, creditLineUnderAdmin } = await loadFixture(deployAndConfigureCreditLineWithBorrower);
+      const { creditLine, creditLineUnderAdmin } = await setUpFixture(deployAndConfigureCreditLineWithBorrower);
       const borrowerConfig = createDefaultBorrowerConfiguration();
       borrowerConfig.borrowPolicy = borrowPolicy;
 
@@ -779,21 +747,21 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       switch (borrowPolicy) {
         case BorrowPolicy.Decrease:
           expectedBorrowerConfig.maxBorrowAmount -= BORROW_AMOUNT;
-          break
+          break;
         case BorrowPolicy.Iterate:
           expectedBorrowerConfig.maxBorrowAmount -= BORROW_AMOUNT;
-          break
+          break;
         case BorrowPolicy.Reset:
           expectedBorrowerConfig.maxBorrowAmount = 0;
-          break
+          break;
         case BorrowPolicy.Keep:
           expectedBorrowerConfig.maxBorrowAmount = DEFAULT_MAX_BORROW_AMOUNT;
-          break
+          break;
       }
 
       const onChainBorrowerConfig: BorrowerConfig = await creditLine.getBorrowerConfiguration(borrower.address);
 
-      compareBorrowerConfigs(onChainBorrowerConfig, expectedBorrowerConfig);
+      checkEquality(onChainBorrowerConfig, expectedBorrowerConfig);
     }
 
     it("Executes as expected if the borrow policy is 'Keep'", async () => {
@@ -813,7 +781,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
 
     it("Is reverted if the caller is not the configured market", async () => {
-      const { creditLine } = await loadFixture(deployAndConfigureCreditLineWithBorrower);
+      const { creditLine } = await setUpFixture(deployAndConfigureCreditLineWithBorrower);
 
       await expect(creditLine.onBeforeLoanTaken(
         DEFAULT_LOAN_ID
@@ -821,64 +789,99 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
 
     it("Is reverted if the contract is paused", async () => {
-      const { creditLine } = await loadFixture(deployAndConfigureCreditLineWithBorrower);
+      const { creditLine } = await setUpFixture(deployAndConfigureCreditLineWithBorrower);
       await proveTx(creditLine.pause());
 
-      await expect(market.callOnBeforeLoanTakenCreditLine(
-        getAddress(creditLine), DEFAULT_LOAN_ID
-      )).to.be.revertedWithCustomError(creditLine, ERROR_NAME_ENFORCED_PAUSED);
+      await expect(market.callOnBeforeLoanTakenCreditLine(getAddress(creditLine), DEFAULT_LOAN_ID))
+        .to.be.revertedWithCustomError(creditLine, ERROR_NAME_ENFORCED_PAUSED);
     });
   });
 
   describe("Function onAfterLoanPayment()", async () => {
     it("Executes as expected", async () => {
-      const { creditLine } = await loadFixture(deployAndConfigureCreditLineWithBorrower);
+      const { creditLine } = await setUpFixture(deployAndConfigureCreditLineWithBorrower);
       await prepareLoan();
 
-      await expect(market.callOnAfterLoanPaymentCreditLine(getAddress(creditLine), DEFAULT_LOAN_ID, DEFAULT_REPAY_AMOUNT))
-        .to.emit(market, EVENT_NAME_HOOK_CALL_RESULT)
-        .withArgs(true);
+      await expect(market.callOnAfterLoanPaymentCreditLine(
+        getAddress(creditLine),
+        DEFAULT_LOAN_ID,
+        DEFAULT_REPAY_AMOUNT
+      )).to.emit(
+        market,
+        EVENT_NAME_HOOK_CALL_RESULT
+      ).withArgs(true);
     });
 
     it("Executes as expected if tracked balance is not zero and borrow policy is 'Iterate'", async () => {
-      const { creditLine, creditLineUnderAdmin } = await loadFixture(deployAndConfigureCreditLineWithBorrower);
+      const { creditLine, creditLineUnderAdmin } = await setUpFixture(deployAndConfigureCreditLineWithBorrower);
       const loanState: LoanState = await prepareLoan();
-      loanState.trackedBalance = DEFAULT_REPAY_AMOUNT;
-      await proveTx(market.mockLoanState(DEFAULT_LOAN_ID, loanState));
 
       const borrowerConfig: BorrowerConfig = createDefaultBorrowerConfiguration();
       borrowerConfig.borrowPolicy = BorrowPolicy.Iterate;
       await proveTx(creditLineUnderAdmin.configureBorrower(borrower.address, borrowerConfig));
 
-      await expect(market.callOnAfterLoanPaymentCreditLine(getAddress(creditLine), DEFAULT_LOAN_ID, DEFAULT_REPAY_AMOUNT))
-        .to.emit(market, EVENT_NAME_HOOK_CALL_RESULT)
-        .withArgs(true);
+      loanState.trackedBalance = DEFAULT_REPAY_AMOUNT;
+      await proveTx(market.mockLoanState(DEFAULT_LOAN_ID, loanState));
+
+      await expect(market.callOnAfterLoanPaymentCreditLine(
+        getAddress(creditLine),
+        DEFAULT_LOAN_ID,
+        DEFAULT_REPAY_AMOUNT
+      )).to.emit(
+        market,
+        EVENT_NAME_HOOK_CALL_RESULT
+      ).withArgs(true);
 
       const configAfter: BorrowerConfig = await creditLine.getBorrowerConfiguration(borrower.address);
-      // TODO
-      // expect(configAfter.maxBorrowAmount)
-      //   .to.eq(borrowerConfig.maxBorrowAmount + loanState.borrowAmount + loanState.addonAmount);
+      expect(configAfter.maxBorrowAmount).to.eq(borrowerConfig.maxBorrowAmount);
+    });
+
+    it("Executes as expected if tracked balance is zero and borrow policy is 'Iterate'", async () => {
+      const { creditLine, creditLineUnderAdmin } = await setUpFixture(deployAndConfigureCreditLineWithBorrower);
+      const loanState: LoanState = await prepareLoan();
+
+      const borrowerConfig: BorrowerConfig = createDefaultBorrowerConfiguration();
+      borrowerConfig.borrowPolicy = BorrowPolicy.Iterate;
+      await proveTx(creditLineUnderAdmin.configureBorrower(borrower.address, borrowerConfig));
+
+      loanState.trackedBalance = 0;
+      await proveTx(market.mockLoanState(DEFAULT_LOAN_ID, loanState));
+
+      await expect(market.callOnAfterLoanPaymentCreditLine(
+        getAddress(creditLine),
+        DEFAULT_LOAN_ID,
+        DEFAULT_REPAY_AMOUNT
+      )).to.emit(
+        market,
+        EVENT_NAME_HOOK_CALL_RESULT
+      ).withArgs(true);
+
+      const configAfter: BorrowerConfig = await creditLine.getBorrowerConfiguration(borrower.address);
+      expect(configAfter.maxBorrowAmount).to.eq(borrowerConfig.maxBorrowAmount + loanState.borrowAmount);
     });
 
     it("Is reverted if caller is not the market", async () => {
-      const { creditLine } = await loadFixture(deployAndConfigureCreditLineWithBorrower);
+      const { creditLine } = await setUpFixture(deployAndConfigureCreditLineWithBorrower);
 
       await expect(connect(creditLine, attacker).onAfterLoanPayment(DEFAULT_LOAN_ID, DEFAULT_REPAY_AMOUNT))
-        .to.be.revertedWithCustomError(creditLine, ERROR_NAME_UNAUTHORIZED)
+        .to.be.revertedWithCustomError(creditLine, ERROR_NAME_UNAUTHORIZED);
     });
 
     it("Is reverted if contract is paused", async () => {
-      const { creditLine } = await loadFixture(deployAndConfigureCreditLineWithBorrower);
+      const { creditLine } = await setUpFixture(deployAndConfigureCreditLineWithBorrower);
       await proveTx(creditLine.pause());
 
-      await expect(market.callOnAfterLoanPaymentCreditLine(getAddress(creditLine), DEFAULT_LOAN_ID, DEFAULT_REPAY_AMOUNT))
-        .to.be.revertedWithCustomError(creditLine, ERROR_NAME_ENFORCED_PAUSED)
+      await expect(market.callOnAfterLoanPaymentCreditLine(
+        getAddress(creditLine),
+        DEFAULT_LOAN_ID,
+        DEFAULT_REPAY_AMOUNT
+      )).to.be.revertedWithCustomError(creditLine, ERROR_NAME_ENFORCED_PAUSED);
     });
   });
 
   describe("Function 'onAfterLoanRevocation()'", async () => {
     it("Executes as expected", async () => {
-      const { creditLine, creditLineUnderAdmin } = await loadFixture(deployAndConfigureCreditLineWithBorrower);
+      const { creditLine, creditLineUnderAdmin } = await setUpFixture(deployAndConfigureCreditLineWithBorrower);
       const loanState: LoanState = await prepareLoan();
       const borrowerConfig: BorrowerConfig = createDefaultBorrowerConfiguration();
       borrowerConfig.borrowPolicy = BorrowPolicy.Iterate;
@@ -902,24 +905,24 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
 
     it("Is reverted if caller is not the market", async () => {
-      const { creditLine } = await loadFixture(deployAndConfigureCreditLineWithBorrower);
+      const { creditLine } = await setUpFixture(deployAndConfigureCreditLineWithBorrower);
 
       await expect(connect(creditLine, attacker).onAfterLoanRevocation(DEFAULT_LOAN_ID))
-        .to.be.revertedWithCustomError(creditLine, ERROR_NAME_UNAUTHORIZED)
+        .to.be.revertedWithCustomError(creditLine, ERROR_NAME_UNAUTHORIZED);
     });
 
     it("Is reverted if contract is paused", async () => {
-      const { creditLine } = await loadFixture(deployAndConfigureCreditLineWithBorrower);
+      const { creditLine } = await setUpFixture(deployAndConfigureCreditLineWithBorrower);
       await proveTx(creditLine.pause());
 
       await expect(market.callOnAfterLoanRevocationCreditLine(getAddress(creditLine), DEFAULT_LOAN_ID))
-        .to.be.revertedWithCustomError(creditLine, ERROR_NAME_ENFORCED_PAUSED)
+        .to.be.revertedWithCustomError(creditLine, ERROR_NAME_ENFORCED_PAUSED);
     });
   });
 
   describe("Function 'determineLoanTerms()'", async () => {
     async function executeAndCheck() {
-      const { creditLine } = await loadFixture(deployAndConfigureCreditLineWithBorrower);
+      const { creditLine } = await setUpFixture(deployAndConfigureCreditLineWithBorrower);
       const borrowerConfig = createDefaultBorrowerConfiguration();
       const borrowAmount = Math.floor((borrowerConfig.minBorrowAmount + borrowerConfig.maxBorrowAmount) / 2);
       const durationInPeriods = Math.floor(
@@ -937,15 +940,15 @@ describe("Contract 'CreditLineConfigurable'", async () => {
         durationInPeriods
       );
 
-      compareLoanTerms(onChainTerms, expectedTerms);
+      checkEquality(onChainTerms, expectedTerms);
     }
 
     it("Executes as expected", async () => {
       await executeAndCheck();
-    })
+    });
 
     it("Is reverted if the borrower address is zero", async () => {
-      const { creditLine } = await loadFixture(deployAndConfigureCreditLineWithBorrower);
+      const { creditLine } = await setUpFixture(deployAndConfigureCreditLineWithBorrower);
       await expect(creditLine.determineLoanTerms(
         ZERO_ADDRESS, // borrower
         DEFAULT_MIN_BORROW_AMOUNT,
@@ -954,7 +957,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
 
     it("Is reverted if the borrow amount is zero", async () => {
-      const { creditLine } = await loadFixture(deployAndConfigureCreditLineWithBorrower);
+      const { creditLine } = await setUpFixture(deployAndConfigureCreditLineWithBorrower);
       await expect(creditLine.determineLoanTerms(
         borrower.address,
         0, // borrowAmount
@@ -963,7 +966,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
 
     it("Is reverted if the borrower configuration has been expired", async () => {
-      const { creditLine, creditLineUnderAdmin } = await loadFixture(deployAndConfigureCreditLine);
+      const { creditLine, creditLineUnderAdmin } = await setUpFixture(deployAndConfigureCreditLine);
       const borrowerConfig = createDefaultBorrowerConfiguration();
 
       borrowerConfig.expiration = 0;
@@ -977,7 +980,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
 
     it("Is reverted if the borrow amount is greater than the max allowed one", async () => {
-      const { creditLine } = await loadFixture(deployAndConfigureCreditLineWithBorrower);
+      const { creditLine } = await setUpFixture(deployAndConfigureCreditLineWithBorrower);
       await expect(creditLine.determineLoanTerms(
         borrower.address,
         DEFAULT_MAX_BORROW_AMOUNT + 1, // borrowAmount
@@ -986,7 +989,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
 
     it("Is reverted if the borrow amount is less than the min allowed one", async () => {
-      const { creditLine } = await loadFixture(deployAndConfigureCreditLineWithBorrower);
+      const { creditLine } = await setUpFixture(deployAndConfigureCreditLineWithBorrower);
       await expect(creditLine.determineLoanTerms(
         borrower.address,
         DEFAULT_MIN_BORROW_AMOUNT - 1, // borrowAmount
@@ -995,7 +998,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
 
     it("Is reverted if the loan duration is less than the min allowed one", async () => {
-      const { creditLine } = await loadFixture(deployAndConfigureCreditLineWithBorrower);
+      const { creditLine } = await setUpFixture(deployAndConfigureCreditLineWithBorrower);
       await expect(creditLine.determineLoanTerms(
         borrower.address,
         DEFAULT_MIN_BORROW_AMOUNT, // borrowAmount
@@ -1004,7 +1007,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
 
     it("Is reverted if the loan duration is greater than the max allowed one", async () => {
-      const { creditLine } = await loadFixture(deployAndConfigureCreditLineWithBorrower);
+      const { creditLine } = await setUpFixture(deployAndConfigureCreditLineWithBorrower);
       await expect(creditLine.determineLoanTerms(
         borrower.address,
         DEFAULT_MIN_BORROW_AMOUNT, // borrowAmount
@@ -1015,7 +1018,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
 
   describe("Function 'calculateAddonAmount()'", async () => {
     it("Returns correct values", async () => {
-      const { creditLine } = await loadFixture(deployAndConfigureCreditLineWithBorrower);
+      const { creditLine } = await setUpFixture(deployAndConfigureCreditLineWithBorrower);
       const contractValue = await creditLine.calculateAddonAmount(
         BORROW_AMOUNT,
         DEFAULT_MIN_DURATION_IN_PERIODS,
@@ -1034,5 +1037,5 @@ describe("Contract 'CreditLineConfigurable'", async () => {
 
       expect(contractValue).to.eq(expectedValue);
     });
-  })
+  });
 });

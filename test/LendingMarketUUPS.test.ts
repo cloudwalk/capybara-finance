@@ -2,8 +2,8 @@ import { ethers, upgrades } from "hardhat";
 import { expect } from "chai";
 import { Contract, ContractFactory } from "ethers";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
-import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { checkContractUupsUpgrading, connect } from "../test-utils/eth";
+import { setUpFixture } from "../test-utils/common";
 
 const ERROR_NAME_ACCESS_CONTROL_UNAUTHORIZED = "AccessControlUnauthorizedAccount";
 
@@ -38,7 +38,7 @@ describe("Contract 'LendingMarketUUPS'", async () => {
 
   describe("Function 'initialize()'", async () => {
     it("Configures the contract as expected", async () => {
-      const { lendingMarket } = await loadFixture(deployLendingMarket);
+      const { lendingMarket } = await setUpFixture(deployLendingMarket);
 
       expect(await lendingMarket.hasRole(OWNER_ROLE, deployer.address)).to.eq(true);
     });
@@ -46,12 +46,12 @@ describe("Contract 'LendingMarketUUPS'", async () => {
 
   describe("Function 'upgradeToAndCall()'", async () => {
     it("Executes as expected", async () => {
-      const { lendingMarket } = await loadFixture(deployLendingMarket);
+      const { lendingMarket } = await setUpFixture(deployLendingMarket);
       await checkContractUupsUpgrading(lendingMarket, lendingMarketFactory);
     });
 
     it("Is reverted if the caller is not the owner", async () => {
-      const { lendingMarket } = await loadFixture(deployLendingMarket);
+      const { lendingMarket } = await setUpFixture(deployLendingMarket);
 
       await expect(connect(lendingMarket, attacker).upgradeToAndCall(attacker.address, "0x"))
         .to.be.revertedWithCustomError(lendingMarket, ERROR_NAME_ACCESS_CONTROL_UNAUTHORIZED)

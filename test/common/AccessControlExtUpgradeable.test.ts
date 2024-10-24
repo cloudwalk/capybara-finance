@@ -1,17 +1,9 @@
-import { ethers, network, upgrades } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 import { expect } from "chai";
 import { Contract, ContractFactory, TransactionResponse } from "ethers";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
-import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { connect, proveTx } from "../../test-utils/eth";
-
-async function setUpFixture<T>(func: () => Promise<T>): Promise<T> {
-  if (network.name === "hardhat") {
-    return loadFixture(func);
-  } else {
-    return func();
-  }
-}
+import { setUpFixture } from "../../test-utils/common";
 
 describe("Contract 'AccessControlExtUpgradeable'", async () => {
   const EVENT_NAME_ROLE_GRANTED = "RoleGranted";
@@ -65,23 +57,26 @@ describe("Contract 'AccessControlExtUpgradeable'", async () => {
 
     it("The external initializer is reverted if it is called a second time", async () => {
       const { accessControlExtMock } = await setUpFixture(deployAccessControlExtMock);
-      await expect(
-        accessControlExtMock.initialize()
-      ).to.be.revertedWithCustomError(accessControlExtMock, REVERT_ERROR_IF_CONTRACT_INITIALIZATION_IS_INVALID);
+      await expect(accessControlExtMock.initialize()).to.be.revertedWithCustomError(
+        accessControlExtMock,
+        REVERT_ERROR_IF_CONTRACT_INITIALIZATION_IS_INVALID
+      );
     });
 
     it("The internal initializer is reverted if it is called outside the init process", async () => {
       const { accessControlExtMock } = await setUpFixture(deployAccessControlExtMock);
-      await expect(
-        accessControlExtMock.call_parent_initialize()
-      ).to.be.revertedWithCustomError(accessControlExtMock, REVERT_ERROR_IF_CONTRACT_IS_NOT_INITIALIZING);
+      await expect(accessControlExtMock.call_parent_initialize()).to.be.revertedWithCustomError(
+        accessControlExtMock,
+        REVERT_ERROR_IF_CONTRACT_IS_NOT_INITIALIZING
+      );
     });
 
     it("The internal unchained initializer is reverted if it is called outside the init process", async () => {
       const { accessControlExtMock } = await setUpFixture(deployAccessControlExtMock);
-      await expect(
-        accessControlExtMock.call_parent_initialize_unchained()
-      ).to.be.revertedWithCustomError(accessControlExtMock, REVERT_ERROR_IF_CONTRACT_IS_NOT_INITIALIZING);
+      await expect(accessControlExtMock.call_parent_initialize_unchained()).to.be.revertedWithCustomError(
+        accessControlExtMock,
+        REVERT_ERROR_IF_CONTRACT_IS_NOT_INITIALIZING
+      );
     });
   });
 
@@ -103,9 +98,10 @@ describe("Contract 'AccessControlExtUpgradeable'", async () => {
         await proveTx(accessControlExtMock.grantRoleBatch(userRole, [userAddresses[0]]));
         expect(await accessControlExtMock.hasRole(userRole, userAddresses[0])).to.equal(true);
 
-        await expect(
-          accessControlExtMock.grantRoleBatch(userRole, [userAddresses[0]])
-        ).not.to.emit(accessControlExtMock, EVENT_NAME_ROLE_GRANTED);
+        await expect(accessControlExtMock.grantRoleBatch(userRole, [userAddresses[0]])).not.to.emit(
+          accessControlExtMock,
+          EVENT_NAME_ROLE_GRANTED
+        );
       });
 
       it("Multiple accounts without the previously granted role", async () => {
@@ -127,9 +123,10 @@ describe("Contract 'AccessControlExtUpgradeable'", async () => {
       it("No accounts", async () => {
         const { accessControlExtMock } = await setUpFixture(deployAccessControlExtMock);
 
-        await expect(
-          accessControlExtMock.grantRoleBatch(userRole, [])
-        ).not.to.emit(accessControlExtMock, EVENT_NAME_ROLE_GRANTED);
+        await expect(accessControlExtMock.grantRoleBatch(userRole, [])).not.to.emit(
+          accessControlExtMock,
+          EVENT_NAME_ROLE_GRANTED
+        );
       });
     });
 
@@ -137,12 +134,9 @@ describe("Contract 'AccessControlExtUpgradeable'", async () => {
       it("The sender does not have the expected admin role", async () => {
         const { accessControlExtMock } = await setUpFixture(deployAccessControlExtMock);
 
-        await expect(
-          connect(accessControlExtMock, attacker).grantRoleBatch(userRole, [])
-        ).to.be.revertedWithCustomError(
-          accessControlExtMock,
-          REVERT_ERROR_IF_UNAUTHORIZED_ACCOUNT
-        ).withArgs(attacker.address, ownerRole);
+        await expect(connect(accessControlExtMock, attacker).grantRoleBatch(userRole, []))
+          .to.be.revertedWithCustomError(accessControlExtMock, REVERT_ERROR_IF_UNAUTHORIZED_ACCOUNT)
+          .withArgs(attacker.address, ownerRole);
       });
     });
 
@@ -164,9 +158,10 @@ describe("Contract 'AccessControlExtUpgradeable'", async () => {
           const { accessControlExtMock } = await setUpFixture(deployAccessControlExtMock);
           expect(await accessControlExtMock.hasRole(userRole, userAddresses[0])).to.equal(false);
 
-          await expect(
-            accessControlExtMock.revokeRoleBatch(userRole, [userAddresses[0]])
-          ).not.to.emit(accessControlExtMock, EVENT_NAME_ROLE_REVOKED);
+          await expect(accessControlExtMock.revokeRoleBatch(userRole, [userAddresses[0]])).not.to.emit(
+            accessControlExtMock,
+            EVENT_NAME_ROLE_REVOKED
+          );
         });
 
         it("Multiple accounts with the previously granted role", async () => {
@@ -189,9 +184,10 @@ describe("Contract 'AccessControlExtUpgradeable'", async () => {
         it("No accounts", async () => {
           const { accessControlExtMock } = await setUpFixture(deployAccessControlExtMock);
 
-          await expect(
-            accessControlExtMock.revokeRoleBatch(userRole, [])
-          ).not.to.emit(accessControlExtMock, EVENT_NAME_ROLE_REVOKED);
+          await expect(accessControlExtMock.revokeRoleBatch(userRole, [])).not.to.emit(
+            accessControlExtMock,
+            EVENT_NAME_ROLE_REVOKED
+          );
         });
       });
 
@@ -199,12 +195,9 @@ describe("Contract 'AccessControlExtUpgradeable'", async () => {
         it("The sender does not have the expected admin role", async () => {
           const { accessControlExtMock } = await setUpFixture(deployAccessControlExtMock);
 
-          await expect(
-            connect(accessControlExtMock, attacker).revokeRoleBatch(userRole, [])
-          ).to.be.revertedWithCustomError(
-            accessControlExtMock,
-            REVERT_ERROR_IF_UNAUTHORIZED_ACCOUNT
-          ).withArgs(attacker.address, ownerRole);
+          await expect(connect(accessControlExtMock, attacker).revokeRoleBatch(userRole, []))
+            .to.be.revertedWithCustomError(accessControlExtMock, REVERT_ERROR_IF_UNAUTHORIZED_ACCOUNT)
+            .withArgs(attacker.address, ownerRole);
         });
       });
     });

@@ -1,8 +1,9 @@
 import { ethers } from "hardhat";
 import { expect } from "chai";
 import { Contract, ContractFactory } from "ethers";
-import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
+import { setUpFixture } from "../../test-utils/common";
+import { connect } from "../../test-utils/eth";
 
 const ERROR_NAME_NOT_IMPLEMENTED = "NotImplemented";
 
@@ -21,7 +22,7 @@ describe("Contract 'CreditLineMock'", async () => {
   async function deployCreditLine(): Promise<{ creditLine: Contract }> {
     let creditLine = await creditLineFactory.deploy() as Contract;
     await creditLine.waitForDeployment();
-    creditLine = creditLine.connect(deployer) as Contract; // Explicitly specifying the initial account
+    creditLine = connect(creditLine, deployer); // Explicitly specifying the initial account
 
     return {
       creditLine
@@ -30,14 +31,14 @@ describe("Contract 'CreditLineMock'", async () => {
 
   describe("Unimplemented mock functions are reverted as expected", async () => {
     it("Function 'market()'", async () => {
-      const { creditLine } = await loadFixture(deployCreditLine);
+      const { creditLine } = await setUpFixture(deployCreditLine);
 
       await expect(creditLine.market())
         .to.be.revertedWithCustomError(creditLine, ERROR_NAME_NOT_IMPLEMENTED);
     });
 
     it("Function 'lender()'", async () => {
-      const { creditLine } = await loadFixture(deployCreditLine);
+      const { creditLine } = await setUpFixture(deployCreditLine);
 
       await expect(creditLine.lender())
         .to.be.revertedWithCustomError(creditLine, ERROR_NAME_NOT_IMPLEMENTED);
