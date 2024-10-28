@@ -69,6 +69,7 @@ const ERROR_NAME_UNAUTHORIZED = "Unauthorized";
 const ERROR_NAME_ZERO_ADDRESS = "ZeroAddress";
 const ERROR_NAME_PROGRAM_NOT_EXIST = "ProgramNotExist";
 const ERROR_NAME_COOLDOWN_PERIOD_PASSED = "CooldownPeriodHasPassed";
+const ERROR_NAME_SAFE_CAST_OVERFLOWED_UINT_DOWNCAST = "SafeCastOverflowedUintDowncast";
 
 const EVENT_NAME_CREDIT_LINE_REGISTERED = "CreditLineRegistered";
 const EVENT_NAME_LENDER_ALIAS_CONFIGURED = "LenderAliasConfigured";
@@ -113,7 +114,7 @@ const NEGATIVE_TIME_OFFSET = 10800; // 3 hours
 const ACCURACY_FACTOR = 10000;
 const COOLDOWN_IN_PERIODS = 3;
 
-describe("Contract 'LendingMarket'", async () => {
+describe("Contract 'LendingMarket': base tests", async () => {
   let lendingMarketFactory: ContractFactory;
   let creditLineFactory: ContractFactory;
   let liquidityPoolFactory: ContractFactory;
@@ -1134,6 +1135,15 @@ describe("Contract 'LendingMarket'", async () => {
         .to.be.revertedWithCustomError(market, ERROR_NAME_INAPPROPRIATE_DURATION_IN_PERIODS);
       await expect(marketConnectedToLender.updateLoanDuration(DEFAULT_LOAN_ID, DEFAULT_DURATION_IN_PERIODS - 1))
         .to.be.revertedWithCustomError(market, ERROR_NAME_INAPPROPRIATE_DURATION_IN_PERIODS);
+    });
+
+    it("Is reverted if the new duration is greater than 32-bit unsigned integer", async () => {
+      const { market, marketConnectedToLender } = await setUpFixture(deployLendingMarketAndTakeLoan);
+      const newDuration = BigInt(2) ** 32n + 1n;
+
+      await expect(marketConnectedToLender.updateLoanDuration(DEFAULT_LOAN_ID, newDuration))
+        .to.be.revertedWithCustomError(market, ERROR_NAME_SAFE_CAST_OVERFLOWED_UINT_DOWNCAST)
+        .withArgs(32, newDuration);
     });
   });
 

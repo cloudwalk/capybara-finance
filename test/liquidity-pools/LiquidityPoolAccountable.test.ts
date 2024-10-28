@@ -30,6 +30,7 @@ const ERROR_NAME_NOT_PAUSED = "ExpectedPause";
 const ERROR_NAME_ACCESS_CONTROL_UNAUTHORIZED = "AccessControlUnauthorizedAccount";
 const ERROR_NAME_UNAUTHORIZED = "Unauthorized";
 const ERROR_NAME_ZERO_ADDRESS = "ZeroAddress";
+const ERROR_NAME_SAFE_CAST_OVERFLOWED_UINT_DOWNCAST = "SafeCastOverflowedUintDowncast";
 
 const EVENT_NAME_APPROVAL = "Approval";
 const EVENT_NAME_AUTO_REPAYMENT = "AutoRepayment";
@@ -103,7 +104,7 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
     await liquidityPool.waitForDeployment();
     liquidityPool = connect(liquidityPool, lender); // Explicitly specifying the initial account
 
-    await proveTx(connect(token, lender).approve(getAddress(liquidityPool), MINT_AMOUNT));
+    await proveTx(connect(token, lender).approve(getAddress(liquidityPool), ethers.MaxUint256));
     await proveTx(liquidityPool.grantRole(PAUSER_ROLE, lender.address));
     return { liquidityPool };
   }
@@ -290,6 +291,15 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
 
       await expect(liquidityPool.deposit(0))
         .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_INVALID_AMOUNT);
+    });
+
+    it("Is reverted if the deposit amount is greater than 64-bit unsigned integer", async () => {
+      const { liquidityPool } = await setUpFixture(deployLiquidityPool);
+      const amount = BigInt(2) ** 64n + 1n;
+
+      await expect(liquidityPool.deposit(amount))
+        .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_SAFE_CAST_OVERFLOWED_UINT_DOWNCAST)
+        .withArgs(64, amount);
     });
   });
 

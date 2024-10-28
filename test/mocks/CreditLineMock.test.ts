@@ -29,6 +29,14 @@ describe("Contract 'CreditLineMock'", async () => {
     };
   }
 
+  describe("Cover unused functions", async () => {
+    it("Function 'token()'", async () => {
+      const { creditLine } = await setUpFixture(deployCreditLine);
+
+      expect(await creditLine.token()).to.eq(ethers.ZeroAddress);
+    });
+  });
+
   describe("Unimplemented mock functions are reverted as expected", async () => {
     it("Function 'market()'", async () => {
       const { creditLine } = await setUpFixture(deployCreditLine);

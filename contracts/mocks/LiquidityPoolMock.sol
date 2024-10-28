@@ -72,23 +72,7 @@ contract LiquidityPoolMock is ILiquidityPool {
         _tokenAddress = tokenAddress;
     }
 
-    function mockOnBeforeLoanTakenResult(bool result) external {
-        _onBeforeLoanTakenResult = result;
-    }
-
-    function mockOnAfterLoanPaymentResult(bool result) external {
-        _onAfterLoanPaymentResult = result;
-    }
-
-    function mockOnAfterLoanRevocationResult(bool result) external {
-        _onAfterLoanRevocationResult = result;
-    }
-
     function approveMarket(address _market, address token) external {
         IERC20(token).approve(_market, type(uint56).max);
-    }
-
-    function autoRepay(address _market, uint256 loanId, uint256 repayAmount) external {
-        ILendingMarket(_market).repayLoan(loanId, repayAmount);
     }
 }

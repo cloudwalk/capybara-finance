@@ -85,16 +85,4 @@ contract CreditLineMock is ICreditLine {
     function mockLoanTerms(address borrower, uint256 amount, Loan.Terms memory terms) external {
         _loanTerms[borrower][amount] = terms;
     }
-
-    function mockOnBeforeLoanTakenResult(bool result) external {
-        _onBeforeLoanTakenResult = result;
-    }
-
-    function mockOnAfterLoanPaymentResult(bool result) external {
-        _onAfterLoanPaymentResult = result;
-    }
-
-    function mockOnAfterLoanRevocationResult(bool result) external {
-        _onAfterLoanRevocationResult = result;
-    }
 }
