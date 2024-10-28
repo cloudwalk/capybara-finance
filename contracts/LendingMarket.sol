@@ -622,17 +622,17 @@ contract LendingMarket is
     }
 
     /// @inheritdoc ILendingMarket
-    function interestRateFactor() external view returns (uint256) {
+    function interestRateFactor() external pure returns (uint256) {
         return Constants.INTEREST_RATE_FACTOR;
     }
 
     /// @inheritdoc ILendingMarket
-    function periodInSeconds() external view returns (uint256) {
+    function periodInSeconds() external pure returns (uint256) {
         return Constants.PERIOD_IN_SECONDS;
     }
 
     /// @inheritdoc ILendingMarket
-    function timeOffset() external view returns (uint256, bool) {
+    function timeOffset() external pure returns (uint256, bool) {
         return (Constants.NEGATIVE_TIME_OFFSET, false);
     }
 
@@ -643,28 +643,28 @@ contract LendingMarket is
 
     /// @dev Calculates the period index that corresponds the specified timestamp.
     /// @param timestamp The timestamp to calculate the period index.
-    /// @param periodInSeconds The period duration in seconds.
-    function calculatePeriodIndex(uint256 timestamp, uint256 periodInSeconds) external pure returns (uint256) {
-        return _periodIndex(timestamp, periodInSeconds);
+    /// @param periodInSeconds_ The period duration in seconds.
+    function calculatePeriodIndex(uint256 timestamp, uint256 periodInSeconds_) external pure returns (uint256) {
+        return _periodIndex(timestamp, periodInSeconds_);
     }
 
     /// @dev Calculates the outstanding balance of a loan.
     /// @param originalBalance The balance of the loan at the beginning.
     /// @param numberOfPeriods The number of periods to calculate the outstanding balance.
     /// @param interestRate The interest rate applied to the loan.
-    /// @param interestRateFactor The interest rate factor.
+    /// @param interestRateFactor_ The interest rate factor.
     function calculateOutstandingBalance(
         uint256 originalBalance,
         uint256 numberOfPeriods,
         uint256 interestRate,
-        uint256 interestRateFactor
+        uint256 interestRateFactor_
     ) external pure returns (uint256) {
         return
             InterestMath.calculateOutstandingBalance(
                 originalBalance,
                 numberOfPeriods,
                 interestRate,
-                interestRateFactor
+            interestRateFactor_
             );
     }
 
@@ -735,8 +735,8 @@ contract LendingMarket is
     }
 
     /// @dev Calculates the period index that corresponds the specified timestamp.
-    function _periodIndex(uint256 timestamp, uint256 periodInSeconds) internal pure returns (uint256) {
-        return (timestamp / periodInSeconds);
+    function _periodIndex(uint256 timestamp, uint256 periodInSeconds_) internal pure returns (uint256) {
+        return (timestamp / periodInSeconds_);
     }
 
     /// @dev Returns the current block timestamp with the time offset applied.

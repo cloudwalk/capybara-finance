@@ -159,14 +159,14 @@ contract LiquidityPoolAccountable is AccessControlExtUpgradeable, PausableUpgrad
             revert Error.InvalidAmount();
         }
 
-        IERC20 token = IERC20(_token);
+        IERC20 underlyingToken = IERC20(_token);
 
-        if (token.allowance(address(this), _market) == 0) {
-            token.approve(_market, type(uint256).max);
+        if (underlyingToken.allowance(address(this), _market) == 0) {
+            underlyingToken.approve(_market, type(uint256).max);
         }
 
         _borrowableBalance += amount.toUint64();
-        token.safeTransferFrom(msg.sender, address(this), amount);
+        underlyingToken.safeTransferFrom(msg.sender, address(this), amount);
 
         emit Deposit(amount);
     }
@@ -193,17 +193,17 @@ contract LiquidityPoolAccountable is AccessControlExtUpgradeable, PausableUpgrad
     }
 
     /// @inheritdoc ILiquidityPoolAccountable
-    function rescue(address token, uint256 amount) external onlyRole(OWNER_ROLE) {
-        if (token == address(0)) {
+    function rescue(address token_, uint256 amount) external onlyRole(OWNER_ROLE) {
+        if (token_ == address(0)) {
             revert Error.ZeroAddress();
         }
         if (amount == 0) {
             revert Error.InvalidAmount();
         }
 
-        IERC20(token).safeTransfer(msg.sender, amount);
+        IERC20(token_).safeTransfer(msg.sender, amount);
 
-        emit Rescue(token, amount);
+        emit Rescue(token_, amount);
     }
 
     // -------------------------------------------- //
@@ -238,6 +238,7 @@ contract LiquidityPoolAccountable is AccessControlExtUpgradeable, PausableUpgrad
 
     /// @inheritdoc ILiquidityPool
     function onAfterLoanPayment(uint256 loanId, uint256 amount) external whenNotPaused onlyMarket returns (bool) {
+        loanId; // To prevent compiler warning about unused variable
         _borrowableBalance += amount.toUint64();
         return true;
     }

@@ -29,23 +29,23 @@ contract LendingMarketMock is ILendingMarket {
     //  ILendingMarket functions                    //
     // -------------------------------------------- //
 
-    function registerCreditLine(address creditLine) external {
+    function registerCreditLine(address creditLine) external pure {
         creditLine; // To prevent compiler warning about unused variable
         revert Error.NotImplemented();
     }
 
-    function registerLiquidityPool(address liquidityPool) external {
+    function registerLiquidityPool(address liquidityPool) external pure {
         liquidityPool; // To prevent compiler warning about unused variable
         revert Error.NotImplemented();
     }
 
-    function createProgram(address creditLine, address liquidityPool) external {
+    function createProgram(address creditLine, address liquidityPool) external pure {
         creditLine; // To prevent compiler warning about unused variable
         liquidityPool; // To prevent compiler warning about unused variable
         revert Error.NotImplemented();
     }
 
-    function updateProgram(uint32 programId, address creditLine, address liquidityPool) external {
+    function updateProgram(uint32 programId, address creditLine, address liquidityPool) external pure {
         programId; // To prevent compiler warning about unused variable
         creditLine; // To prevent compiler warning about unused variable
         liquidityPool; // To prevent compiler warning about unused variable
@@ -133,17 +133,17 @@ contract LendingMarketMock is ILendingMarket {
         revert Error.NotImplemented();
     }
 
-    function getProgramLender(uint32 programId) external view returns (address) {
+    function getProgramLender(uint32 programId) external pure returns (address) {
         programId; // To prevent compiler warning about unused variable
         revert Error.NotImplemented();
     }
 
-    function getProgramCreditLine(uint32 programId) external view returns (address) {
+    function getProgramCreditLine(uint32 programId) external pure returns (address) {
         programId; // To prevent compiler warning about unused variable
         revert Error.NotImplemented();
     }
 
-    function getProgramLiquidityPool(uint32 programId) external view returns (address) {
+    function getProgramLiquidityPool(uint32 programId) external pure returns (address) {
         programId; // To prevent compiler warning about unused variable
         revert Error.NotImplemented();
     }
@@ -170,19 +170,19 @@ contract LendingMarketMock is ILendingMarket {
         revert Error.NotImplemented();
     }
 
-    function interestRateFactor() external view returns (uint256) {
+    function interestRateFactor() external pure returns (uint256) {
         revert Error.NotImplemented();
     }
 
-    function periodInSeconds() external view returns (uint256) {
+    function periodInSeconds() external pure returns (uint256) {
         revert Error.NotImplemented();
     }
 
-    function timeOffset() external view returns (uint256, bool) {
+    function timeOffset() external pure returns (uint256, bool) {
         revert Error.NotImplemented();
     }
 
-    function loanCounter() external view returns (uint256) {
+    function loanCounter() external pure returns (uint256) {
         revert Error.NotImplemented();
     }
 

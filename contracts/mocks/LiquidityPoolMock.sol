@@ -72,7 +72,7 @@ contract LiquidityPoolMock is ILiquidityPool {
         _tokenAddress = tokenAddress;
     }
 
-    function approveMarket(address _market, address token) external {
-        IERC20(token).approve(_market, type(uint56).max);
+    function approveMarket(address _market, address token_) external {
+        IERC20(token_).approve(_market, type(uint56).max);
     }
 }
