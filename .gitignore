@@ -1,26 +1,17 @@
-# Compiler files
-artifacts/
-cache/
-out/
+# Project dependencies
+node_modules
+
+# TypeChain files
+/typechain
+/typechain-types
 
 # Hardhat files
-cache_hardhat/
-node_modules/
-coverage/
-typechain/
-typechain-types/
-coverage.json
+/cache
+/artifacts
 
-# Development broadcast logs
-!/broadcast
-/broadcast/*/31337/
-/broadcast/**/dry-run/
-
-# Docs
-docs/
-
-# Dotenv file
-.env
+# solidity-coverage files
+/coverage
+/coverage.json
 
 # IDE-specific files
 .idea
@@ -28,5 +19,9 @@ docs/
 # Version manager files
 .tool-versions
 
-# Test coverage
-lcov.info
+# Environment variables
+.env
+
+# Other files
+/tmp
+/flatten
