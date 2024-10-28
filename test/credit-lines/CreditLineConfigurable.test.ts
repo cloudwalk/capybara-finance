@@ -2,7 +2,7 @@ import { ethers, upgrades } from "hardhat";
 import { expect } from "chai";
 import { Contract, ContractFactory } from "ethers";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
-import { getAddress, proveTx, connect } from "../../test-utils/eth";
+import { connect, getAddress, proveTx } from "../../test-utils/eth";
 import { checkEquality, setUpFixture } from "../../test-utils/common";
 
 interface CreditLineConfig {

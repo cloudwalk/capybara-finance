@@ -4,7 +4,8 @@ import { Contract, ContractFactory, TransactionReceipt, TransactionResponse } fr
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import {
   connect,
-  getAddress, getBlockTimestamp,
+  getAddress,
+  getBlockTimestamp,
   getLatestBlockTimestamp,
   getTxTimestamp,
   increaseBlockTimestampTo,

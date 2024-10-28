@@ -68,7 +68,7 @@ describe("Contract 'LendingMarketMock'", async () => {
     it("Function 'takeLoanFor()'", async () => {
       const { lendingMarket } = await setUpFixture(deployLendingMarketMock);
 
-      await expect(lendingMarket.takeLoanFor(MOCK_ADDRESS,MOCK_PROGRAM_ID, 0, 0, 0))
+      await expect(lendingMarket.takeLoanFor(MOCK_ADDRESS, MOCK_PROGRAM_ID, 0, 0, 0))
         .to.be.revertedWithCustomError(lendingMarket, ERROR_NAME_NOT_IMPLEMENTED);
     });
 
