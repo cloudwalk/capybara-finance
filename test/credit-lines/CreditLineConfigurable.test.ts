@@ -64,10 +64,9 @@ interface LoanTerms {
 }
 
 enum BorrowPolicy {
-  Reset = 0,
-  Keep = 1,
-  Iterate = 2,
-  Decrease = 3
+  SingleActiveLoan = 0,
+  MultipleActiveLoans = 1,
+  TotalAmountLimit = 2,
 }
 
 const ERROR_NAME_ALREADY_INITIALIZED = "InvalidInitialization";
@@ -170,7 +169,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       maxDurationInPeriods: DEFAULT_MAX_DURATION_IN_PERIODS,
       minBorrowAmount: DEFAULT_MIN_BORROW_AMOUNT,
       maxBorrowAmount: DEFAULT_MAX_BORROW_AMOUNT,
-      borrowPolicy: BorrowPolicy.Keep,
+      borrowPolicy: BorrowPolicy.MultipleActiveLoans,
       interestRatePrimary: DEFAULT_MIN_INTEREST_RATE_PRIMARY,
       interestRateSecondary: DEFAULT_MIN_INTEREST_RATE_SECONDARY,
       addonFixedRate: DEFAULT_MIN_ADDON_FIXED_RATE,
@@ -745,16 +744,13 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       expectedBorrowerConfig.borrowPolicy = borrowPolicy;
 
       switch (borrowPolicy) {
-        case BorrowPolicy.Decrease:
+        case BorrowPolicy.TotalAmountLimit:
           expectedBorrowerConfig.maxBorrowAmount -= BORROW_AMOUNT;
           break;
-        case BorrowPolicy.Iterate:
-          expectedBorrowerConfig.maxBorrowAmount -= BORROW_AMOUNT;
-          break;
-        case BorrowPolicy.Reset:
+        case BorrowPolicy.SingleActiveLoan:
           expectedBorrowerConfig.maxBorrowAmount = 0;
           break;
-        case BorrowPolicy.Keep:
+        case BorrowPolicy.MultipleActiveLoans:
           expectedBorrowerConfig.maxBorrowAmount = DEFAULT_MAX_BORROW_AMOUNT;
           break;
       }
@@ -764,20 +760,16 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       checkEquality(onChainBorrowerConfig, expectedBorrowerConfig);
     }
 
-    it("Executes as expected if the borrow policy is 'Keep'", async () => {
-      await executeAndCheck(BorrowPolicy.Keep);
+    it("Executes as expected if the borrow policy is 'MultipleActiveLoans'", async () => {
+      await executeAndCheck(BorrowPolicy.MultipleActiveLoans);
     });
 
-    it("Executes as expected if the borrow policy is 'Decrease'", async () => {
-      await executeAndCheck(BorrowPolicy.Decrease);
+    it("Executes as expected if the borrow policy is 'SingleActiveLoan'", async () => {
+      await executeAndCheck(BorrowPolicy.SingleActiveLoan);
     });
 
-    it("Executes as expected if the borrow policy is 'Reset'", async () => {
-      await executeAndCheck(BorrowPolicy.Reset);
-    });
-
-    it("Executes as expected if the borrow policy is 'Iterate'", async () => {
-      await executeAndCheck(BorrowPolicy.Iterate);
+    it("Executes as expected if the borrow policy is 'TotalAmountLimit'", async () => {
+      await executeAndCheck(BorrowPolicy.TotalAmountLimit);
     });
 
     it("Is reverted if the caller is not the configured market", async () => {
@@ -812,12 +804,12 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       ).withArgs(true);
     });
 
-    it("Executes as expected if tracked balance is not zero and borrow policy is 'Iterate'", async () => {
+    it("Executes as expected if tracked balance is not zero and borrow policy is 'TotalAmountLimit'", async () => {
       const { creditLine, creditLineUnderAdmin } = await setUpFixture(deployAndConfigureCreditLineWithBorrower);
       const loanState: LoanState = await prepareLoan();
 
       const borrowerConfig: BorrowerConfig = createDefaultBorrowerConfiguration();
-      borrowerConfig.borrowPolicy = BorrowPolicy.Iterate;
+      borrowerConfig.borrowPolicy = BorrowPolicy.TotalAmountLimit;
       await proveTx(creditLineUnderAdmin.configureBorrower(borrower.address, borrowerConfig));
 
       loanState.trackedBalance = DEFAULT_REPAY_AMOUNT;
@@ -836,12 +828,12 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       expect(configAfter.maxBorrowAmount).to.eq(borrowerConfig.maxBorrowAmount);
     });
 
-    it("Executes as expected if tracked balance is zero and borrow policy is 'Iterate'", async () => {
+    it("Executes as expected if tracked balance is zero and borrow policy is 'TotalAmountLimit'", async () => {
       const { creditLine, creditLineUnderAdmin } = await setUpFixture(deployAndConfigureCreditLineWithBorrower);
       const loanState: LoanState = await prepareLoan();
 
       const borrowerConfig: BorrowerConfig = createDefaultBorrowerConfiguration();
-      borrowerConfig.borrowPolicy = BorrowPolicy.Iterate;
+      borrowerConfig.borrowPolicy = BorrowPolicy.TotalAmountLimit;
       await proveTx(creditLineUnderAdmin.configureBorrower(borrower.address, borrowerConfig));
 
       loanState.trackedBalance = 0;
@@ -884,7 +876,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       const { creditLine, creditLineUnderAdmin } = await setUpFixture(deployAndConfigureCreditLineWithBorrower);
       const loanState: LoanState = await prepareLoan();
       const borrowerConfig: BorrowerConfig = createDefaultBorrowerConfiguration();
-      borrowerConfig.borrowPolicy = BorrowPolicy.Iterate;
+      borrowerConfig.borrowPolicy = BorrowPolicy.TotalAmountLimit;
       await proveTx(creditLineUnderAdmin.configureBorrower(borrower.address, borrowerConfig));
 
       // borrow policy == iterate
@@ -896,7 +888,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       expect(configAfter.maxBorrowAmount)
         .to.eq(borrowerConfig.maxBorrowAmount + loanState.borrowAmount);
 
-      borrowerConfig.borrowPolicy = BorrowPolicy.Keep;
+      borrowerConfig.borrowPolicy = BorrowPolicy.MultipleActiveLoans;
       await proveTx(creditLineUnderAdmin.configureBorrower(borrower.address, borrowerConfig));
 
       await expect(market.callOnAfterLoanRevocationCreditLine(getAddress(creditLine), DEFAULT_LOAN_ID))
