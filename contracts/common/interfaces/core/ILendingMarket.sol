@@ -12,14 +12,13 @@ interface ILendingMarket {
     //  Events                                      //
     // -------------------------------------------- //
 
-
     /// @dev Emitted when a loan is taken.
     /// @param loanId The unique identifier of the loan.
     /// @param borrower The address of the borrower of the loan.
     /// @param borrowAmount The initial total amount of the loan, including the addon.
     /// @param durationInPeriods The duration of the loan in periods.
     event LoanTaken(
-        uint256 indexed loanId,
+        uint256 indexed loanId, // Tools: this comment prevents Prettier from formatting into a single line.
         address indexed borrower,
         uint256 borrowAmount,
         uint256 durationInPeriods
@@ -56,7 +55,7 @@ interface ILendingMarket {
     /// @param newDuration The new duration of the loan in periods.
     /// @param oldDuration The old duration of the loan in periods.
     event LoanDurationUpdated(
-        uint256 indexed loanId,
+        uint256 indexed loanId, // Tools: this comment prevents Prettier from formatting into a single line.
         uint256 indexed newDuration,
         uint256 indexed oldDuration
     );
@@ -81,12 +80,11 @@ interface ILendingMarket {
         uint256 indexed oldInterestRate
     );
 
-
     /// @dev Emitted when a new credit line is registered.
     /// @param lender The address of the lender who registered the credit line.
     /// @param creditLine The address of the credit line registered.
     event CreditLineRegistered(
-        address indexed lender,
+        address indexed lender, // Tools: this comment prevents Prettier from formatting into a single line.
         address indexed creditLine
     );
 
@@ -94,7 +92,7 @@ interface ILendingMarket {
     /// @param lender The address of the lender who registered the liquidity pool.
     /// @param liquidityPool The address of the liquidity pool registered.
     event LiquidityPoolRegistered(
-        address indexed lender,
+        address indexed lender, // Tools: this comment prevents Prettier from formatting into a single line.
         address indexed liquidityPool
     );
 
@@ -102,7 +100,7 @@ interface ILendingMarket {
     /// @param lender The address of the lender who created the program.
     /// @param programId The unique identifier of the program.
     event ProgramCreated(
-        address indexed lender,
+        address indexed lender, // Tools: this comment prevents Prettier from formatting into a single line.
         uint32 indexed programId
     );
 
@@ -111,7 +109,7 @@ interface ILendingMarket {
     /// @param creditLine The address of the credit line associated with the program.
     /// @param liquidityPool The address of the liquidity pool associated with the program.
     event ProgramUpdated(
-        uint32 indexed programId,
+        uint32 indexed programId, // Tools: this comment prevents Prettier from formatting into a single line.
         address indexed creditLine,
         address indexed liquidityPool
     );
@@ -121,7 +119,7 @@ interface ILendingMarket {
     /// @param account The address of the alias account.
     /// @param isAlias True if the account is configured as an alias, otherwise false.
     event LenderAliasConfigured(
-        address indexed lender,
+        address indexed lender, // Tools: this comment prevents Prettier from formatting into a single line.
         address indexed account,
         bool isAlias
     );
@@ -136,7 +134,7 @@ interface ILendingMarket {
     /// @param durationInPeriods The desired duration of the loan in periods.
     /// @return The unique identifier of the loan.
     function takeLoan(
-        uint32 programId,
+        uint32 programId, // Tools: this comment prevents Prettier from formatting into a single line.
         uint256 borrowAmount,
         uint256 durationInPeriods
     ) external returns (uint256);

@@ -88,7 +88,7 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
     /// @param token_ The address of the token.
     /// See details https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable.
     function initialize(
-        address lender_,
+        address lender_, // Tools: this comment prevents Prettier from formatting into a single line.
         address market_,
         address token_
     ) external initializer {
@@ -101,7 +101,7 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
     /// @param token_ The address of the token.
     /// See details https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable.
     function __CreditLineConfigurable_init(
-        address lender_,
+        address lender_, // Tools: this comment prevents Prettier from formatting into a single line.
         address market_,
         address token_
     ) internal onlyInitializing {
@@ -222,9 +222,12 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
 
         if (borrowerConfig.borrowPolicy == BorrowPolicy.Keep) {
             // Do nothing to the borrower's max borrow amount configuration
-        } else if (borrowerConfig.borrowPolicy == BorrowPolicy.Decrease || borrowerConfig.borrowPolicy == BorrowPolicy.Iterate) {
+        } else if (
+            borrowerConfig.borrowPolicy == BorrowPolicy.Decrease || borrowerConfig.borrowPolicy == BorrowPolicy.Iterate
+        ) {
             borrowerConfig.maxBorrowAmount -= loan.borrowAmount;
-        } else { // borrowerConfig.borrowPolicy == BorrowPolicy.Reset
+        } else {
+            // borrowerConfig.borrowPolicy == BorrowPolicy.Reset
             borrowerConfig.maxBorrowAmount = 0;
         }
 
@@ -294,13 +297,14 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
         terms.durationInPeriods = durationInPeriods.toUint32();
         terms.interestRatePrimary = borrowerConfig.interestRatePrimary;
         terms.interestRateSecondary = borrowerConfig.interestRateSecondary;
-        terms.addonAmount = Round.roundUp(calculateAddonAmount(
+        uint256 addonAmount = calculateAddonAmount(
             borrowAmount,
             durationInPeriods,
             borrowerConfig.addonFixedRate,
             borrowerConfig.addonPeriodRate,
             Constants.INTEREST_RATE_FACTOR
-        ), Constants.ACCURACY_FACTOR).toUint64();
+        );
+        terms.addonAmount = Round.roundUp(addonAmount, Constants.ACCURACY_FACTOR).toUint64();
     }
 
     /// @inheritdoc ICreditLineConfigurable

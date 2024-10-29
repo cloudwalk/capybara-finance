@@ -16,7 +16,6 @@ import { ILiquidityPool } from "../common/interfaces/core/ILiquidityPool.sol";
 import { ILiquidityPoolAccountable } from "../common/interfaces/ILiquidityPoolAccountable.sol";
 import { AccessControlExtUpgradeable } from "../common/AccessControlExtUpgradeable.sol";
 
-
 /// @title LiquidityPoolAccountable contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @dev Implementation of the accountable liquidity pool contract.
@@ -82,7 +81,7 @@ contract LiquidityPoolAccountable is AccessControlExtUpgradeable, PausableUpgrad
     /// @param token_ The address of the token.
     /// See details https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable.
     function initialize(
-        address lender_,
+        address lender_, // Tools: this comment prevents Prettier from formatting into a single line.
         address market_,
         address token_
     ) external initializer {

@@ -153,13 +153,14 @@ contract LendingMarket is
         uint256 borrowAmount,
         uint256 durationInPeriods
     ) external whenNotPaused returns (uint256) {
-        return _takeLoan(
-            _msgSender(), // borrower
-            programId,
-            borrowAmount,
-            -1,           // addonAmount -- calculate internally
-            durationInPeriods
-        );
+        return
+            _takeLoan(
+                _msgSender(), // borrower
+                programId,
+                borrowAmount,
+                -1, // addonAmount -- calculate internally
+                durationInPeriods
+            );
     }
 
     /// @inheritdoc ILendingMarket
@@ -176,13 +177,14 @@ contract LendingMarket is
         if (borrower == address(0)) {
             revert Error.ZeroAddress();
         }
-        return _takeLoan(
-            borrower,
-            programId,
-            borrowAmount,
-            int256(addonAmount),
-            durationInPeriods
-        );
+        return
+            _takeLoan(
+                borrower, // Tools: this comment prevents Prettier from formatting into a single line.
+                programId,
+                borrowAmount,
+                int256(addonAmount),
+                durationInPeriods
+            );
     }
 
     /// @dev Takes a loan for a provided account internally.
@@ -222,7 +224,7 @@ contract LendingMarket is
 
         uint256 id = _loanIdCounter++;
         Loan.Terms memory terms = ICreditLine(creditLine).determineLoanTerms(
-            borrower,
+            borrower, // Tools: this comment prevents Prettier from formatting into a single line.
             borrowAmount,
             durationInPeriods
         );
@@ -367,7 +369,7 @@ contract LendingMarket is
 
     /// @inheritdoc ILendingMarket
     function createProgram(
-        address creditLine,
+        address creditLine, // Tools: this comment prevents Prettier from formatting into a single line.
         address liquidityPool
     ) external whenNotPaused {
         if (creditLine == address(0)) {
@@ -397,7 +399,7 @@ contract LendingMarket is
 
     /// @inheritdoc ILendingMarket
     function updateProgram(
-        uint32 programId,
+        uint32 programId, // Tools: this comment prevents Prettier from formatting into a single line.
         address creditLine,
         address liquidityPool
     ) external whenNotPaused {
@@ -664,7 +666,7 @@ contract LendingMarket is
                 originalBalance,
                 numberOfPeriods,
                 interestRate,
-            interestRateFactor_
+                interestRateFactor_
             );
     }
 
