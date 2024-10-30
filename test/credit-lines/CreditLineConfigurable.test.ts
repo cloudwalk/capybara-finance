@@ -66,7 +66,7 @@ interface LoanTerms {
 enum BorrowPolicy {
   SingleActiveLoan = 0,
   MultipleActiveLoans = 1,
-  TotalAmountLimit = 2,
+  TotalActiveAmountLimit = 2,
 }
 
 const ERROR_NAME_ALREADY_INITIALIZED = "InvalidInitialization";
@@ -744,7 +744,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       expectedBorrowerConfig.borrowPolicy = borrowPolicy;
 
       switch (borrowPolicy) {
-        case BorrowPolicy.TotalAmountLimit:
+        case BorrowPolicy.TotalActiveAmountLimit:
           expectedBorrowerConfig.maxBorrowAmount -= BORROW_AMOUNT;
           break;
         case BorrowPolicy.SingleActiveLoan:
@@ -769,7 +769,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     });
 
     it("Executes as expected if the borrow policy is 'TotalAmountLimit'", async () => {
-      await executeAndCheck(BorrowPolicy.TotalAmountLimit);
+      await executeAndCheck(BorrowPolicy.TotalActiveAmountLimit);
     });
 
     it("Is reverted if the caller is not the configured market", async () => {
@@ -809,7 +809,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       const loanState: LoanState = await prepareLoan();
 
       const borrowerConfig: BorrowerConfig = createDefaultBorrowerConfiguration();
-      borrowerConfig.borrowPolicy = BorrowPolicy.TotalAmountLimit;
+      borrowerConfig.borrowPolicy = BorrowPolicy.TotalActiveAmountLimit;
       await proveTx(creditLineUnderAdmin.configureBorrower(borrower.address, borrowerConfig));
 
       loanState.trackedBalance = DEFAULT_REPAY_AMOUNT;
@@ -833,7 +833,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       const loanState: LoanState = await prepareLoan();
 
       const borrowerConfig: BorrowerConfig = createDefaultBorrowerConfiguration();
-      borrowerConfig.borrowPolicy = BorrowPolicy.TotalAmountLimit;
+      borrowerConfig.borrowPolicy = BorrowPolicy.TotalActiveAmountLimit;
       await proveTx(creditLineUnderAdmin.configureBorrower(borrower.address, borrowerConfig));
 
       loanState.trackedBalance = 0;
@@ -876,7 +876,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       const { creditLine, creditLineUnderAdmin } = await setUpFixture(deployAndConfigureCreditLineWithBorrower);
       const loanState: LoanState = await prepareLoan();
       const borrowerConfig: BorrowerConfig = createDefaultBorrowerConfiguration();
-      borrowerConfig.borrowPolicy = BorrowPolicy.TotalAmountLimit;
+      borrowerConfig.borrowPolicy = BorrowPolicy.TotalActiveAmountLimit;
       await proveTx(creditLineUnderAdmin.configureBorrower(borrower.address, borrowerConfig));
 
       // borrow policy == iterate

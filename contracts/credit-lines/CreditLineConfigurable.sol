@@ -72,10 +72,13 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
     error LoanDurationOutOfRange();
 
     /// @dev Thrown when another loan is requested by an account but only one active loan is allowed.
-    error SingleActiveLoanRuleViolation();
+    error LimitViolationOnSingleActiveLoan();
 
     /// @dev Thrown when // TODO
-    error TotalActiveLoanAmountExcess(uint256 newTotalActiveLoanAmount);
+    error LimitViolationOnTotalActiveLoanAmount(uint256 newTotalActiveLoanAmount);
+
+    /// @dev Thrown when // TODO
+    error BorrowerStateOverflow();
 
     // -------------------------------------------- //
     //  Modifiers                                   //
@@ -305,6 +308,11 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
     }
 
     /// @inheritdoc ICreditLineConfigurable
+    function getBorrowerState(address borrower) external view returns (BorrowerState memory) {
+        return _borrowerStates[borrower];
+    }
+
+    /// @inheritdoc ICreditLineConfigurable
     function creditLineConfiguration() external view override returns (CreditLineConfig memory) {
         return _config;
     }
@@ -429,23 +437,34 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
             BorrowerState storage borrowerState = _borrowerStates[loan.borrower];
             if (borrowerConfig.borrowPolicy == BorrowPolicy.SingleActiveLoan) {
                 if (borrowerState.activeLoanCount > 0) {
-                    revert SingleActiveLoanRuleViolation();
+                    revert LimitViolationOnSingleActiveLoan();
                 }
-            } else if (borrowerConfig.borrowPolicy == BorrowPolicy.TotalAmountLimit) {
+            } else if (borrowerConfig.borrowPolicy == BorrowPolicy.TotalActiveAmountLimit) {
                 uint256 newTotalActiveLoanAmount = loan.borrowAmount + borrowerState.totalActiveLoanAmount;
                 if (newTotalActiveLoanAmount > borrowerConfig.maxBorrowAmount) {
-                    revert TotalActiveLoanAmountExcess(newTotalActiveLoanAmount);
+                    revert LimitViolationOnTotalActiveLoanAmount(newTotalActiveLoanAmount);
                 }
             } // else borrowerConfig.borrowPolicy == BorrowPolicy.MultipleActiveLoans
 
-            borrowerState.activeLoanCount += 1;
-            borrowerState.totalActiveLoanAmount += loan.borrowAmount;
+            unchecked {
+                uint256 newActiveLoanCount = uint256(borrowerState.activeLoanCount) + 1;
+                uint256 newTotalActiveLoanAmount = uint256(borrowerState.totalActiveLoanAmount) + loan.borrowAmount;
+                if (
+                    newActiveLoanCount + borrowerState.closedLoanCount > type(uint16).max ||
+                    newTotalActiveLoanAmount + borrowerState.totalClosedLoanAmount > type(uint64).max
+                ) {
+                    revert BorrowerStateOverflow();
+                }
+                borrowerState.activeLoanCount = uint16(newActiveLoanCount);
+                borrowerState.totalActiveLoanAmount = uint64(newTotalActiveLoanAmount);
+            }
         } else {
             if (borrowerConfig.borrowPolicy == BorrowPolicy.MultipleActiveLoans) {
                 // Do nothing to the borrower's max borrow amount configuration
-            } else if (borrowerConfig.borrowPolicy == BorrowPolicy.TotalAmountLimit) {
+            } else if (borrowerConfig.borrowPolicy == BorrowPolicy.TotalActiveAmountLimit) {
                 borrowerConfig.maxBorrowAmount -= loan.borrowAmount;
-            } else { // borrowerConfig.borrowPolicy == BorrowPolicy.SingleActiveLoan
+            } else {
+                // borrowerConfig.borrowPolicy == BorrowPolicy.SingleActiveLoan
                 borrowerConfig.maxBorrowAmount = 0;
             }
         }
@@ -461,19 +480,22 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
             borrowerState.totalClosedLoanAmount += loan.borrowAmount;
         } else {
             BorrowerConfig storage borrowerConfig = _borrowerConfigs[loan.borrower];
-            if (borrowerConfig.borrowPolicy == BorrowPolicy.TotalAmountLimit) {
+            if (borrowerConfig.borrowPolicy == BorrowPolicy.TotalActiveAmountLimit) {
                 borrowerConfig.maxBorrowAmount += loan.borrowAmount;
             }
         }
     }
 
     // -------------------------------------------- //
-    //  Migration functions                         //
+    //  Migration service functions                 //
     // -------------------------------------------- //
 
     /// @dev TODO
-    function migrateBorrowState(uint256 loanIdCount) public {
+    function migrateBorrowerState(uint256 loanIdCount) public {
         uint256 loanId = _migrationState.nextLoanId;
+        if (loanIdCount > type(uint256).max - loanId) {
+            loanIdCount = type(uint256).max - loanId;
+        }
         uint256 endLoanId = ILendingMarket(_market).loanCounter();
         if (loanId + loanIdCount < endLoanId) {
             endLoanId = loanId + loanIdCount;
@@ -495,7 +517,7 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
     /// @dev TODO
     function migrateLoanLimitationLogic() external onlyRole(OWNER_ROLE) {
         if (!_migrationState.done) {
-            migrateBorrowState(type(uint32).max);
+            migrateBorrowerState(type(uint256).max);
             _migrationState.done = true;
         }
     }
@@ -506,5 +528,10 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
             _migrationState.done = false;
             _migrationState.nextLoanId = 0;
         }
+    }
+
+    /// @dev TODO
+    function migrationState() external view returns (MigrationState memory) {
+        return _migrationState;
     }
 }
