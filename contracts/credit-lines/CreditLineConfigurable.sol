@@ -74,10 +74,10 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
     /// @dev Thrown when another loan is requested by an account but only one active loan is allowed.
     error LimitViolationOnSingleActiveLoan();
 
-    /// @dev Thrown when // TODO
+    /// @dev Thrown when the total borrowed amount of active loans exceeds the maximum borrow amount of a single loan.
     error LimitViolationOnTotalActiveLoanAmount(uint256 newTotalActiveLoanAmount);
 
-    /// @dev Thrown when // TODO
+    /// @dev Thrown when the borrower state counters or amounts would overflow their maximum values.
     error BorrowerStateOverflow();
 
     // -------------------------------------------- //
@@ -429,7 +429,8 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
         return block.timestamp - Constants.NEGATIVE_TIME_OFFSET;
     }
 
-    /// @dev TODO
+    /// @dev Executes additional checks and updates the borrower structures when a loan is opened.
+    /// @param loan The state of the loan that is being opened.
     function _openLoan(Loan.State memory loan) internal {
         BorrowerConfig storage borrowerConfig = _borrowerConfigs[loan.borrower];
 
@@ -470,7 +471,8 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
         }
     }
 
-    /// @dev TODO
+    /// @dev Updates the borrower structures when a loan is closed.
+    /// @param loan The state of the loan thai is being closed.
     function _closeLoan(Loan.State memory loan) internal {
         if (_migrationState.done) {
             BorrowerState storage borrowerState = _borrowerStates[loan.borrower];
@@ -490,7 +492,8 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
     //  Migration service functions                 //
     // -------------------------------------------- //
 
-    /// @dev TODO
+    /// @dev Migrates the borrower state from the old logic to the new one.
+    /// @param loanIdCount The number of loan IDs to migrate.
     function migrateBorrowerState(uint256 loanIdCount) public {
         uint256 loanId = _migrationState.nextLoanId;
         if (loanIdCount > type(uint256).max - loanId) {
@@ -514,7 +517,7 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
         _migrationState.nextLoanId = uint128(endLoanId);
     }
 
-    /// @dev TODO
+    /// @dev Migrates the loan limitation logic from the old logic to the new one.
     function migrateLoanLimitationLogic() external onlyRole(OWNER_ROLE) {
         if (!_migrationState.done) {
             migrateBorrowerState(type(uint256).max);
@@ -522,7 +525,7 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
         }
     }
 
-    /// @dev TODO
+    /// @dev Clears the migration state. Must be called before the next contract upgrading after the migration.
     function clearMigrationState() external onlyRole(OWNER_ROLE) {
         if (_migrationState.done && _migrationState.nextLoanId != 0) {
             _migrationState.done = false;
@@ -530,7 +533,7 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
         }
     }
 
-    /// @dev TODO
+    /// @dev Returns the migration state structure.
     function migrationState() external view returns (MigrationState memory) {
         return _migrationState;
     }

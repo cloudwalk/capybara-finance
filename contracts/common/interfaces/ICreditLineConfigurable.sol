@@ -17,9 +17,9 @@ interface ICreditLineConfigurable is ICreditLine {
     /// Possible values:
     ///
     /// - SingleActiveLoan = 0 -------- Only one active loan is allowed; additional loan requests will be rejected.
-    /// - MultipleActiveLoans = 1 ----- Multiple active loans are allowed without a total amount limit.
-    /// - TotalActiveAmountLimit = 2 -- Multiple active loans are allowed, but their total amount
-    ///                                 must not exceed the maximum amount of a single loan. TODO rewrite
+    /// - MultipleActiveLoans = 1 ------ Multiple active loans are allowed, with no limit on the total borrowed amount.
+    /// - TotalActiveAmountLimit = 2 --- Multiple active loans are allowed, but their total borrowed amount cannot
+    ///                                  exceed the maximum borrow amount of a single loan specified for the borrower.
     ///
     /// Note: In all cases, each individual loan must comply with the minimum and maximum amount limits.
     enum BorrowPolicy {
@@ -80,7 +80,7 @@ interface ICreditLineConfigurable is ICreditLine {
         // uint96 __reserved; // Reserved for future use until the end of the storage slot.
     }
 
-    /// @dev TODO:
+    /// @dev Defines the migration state.
     struct MigrationState {
         // Slot 1
         uint128 nextLoanId;

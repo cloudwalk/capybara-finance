@@ -8,12 +8,15 @@ import { CreditLineConfigurable } from "../credit-lines/CreditLineConfigurable.s
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @dev Version of the configurable credit line contract with additions required for testing.
 contract CreditLineConfigurableTestable is CreditLineConfigurable {
-    /// @dev TODO
+    /// @dev Sets the borrower state for testing purposes.
+    /// @param borrower The address of the borrower.
+    /// @param newState The new borrower state.
     function setBorrowerState(address borrower, BorrowerState calldata newState) external {
         _borrowerStates[borrower] = newState;
     }
 
-    /// @dev TODO
+    /// @dev Sets the migration state for testing purposes.
+    /// @param newState The new migration state.
     function setMigrationState(MigrationState calldata newState) external {
         _migrationState = newState;
     }
