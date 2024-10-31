@@ -85,6 +85,7 @@ interface ICreditLineConfigurable is ICreditLine {
         // Slot 1
         uint128 nextLoanId;
         bool done;
+        bool borrowerConfigurationPaused;
     }
 
     // -------------------------------------------- //

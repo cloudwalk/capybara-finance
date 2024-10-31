@@ -208,6 +208,9 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
         address borrower,
         BorrowerConfig memory config
     ) external whenNotPaused onlyRole(ADMIN_ROLE) {
+        if (_migrationState.borrowerConfigurationPaused) {
+            revert EnforcedPause();
+        }
         _configureBorrower(borrower, config);
     }
 
@@ -216,6 +219,9 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
         address[] memory borrowers,
         BorrowerConfig[] memory configs
     ) external whenNotPaused onlyRole(ADMIN_ROLE) {
+        if (_migrationState.borrowerConfigurationPaused) {
+            revert EnforcedPause();
+        }
         if (borrowers.length != configs.length) {
             revert Error.ArrayLengthMismatch();
         }
@@ -518,18 +524,38 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
     }
 
     /// @dev Migrates the loan limitation logic from the old logic to the new one.
-    function migrateLoanLimitationLogic() external onlyRole(OWNER_ROLE) {
+    function migrateLoanLimitationLogic() external onlyRole(ADMIN_ROLE) {
         if (!_migrationState.done) {
             migrateBorrowerState(type(uint256).max);
             _migrationState.done = true;
         }
     }
 
+    /// @dev TODO
+    function setBorrowerConfigurationPause(bool newPausedState) external onlyRole(ADMIN_ROLE) {
+        if (!_migrationState.done) {
+            return;
+        }
+        _migrationState.borrowerConfigurationPaused = newPausedState;
+    }
+
+    /// @dev TODO
+    function setMaxBorrowAmount(
+        address borrower,
+        uint64 newMaxBorrowAmount
+    ) external onlyRole(ADMIN_ROLE) {
+        if (!_migrationState.done || !_migrationState.borrowerConfigurationPaused) {
+            return;
+        }
+        _borrowerConfigs[borrower].maxBorrowAmount = newMaxBorrowAmount;
+    }
+
     /// @dev Clears the migration state. Must be called before the next contract upgrading after the migration.
     function clearMigrationState() external onlyRole(OWNER_ROLE) {
         if (_migrationState.done && _migrationState.nextLoanId != 0) {
-            _migrationState.done = false;
             _migrationState.nextLoanId = 0;
+            _migrationState.done = false;
+            _migrationState.borrowerConfigurationPaused = false;
         }
     }
 

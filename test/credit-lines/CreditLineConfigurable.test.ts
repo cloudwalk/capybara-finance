@@ -67,6 +67,7 @@ interface BorrowerState {
 interface MigrationState {
   nextLoanId: bigint;
   done: boolean;
+  borrowerConfigurationPaused: boolean;
 
   [key: string]: bigint | boolean; // Index signature
 }
@@ -112,7 +113,8 @@ const defaultBorrowerState: BorrowerState = {
 
 const defaultMigrationState: MigrationState = {
   nextLoanId: 0n,
-  done: false
+  done: false,
+  borrowerConfigurationPaused: false
 };
 
 function maxUintForBits(numberOfBits: number): bigint {
@@ -568,6 +570,18 @@ describe("Contract 'CreditLineConfigurable'", async () => {
         .to.be.revertedWithCustomError(creditLineUnderAdmin, ERROR_NAME_ENFORCED_PAUSED);
     });
 
+    it("Is reverted if the borrower configuration is paused", async () => {
+      const { creditLineUnderAdmin } = await setUpFixture(deployAndConfigureCreditLine);
+      const config = createDefaultBorrowerConfiguration();
+      await proveTx(creditLineUnderAdmin.setMigrationState({
+        ...defaultMigrationState,
+        borrowerConfigurationPaused: true
+      }));
+
+      await expect(creditLineUnderAdmin.configureBorrower(borrower.address, config))
+        .to.be.revertedWithCustomError(creditLineUnderAdmin, ERROR_NAME_ENFORCED_PAUSED);
+    });
+
     it("Is reverted if the borrower address is zero", async () => {
       const { creditLineUnderAdmin } = await setUpFixture(deployAndConfigureCreditLine);
       const config = createDefaultBorrowerConfiguration();
@@ -759,6 +773,18 @@ describe("Contract 'CreditLineConfigurable'", async () => {
 
       await expect(creditLineUnderAdmin.configureBorrowers(borrowers, configs))
         .to.be.revertedWithCustomError(creditLine, ERROR_NAME_ENFORCED_PAUSED);
+    });
+
+    it("Is reverted if the borrower configuration is paused", async () => {
+      const { creditLineUnderAdmin } = await setUpFixture(deployAndConfigureCreditLine);
+      const { borrowers, configs } = await prepareDataForBatchBorrowerConfig(BORROWERS_NUMBER);
+      await proveTx(creditLineUnderAdmin.setMigrationState({
+        ...defaultMigrationState,
+        borrowerConfigurationPaused: true
+      }));
+
+      await expect(creditLineUnderAdmin.configureBorrowers(borrowers, configs))
+        .to.be.revertedWithCustomError(creditLineUnderAdmin, ERROR_NAME_ENFORCED_PAUSED);
     });
 
     it("Is reverted if the length of arrays is different", async () => {
@@ -1331,7 +1357,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
 
   describe("Function 'migrateLoanLimitationLogic()'", async () => {
     it("Executes as expected", async () => {
-      const { creditLine } = await setUpFixture(deployAndConfigureCreditLineWithBorrower);
+      const { creditLineUnderAdmin } = await setUpFixture(deployAndConfigureCreditLineWithBorrower);
       const loanIds = [0, 1, 2];
       const loanStates: LoanState[] = loanIds.map(loanId => ({
         ...defaultLoanState,
@@ -1345,6 +1371,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
         totalActiveLoanAmount: BigInt(loanIds.length + BORROW_AMOUNT * loanIds.length)
       };
       const expectedMigrationState: MigrationState = {
+        ...defaultMigrationState,
         nextLoanId: BigInt(loanIds.length),
         done: true
       };
@@ -1355,34 +1382,103 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       await proveTx(market.setLoanIdCounter(loanStates.length));
 
       // Call first time
-      await proveTx(creditLine.migrateLoanLimitationLogic());
-      let actualBorrowerState = await creditLine.getBorrowerState(borrower.address);
-      let actualMigrationState = await creditLine.migrationState();
+      await proveTx(creditLineUnderAdmin.migrateLoanLimitationLogic());
+      let actualBorrowerState = await creditLineUnderAdmin.getBorrowerState(borrower.address);
+      let actualMigrationState = await creditLineUnderAdmin.migrationState();
       checkEquality(actualBorrowerState, expectedBorrowerState);
       checkEquality(actualMigrationState, expectedMigrationState);
 
       // Reset the 'done' fields and call again. Nothing except the 'done' field should be changed
-      await proveTx(creditLine.setMigrationState({ ...expectedMigrationState, done: false }));
-      await proveTx(creditLine.migrateLoanLimitationLogic());
-      actualBorrowerState = await creditLine.getBorrowerState(borrower.address);
-      actualMigrationState = await creditLine.migrationState();
+      await proveTx(creditLineUnderAdmin.setMigrationState({ ...expectedMigrationState, done: false }));
+      await proveTx(creditLineUnderAdmin.migrateLoanLimitationLogic());
+      actualBorrowerState = await creditLineUnderAdmin.getBorrowerState(borrower.address);
+      actualMigrationState = await creditLineUnderAdmin.migrationState();
       checkEquality(actualBorrowerState, expectedBorrowerState);
       checkEquality(actualMigrationState, expectedMigrationState);
 
       // Call second time, nothing should be changed
-      await proveTx(creditLine.migrateLoanLimitationLogic());
-      actualBorrowerState = await creditLine.getBorrowerState(borrower.address);
-      actualMigrationState = await creditLine.migrationState();
+      await proveTx(creditLineUnderAdmin.migrateLoanLimitationLogic());
+      actualBorrowerState = await creditLineUnderAdmin.getBorrowerState(borrower.address);
+      actualMigrationState = await creditLineUnderAdmin.migrationState();
       checkEquality(actualBorrowerState, expectedBorrowerState);
       checkEquality(actualMigrationState, expectedMigrationState);
     });
 
-    it("Is reverted if the caller is not the owner", async () => {
+    it("Is reverted if the caller is not an admin", async () => {
       const { creditLine } = await setUpFixture(deployAndConfigureCreditLineWithBorrower);
 
-      await expect(connect(creditLine, admin).migrateLoanLimitationLogic())
+      await expect(connect(creditLine, lender).migrateLoanLimitationLogic())
         .to.be.revertedWithCustomError(creditLineFactory, ERROR_NAME_ACCESS_CONTROL_UNAUTHORIZED)
-        .withArgs(admin.address, OWNER_ROLE);
+        .withArgs(lender.address, ADMIN_ROLE);
+    });
+  });
+
+  describe("Function 'setBorrowerConfigurationPause()'", async () => {
+    it("Executes as expected", async () => {
+      const { creditLineUnderAdmin } = await setUpFixture(deployAndConfigureCreditLineWithBorrower);
+      const expectedMigrationState: MigrationState = { ...defaultMigrationState };
+
+      // Does not change the state if the borrower state migration is not done
+      await proveTx(creditLineUnderAdmin.setBorrowerConfigurationPause(true));
+      let actualMigrationState = await creditLineUnderAdmin.migrationState();
+      checkEquality(actualMigrationState, expectedMigrationState);
+
+      // Changes the state if the borrower state migration is done
+      expectedMigrationState.done = true;
+      await proveTx(creditLineUnderAdmin.setMigrationState(expectedMigrationState));
+      await proveTx(creditLineUnderAdmin.setBorrowerConfigurationPause(true));
+      expectedMigrationState.borrowerConfigurationPaused = true;
+      actualMigrationState = await creditLineUnderAdmin.migrationState();
+      checkEquality(actualMigrationState, expectedMigrationState);
+    });
+
+    it("Is reverted if the caller is not an admin", async () => {
+      const { creditLine } = await setUpFixture(deployAndConfigureCreditLineWithBorrower);
+
+      await expect(connect(creditLine, lender).setBorrowerConfigurationPause(true))
+        .to.be.revertedWithCustomError(creditLineFactory, ERROR_NAME_ACCESS_CONTROL_UNAUTHORIZED)
+        .withArgs(lender.address, ADMIN_ROLE);
+    });
+  });
+
+  describe("Function 'setMaxBorrowAmount()'", async () => {
+    it("Executes as expected", async () => {
+      const { creditLineUnderAdmin } = await setUpFixture(deployAndConfigureCreditLineWithBorrower);
+      const migrationState: MigrationState = { ...defaultMigrationState };
+      const expectedBorrowerConfig: BorrowerConfig = createDefaultBorrowerConfiguration();
+      const newMaxBorrowAmount = expectedBorrowerConfig.maxBorrowAmount * 2;
+
+      // Does not change the borrower configuration if the borrower state migration is not done
+      migrationState.done = true;
+      await proveTx(creditLineUnderAdmin.setMigrationState(migrationState));
+      await proveTx(creditLineUnderAdmin.setMaxBorrowAmount(borrower.address, newMaxBorrowAmount));
+      let actualBorrowerConfig = await creditLineUnderAdmin.getBorrowerConfiguration(borrower.address);
+      checkEquality(actualBorrowerConfig, expectedBorrowerConfig);
+
+      // Does not change the borrower configuration if the borrower configuration is not paused
+      migrationState.done = false;
+      migrationState.borrowerConfigurationPaused = true;
+      await proveTx(creditLineUnderAdmin.setMigrationState(migrationState));
+      await proveTx(creditLineUnderAdmin.setMaxBorrowAmount(borrower.address, newMaxBorrowAmount));
+      actualBorrowerConfig = await creditLineUnderAdmin.getBorrowerConfiguration(borrower.address);
+      checkEquality(actualBorrowerConfig, expectedBorrowerConfig);
+
+      // Changes the borrower configuration if the borrower state migration is done and borrower configuration is paused
+      migrationState.done = true;
+      migrationState.borrowerConfigurationPaused = true;
+      await proveTx(creditLineUnderAdmin.setMigrationState(migrationState));
+      await proveTx(creditLineUnderAdmin.setMaxBorrowAmount(borrower.address, newMaxBorrowAmount));
+      expectedBorrowerConfig.maxBorrowAmount = newMaxBorrowAmount;
+      actualBorrowerConfig = await creditLineUnderAdmin.getBorrowerConfiguration(borrower.address);
+      checkEquality(actualBorrowerConfig, expectedBorrowerConfig);
+    });
+
+    it("Is reverted if the caller is not an admin", async () => {
+      const { creditLine } = await setUpFixture(deployAndConfigureCreditLineWithBorrower);
+
+      await expect(connect(creditLine, lender).setBorrowerConfigurationPause(true))
+        .to.be.revertedWithCustomError(creditLineFactory, ERROR_NAME_ACCESS_CONTROL_UNAUTHORIZED)
+        .withArgs(lender.address, ADMIN_ROLE);
     });
   });
 
@@ -1390,8 +1486,10 @@ describe("Contract 'CreditLineConfigurable'", async () => {
     it("Executes as expected", async () => {
       const { creditLine } = await setUpFixture(deployAndConfigureCreditLineWithBorrower);
       const expectedMigrationState: MigrationState = {
+        ...defaultMigrationState,
         nextLoanId: 123n,
-        done: true
+        done: true,
+        borrowerConfigurationPaused: true
       };
       await proveTx(creditLine.setMigrationState(expectedMigrationState));
       let actualMigrationState = await creditLine.migrationState();
@@ -1399,13 +1497,11 @@ describe("Contract 'CreditLineConfigurable'", async () => {
 
       // Check clearing if all needed fields have not default values
       await proveTx(creditLine.clearMigrationState());
-      expectedMigrationState.done = false;
-      expectedMigrationState.nextLoanId = 0n;
       actualMigrationState = await creditLine.migrationState();
-      checkEquality(actualMigrationState, expectedMigrationState);
+      checkEquality(actualMigrationState, defaultMigrationState);
 
       // Check clearing not working if only the 'done' field is set
-      expectedMigrationState.done = true;
+      expectedMigrationState.nextLoanId = 0n;
       await proveTx(creditLine.setMigrationState(expectedMigrationState));
       await proveTx(creditLine.clearMigrationState());
       actualMigrationState = await creditLine.migrationState();
@@ -1428,5 +1524,4 @@ describe("Contract 'CreditLineConfigurable'", async () => {
         .withArgs(admin.address, OWNER_ROLE);
     });
   });
-
 });
