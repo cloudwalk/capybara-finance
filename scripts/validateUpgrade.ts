@@ -5,13 +5,13 @@ async function main() {
   const PROXY_ADDRESS: string = ""; // TODO: Enter proxy address
 
   // Upgrade options:
-  // - unsafeAllowRenames: true
-  // - unsafeSkipStorageCheck: true
+  // unsafeAllowRenames: true
+  // unsafeSkipStorageCheck: true
 
   const factory = await ethers.getContractFactory(CONTRACT_NAME);
-  await upgrades.upgradeProxy(PROXY_ADDRESS, factory);
+  await upgrades.validateUpgrade(PROXY_ADDRESS, factory);
 
-  console.log("Proxy upgraded");
+  console.log("Successfully validated");
 }
 
 main().then().catch(err => {
