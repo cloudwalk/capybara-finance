@@ -12,18 +12,20 @@ interface ICreditLineConfigurable is ICreditLine {
     //  Structs and enums                           //
     // -------------------------------------------- //
 
-    /// @dev An enum that defines the available borrow policies.
+    /// @dev Defines the available borrow policies.
     ///
-    /// The possible values:
+    /// Possible values:
     ///
-    /// - Reset ---- Reset the borrow allowance after the first loan taken.
-    /// - Keep ----- Do not change anything about the borrow allowance.
-    /// - Decrease - Decrease the borrow allowance after each loan taken.
+    /// - SingleActiveLoan = 0 -------- Only one active loan is allowed; additional loan requests will be rejected.
+    /// - MultipleActiveLoans = 1 ------ Multiple active loans are allowed, with no limit on the total borrowed amount.
+    /// - TotalActiveAmountLimit = 2 --- Multiple active loans are allowed, but their total borrowed amount cannot
+    ///                                  exceed the maximum borrow amount of a single loan specified for the borrower.
+    ///
+    /// Note: In all cases, each individual loan must comply with the minimum and maximum amount limits.
     enum BorrowPolicy {
-        Reset,           // 0
-        Keep,            // 1
-        Iterate,         // 2
-        Decrease         // 3
+        SingleActiveLoan,
+        MultipleActiveLoans,
+        TotalActiveAmountLimit
     }
 
     /// @dev A struct that defines credit line configuration.
@@ -61,6 +63,31 @@ interface ICreditLineConfigurable is ICreditLine {
         uint32 addonPeriodRate;           // The period rate for the loan addon calculation (extra charges or fees).
     }
 
+    /// @dev Defines a borrower state.
+    ///
+    /// Fields:
+    ///
+    /// activeLoanCount -- the number of active loans currently held by the borrower.
+    /// closedLoanCount -- the number of loans that have been closed, with or without a full repayment.
+    /// totalActiveLoanAmount -- the total amount borrowed across all active loans.
+    /// totalClosedLoanAmount -- the total amount that was borrowed across all closed loans.
+    struct BorrowerState {
+        // Slot 1
+        uint16 activeLoanCount;
+        uint16 closedLoanCount;
+        uint64 totalActiveLoanAmount;
+        uint64 totalClosedLoanAmount;
+        // uint96 __reserved; // Reserved for future use until the end of the storage slot.
+    }
+
+    /// @dev Defines the migration state.
+    struct MigrationState {
+        // Slot 1
+        uint128 nextLoanId;
+        bool done;
+        bool borrowerConfigurationPaused;
+    }
+
     // -------------------------------------------- //
     //  Events                                      //
     // -------------------------------------------- //
@@ -96,6 +123,11 @@ interface ICreditLineConfigurable is ICreditLine {
     /// @param borrower The address of the borrower to check.
     /// @return The structure containing the borrower configuration.
     function getBorrowerConfiguration(address borrower) external view returns (BorrowerConfig memory);
+
+    /// @dev Retrieves the state of a borrower.
+    /// @param borrower The address of the borrower to check.
+    /// @return The structure containing the borrower state.
+    function getBorrowerState(address borrower) external view returns (BorrowerState memory);
 
     /// @dev Retrieves the credit line configuration.
     /// @return The structure containing the credit line configuration.

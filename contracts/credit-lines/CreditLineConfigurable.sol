@@ -44,11 +44,16 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
     CreditLineConfig internal _config;
 
     /// @dev The mapping of borrower to borrower configuration.
-    mapping(address => BorrowerConfig) internal _borrowers;
+    mapping(address => BorrowerConfig) internal _borrowerConfigs;
+
+    /// @dev The mapping of a borrower to the borrower state.
+    mapping(address => BorrowerState) internal _borrowerStates;
+
+    MigrationState internal _migrationState;
 
     /// @dev This empty reserved space is put in place to allow future versions
     /// to add new variables without shifting down storage in the inheritance chain.
-    uint256[46] private __gap;
+    uint256[44] private __gap;
 
     // -------------------------------------------- //
     //  Errors                                      //
@@ -65,6 +70,15 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
 
     /// @dev Thrown when the loan duration is out of range.
     error LoanDurationOutOfRange();
+
+    /// @dev Thrown when another loan is requested by an account but only one active loan is allowed.
+    error LimitViolationOnSingleActiveLoan();
+
+    /// @dev Thrown when the total borrowed amount of active loans exceeds the maximum borrow amount of a single loan.
+    error LimitViolationOnTotalActiveLoanAmount(uint256 newTotalActiveLoanAmount);
+
+    /// @dev Thrown when the borrower state counters or amounts would overflow their maximum values.
+    error BorrowerStateOverflow();
 
     // -------------------------------------------- //
     //  Modifiers                                   //
@@ -88,7 +102,7 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
     /// @param token_ The address of the token.
     /// See details https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable.
     function initialize(
-        address lender_,
+        address lender_, // Tools: this comment prevents Prettier from formatting into a single line.
         address market_,
         address token_
     ) external initializer {
@@ -101,7 +115,7 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
     /// @param token_ The address of the token.
     /// See details https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable.
     function __CreditLineConfigurable_init(
-        address lender_,
+        address lender_, // Tools: this comment prevents Prettier from formatting into a single line.
         address market_,
         address token_
     ) internal onlyInitializing {
@@ -194,6 +208,9 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
         address borrower,
         BorrowerConfig memory config
     ) external whenNotPaused onlyRole(ADMIN_ROLE) {
+        if (_migrationState.borrowerConfigurationPaused) {
+            revert EnforcedPause();
+        }
         _configureBorrower(borrower, config);
     }
 
@@ -202,6 +219,9 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
         address[] memory borrowers,
         BorrowerConfig[] memory configs
     ) external whenNotPaused onlyRole(ADMIN_ROLE) {
+        if (_migrationState.borrowerConfigurationPaused) {
+            revert EnforcedPause();
+        }
         if (borrowers.length != configs.length) {
             revert Error.ArrayLengthMismatch();
         }
@@ -218,16 +238,7 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
     /// @inheritdoc ICreditLine
     function onBeforeLoanTaken(uint256 loanId) external whenNotPaused onlyMarket returns (bool) {
         Loan.State memory loan = ILendingMarket(_market).getLoanState(loanId);
-        BorrowerConfig storage borrowerConfig = _borrowers[loan.borrower];
-
-        if (borrowerConfig.borrowPolicy == BorrowPolicy.Keep) {
-            // Do nothing to the borrower's max borrow amount configuration
-        } else if (borrowerConfig.borrowPolicy == BorrowPolicy.Decrease || borrowerConfig.borrowPolicy == BorrowPolicy.Iterate) {
-            borrowerConfig.maxBorrowAmount -= loan.borrowAmount;
-        } else { // borrowerConfig.borrowPolicy == BorrowPolicy.Reset
-            borrowerConfig.maxBorrowAmount = 0;
-        }
-
+        _openLoan(loan);
         return true;
     }
 
@@ -236,10 +247,7 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
 
         Loan.State memory loan = ILendingMarket(_market).getLoanState(loanId);
         if (loan.trackedBalance == 0) {
-            BorrowerConfig storage borrowerConfig = _borrowers[loan.borrower];
-            if (borrowerConfig.borrowPolicy == BorrowPolicy.Iterate) {
-                borrowerConfig.maxBorrowAmount += loan.borrowAmount;
-            }
+            _closeLoan(loan);
         }
 
         return true;
@@ -247,11 +255,7 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
 
     function onAfterLoanRevocation(uint256 loanId) external whenNotPaused onlyMarket returns (bool) {
         Loan.State memory loan = ILendingMarket(_market).getLoanState(loanId);
-        BorrowerConfig storage borrowerConfig = _borrowers[loan.borrower];
-        if (borrowerConfig.borrowPolicy == BorrowPolicy.Iterate) {
-            borrowerConfig.maxBorrowAmount += loan.borrowAmount;
-        }
-
+        _closeLoan(loan);
         return true;
     }
 
@@ -272,7 +276,7 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
             revert Error.InvalidAmount();
         }
 
-        BorrowerConfig storage borrowerConfig = _borrowers[borrower];
+        BorrowerConfig storage borrowerConfig = _borrowerConfigs[borrower];
 
         if (_blockTimestamp() > borrowerConfig.expiration) {
             revert BorrowerConfigurationExpired();
@@ -294,18 +298,24 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
         terms.durationInPeriods = durationInPeriods.toUint32();
         terms.interestRatePrimary = borrowerConfig.interestRatePrimary;
         terms.interestRateSecondary = borrowerConfig.interestRateSecondary;
-        terms.addonAmount = Round.roundUp(calculateAddonAmount(
+        uint256 addonAmount = calculateAddonAmount(
             borrowAmount,
             durationInPeriods,
             borrowerConfig.addonFixedRate,
             borrowerConfig.addonPeriodRate,
             Constants.INTEREST_RATE_FACTOR
-        ), Constants.ACCURACY_FACTOR).toUint64();
+        );
+        terms.addonAmount = Round.roundUp(addonAmount, Constants.ACCURACY_FACTOR).toUint64();
     }
 
     /// @inheritdoc ICreditLineConfigurable
     function getBorrowerConfiguration(address borrower) external view override returns (BorrowerConfig memory) {
-        return _borrowers[borrower];
+        return _borrowerConfigs[borrower];
+    }
+
+    /// @inheritdoc ICreditLineConfigurable
+    function getBorrowerState(address borrower) external view returns (BorrowerState memory) {
+        return _borrowerStates[borrower];
     }
 
     /// @inheritdoc ICreditLineConfigurable
@@ -415,7 +425,7 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
             revert InvalidBorrowerConfiguration();
         }
 
-        _borrowers[borrower] = config;
+        _borrowerConfigs[borrower] = config;
 
         emit BorrowerConfigured(address(this), borrower);
     }
@@ -423,5 +433,134 @@ contract CreditLineConfigurable is AccessControlExtUpgradeable, PausableUpgradea
     /// @dev Returns the current block timestamp with the time offset applied.
     function _blockTimestamp() private view returns (uint256) {
         return block.timestamp - Constants.NEGATIVE_TIME_OFFSET;
+    }
+
+    /// @dev Executes additional checks and updates the borrower structures when a loan is opened.
+    /// @param loan The state of the loan that is being opened.
+    function _openLoan(Loan.State memory loan) internal {
+        BorrowerConfig storage borrowerConfig = _borrowerConfigs[loan.borrower];
+
+        if (_migrationState.done) {
+            BorrowerState storage borrowerState = _borrowerStates[loan.borrower];
+            if (borrowerConfig.borrowPolicy == BorrowPolicy.SingleActiveLoan) {
+                if (borrowerState.activeLoanCount > 0) {
+                    revert LimitViolationOnSingleActiveLoan();
+                }
+            } else if (borrowerConfig.borrowPolicy == BorrowPolicy.TotalActiveAmountLimit) {
+                uint256 newTotalActiveLoanAmount = loan.borrowAmount + borrowerState.totalActiveLoanAmount;
+                if (newTotalActiveLoanAmount > borrowerConfig.maxBorrowAmount) {
+                    revert LimitViolationOnTotalActiveLoanAmount(newTotalActiveLoanAmount);
+                }
+            } // else borrowerConfig.borrowPolicy == BorrowPolicy.MultipleActiveLoans
+
+            unchecked {
+                uint256 newActiveLoanCount = uint256(borrowerState.activeLoanCount) + 1;
+                uint256 newTotalActiveLoanAmount = uint256(borrowerState.totalActiveLoanAmount) + loan.borrowAmount;
+                if (
+                    newActiveLoanCount + borrowerState.closedLoanCount > type(uint16).max ||
+                    newTotalActiveLoanAmount + borrowerState.totalClosedLoanAmount > type(uint64).max
+                ) {
+                    revert BorrowerStateOverflow();
+                }
+                borrowerState.activeLoanCount = uint16(newActiveLoanCount);
+                borrowerState.totalActiveLoanAmount = uint64(newTotalActiveLoanAmount);
+            }
+        } else {
+            if (borrowerConfig.borrowPolicy == BorrowPolicy.MultipleActiveLoans) {
+                // Do nothing to the borrower's max borrow amount configuration
+            } else if (borrowerConfig.borrowPolicy == BorrowPolicy.TotalActiveAmountLimit) {
+                borrowerConfig.maxBorrowAmount -= loan.borrowAmount;
+            } else {
+                // borrowerConfig.borrowPolicy == BorrowPolicy.SingleActiveLoan
+                borrowerConfig.maxBorrowAmount = 0;
+            }
+        }
+    }
+
+    /// @dev Updates the borrower structures when a loan is closed.
+    /// @param loan The state of the loan thai is being closed.
+    function _closeLoan(Loan.State memory loan) internal {
+        if (_migrationState.done) {
+            BorrowerState storage borrowerState = _borrowerStates[loan.borrower];
+            borrowerState.activeLoanCount -= 1;
+            borrowerState.closedLoanCount += 1;
+            borrowerState.totalActiveLoanAmount -= loan.borrowAmount;
+            borrowerState.totalClosedLoanAmount += loan.borrowAmount;
+        } else {
+            BorrowerConfig storage borrowerConfig = _borrowerConfigs[loan.borrower];
+            if (borrowerConfig.borrowPolicy == BorrowPolicy.TotalActiveAmountLimit) {
+                borrowerConfig.maxBorrowAmount += loan.borrowAmount;
+            }
+        }
+    }
+
+    // -------------------------------------------- //
+    //  Migration service functions                 //
+    // -------------------------------------------- //
+
+    /// @dev Migrates the borrower state from the old logic to the new one.
+    /// @param loanIdCount The number of loan IDs to migrate.
+    function migrateBorrowerState(uint256 loanIdCount) public {
+        uint256 loanId = _migrationState.nextLoanId;
+        if (loanIdCount > type(uint256).max - loanId) {
+            loanIdCount = type(uint256).max - loanId;
+        }
+        uint256 endLoanId = ILendingMarket(_market).loanCounter();
+        if (loanId + loanIdCount < endLoanId) {
+            endLoanId = loanId + loanIdCount;
+        }
+        for (; loanId < endLoanId; ++loanId) {
+            Loan.State memory loan = ILendingMarket(_market).getLoanState(loanId);
+            BorrowerState storage state = _borrowerStates[loan.borrower];
+            if (loan.trackedBalance != 0) {
+                state.activeLoanCount += 1;
+                state.totalActiveLoanAmount += loan.borrowAmount;
+            } else {
+                state.closedLoanCount += 1;
+                state.totalClosedLoanAmount += loan.borrowAmount;
+            }
+        }
+        _migrationState.nextLoanId = uint128(endLoanId);
+    }
+
+    /// @dev Migrates the loan limitation logic from the old logic to the new one.
+    function migrateLoanLimitationLogic() external onlyRole(ADMIN_ROLE) {
+        if (!_migrationState.done) {
+            migrateBorrowerState(type(uint256).max);
+            _migrationState.done = true;
+        }
+    }
+
+    /// @dev TODO
+    function setBorrowerConfigurationPause(bool newPausedState) external onlyRole(ADMIN_ROLE) {
+        if (!_migrationState.done) {
+            return;
+        }
+        _migrationState.borrowerConfigurationPaused = newPausedState;
+    }
+
+    /// @dev TODO
+    function setMaxBorrowAmount(
+        address borrower,
+        uint64 newMaxBorrowAmount
+    ) external onlyRole(ADMIN_ROLE) {
+        if (!_migrationState.done || !_migrationState.borrowerConfigurationPaused) {
+            return;
+        }
+        _borrowerConfigs[borrower].maxBorrowAmount = newMaxBorrowAmount;
+    }
+
+    /// @dev Clears the migration state. Must be called before the next contract upgrading after the migration.
+    function clearMigrationState() external onlyRole(OWNER_ROLE) {
+        if (_migrationState.done && _migrationState.nextLoanId != 0) {
+            _migrationState.nextLoanId = 0;
+            _migrationState.done = false;
+            _migrationState.borrowerConfigurationPaused = false;
+        }
+    }
+
+    /// @dev Returns the migration state structure.
+    function migrationState() external view returns (MigrationState memory) {
+        return _migrationState;
     }
 }

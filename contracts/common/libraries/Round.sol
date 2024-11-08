@@ -10,13 +10,6 @@ library Round {
     /// @param value The value to be rounded.
     /// @param accuracy The accuracy to which the value should be rounded.
     function roundUp(uint256 value, uint256 accuracy) internal pure returns (uint256) {
-        return (value + accuracy - 1) / accuracy * accuracy;
-    }
-
-    /// @dev Rounds down a value to the nearest multiple of an accuracy.
-    /// @param value The value to be rounded.
-    /// @param accuracy The accuracy to which the value should be rounded.
-    function roundDown(uint256 value, uint256 accuracy) internal pure returns (uint256) {
-        return value / accuracy * accuracy;
+        return ((value + accuracy - 1) / accuracy) * accuracy;
     }
 }
