@@ -8,7 +8,7 @@
 ![example branch parameter](https://github.com/cloudwalk/brlc-capybara-finance/actions/workflows/build.yml/badge.svg?branch=main)
 ![example branch parameter](https://github.com/cloudwalk/brlc-capybara-finance/actions/workflows/test.yml/badge.svg?branch=main)
 
-This repository contains smart contracts for the CapybaraFinance lending protocol.
+This repository contains CapybaraFinance smart contracts.
 
 ## Project Setup
 1. Clone the repo.
@@ -21,7 +21,7 @@ This repository contains smart contracts for the CapybaraFinance lending protoco
     ```sh
     cp .env.example .env
     ```
-3. If necessary, update settings in the newly created `.env` file (e.g., Solidity version, number of optimization runs, network RPC URLs, private keys (PK) for networks, etc.).
+3. Optionally update the settings in the newly created `.env` file (e.g., Solidity version, number of optimization runs, network RPC URLs, private keys (PK) for networks, etc.).
 
 ## Build and test
 
