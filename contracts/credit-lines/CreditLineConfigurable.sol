@@ -292,6 +292,18 @@ contract CreditLineConfigurable is
             revert LoanDurationOutOfRange();
         }
 
+        BorrowerState storage borrowerState = _borrowerStates[borrower];
+        if (borrowerConfig.borrowPolicy == BorrowPolicy.SingleActiveLoan) {
+            if (borrowerState.activeLoanCount > 0) {
+                revert LimitViolationOnSingleActiveLoan();
+            }
+        } else if (borrowerConfig.borrowPolicy == BorrowPolicy.TotalActiveAmountLimit) {
+            uint256 newTotalActiveLoanAmount = borrowAmount + borrowerState.totalActiveLoanAmount;
+            if (newTotalActiveLoanAmount > borrowerConfig.maxBorrowAmount) {
+                revert LimitViolationOnTotalActiveLoanAmount(newTotalActiveLoanAmount);
+            }
+        } // else borrowerConfig.borrowPolicy == BorrowPolicy.MultipleActiveLoans
+
         terms.token = _token;
         terms.durationInPeriods = durationInPeriods.toUint32();
         terms.interestRatePrimary = borrowerConfig.interestRatePrimary;
@@ -436,19 +448,7 @@ contract CreditLineConfigurable is
     /// @dev Executes additional checks and updates the borrower structures when a loan is opened.
     /// @param loan The state of the loan that is being opened.
     function _openLoan(Loan.State memory loan) internal {
-        BorrowerConfig storage borrowerConfig = _borrowerConfigs[loan.borrower];
-
         BorrowerState storage borrowerState = _borrowerStates[loan.borrower];
-        if (borrowerConfig.borrowPolicy == BorrowPolicy.SingleActiveLoan) {
-            if (borrowerState.activeLoanCount > 0) {
-                revert LimitViolationOnSingleActiveLoan();
-            }
-        } else if (borrowerConfig.borrowPolicy == BorrowPolicy.TotalActiveAmountLimit) {
-            uint256 newTotalActiveLoanAmount = loan.borrowAmount + borrowerState.totalActiveLoanAmount;
-            if (newTotalActiveLoanAmount > borrowerConfig.maxBorrowAmount) {
-                revert LimitViolationOnTotalActiveLoanAmount(newTotalActiveLoanAmount);
-            }
-        } // else borrowerConfig.borrowPolicy == BorrowPolicy.MultipleActiveLoans
 
         unchecked {
             uint256 newActiveLoanCount = uint256(borrowerState.activeLoanCount) + 1;
