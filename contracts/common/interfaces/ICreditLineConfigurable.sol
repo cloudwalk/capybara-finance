@@ -80,14 +80,6 @@ interface ICreditLineConfigurable is ICreditLine {
         // uint96 __reserved; // Reserved for future use until the end of the storage slot.
     }
 
-    /// @dev Defines the migration state.
-    struct MigrationState {
-        // Slot 1
-        uint128 nextLoanId;
-        bool done;
-        bool borrowerConfigurationPaused;
-    }
-
     // -------------------------------------------- //
     //  Events                                      //
     // -------------------------------------------- //

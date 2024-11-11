@@ -183,8 +183,8 @@ contract LendingMarketMock is ILendingMarket {
         revert Error.NotImplemented();
     }
 
-    function loanCounter() external view returns (uint256) {
-        return _loanIdCounter;
+    function loanCounter() external pure returns (uint256) {
+        revert Error.NotImplemented();
     }
 
     // -------------------------------------------- //
@@ -193,10 +193,6 @@ contract LendingMarketMock is ILendingMarket {
 
     function mockLoanState(uint256 loanId, Loan.State memory state) external {
         _loanStates[loanId] = state;
-    }
-
-    function setLoanIdCounter(uint256 newLoanIdCounter) external {
-        _loanIdCounter = newLoanIdCounter;
     }
 
     function callOnBeforeLoanTakenLiquidityPool(address liquidityPool, uint256 loanId) external {
