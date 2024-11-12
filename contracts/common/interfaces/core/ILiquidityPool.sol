@@ -31,5 +31,4 @@ interface ILiquidityPool {
 
      /// @dev Proves the contract is the liquidity pool one. A marker function.
     function proveLiquidityPool() external pure;
-
 }
