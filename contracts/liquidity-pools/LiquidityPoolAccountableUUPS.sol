@@ -17,7 +17,10 @@ contract LiquidityPoolAccountableUUPS is LiquidityPoolAccountable, UUPSExtUpgrad
         _disableInitializers();
     }
 
-    /// @inheritdoc UUPSExtUpgradeable
+    /**
+     * @dev The upgrade validation function for the UUPSExtUpgradeable contract.
+     * @param newImplementation The address of the new implementation.
+     */
     function _validateUpgrade(address newImplementation) internal override onlyRole(OWNER_ROLE) {
         try ILiquidityPool(newImplementation).proveLiquidityPool() {} catch {
             revert LiquidityPool_ImplementationAddressInvalid();

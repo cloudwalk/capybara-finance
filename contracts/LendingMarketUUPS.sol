@@ -18,7 +18,10 @@ contract LendingMarketUUPS is LendingMarket, UUPSExtUpgradeable {
         _disableInitializers();
     }
 
-    /// @inheritdoc UUPSExtUpgradeable
+    /**
+     * @dev The upgrade validation function for the UUPSExtUpgradeable contract.
+     * @param newImplementation The address of the new implementation.
+     */
     function _validateUpgrade(address newImplementation) internal override onlyRole(OWNER_ROLE) {
         try ILendingMarket(newImplementation).proveLendingMarket() {} catch {
             revert LendingMarket_ImplementationAddressInvalid();

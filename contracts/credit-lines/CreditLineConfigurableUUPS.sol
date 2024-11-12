@@ -17,7 +17,10 @@ contract CreditLineConfigurableUUPS is CreditLineConfigurable, UUPSExtUpgradeabl
         _disableInitializers();
     }
 
-    /// @inheritdoc UUPSExtUpgradeable
+    /**
+     * @dev The upgrade validation function for the UUPSExtUpgradeable contract.
+     * @param newImplementation The address of the new implementation.
+     */
     function _validateUpgrade(address newImplementation) internal override onlyRole(OWNER_ROLE) {
         try ICreditLine(newImplementation).proveCreditLine() {} catch {
             revert CreditLine_ImplementationAddressInvalid();
