@@ -281,4 +281,7 @@ interface ILendingMarket {
 
     /// @dev Returns the total number of loans taken.
     function loanCounter() external view returns (uint256);
+
+     /// @dev Proves the contract is the lending market one. A marker function.
+    function proveLendingMarket() external pure;
 }

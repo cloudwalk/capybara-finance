@@ -53,7 +53,7 @@ describe("Contract 'LendingMarketUUPS'", async () => {
     it("Is reverted if the caller is not the owner", async () => {
       const { lendingMarket } = await setUpFixture(deployLendingMarket);
 
-      await expect(connect(lendingMarket, attacker).upgradeToAndCall(attacker.address, "0x"))
+      await expect(connect(lendingMarket, attacker).upgradeToAndCall(lendingMarket, "0x"))
         .to.be.revertedWithCustomError(lendingMarket, ERROR_NAME_ACCESS_CONTROL_UNAUTHORIZED)
         .withArgs(attacker.address, OWNER_ROLE);
     });

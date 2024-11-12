@@ -41,4 +41,7 @@ interface ICreditLine {
 
     /// @dev Returns the address of the credit line token.
     function token() external view returns (address);
+
+    /// @dev Proves the contract is the credit line one. A marker function.
+    function proveCreditLine() external pure;
 }

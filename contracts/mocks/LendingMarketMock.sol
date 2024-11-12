@@ -222,4 +222,6 @@ contract LendingMarketMock is ILendingMarket {
     function callOnAfterLoanRevocationCreditLine(address creditLine, uint256 loanId) external {
         emit HookCallResult(ICreditLine(creditLine).onAfterLoanRevocation(loanId));
     }
+
+    function proveLendingMarket() external pure {}
 }

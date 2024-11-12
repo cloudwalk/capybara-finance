@@ -58,7 +58,7 @@ describe("Contract 'CreditLineConfigurableUUPS'", async () => {
     it("Is reverted if the caller is not the owner", async () => {
       const { creditLine } = await setUpFixture(deployCreditLine);
 
-      await expect(connect(creditLine, attacker).upgradeToAndCall(attacker.address, "0x"))
+      await expect(connect(creditLine, attacker).upgradeToAndCall(creditLine, "0x"))
         .to.be.revertedWithCustomError(creditLine, ERROR_NAME_ACCESS_CONTROL_UNAUTHORIZED)
         .withArgs(attacker.address, OWNER_ROLE);
     });

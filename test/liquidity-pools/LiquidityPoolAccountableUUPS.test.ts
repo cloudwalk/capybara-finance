@@ -56,7 +56,7 @@ describe("Contract 'LiquidityPoolAccountableUUPS'", async () => {
     it("Is reverted if the caller is not the owner", async () => {
       const { liquidityPool } = await setUpFixture(deployLiquidityPool);
 
-      await expect(connect(liquidityPool, attacker).upgradeToAndCall(attacker.address, "0x"))
+      await expect(connect(liquidityPool, attacker).upgradeToAndCall(liquidityPool, "0x"))
         .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_ACCESS_CONTROL_UNAUTHORIZED)
         .withArgs(attacker.address, OWNER_ROLE);
     });

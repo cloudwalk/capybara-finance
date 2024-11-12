@@ -76,6 +76,9 @@ contract LendingMarket is
     /// @dev Thrown when the program does not exist.
     error ProgramNotExist();
 
+    /// @dev Thrown if the provided new implementation address is not of a lending market contract.
+    error LendingMarket_ImplementationAddressInvalid();
+
     // -------------------------------------------- //
     //  Modifiers                                   //
     // -------------------------------------------- //
@@ -747,4 +750,7 @@ contract LendingMarket is
     function _blockTimestamp() internal view virtual returns (uint256) {
         return block.timestamp - Constants.NEGATIVE_TIME_OFFSET;
     }
+
+    /// @inheritdoc ILendingMarket
+    function proveLendingMarket() external pure {}
 }
