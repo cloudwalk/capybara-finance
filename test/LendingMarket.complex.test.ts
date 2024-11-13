@@ -284,7 +284,6 @@ describe("Contract 'LendingMarket': complex tests", async () => {
 
       expect(actualPrecision).to.lessThanOrEqual(scenario.precision, errorMessageBefore);
       expect(actualTrackedBalanceAfter).to.eq(expectedTrackedBalanceAfter, errorMessageAfter);
-
     }
   }
 
