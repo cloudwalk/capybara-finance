@@ -23,4 +23,7 @@ library Error {
 
     /// @dev Thrown when the called function is not implemented.
     error NotImplemented();
+
+    /// @dev Thrown if the provided new implementation address is not of a contract.
+    error ImplementationAddressInvalid();
 }

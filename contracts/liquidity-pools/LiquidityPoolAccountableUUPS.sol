@@ -4,8 +4,7 @@ pragma solidity 0.8.24;
 
 import { UUPSExtUpgradeable } from "../common/UUPSExtUpgradeable.sol";
 import { LiquidityPoolAccountable } from "./LiquidityPoolAccountable.sol";
-
-import { ILiquidityPool } from "../common/interfaces/core/ILiquidityPool.sol";
+import { Error } from "../common/libraries/Error.sol";
 
 /// @title LiquidityPoolAccountableUUPS contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
@@ -21,9 +20,9 @@ contract LiquidityPoolAccountableUUPS is LiquidityPoolAccountable, UUPSExtUpgrad
      * @dev The upgrade validation function for the UUPSExtUpgradeable contract.
      * @param newImplementation The address of the new implementation.
      */
-    function _validateUpgrade(address newImplementation) internal override onlyRole(OWNER_ROLE) {
-        try ILiquidityPool(newImplementation).proveLiquidityPool() {} catch {
-            revert LiquidityPool_ImplementationAddressInvalid();
+    function _validateUpgrade(address newImplementation) internal view override onlyRole(OWNER_ROLE) {
+        try LiquidityPoolAccountableUUPS(newImplementation).proveLiquidityPool() {} catch {
+            revert Error.ImplementationAddressInvalid();
         }
     }
 }

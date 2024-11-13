@@ -35,6 +35,12 @@ describe("Contract 'CreditLineMock'", async () => {
 
       expect(await creditLine.token()).to.eq(ethers.ZeroAddress);
     });
+
+    it("Function 'proveCreditLine()'", async () => {
+      const { creditLine } = await setUpFixture(deployCreditLine);
+
+      expect(await creditLine.proveCreditLine()).to.exist;
+    });
   });
 
   describe("Unimplemented mock functions are reverted as expected", async () => {

@@ -65,9 +65,6 @@ contract LiquidityPoolAccountable is
     /// @dev Thrown when the token source balance is insufficient.
     error InsufficientBalance();
 
-    /// @dev Thrown if the provided new implementation address is not of a liquidity pool contract.
-    error LiquidityPool_ImplementationAddressInvalid();
-
     // -------------------------------------------- //
     //  Modifiers                                   //
     // -------------------------------------------- //

@@ -76,9 +76,6 @@ contract LendingMarket is
     /// @dev Thrown when the program does not exist.
     error ProgramNotExist();
 
-    /// @dev Thrown if the provided new implementation address is not of a lending market contract.
-    error LendingMarket_ImplementationAddressInvalid();
-
     // -------------------------------------------- //
     //  Modifiers                                   //
     // -------------------------------------------- //

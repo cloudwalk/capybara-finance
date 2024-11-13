@@ -86,9 +86,6 @@ contract CreditLineConfigurable is
     /// @dev Thrown when the borrower state counters or amounts would overflow their maximum values.
     error BorrowerStateOverflow();
 
-    /// @dev Thrown if the provided new implementation address is not of a credit line contract.
-    error CreditLine_ImplementationAddressInvalid();
-
     // -------------------------------------------- //
     //  Modifiers                                   //
     // -------------------------------------------- //

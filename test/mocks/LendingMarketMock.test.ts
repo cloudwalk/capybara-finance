@@ -34,6 +34,11 @@ describe("Contract 'LendingMarketMock'", async () => {
   }
 
   describe("Cover unused functions", async () => {
+    it("Function 'proveCreditLine()'", async () => {
+      const { lendingMarket } = await setUpFixture(deployLendingMarketMock);
+
+      expect(await lendingMarket.proveLendingMarket()).to.exist;
+    });
   });
 
   describe("Unimplemented mock functions are reverted as expected", async () => {

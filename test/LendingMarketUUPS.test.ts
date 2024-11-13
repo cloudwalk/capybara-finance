@@ -6,6 +6,7 @@ import { checkContractUupsUpgrading, connect } from "../test-utils/eth";
 import { setUpFixture } from "../test-utils/common";
 
 const ERROR_NAME_ACCESS_CONTROL_UNAUTHORIZED = "AccessControlUnauthorizedAccount";
+const ERROR_NAME_IMPLEMENTATION_ADDRESS_INVALID = "ImplementationAddressInvalid";
 
 const OWNER_ROLE = ethers.id("OWNER_ROLE");
 
@@ -56,6 +57,16 @@ describe("Contract 'LendingMarketUUPS'", async () => {
       await expect(connect(lendingMarket, attacker).upgradeToAndCall(lendingMarket, "0x"))
         .to.be.revertedWithCustomError(lendingMarket, ERROR_NAME_ACCESS_CONTROL_UNAUTHORIZED)
         .withArgs(attacker.address, OWNER_ROLE);
+    });
+
+    it("Is reverted if the provided implementation address is not a lending market contract", async () => {
+      const { lendingMarket } = await setUpFixture(deployLendingMarket);
+      const mockContractFactory = await ethers.getContractFactory("UUPSExtUpgradeableMock");
+      const mockContract = await mockContractFactory.deploy() as Contract;
+      await mockContract.waitForDeployment();
+
+      await expect(lendingMarket.upgradeToAndCall(mockContract, "0x"))
+        .to.be.revertedWithCustomError(lendingMarket, ERROR_NAME_IMPLEMENTATION_ADDRESS_INVALID);
     });
   });
 });
