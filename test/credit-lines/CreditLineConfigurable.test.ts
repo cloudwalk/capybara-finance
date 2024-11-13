@@ -176,7 +176,7 @@ const DEFAULT_ADDON_AMOUNT = 321;
 const DEFAULT_REPAY_AMOUNT = 322;
 const EXPECTED_VERSION: Version = {
   major: 1,
-  minor: 0,
+  minor: 1,
   patch: 0
 };
 
