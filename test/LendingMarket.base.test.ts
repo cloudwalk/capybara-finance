@@ -1077,12 +1077,12 @@ describe("Contract 'LendingMarket': base tests", async () => {
         await increaseBlockTimestampTo(calculateTimestampWithOffset(await getLatestBlockTimestamp()) + frozenInterval);
       }
 
-      const unfreezingTx = proveTx(marketConnectedToLender.unfreeze(DEFAULT_LOAN_ID));
-      const unfreezingTimestamp = calculateTimestampWithOffset(await getTxTimestamp(freezingTx));
+      const unfreezingTx = marketConnectedToLender.unfreeze(DEFAULT_LOAN_ID);
+      const unfreezingTimestamp = calculateTimestampWithOffset(await getTxTimestamp(unfreezingTx));
 
       const frozenPeriods = calculatePeriodIndex(unfreezingTimestamp) - calculatePeriodIndex(freezingTimestamp);
       const expectedLoanState = { ...initialLoanState };
-      expectedLoanState.trackedTimestamp += frozenPeriods * DEFAULT_PERIOD_IN_SECONDS;
+      expectedLoanState.trackedTimestamp = unfreezingTimestamp;
       expectedLoanState.durationInPeriods += frozenPeriods;
 
       await expect(unfreezingTx).to.emit(marketConnectedToLender, EVENT_NAME_LOAN_UNFROZEN).withArgs(DEFAULT_LOAN_ID);

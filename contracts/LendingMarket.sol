@@ -446,15 +446,17 @@ contract LendingMarket is
             revert LoanNotFrozen();
         }
 
-        uint256 currentPeriodIndex = _periodIndex(_blockTimestamp(), Constants.PERIOD_IN_SECONDS);
+        uint256 blockTimestamp = _blockTimestamp();
+        (uint256 outstandingBalance, ) = _outstandingBalance(loan, blockTimestamp);
+        uint256 currentPeriodIndex = _periodIndex(blockTimestamp, Constants.PERIOD_IN_SECONDS);
         uint256 freezePeriodIndex = _periodIndex(loan.freezeTimestamp, Constants.PERIOD_IN_SECONDS);
         uint256 frozenPeriods = currentPeriodIndex - freezePeriodIndex;
 
         if (frozenPeriods > 0) {
-            loan.trackedTimestamp += (frozenPeriods * Constants.PERIOD_IN_SECONDS).toUint32();
             loan.durationInPeriods += frozenPeriods.toUint32();
         }
-
+        loan.trackedBalance = outstandingBalance.toUint64();
+        loan.trackedTimestamp = blockTimestamp.toUint32();
         loan.freezeTimestamp = 0;
 
         emit LoanUnfrozen(loanId);
