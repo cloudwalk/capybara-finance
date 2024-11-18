@@ -124,7 +124,7 @@ const ACCURACY_FACTOR = 10000;
 const COOLDOWN_IN_PERIODS = 3;
 const EXPECTED_VERSION: Version = {
   major: 1,
-  minor: 0,
+  minor: 1,
   patch: 0
 };
 

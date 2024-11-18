@@ -2,19 +2,27 @@
 
 pragma solidity 0.8.24;
 
-import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import { UUPSExtUpgradeable } from "../common/UUPSExtUpgradeable.sol";
 import { CreditLineConfigurable } from "./CreditLineConfigurable.sol";
+import { Error } from "../common/libraries/Error.sol";
 
 /// @title CreditLineConfigurableUUPS contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @dev Upgradeable version of the configurable credit line contract.
-contract CreditLineConfigurableUUPS is CreditLineConfigurable, UUPSUpgradeable {
+contract CreditLineConfigurableUUPS is CreditLineConfigurable, UUPSExtUpgradeable {
     /// @dev Constructor that prohibits the initialization of the implementation of the upgradable contract.
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
     }
 
-    /// @inheritdoc UUPSUpgradeable
-    function _authorizeUpgrade(address newImplementation) internal override onlyRole(OWNER_ROLE) {}
+    /**
+     * @dev The upgrade validation function for the UUPSExtUpgradeable contract.
+     * @param newImplementation The address of the new implementation.
+     */
+    function _validateUpgrade(address newImplementation) internal view override onlyRole(OWNER_ROLE) {
+        try CreditLineConfigurableUUPS(newImplementation).proveCreditLine() {} catch {
+            revert Error.ImplementationAddressInvalid();
+        }
+    }
 }

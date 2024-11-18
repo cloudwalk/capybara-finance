@@ -6,6 +6,7 @@ import { checkContractUupsUpgrading, connect } from "../../test-utils/eth";
 import { setUpFixture } from "../../test-utils/common";
 
 const ERROR_NAME_ACCESS_CONTROL_UNAUTHORIZED = "AccessControlUnauthorizedAccount";
+const ERROR_NAME_IMPLEMENTATION_ADDRESS_INVALID = "ImplementationAddressInvalid";
 
 const OWNER_ROLE = ethers.id("OWNER_ROLE");
 
@@ -56,9 +57,19 @@ describe("Contract 'LiquidityPoolAccountableUUPS'", async () => {
     it("Is reverted if the caller is not the owner", async () => {
       const { liquidityPool } = await setUpFixture(deployLiquidityPool);
 
-      await expect(connect(liquidityPool, attacker).upgradeToAndCall(attacker.address, "0x"))
+      await expect(connect(liquidityPool, attacker).upgradeToAndCall(liquidityPool, "0x"))
         .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_ACCESS_CONTROL_UNAUTHORIZED)
         .withArgs(attacker.address, OWNER_ROLE);
+    });
+
+    it("Is reverted if the provided implementation address is not a liquidity pool contract", async () => {
+      const { liquidityPool } = await setUpFixture(deployLiquidityPool);
+      const mockContractFactory = await ethers.getContractFactory("UUPSExtUpgradeableMock");
+      const mockContract = await mockContractFactory.deploy() as Contract;
+      await mockContract.waitForDeployment();
+
+      await expect(liquidityPool.upgradeToAndCall(mockContract, "0x"))
+        .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_IMPLEMENTATION_ADDRESS_INVALID);
     });
   });
 });

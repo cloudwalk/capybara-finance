@@ -64,7 +64,7 @@ const AUTO_REPAY_LOAN_IDS = [1, 2, 3];
 const AUTO_REPAY_AMOUNTS = [4, 5, 6];
 const EXPECTED_VERSION: Version = {
   major: 1,
-  minor: 0,
+  minor: 1,
   patch: 0
 };
 

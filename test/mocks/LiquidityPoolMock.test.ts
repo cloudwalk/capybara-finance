@@ -30,6 +30,14 @@ describe("Contract 'LiquidityPoolMock'", async () => {
     };
   }
 
+  describe("Cover unused functions", async () => {
+    it("Function 'proveCreditLine()'", async () => {
+      const { liquidityPool } = await setUpFixture(deployLiquidityPool);
+
+      expect(await liquidityPool.proveLiquidityPool()).to.exist;
+    });
+  });
+
   describe("Unimplemented mock functions are reverted as expected", async () => {
     it("Function 'market()'", async () => {
       const { liquidityPool } = await setUpFixture(deployLiquidityPool);

@@ -283,4 +283,7 @@ contract LiquidityPoolAccountable is
     function token() external view returns (address) {
         return _token;
     }
+
+    /// @inheritdoc ILiquidityPool
+    function proveLiquidityPool() external pure {}
 }

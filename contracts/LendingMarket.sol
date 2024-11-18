@@ -747,4 +747,7 @@ contract LendingMarket is
     function _blockTimestamp() internal view virtual returns (uint256) {
         return block.timestamp - Constants.NEGATIVE_TIME_OFFSET;
     }
+
+    /// @inheritdoc ILendingMarket
+    function proveLendingMarket() external pure {}
 }

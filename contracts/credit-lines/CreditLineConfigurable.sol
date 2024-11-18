@@ -569,4 +569,7 @@ contract CreditLineConfigurable is
     function migrationState() external view returns (MigrationState memory) {
         return _migrationState;
     }
+
+     /// @inheritdoc ICreditLine
+    function proveCreditLine() external pure {}
 }

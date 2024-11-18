@@ -6,6 +6,7 @@ import { checkContractUupsUpgrading, connect } from "../../test-utils/eth";
 import { setUpFixture } from "../../test-utils/common";
 
 const ERROR_NAME_ACCESS_CONTROL_UNAUTHORIZED = "AccessControlUnauthorizedAccount";
+const ERROR_NAME_IMPLEMENTATION_ADDRESS_INVALID = "ImplementationAddressInvalid";
 
 const OWNER_ROLE = ethers.id("OWNER_ROLE");
 
@@ -58,9 +59,19 @@ describe("Contract 'CreditLineConfigurableUUPS'", async () => {
     it("Is reverted if the caller is not the owner", async () => {
       const { creditLine } = await setUpFixture(deployCreditLine);
 
-      await expect(connect(creditLine, attacker).upgradeToAndCall(attacker.address, "0x"))
+      await expect(connect(creditLine, attacker).upgradeToAndCall(creditLine, "0x"))
         .to.be.revertedWithCustomError(creditLine, ERROR_NAME_ACCESS_CONTROL_UNAUTHORIZED)
         .withArgs(attacker.address, OWNER_ROLE);
+    });
+
+    it("Is reverted if the provided implementation address is not a credit line contract", async () => {
+      const { creditLine } = await setUpFixture(deployCreditLine);
+      const mockContractFactory = await ethers.getContractFactory("UUPSExtUpgradeableMock");
+      const mockContract = await mockContractFactory.deploy() as Contract;
+      await mockContract.waitForDeployment();
+
+      await expect(creditLine.upgradeToAndCall(mockContract, "0x"))
+        .to.be.revertedWithCustomError(creditLine, ERROR_NAME_IMPLEMENTATION_ADDRESS_INVALID);
     });
   });
 });
