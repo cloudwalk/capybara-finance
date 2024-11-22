@@ -253,7 +253,7 @@ contract LiquidityPoolAccountable is
         Loan.State memory loan = ILendingMarket(_market).getLoanState(loanId);
         if (loan.borrowAmount > loan.repaidAmount) {
             _borrowableBalance = _borrowableBalance + (loan.borrowAmount - loan.repaidAmount) + loan.addonAmount;
-        } else if (loan.borrowAmount != loan.repaidAmount) {
+        } else {
             _borrowableBalance = _borrowableBalance - (loan.repaidAmount - loan.borrowAmount) + loan.addonAmount;
         }
         _addonsBalance -= loan.addonAmount;
