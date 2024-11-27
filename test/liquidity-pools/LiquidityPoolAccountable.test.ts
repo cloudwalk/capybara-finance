@@ -536,6 +536,14 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
       }
     });
 
+    it("Is reverted if the contract is paused", async () => {
+      const { liquidityPool } = await setUpFixture(deployAndConfigureLiquidityPool);
+      await proveTx(liquidityPool.pause());
+
+      await expect(connect(liquidityPool, admin).autoRepay(AUTO_REPAY_LOAN_IDS, AUTO_REPAY_AMOUNTS))
+        .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_ENFORCED_PAUSED);
+    });
+
     it("Is reverted if the caller is not an admin", async () => {
       const { liquidityPool } = await setUpFixture(deployAndConfigureLiquidityPool);
 

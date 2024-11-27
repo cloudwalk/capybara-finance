@@ -216,7 +216,7 @@ contract LiquidityPoolAccountable is
     // -------------------------------------------- //
 
     /// @inheritdoc ILiquidityPoolAccountable
-    function autoRepay(uint256[] memory loanIds, uint256[] memory amounts) external onlyRole(ADMIN_ROLE) {
+    function autoRepay(uint256[] memory loanIds, uint256[] memory amounts) external whenNotPaused onlyRole(ADMIN_ROLE) {
         if (loanIds.length != amounts.length) {
             revert Error.ArrayLengthMismatch();
         }
