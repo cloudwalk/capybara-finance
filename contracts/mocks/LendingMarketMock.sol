@@ -25,6 +25,7 @@ contract LendingMarketMock is ILendingMarket {
 
     mapping(uint256 => Loan.State) private _loanStates;
     uint256 private _loanIdCounter;
+    mapping(uint256 => address) private _creditLineByProgramId;
 
     // -------------------------------------------- //
     //  ILendingMarket functions                    //
@@ -139,9 +140,8 @@ contract LendingMarketMock is ILendingMarket {
         revert Error.NotImplemented();
     }
 
-    function getProgramCreditLine(uint32 programId) external pure returns (address) {
-        programId; // To prevent compiler warning about unused variable
-        revert Error.NotImplemented();
+    function getProgramCreditLine(uint32 programId) external view returns (address) {
+        return _creditLineByProgramId[programId];
     }
 
     function getProgramLiquidityPool(uint32 programId) external pure returns (address) {
@@ -221,6 +221,10 @@ contract LendingMarketMock is ILendingMarket {
 
     function callOnAfterLoanRevocationCreditLine(address creditLine, uint256 loanId) external {
         emit HookCallResult(ICreditLine(creditLine).onAfterLoanRevocation(loanId));
+    }
+
+    function setProgramCreditLine(uint32 programId, address creditLine) external {
+        _creditLineByProgramId[programId] = creditLine;
     }
 
     function proveLendingMarket() external pure {}

@@ -1326,6 +1326,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       const loanIds = [0, 1, 2, 3, 4];
       const loanStates: LoanState[] = loanIds.map(loanId => ({
         ...defaultLoanState,
+        programId: loanId != 2 ? defaultLoanState.programId : defaultLoanState.programId + 1,
         borrowAmount: BORROW_AMOUNT + loanId,
         borrower: borrower.address,
         trackedBalance: loanId % 2 == 0 ? 0 : Number.MAX_SAFE_INTEGER - loanId
@@ -1336,12 +1337,14 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       async function updateExpectedStatesAndCheck(processedLoanIds: number[]) {
         for (const processedLoanId of processedLoanIds) {
           const loanState: LoanState = loanStates[processedLoanId];
-          if (loanState.trackedBalance == 0) {
-            expectedBorrowerState.closedLoanCount += 1;
-            expectedBorrowerState.totalClosedLoanAmount += BigInt(loanState.borrowAmount);
-          } else {
-            expectedBorrowerState.activeLoanCount += 1;
-            expectedBorrowerState.totalActiveLoanAmount += BigInt(loanState.borrowAmount);
+          if (loanState.programId == defaultLoanState.programId) {
+            if (loanState.trackedBalance == 0) {
+              expectedBorrowerState.closedLoanCount += 1;
+              expectedBorrowerState.totalClosedLoanAmount += BigInt(loanState.borrowAmount);
+            } else {
+              expectedBorrowerState.activeLoanCount += 1;
+              expectedBorrowerState.totalActiveLoanAmount += BigInt(loanState.borrowAmount);
+            }
           }
         }
         if (processedLoanIds.length > 0) {
@@ -1357,6 +1360,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       for (let i = 0; i < loanIds.length; ++i) {
         await proveTx(market.mockLoanState(i, loanStates[i]));
       }
+      await proveTx(market.setProgramCreditLine(defaultLoanState.programId, getAddress(creditLine)));
       await proveTx(market.setLoanIdCounter(loanStates.length));
 
       // Check initial state
@@ -1400,6 +1404,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       for (let i = 0; i < loanIds.length; ++i) {
         await proveTx(market.mockLoanState(i, loanStates[i]));
       }
+      await proveTx(market.setProgramCreditLine(defaultLoanState.programId, getAddress(creditLineUnderAdmin)));
       await proveTx(market.setLoanIdCounter(loanStates.length));
 
       // Call first time

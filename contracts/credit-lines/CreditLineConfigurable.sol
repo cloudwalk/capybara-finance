@@ -517,13 +517,16 @@ contract CreditLineConfigurable is
         }
         for (; loanId < endLoanId; ++loanId) {
             Loan.State memory loan = ILendingMarket(_market).getLoanState(loanId);
-            BorrowerState storage state = _borrowerStates[loan.borrower];
-            if (loan.trackedBalance != 0) {
-                state.activeLoanCount += 1;
-                state.totalActiveLoanAmount += loan.borrowAmount;
-            } else {
-                state.closedLoanCount += 1;
-                state.totalClosedLoanAmount += loan.borrowAmount;
+            address creditLine = ILendingMarket(_market).getProgramCreditLine(loan.programId);
+            if (creditLine == address(this)) {
+                BorrowerState storage state = _borrowerStates[loan.borrower];
+                if (loan.trackedBalance != 0) {
+                    state.activeLoanCount += 1;
+                    state.totalActiveLoanAmount += loan.borrowAmount;
+                } else {
+                    state.closedLoanCount += 1;
+                    state.totalClosedLoanAmount += loan.borrowAmount;
+                }
             }
         }
         _migrationState.nextLoanId = uint128(endLoanId);
@@ -537,7 +540,8 @@ contract CreditLineConfigurable is
         }
     }
 
-    /// @dev TODO
+    /// @dev Sets the specified pause state in the configuration of borrowers.
+    /// @param newPausedState The new state of the pause: `true` -- paused, `false` -- unpaused.
     function setBorrowerConfigurationPause(bool newPausedState) external onlyRole(ADMIN_ROLE) {
         if (!_migrationState.done) {
             return;
@@ -545,7 +549,9 @@ contract CreditLineConfigurable is
         _migrationState.borrowerConfigurationPaused = newPausedState;
     }
 
-    /// @dev TODO
+    /// @dev Sets a new value of the max borrow amount for a borrower.
+    /// @param borrower The address of the borrower to set the new value for.
+    /// @param newMaxBorrowAmount The new value.
     function setMaxBorrowAmount(
         address borrower,
         uint64 newMaxBorrowAmount
