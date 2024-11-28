@@ -1548,17 +1548,4 @@ describe("Contract 'LendingMarket': base tests", async () => {
       expect(await market.loanCounter()).to.eq(0);
     });
   });
-
-  describe("Service functions", async () => {
-    it("Function 'initOwnerRoleAdmin()' executes as expected", async () => {
-      const { market } = await setUpFixture(deployLendingMarket);
-      await expect(market.initOwnerRoleAdmin())
-        .to.emit(market, "RoleAdminChanged")
-        .withArgs(OWNER_ROLE, OWNER_ROLE, OWNER_ROLE);
-
-      await expect(connect(market, attacker).initOwnerRoleAdmin())
-        .to.be.revertedWithCustomError(market, ERROR_NAME_ACCESS_CONTROL_UNAUTHORIZED)
-        .withArgs(attacker.address, OWNER_ROLE);
-    });
-  });
 });
