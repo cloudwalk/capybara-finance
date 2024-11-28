@@ -750,4 +750,13 @@ contract LendingMarket is
 
     /// @inheritdoc ILendingMarket
     function proveLendingMarket() external pure {}
+
+    // -------------------------------------------- //
+    //  Service functions                           //
+    // -------------------------------------------- //
+
+    /// @dev Initialized the admin for the `OWNER_ROLE` role.
+    function initOwnerRoleAdmin() external onlyRole(OWNER_ROLE) {
+        _setRoleAdmin(OWNER_ROLE, OWNER_ROLE);
+    }
 }
