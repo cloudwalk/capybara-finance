@@ -10,7 +10,7 @@ import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/P
 
 import { Loan } from "./common/libraries/Loan.sol";
 import { Error } from "./common/libraries/Error.sol";
-import { Round } from "./common/libraries/Round.sol";
+import { Rounding } from "./common/libraries/Rounding.sol";
 import { Constants } from "./common/libraries/Constants.sol";
 import { InterestMath } from "./common/libraries/InterestMath.sol";
 import { SafeCast } from "./common/libraries/SafeCast.sol";
@@ -210,7 +210,7 @@ contract LendingMarket is
         if (borrowAmount == 0) {
             revert Error.InvalidAmount();
         }
-        if (borrowAmount != Round.roundUp(borrowAmount, Constants.ACCURACY_FACTOR)) {
+        if (borrowAmount != Rounding.roundMath(borrowAmount, Constants.ACCURACY_FACTOR)) {
             revert Error.InvalidAmount();
         }
 
@@ -273,17 +273,17 @@ contract LendingMarket is
 
         // Full repayment
         if (repayAmount == type(uint256).max) {
-            outstandingBalance = Round.roundUp(outstandingBalance, Constants.ACCURACY_FACTOR);
+            outstandingBalance = Rounding.roundMath(outstandingBalance, Constants.ACCURACY_FACTOR);
             _repayLoan(loanId, loan, outstandingBalance, outstandingBalance);
             return;
         }
 
-        if (repayAmount != Round.roundUp(repayAmount, Constants.ACCURACY_FACTOR)) {
+        if (repayAmount != Rounding.roundMath(repayAmount, Constants.ACCURACY_FACTOR)) {
             revert Error.InvalidAmount();
         }
 
         // Full repayment
-        if (repayAmount == Round.roundUp(outstandingBalance, Constants.ACCURACY_FACTOR)) {
+        if (repayAmount == Rounding.roundMath(outstandingBalance, Constants.ACCURACY_FACTOR)) {
             _repayLoan(loanId, loan, repayAmount, repayAmount);
             return;
         }
@@ -612,7 +612,7 @@ contract LendingMarket is
         Loan.State storage loan = _loans[loanId];
 
         (preview.trackedBalance, preview.periodIndex) = _outstandingBalance(loan, timestamp);
-        preview.outstandingBalance = Round.roundUp(preview.trackedBalance, Constants.ACCURACY_FACTOR);
+        preview.outstandingBalance = Rounding.roundMath(preview.trackedBalance, Constants.ACCURACY_FACTOR);
 
         return preview;
     }

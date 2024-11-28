@@ -11,7 +11,7 @@ import {
   increaseBlockTimestampTo,
   proveTx
 } from "../test-utils/eth";
-import { checkEquality, setUpFixture } from "../test-utils/common";
+import { checkEquality, roundMath, setUpFixture } from "../test-utils/common";
 
 interface LoanTerms {
   token: string;
@@ -214,7 +214,7 @@ describe("Contract 'LendingMarket': base tests", async () => {
   function calculateOutstandingBalance(originalBalance: number, numberOfPeriods: number, interestRate: number): number {
     const outstandingBalance =
       originalBalance * Math.pow(1 + interestRate / DEFAULT_INTEREST_RATE_FACTOR, numberOfPeriods);
-    return Math.round(outstandingBalance);
+    return Number(roundMath(Math.round(outstandingBalance), ACCURACY_FACTOR));
   }
 
   function calculatePeriodIndex(timestamp: number): number {

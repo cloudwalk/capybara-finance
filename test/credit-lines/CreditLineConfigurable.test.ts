@@ -3,7 +3,7 @@ import { expect } from "chai";
 import { Contract, ContractFactory } from "ethers";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { connect, getAddress, getLatestBlockTimestamp, proveTx } from "../../test-utils/eth";
-import { checkEquality, maxUintForBits, roundUp, setUpFixture } from "../../test-utils/common";
+import { checkEquality, maxUintForBits, roundMath, setUpFixture } from "../../test-utils/common";
 
 enum BorrowPolicy {
   SingleActiveLoan = 0,
@@ -338,7 +338,7 @@ describe("Contract 'CreditLineConfigurable'", async () => {
       interestRatePrimary: borrowerConfig.interestRatePrimary,
       interestRateSecondary: borrowerConfig.interestRateSecondary,
       durationInPeriods,
-      addonAmount: roundUp(addonAmount, ACCURACY_FACTOR)
+      addonAmount: roundMath(addonAmount, ACCURACY_FACTOR)
     };
   }
 

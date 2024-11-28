@@ -6,7 +6,7 @@ import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/P
 
 import { Loan } from "../common/libraries/Loan.sol";
 import { Error } from "../common/libraries/Error.sol";
-import { Round } from "../common/libraries/Round.sol";
+import { Rounding } from "../common/libraries/Rounding.sol";
 import { SafeCast } from "../common/libraries/SafeCast.sol";
 import { Constants } from "../common/libraries/Constants.sol";
 
@@ -315,7 +315,7 @@ contract CreditLineConfigurable is
             borrowerConfig.addonPeriodRate,
             Constants.INTEREST_RATE_FACTOR
         );
-        terms.addonAmount = Round.roundUp(addonAmount, Constants.ACCURACY_FACTOR).toUint64();
+        terms.addonAmount = Rounding.roundMath(addonAmount, Constants.ACCURACY_FACTOR).toUint64();
     }
 
     /// @inheritdoc ICreditLineConfigurable

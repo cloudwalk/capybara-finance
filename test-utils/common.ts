@@ -28,7 +28,7 @@ export function maxUintForBits(numberOfBits: number): bigint {
   return 2n ** BigInt(numberOfBits) - 1n;
 }
 
-export function roundUp(value: bigint | number, accuracy: bigint | number): bigint {
+export function roundMath(value: bigint | number, accuracy: bigint | number): bigint {
   const accuracyBI = BigInt(accuracy);
-  return ((BigInt(value) + accuracyBI - 1n) / accuracyBI) * accuracyBI;
+  return ((BigInt(value) + accuracyBI / 2n) / accuracyBI) * accuracyBI;
 }
