@@ -54,7 +54,7 @@ interface TestScenario {
   interestRatePrimary: number;
   interestRateSecondary: number;
   iterationStep: number;
-  precision: number;
+  relativePrecision: number;
   repaymentAmounts: number[];
   expectedOutstandingBalancesBeforeRepayment: number[];
   frozenStepIndexes: number[];
@@ -112,7 +112,7 @@ const testScenarioDefault: TestScenario = {
   interestRatePrimary: 0,
   interestRateSecondary: 0,
   iterationStep: 30,
-  precision: 5e-6, // 0.0005%
+  relativePrecision: 1e-7, // 0.00001% difference
   repaymentAmounts: [],
   expectedOutstandingBalancesBeforeRepayment: [],
   frozenStepIndexes: [],
@@ -384,7 +384,7 @@ describe("Contract 'LendingMarket': complex tests", async () => {
     const expectedBalanceAfter = actualBalanceBefore - repaymentAmount;
     const differenceBefore = actualBalanceBefore - expectedBalanceBefore;
     const differenceAfter = actualBalanceAfter - expectedBalanceAfter;
-    const actualPrecision = Math.abs(differenceBefore / expectedBalanceBefore);
+    const actualRelativePrecision = Math.abs(differenceBefore / expectedBalanceBefore);
     const errorMessageBefore = `Balances mismatch before a repayment (` +
       `loan repayment index: ${context.stepIndex}; actual balance before: ${actualBalanceBefore}; ` +
       `expected balance before: ${expectedBalanceBefore}; difference: ${differenceBefore})`;
@@ -392,7 +392,7 @@ describe("Contract 'LendingMarket': complex tests", async () => {
       `loan repayment index: ${context.stepIndex}; actual balance after: ${actualBalanceAfter}; ` +
       `expected balance after: ${expectedBalanceAfter}; difference: ${differenceAfter})`;
 
-    expect(actualPrecision).to.lessThanOrEqual(scenario.precision, errorMessageBefore);
+    expect(actualRelativePrecision).to.lessThanOrEqual(scenario.relativePrecision, errorMessageBefore);
     expect(actualBalanceAfter).to.eq(expectedBalanceAfter, errorMessageAfter);
   }
 
