@@ -200,8 +200,8 @@ const REPAY_AMOUNT = 12345678n;
 
 const EXPECTED_VERSION: Version = {
   major: 1,
-  minor: 1,
-  patch: 1
+  minor: 2,
+  patch: 0
 };
 
 function processLoanClosing(borrowerState: BorrowerState, borrowAmount: bigint) {

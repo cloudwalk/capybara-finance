@@ -124,8 +124,8 @@ const ACCURACY_FACTOR = 10000;
 const COOLDOWN_IN_PERIODS = 3;
 const EXPECTED_VERSION: Version = {
   major: 1,
-  minor: 1,
-  patch: 1
+  minor: 2,
+  patch: 0
 };
 
 describe("Contract 'LendingMarket': base tests", async () => {
