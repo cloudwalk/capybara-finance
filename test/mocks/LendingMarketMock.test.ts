@@ -154,6 +154,13 @@ describe("Contract 'LendingMarketMock'", async () => {
         .to.be.revertedWithCustomError(lendingMarket, ERROR_NAME_NOT_IMPLEMENTED);
     });
 
+    it("Function 'getProgramCreditLine()'", async () => {
+      const { lendingMarket } = await setUpFixture(deployLendingMarketMock);
+
+      await expect(lendingMarket.getProgramCreditLine(MOCK_PROGRAM_ID))
+        .to.be.revertedWithCustomError(lendingMarket, ERROR_NAME_NOT_IMPLEMENTED);
+    });
+
     it("Function 'getProgramLiquidityPool()'", async () => {
       const { lendingMarket } = await setUpFixture(deployLendingMarketMock);
 
@@ -200,6 +207,13 @@ describe("Contract 'LendingMarketMock'", async () => {
       const { lendingMarket } = await setUpFixture(deployLendingMarketMock);
 
       await expect(lendingMarket.timeOffset())
+        .to.be.revertedWithCustomError(lendingMarket, ERROR_NAME_NOT_IMPLEMENTED);
+    });
+
+    it("Function 'loanCounter()'", async () => {
+      const { lendingMarket } = await setUpFixture(deployLendingMarketMock);
+
+      await expect(lendingMarket.loanCounter())
         .to.be.revertedWithCustomError(lendingMarket, ERROR_NAME_NOT_IMPLEMENTED);
     });
   });

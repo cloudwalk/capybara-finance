@@ -14,10 +14,4 @@ contract CreditLineConfigurableTestable is CreditLineConfigurable {
     function setBorrowerState(address borrower, BorrowerState calldata newState) external {
         _borrowerStates[borrower] = newState;
     }
-
-    /// @dev Sets the migration state for testing purposes.
-    /// @param newState The new migration state.
-    function setMigrationState(MigrationState calldata newState) external {
-        _migrationState = newState;
-    }
 }

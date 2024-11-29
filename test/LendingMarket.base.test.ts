@@ -11,7 +11,7 @@ import {
   increaseBlockTimestampTo,
   proveTx
 } from "../test-utils/eth";
-import { checkEquality, setUpFixture } from "../test-utils/common";
+import { checkEquality, roundMath, setUpFixture } from "../test-utils/common";
 
 interface LoanTerms {
   token: string;
@@ -124,8 +124,8 @@ const ACCURACY_FACTOR = 10000;
 const COOLDOWN_IN_PERIODS = 3;
 const EXPECTED_VERSION: Version = {
   major: 1,
-  minor: 1,
-  patch: 1
+  minor: 2,
+  patch: 0
 };
 
 describe("Contract 'LendingMarket': base tests", async () => {
@@ -214,7 +214,7 @@ describe("Contract 'LendingMarket': base tests", async () => {
   function calculateOutstandingBalance(originalBalance: number, numberOfPeriods: number, interestRate: number): number {
     const outstandingBalance =
       originalBalance * Math.pow(1 + interestRate / DEFAULT_INTEREST_RATE_FACTOR, numberOfPeriods);
-    return Math.round(outstandingBalance);
+    return Number(roundMath(Math.round(outstandingBalance), ACCURACY_FACTOR));
   }
 
   function calculatePeriodIndex(timestamp: number): number {
@@ -1077,12 +1077,12 @@ describe("Contract 'LendingMarket': base tests", async () => {
         await increaseBlockTimestampTo(calculateTimestampWithOffset(await getLatestBlockTimestamp()) + frozenInterval);
       }
 
-      const unfreezingTx = proveTx(marketConnectedToLender.unfreeze(DEFAULT_LOAN_ID));
-      const unfreezingTimestamp = calculateTimestampWithOffset(await getTxTimestamp(freezingTx));
+      const unfreezingTx = marketConnectedToLender.unfreeze(DEFAULT_LOAN_ID);
+      const unfreezingTimestamp = calculateTimestampWithOffset(await getTxTimestamp(unfreezingTx));
 
       const frozenPeriods = calculatePeriodIndex(unfreezingTimestamp) - calculatePeriodIndex(freezingTimestamp);
       const expectedLoanState = { ...initialLoanState };
-      expectedLoanState.trackedTimestamp += frozenPeriods * DEFAULT_PERIOD_IN_SECONDS;
+      expectedLoanState.trackedTimestamp = unfreezingTimestamp;
       expectedLoanState.durationInPeriods += frozenPeriods;
 
       await expect(unfreezingTx).to.emit(marketConnectedToLender, EVENT_NAME_LOAN_UNFROZEN).withArgs(DEFAULT_LOAN_ID);
@@ -1546,19 +1546,6 @@ describe("Contract 'LendingMarket': base tests", async () => {
     it("Function 'loanCounter()'", async () => {
       const { market } = await setUpFixture(deployLendingMarket);
       expect(await market.loanCounter()).to.eq(0);
-    });
-  });
-
-  describe("Service functions", async () => {
-    it("Function 'initOwnerRoleAdmin()' executes as expected", async () => {
-      const { market } = await setUpFixture(deployLendingMarket);
-      await expect(market.initOwnerRoleAdmin())
-        .to.emit(market, "RoleAdminChanged")
-        .withArgs(OWNER_ROLE, OWNER_ROLE, OWNER_ROLE);
-
-      await expect(connect(market, attacker).initOwnerRoleAdmin())
-        .to.be.revertedWithCustomError(market, ERROR_NAME_ACCESS_CONTROL_UNAUTHORIZED)
-        .withArgs(attacker.address, OWNER_ROLE);
     });
   });
 });

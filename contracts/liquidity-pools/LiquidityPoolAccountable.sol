@@ -216,7 +216,7 @@ contract LiquidityPoolAccountable is
     // -------------------------------------------- //
 
     /// @inheritdoc ILiquidityPoolAccountable
-    function autoRepay(uint256[] memory loanIds, uint256[] memory amounts) external onlyRole(ADMIN_ROLE) {
+    function autoRepay(uint256[] memory loanIds, uint256[] memory amounts) external whenNotPaused onlyRole(ADMIN_ROLE) {
         if (loanIds.length != amounts.length) {
             revert Error.ArrayLengthMismatch();
         }
@@ -253,7 +253,7 @@ contract LiquidityPoolAccountable is
         Loan.State memory loan = ILendingMarket(_market).getLoanState(loanId);
         if (loan.borrowAmount > loan.repaidAmount) {
             _borrowableBalance = _borrowableBalance + (loan.borrowAmount - loan.repaidAmount) + loan.addonAmount;
-        } else if (loan.borrowAmount != loan.repaidAmount) {
+        } else {
             _borrowableBalance = _borrowableBalance - (loan.repaidAmount - loan.borrowAmount) + loan.addonAmount;
         }
         _addonsBalance -= loan.addonAmount;
