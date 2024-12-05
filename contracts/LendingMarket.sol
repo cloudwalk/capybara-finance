@@ -315,7 +315,7 @@ contract LendingMarket is
             revert Error.NotImplemented();
         }
 
-        bool autoRepayment = _programLenders[loan.programId] == msg.sender;
+        bool autoRepayment = _programLiquidityPools[loan.programId] == msg.sender;
         address payer = autoRepayment ? loan.borrower : msg.sender;
         if (autoRepayment && !Constants.AUTO_REPAYMENT_ENABLED) {
             revert AutoRepaymentNotAllowed();
