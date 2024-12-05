@@ -572,6 +572,7 @@ contract LendingMarket is
     // -------------------------------------------- //
     //  View functions                              //
     // -------------------------------------------- //
+
     /// @inheritdoc ILendingMarket
     function getProgramLender(uint32 programId) external view returns (address) {
         return _programLenders[programId];
@@ -646,6 +647,15 @@ contract LendingMarket is
     function loanCounter() external view returns (uint256) {
         return _loanIdCounter;
     }
+
+    /// @inheritdoc ILendingMarket
+    function programCounter() external view returns (uint256) {
+        return _programIdCounter;
+    }
+
+    // -------------------------------------------- //
+    //  Pure functions                              //
+    // -------------------------------------------- //
 
     /// @dev Calculates the period index that corresponds the specified timestamp.
     /// @param timestamp The timestamp to calculate the period index.
