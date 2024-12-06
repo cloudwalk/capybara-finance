@@ -67,9 +67,6 @@ contract LendingMarket is
     /// @dev Thrown when provided loan duration is inappropriate.
     error InappropriateLoanDuration();
 
-    /// @dev Thrown when loan auto repayment is not allowed.
-    error AutoRepaymentNotAllowed();
-
     /// @dev Thrown when the cooldown period has passed.
     error CooldownPeriodHasPassed();
 
@@ -317,9 +314,6 @@ contract LendingMarket is
 
         bool autoRepayment = _programLiquidityPools[loan.programId] == msg.sender;
         address payer = autoRepayment ? loan.borrower : msg.sender;
-        if (autoRepayment && !Constants.AUTO_REPAYMENT_ENABLED) {
-            revert AutoRepaymentNotAllowed();
-        }
 
         outstandingBalance -= repayAmount;
 
