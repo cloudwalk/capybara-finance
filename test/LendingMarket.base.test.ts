@@ -73,6 +73,7 @@ enum PayerKind {
 
 const ERROR_NAME_ALREADY_CONFIGURED = "AlreadyConfigured";
 const ERROR_NAME_ALREADY_INITIALIZED = "InvalidInitialization";
+const ERROR_NAME_CONTRACT_ADDRESS_INVALID = "ContractAddressInvalid";
 const ERROR_NAME_CREDIT_LINE_LENDER_NOT_CONFIGURED = "CreditLineLenderNotConfigured";
 const ERROR_NAME_ENFORCED_PAUSED = "EnforcedPause";
 const ERROR_NAME_LOAN_ALREADY_FROZEN = "LoanAlreadyFrozen";
@@ -83,7 +84,6 @@ const ERROR_NAME_INAPPROPRIATE_DURATION_IN_PERIODS = "InappropriateLoanDuration"
 const ERROR_NAME_INAPPROPRIATE_INTEREST_RATE = "InappropriateInterestRate";
 const ERROR_NAME_INVALID_AMOUNT = "InvalidAmount";
 const ERROR_NAME_LIQUIDITY_POOL_LENDER_NOT_CONFIGURED = "LiquidityPoolLenderNotConfigured";
-const ERROR_NAME_NOT_IMPLEMENTED = "NotImplemented";
 const ERROR_NAME_NOT_PAUSED = "ExpectedPause";
 const ERROR_NAME_ACCESS_CONTROL_UNAUTHORIZED = "AccessControlUnauthorizedAccount";
 const ERROR_NAME_UNAUTHORIZED = "Unauthorized";
@@ -160,6 +160,16 @@ const defaultLoanState: LoanState = {
   freezeTimestamp: 0
 };
 
+async function deployAndConnectContract(
+  contractFactory: ContractFactory,
+  account: HardhatEthersSigner
+): Promise<Contract> {
+  let contract = (await contractFactory.deploy()) as Contract;
+  await contract.waitForDeployment();
+  contract = connect(contract, account); // Explicitly specifying the initial account
+  return contract;
+}
+
 describe("Contract 'LendingMarket': base tests", async () => {
   let lendingMarketFactory: ContractFactory;
   let creditLineFactory: ContractFactory;
@@ -167,7 +177,9 @@ describe("Contract 'LendingMarket': base tests", async () => {
   let tokenFactory: ContractFactory;
 
   let creditLine: Contract;
+  let anotherCreditLine: Contract;
   let liquidityPool: Contract;
+  let anotherLiquidityPool: Contract;
   let token: Contract;
 
   let owner: HardhatEthersSigner;
@@ -178,7 +190,9 @@ describe("Contract 'LendingMarket': base tests", async () => {
   let stranger: HardhatEthersSigner;
 
   let creditLineAddress: string;
+  let anotherCreditLineAddress: string;
   let liquidityPoolAddress: string;
+  let anotherLiquidityPoolAddress: string;
   let tokenAddress: string;
 
   before(async () => {
@@ -194,19 +208,16 @@ describe("Contract 'LendingMarket': base tests", async () => {
     tokenFactory = await ethers.getContractFactory("ERC20Mock");
     tokenFactory = tokenFactory.connect(owner);
 
-    creditLine = (await creditLineFactory.deploy()) as Contract;
-    await creditLine.waitForDeployment();
-    creditLine = connect(creditLine, owner); // Explicitly specifying the initial account
+    creditLine = await deployAndConnectContract(creditLineFactory, owner);
+    anotherCreditLine = await deployAndConnectContract(creditLineFactory, owner);
+    liquidityPool = await deployAndConnectContract(liquidityPoolFactory, owner);
+    anotherLiquidityPool = await deployAndConnectContract(liquidityPoolFactory, owner);
+    token = await deployAndConnectContract(tokenFactory, owner);
+
     creditLineAddress = getAddress(creditLine);
-
-    liquidityPool = (await liquidityPoolFactory.deploy()) as Contract;
-    await liquidityPool.waitForDeployment();
-    liquidityPool = connect(liquidityPool, owner); // Explicitly specifying the initial account
+    anotherCreditLineAddress = getAddress(anotherCreditLine);
     liquidityPoolAddress = getAddress(liquidityPool);
-
-    token = (await tokenFactory.deploy()) as Contract;
-    await token.waitForDeployment();
-    token = connect(token, owner); // Explicitly specifying the initial account
+    anotherLiquidityPoolAddress = getAddress(anotherLiquidityPool);
     tokenAddress = getAddress(token);
 
     // Start tests at the beginning of a loan period to avoid rare failures due to crossing a border between two periods
@@ -539,13 +550,11 @@ describe("Contract 'LendingMarket': base tests", async () => {
     it("Executes as expected and emits the correct event", async () => {
       const { market } = await setUpFixture(deployLendingMarket);
 
-      // Any account can register any address as a credit line except zero
-      const creditLineAddressStub = "0x0000000000000000000000000000000000000001";
-      await expect(connect(market, stranger).registerCreditLine(creditLineAddressStub))
+      await expect(connect(market, stranger).registerCreditLine(creditLineAddress))
         .to.emit(market, EVENT_NAME_CREDIT_LINE_REGISTERED)
-        .withArgs(stranger.address, creditLineAddressStub);
+        .withArgs(stranger.address, creditLineAddress);
 
-      expect(await market.getCreditLineLender(creditLineAddressStub)).to.eq(stranger.address);
+      expect(await market.getCreditLineLender(creditLineAddress)).to.eq(stranger.address);
     });
 
     it("Is reverted if the credit line address is zero", async () => {
@@ -570,19 +579,33 @@ describe("Contract 'LendingMarket': base tests", async () => {
       await expect(market.registerCreditLine(creditLineAddress))
         .to.be.revertedWithCustomError(market, ERROR_NAME_ENFORCED_PAUSED);
     });
+
+    it("Is reverted if the provided address is not a contract", async () => {
+      const { market } = await setUpFixture(deployLendingMarketAndTakeLoan);
+      const wrongCreditLineAddress = "0x0000000000000000000000000000000000000001";
+
+      await expect(market.registerCreditLine(wrongCreditLineAddress))
+        .to.be.revertedWithCustomError(market, ERROR_NAME_CONTRACT_ADDRESS_INVALID);
+    });
+
+    it("Is reverted if the provided address is not a credit line contract", async () => {
+      const { market } = await setUpFixture(deployLendingMarketAndTakeLoan);
+      const wrongCreditLineAddress = (tokenAddress);
+
+      await expect(market.registerCreditLine(wrongCreditLineAddress))
+        .to.be.revertedWithCustomError(market, ERROR_NAME_CONTRACT_ADDRESS_INVALID);
+    });
   });
 
   describe("Function 'registerLiquidityPool()'", async () => {
     it("Executes as expected and emits the correct event", async () => {
       const { market } = await setUpFixture(deployLendingMarket);
 
-      // Any account can register any address as a liquidity pool except zero
-      const liquidityPoolAddressStub = "0x0000000000000000000000000000000000000001";
-      await expect(connect(market, stranger).registerLiquidityPool(liquidityPoolAddressStub))
+      await expect(connect(market, stranger).registerLiquidityPool(liquidityPoolAddress))
         .to.emit(market, EVENT_NAME_LIQUIDITY_POOL_REGISTERED)
-        .withArgs(stranger.address, liquidityPoolAddressStub);
+        .withArgs(stranger.address, liquidityPoolAddress);
 
-      expect(await market.getLiquidityPoolLender(liquidityPoolAddressStub)).to.eq(stranger.address);
+      expect(await market.getLiquidityPoolLender(liquidityPoolAddress)).to.eq(stranger.address);
     });
 
     it("Is reverted if the liquidity pool address is zero", async () => {
@@ -607,6 +630,22 @@ describe("Contract 'LendingMarket': base tests", async () => {
 
       await expect(market.registerLiquidityPool(liquidityPoolAddress))
         .to.be.revertedWithCustomError(market, ERROR_NAME_ENFORCED_PAUSED);
+    });
+
+    it("Is reverted if the provided address is not a contract", async () => {
+      const { market } = await setUpFixture(deployLendingMarketAndTakeLoan);
+      const wrongLiquidityPoolAddress = "0x0000000000000000000000000000000000000001";
+
+      await expect(market.registerLiquidityPool(wrongLiquidityPoolAddress))
+        .to.be.revertedWithCustomError(market, ERROR_NAME_CONTRACT_ADDRESS_INVALID);
+    });
+
+    it("Is reverted if the provided address is not a liquidity pool contract", async () => {
+      const { market } = await setUpFixture(deployLendingMarketAndTakeLoan);
+      const wrongLiquidityPoolAddress = (tokenAddress);
+
+      await expect(market.registerLiquidityPool(wrongLiquidityPoolAddress))
+        .to.be.revertedWithCustomError(market, ERROR_NAME_CONTRACT_ADDRESS_INVALID);
     });
   });
 
@@ -696,27 +735,24 @@ describe("Contract 'LendingMarket': base tests", async () => {
   describe("Function 'updateProgram()'", async () => {
     it("Executes as expected and emits correct event", async () => {
       const { market, marketUnderLender } = await setUpFixture(deployLendingMarketAndConfigureItForLoan);
-      const newCreditLineAddressStub = "0x0000000000000000000000000000000000000001";
-      const newLiquidityPoolAddressStub = "0x0000000000000000000000000000000000000002";
-
-      await proveTx(marketUnderLender.registerCreditLine(newCreditLineAddressStub));
-      await proveTx(marketUnderLender.registerLiquidityPool(newLiquidityPoolAddressStub));
+      await proveTx(marketUnderLender.registerCreditLine(anotherCreditLineAddress));
+      await proveTx(marketUnderLender.registerLiquidityPool(anotherLiquidityPoolAddress));
 
       // Change the credit line address only
-      await expect(marketUnderLender.updateProgram(PROGRAM_ID, newCreditLineAddressStub, liquidityPoolAddress))
+      await expect(marketUnderLender.updateProgram(PROGRAM_ID, anotherCreditLineAddress, liquidityPoolAddress))
         .to.emit(marketUnderLender, EVENT_NAME_PROGRAM_UPDATED)
-        .withArgs(PROGRAM_ID, newCreditLineAddressStub, liquidityPoolAddress);
+        .withArgs(PROGRAM_ID, anotherCreditLineAddress, liquidityPoolAddress);
       expect(await marketUnderLender.getProgramLender(PROGRAM_ID)).to.eq(lender.address);
-      expect(await market.getProgramCreditLine(PROGRAM_ID)).to.eq(newCreditLineAddressStub);
+      expect(await market.getProgramCreditLine(PROGRAM_ID)).to.eq(anotherCreditLineAddress);
       expect(await market.getProgramLiquidityPool(PROGRAM_ID)).to.eq(liquidityPool);
 
       // Change the Liquidity pool address only
-      await expect(marketUnderLender.updateProgram(PROGRAM_ID, newCreditLineAddressStub, newLiquidityPoolAddressStub))
+      await expect(marketUnderLender.updateProgram(PROGRAM_ID, anotherCreditLineAddress, anotherLiquidityPoolAddress))
         .to.emit(marketUnderLender, EVENT_NAME_PROGRAM_UPDATED)
-        .withArgs(PROGRAM_ID, newCreditLineAddressStub, newLiquidityPoolAddressStub);
+        .withArgs(PROGRAM_ID, anotherCreditLineAddress, anotherLiquidityPoolAddress);
       expect(await marketUnderLender.getProgramLender(PROGRAM_ID)).to.eq(lender.address);
-      expect(await market.getProgramCreditLine(PROGRAM_ID)).to.eq(newCreditLineAddressStub);
-      expect(await market.getProgramLiquidityPool(PROGRAM_ID)).to.eq(newLiquidityPoolAddressStub);
+      expect(await market.getProgramCreditLine(PROGRAM_ID)).to.eq(anotherCreditLineAddress);
+      expect(await market.getProgramLiquidityPool(PROGRAM_ID)).to.eq(anotherLiquidityPoolAddress);
 
       // Change the credit line and liquidity pool addresses together
       await expect(marketUnderLender.updateProgram(PROGRAM_ID, creditLineAddress, liquidityPoolAddress))
@@ -754,21 +790,19 @@ describe("Contract 'LendingMarket': base tests", async () => {
 
     it("Is reverted if caller is not the lender of the creditLine", async () => {
       const { market, marketUnderLender } = await setUpFixture(deployLendingMarketAndConfigureItForLoan);
-      const newCreditLineAddressStub = "0x0000000000000000000000000000000000000001";
-      await proveTx(connect(market, attacker).registerCreditLine(newCreditLineAddressStub));
+      await proveTx(connect(market, attacker).registerCreditLine(anotherCreditLineAddress));
 
       await expect(
-        marketUnderLender.updateProgram(PROGRAM_ID, newCreditLineAddressStub, liquidityPoolAddress)
+        marketUnderLender.updateProgram(PROGRAM_ID, anotherCreditLineAddress, liquidityPoolAddress)
       ).to.be.revertedWithCustomError(market, ERROR_NAME_UNAUTHORIZED);
     });
 
     it("Is reverted if caller is not the lender of the liquidity pool", async () => {
       const { market, marketUnderLender } = await setUpFixture(deployLendingMarketAndConfigureItForLoan);
-      const newLiquidityPoolAddressStub = "0x0000000000000000000000000000000000000002";
-      await proveTx(connect(market, attacker).registerLiquidityPool(newLiquidityPoolAddressStub));
+      await proveTx(connect(market, attacker).registerLiquidityPool(anotherLiquidityPoolAddress));
 
       await expect(
-        marketUnderLender.updateProgram(PROGRAM_ID, creditLineAddress, newLiquidityPoolAddressStub)
+        marketUnderLender.updateProgram(PROGRAM_ID, creditLineAddress, anotherLiquidityPoolAddress)
       ).to.be.revertedWithCustomError(market, ERROR_NAME_UNAUTHORIZED);
     });
   });
@@ -1206,15 +1240,6 @@ describe("Contract 'LendingMarket': base tests", async () => {
 
         await expect(market.repayLoan(loanId, wrongRepaymentAmount))
           .to.be.revertedWithCustomError(market, ERROR_NAME_INVALID_AMOUNT);
-      });
-
-      it("The liquidity pool is not a contract", async () => {
-        const { market, initialLoanState, loanId } = await setUpFixture(deployLendingMarketAndTakeLoan);
-        const lendingAddressStub = "0x0000000000000000000000000000000000000001";
-        await proveTx(market.setLiquidityPoolForProgram(initialLoanState.programId, lendingAddressStub));
-
-        await expect(market.repayLoan(loanId, REPAYMENT_AMOUNT))
-          .to.be.revertedWithCustomError(market, ERROR_NAME_NOT_IMPLEMENTED);
       });
     });
   });
