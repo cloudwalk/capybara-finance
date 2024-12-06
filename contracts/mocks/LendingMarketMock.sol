@@ -188,6 +188,10 @@ contract LendingMarketMock is ILendingMarket {
         revert Error.NotImplemented();
     }
 
+    function programCounter() external pure returns (uint256) {
+        revert Error.NotImplemented();
+    }
+
     // -------------------------------------------- //
     //  Mock functions                              //
     // -------------------------------------------- //

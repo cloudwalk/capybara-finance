@@ -46,6 +46,20 @@ library ABDKMath64x64 {
     int128 private constant MAX_64x64 = 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
 
     /**
+     * Convert unsigned 256-bit integer number into signed 64.64-bit fixed point
+     * number.  Revert on overflow.
+     *
+     * @param x unsigned 256-bit integer number
+     * @return signed 64.64-bit fixed point number
+     */
+    function fromUInt(uint256 x) internal pure returns (int128) {
+        unchecked {
+            require (x <= 0x7FFFFFFFFFFFFFFF);
+            return int128 (int256 (x << 64));
+        }
+    }
+
+    /**
      * Calculate x * y rounding down.  Revert on overflow.
      *
      * @param x signed 64.64-bit fixed point number
@@ -61,19 +75,19 @@ library ABDKMath64x64 {
     }
 
     /**
-     * Calculate x / y rounding towards zero, where x and y are unsigned 256-bit
-     * integer numbers.  Revert on overflow or when y is zero.
+     * Calculate x / y rounding towards zero.  Revert on overflow or when y is
+     * zero.
      *
-     * @param x unsigned 256-bit integer number
-     * @param y unsigned 256-bit integer number
+     * @param x signed 64.64-bit fixed point number
+     * @param y signed 64.64-bit fixed point number
      * @return signed 64.64-bit fixed point number
      */
-    function divu(uint256 x, uint256 y) internal pure returns (int128) {
+    function div (int128 x, int128 y) internal pure returns (int128) {
         unchecked {
-            require(y != 0);
-            uint128 result = divuu(x, y);
-            require(result <= uint128(MAX_64x64));
-            return int128(result);
+            require (y != 0);
+            int256 result = (int256 (x) << 64) / y;
+            require (result >= MIN_64x64 && result <= MAX_64x64);
+            return int128 (result);
         }
     }
 
@@ -175,70 +189,6 @@ library ABDKMath64x64 {
             int256 result = negative ? -int256(absResult) : int256(absResult);
             require(result >= MIN_64x64 && result <= MAX_64x64);
             return int128(result);
-        }
-    }
-
-    /**
-     * Calculate x / y rounding towards zero, where x and y are unsigned 256-bit
-     * integer numbers.  Revert on overflow or when y is zero.
-     *
-     * @param x unsigned 256-bit integer number
-     * @param y unsigned 256-bit integer number
-     * @return unsigned 64.64-bit fixed point number
-     */
-    function divuu(uint256 x, uint256 y) private pure returns (uint128) {
-        unchecked {
-            require(y != 0);
-
-            uint256 result;
-
-            if (x <= 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) {
-                result = (x << 64) / y;
-            } else {
-                uint256 msb = 192;
-                uint256 xc = x >> 192;
-                if (xc >= 0x100000000) {
-                    xc >>= 32;
-                    msb += 32;
-                }
-                if (xc >= 0x10000) {
-                    xc >>= 16;
-                    msb += 16;
-                }
-                if (xc >= 0x100) {
-                    xc >>= 8;
-                    msb += 8;
-                }
-                if (xc >= 0x10) {
-                    xc >>= 4;
-                    msb += 4;
-                }
-                if (xc >= 0x4) {
-                    xc >>= 2;
-                    msb += 2;
-                }
-                if (xc >= 0x2) msb += 1; // No need to shift xc anymore
-
-                result = (x << (255 - msb)) / (((y - 1) >> (msb - 191)) + 1);
-                require(result <= 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF);
-
-                uint256 hi = result * (y >> 128);
-                uint256 lo = result * (y & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF);
-
-                uint256 xh = x >> 192;
-                uint256 xl = x << 64;
-
-                if (xl < lo) xh -= 1;
-                xl -= lo; // We rely on overflow behavior here
-                lo = hi << 128;
-                if (xl < lo) xh -= 1;
-                xl -= lo; // We rely on overflow behavior here
-
-                result += xh == hi >> 128 ? xl / y : 1;
-            }
-
-            require(result <= 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF);
-            return uint128(result);
         }
     }
 }

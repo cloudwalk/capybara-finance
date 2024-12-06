@@ -77,4 +77,8 @@ contract LiquidityPoolMock is ILiquidityPool {
     }
 
     function proveLiquidityPool() external pure {}
+
+    function repayLoan(address _market, uint256 loanId, uint256 amount) external {
+        ILendingMarket(_market).repayLoan(loanId, amount);
+    }
 }
