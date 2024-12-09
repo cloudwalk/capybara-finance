@@ -334,7 +334,9 @@ contract LiquidityPoolAccountable is
         if (newTreasury == address(0)) {
             revert AddonTreasuryAddressZeroingProhibited();
         }
-        _checkAddonTreasuryAllowance(newTreasury);
+        if (IERC20(_token).allowance(newTreasury, address(this)) == 0) {
+            revert AddonTreasuryZeroAllowance();
+        }
         emit AddonTreasuryChanged(newTreasury, oldTreasury);
         _addonTreasury = newTreasury;
     }
@@ -360,14 +362,6 @@ contract LiquidityPoolAccountable is
             _addonsBalance -= addonAmount;
         } else {
             IERC20(_token).safeTransferFrom(addonTreasury_, address(this), addonAmount);
-        }
-    }
-
-    /// @dev Checks whether an addon treasury has provided an allowance for the pool contract to transfer its tokens.
-    function _checkAddonTreasuryAllowance(address addonTreasury_) internal view {
-        uint256 allowance = IERC20(_token).allowance(addonTreasury_, address(this));
-        if (allowance == 0) {
-            revert AddonTreasuryZeroAllowance();
         }
     }
 }
