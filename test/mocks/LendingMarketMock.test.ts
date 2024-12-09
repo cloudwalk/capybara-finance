@@ -216,5 +216,12 @@ describe("Contract 'LendingMarketMock'", async () => {
       await expect(lendingMarket.loanCounter())
         .to.be.revertedWithCustomError(lendingMarket, ERROR_NAME_NOT_IMPLEMENTED);
     });
+
+    it("Function 'programCounter()'", async () => {
+      const { lendingMarket } = await setUpFixture(deployLendingMarketMock);
+
+      await expect(lendingMarket.programCounter())
+        .to.be.revertedWithCustomError(lendingMarket, ERROR_NAME_NOT_IMPLEMENTED);
+    });
   });
 });

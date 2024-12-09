@@ -275,13 +275,16 @@ interface ILendingMarket {
     /// @dev Returns the duration of a loan period specified in seconds.
     function periodInSeconds() external view returns (uint256);
 
-    /// @dev Returns time offset and whether it's positive or negative.
+    /// @dev Returns time offset and whether it's positive (`true`) or negative (`false`).
     /// The time offset is used to adjust current period of the loan.
     function timeOffset() external view returns (uint256, bool);
 
     /// @dev Returns the total number of loans taken.
     function loanCounter() external view returns (uint256);
 
-     /// @dev Proves the contract is the lending market one. A marker function.
+    /// @dev Returns the total number of lending programs.
+    function programCounter() external view returns (uint256);
+
+    /// @dev Proves the contract is the lending market one. A marker function.
     function proveLendingMarket() external pure;
 }

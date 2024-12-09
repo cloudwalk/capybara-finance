@@ -27,9 +27,13 @@ library InterestMath {
         // The equivalent formula: round(originalBalance * (1 + interestRate / interestRateFactor)^numberOfPeriods)
         // Where division operator `/` and power operator `^` take into account the fractional part and
         // the `round()` function returns an integer rounded according to standard mathematical rules.
-        int128 onePlusRateValue = ABDKMath64x64.divu(interestRateFactor + interestRate, interestRateFactor);
+        int128 onePlusRateValue = ABDKMath64x64.div(
+            ABDKMath64x64.fromUInt(interestRateFactor + interestRate),
+            ABDKMath64x64.fromUInt(interestRateFactor)
+        );
         int128 powValue = ABDKMath64x64.pow(onePlusRateValue, numberOfPeriods);
-        uint256 unroundedResult = uint256(uint128(ABDKMath64x64.mul(powValue, int128(int256(originalBalance << 64)))));
+        int128 originalBalanceValue = ABDKMath64x64.fromUInt(originalBalance);
+        uint256 unroundedResult = uint256(uint128(ABDKMath64x64.mul(powValue, originalBalanceValue)));
         outstandingBalance = unroundedResult >> 64;
         if ((unroundedResult - (outstandingBalance << 64)) >= (1 << 63)) {
             outstandingBalance += 1;

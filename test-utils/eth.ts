@@ -4,8 +4,8 @@ import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { expect } from "chai";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 
-export async function proveTx(txResponsePromise: Promise<TransactionResponse>): Promise<TransactionReceipt> {
-  const txResponse = await txResponsePromise;
+export async function proveTx(tx: Promise<TransactionResponse> | TransactionResponse): Promise<TransactionReceipt> {
+  const txResponse = await tx;
   const txReceipt = await txResponse.wait();
   if (!txReceipt) {
     throw new Error("The transaction receipt is empty");
@@ -42,7 +42,7 @@ export function getAddress(contract: Contract): string {
   return address;
 }
 
-export async function getTxTimestamp(tx: Promise<TransactionResponse>): Promise<number> {
+export async function getTxTimestamp(tx: Promise<TransactionResponse> | TransactionResponse): Promise<number> {
   const receipt = await proveTx(tx);
   const block = await ethers.provider.getBlock(receipt.blockNumber);
   return Number(block?.timestamp ?? 0);

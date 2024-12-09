@@ -67,14 +67,14 @@ contract LendingMarket is
     /// @dev Thrown when provided loan duration is inappropriate.
     error InappropriateLoanDuration();
 
-    /// @dev Thrown when loan auto repayment is not allowed.
-    error AutoRepaymentNotAllowed();
-
     /// @dev Thrown when the cooldown period has passed.
     error CooldownPeriodHasPassed();
 
     /// @dev Thrown when the program does not exist.
     error ProgramNotExist();
+
+    /// @dev Thrown when the provided address does not belong to a contract of expected type or a contract at all.
+    error ContractAddressInvalid();
 
     // -------------------------------------------- //
     //  Modifiers                                   //
@@ -310,16 +310,8 @@ contract LendingMarket is
         address creditLine = _programCreditLines[loan.programId];
         address liquidityPool = _programLiquidityPools[loan.programId];
 
-        if (liquidityPool.code.length == 0) {
-            // TBD Add support for EOA liquidity pools.
-            revert Error.NotImplemented();
-        }
-
-        bool autoRepayment = _programLenders[loan.programId] == msg.sender;
+        bool autoRepayment = _programLiquidityPools[loan.programId] == msg.sender;
         address payer = autoRepayment ? loan.borrower : msg.sender;
-        if (autoRepayment && !Constants.AUTO_REPAYMENT_ENABLED) {
-            revert AutoRepaymentNotAllowed();
-        }
 
         outstandingBalance -= repayAmount;
 
@@ -344,9 +336,14 @@ contract LendingMarket is
         if (creditLine == address(0)) {
             revert Error.ZeroAddress();
         }
-
         if (_creditLineLenders[creditLine] != address(0)) {
             revert Error.AlreadyConfigured();
+        }
+        if (creditLine.code.length == 0) {
+            revert ContractAddressInvalid();
+        }
+        try ICreditLine(creditLine).proveCreditLine() {} catch {
+            revert ContractAddressInvalid();
         }
 
         emit CreditLineRegistered(msg.sender, creditLine);
@@ -362,6 +359,13 @@ contract LendingMarket is
 
         if (_liquidityPoolLenders[liquidityPool] != address(0)) {
             revert Error.AlreadyConfigured();
+        }
+
+        if (liquidityPool.code.length == 0) {
+            revert ContractAddressInvalid();
+        }
+        try ILiquidityPool(liquidityPool).proveLiquidityPool() {} catch {
+            revert ContractAddressInvalid();
         }
 
         emit LiquidityPoolRegistered(msg.sender, liquidityPool);
@@ -572,6 +576,7 @@ contract LendingMarket is
     // -------------------------------------------- //
     //  View functions                              //
     // -------------------------------------------- //
+
     /// @inheritdoc ILendingMarket
     function getProgramLender(uint32 programId) external view returns (address) {
         return _programLenders[programId];
@@ -646,6 +651,15 @@ contract LendingMarket is
     function loanCounter() external view returns (uint256) {
         return _loanIdCounter;
     }
+
+    /// @inheritdoc ILendingMarket
+    function programCounter() external view returns (uint256) {
+        return _programIdCounter;
+    }
+
+    // -------------------------------------------- //
+    //  Pure functions                              //
+    // -------------------------------------------- //
 
     /// @dev Calculates the period index that corresponds the specified timestamp.
     /// @param timestamp The timestamp to calculate the period index.
