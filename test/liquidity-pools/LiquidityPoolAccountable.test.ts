@@ -129,7 +129,8 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
     let liquidityPool = await upgrades.deployProxy(liquidityPoolFactory, [
       lender.address,
       marketAddress,
-      tokenAddress
+      tokenAddress,
+      ZERO_ADDRESS // addonTreasury
     ]);
 
     await liquidityPool.waitForDeployment();
@@ -205,7 +206,8 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
       await expect(upgrades.deployProxy(liquidityPoolFactory, [
         ZERO_ADDRESS, // market
         lender.address,
-        tokenAddress
+        tokenAddress,
+        ZERO_ADDRESS // addonTreasury
       ])).to.be.revertedWithCustomError(liquidityPoolFactory, ERROR_NAME_ZERO_ADDRESS);
     });
 
@@ -213,7 +215,8 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
       await expect(upgrades.deployProxy(liquidityPoolFactory, [
         marketAddress,
         ZERO_ADDRESS, // lender
-        tokenAddress
+        tokenAddress,
+        ZERO_ADDRESS // addonTreasury
       ])).to.be.revertedWithCustomError(liquidityPoolFactory, ERROR_NAME_ZERO_ADDRESS);
     });
 
@@ -221,14 +224,16 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
       await expect(upgrades.deployProxy(liquidityPoolFactory, [
         marketAddress,
         lender.address,
-        ZERO_ADDRESS // token
+        ZERO_ADDRESS, // token
+        ZERO_ADDRESS // addonTreasury
       ])).to.be.revertedWithCustomError(liquidityPoolFactory, ERROR_NAME_ZERO_ADDRESS);
     });
 
     it("Is reverted if called a second time", async () => {
       const { liquidityPool } = await setUpFixture(deployAndConfigureLiquidityPool);
+      const addonTreasury = (ZERO_ADDRESS);
 
-      await expect(liquidityPool.initialize(marketAddress, lender.address, tokenAddress))
+      await expect(liquidityPool.initialize(marketAddress, lender.address, tokenAddress, addonTreasury))
         .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_ALREADY_INITIALIZED);
     });
   });

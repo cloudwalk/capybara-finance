@@ -9,8 +9,30 @@ import "./core/ILiquidityPool.sol";
 /// @dev Defines the accountable liquidity pool contract functions and events.
 interface ILiquidityPoolAccountable is ILiquidityPool {
     // -------------------------------------------- //
+    //  Structs and enums                           //
+    // -------------------------------------------- //
+    /// @dev TODO
+    enum AddonActionKind {
+        Retention,
+        Transfer
+    }
+
+    /// @dev TODO
+    struct LiquidityPoolConfig {
+        address addonTreasury;
+        AddonActionKind addonActionKind;
+        // uint88 __reserved; // Reserved for future use until the end of the storage slot.
+    }
+
+    // -------------------------------------------- //
     //  Events                                      //
     // -------------------------------------------- //
+
+    /// @dev TODO
+    event AddonActionKindChanged(AddonActionKind newKind, AddonActionKind oldKind);
+
+    /// @dev TODO
+    event AddonTreasuryChanged(address newTreasury, address oldTreasury);
 
     /// @dev Emitted when tokens are deposited to the liquidity pool.
     /// @param amount The amount of tokens deposited.
@@ -48,6 +70,12 @@ interface ILiquidityPoolAccountable is ILiquidityPool {
     /// @param amount The amount of tokens to rescue.
     function rescue(address token, uint256 amount) external;
 
+    /// @dev TODO
+    function setAddonTreasury(address newTreasury) external;
+
+    /// @dev TODO
+    function setAddonActionKind(AddonActionKind newKind) external;
+
     /// @dev Executes auto repayment of loans in the batch mode.
     /// @param loanIds The unique identifiers of the loans to repay.
     /// @param amounts The payment amounts that correspond with given loan ids.
@@ -61,4 +89,10 @@ interface ILiquidityPoolAccountable is ILiquidityPool {
     /// @param account The address of the account to check.
     /// @return True if the account is configured as an admin.
     function isAdmin(address account) external view returns (bool);
+
+    /// @dev TODO
+    function addonTreasury() external view returns (address);
+
+    /// @dev TODO
+    function addonActionKind() external view returns (AddonActionKind);
 }

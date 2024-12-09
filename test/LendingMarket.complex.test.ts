@@ -13,6 +13,7 @@ import {
 
 const ADMIN_ROLE = ethers.id("ADMIN_ROLE");
 
+const ZERO_ADDRESS = ethers.ZeroAddress;
 const PERIOD_IN_SECONDS = 86400;
 const ADDON_AMOUNT = 0;
 const PROGRAM_ID = 1;
@@ -195,7 +196,8 @@ describe("Contract 'LendingMarket': complex tests", async () => {
     let liquidityPool: Contract = await upgrades.deployProxy(liquidityPoolFactory, [
       lender.address,
       lendingMarketAddress,
-      tokenAddress
+      tokenAddress,
+      ZERO_ADDRESS // addonTreasury
     ]);
     await liquidityPool.waitForDeployment();
     liquidityPool = connect(liquidityPool, lender); // Explicitly specifying the initial account

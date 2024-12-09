@@ -26,9 +26,10 @@ describe("Contract 'LiquidityPoolAccountableUUPS'", async () => {
   });
 
   async function deployLiquidityPool(): Promise<{ liquidityPool: Contract }> {
+    const addonTreasury = ethers.ZeroAddress;
     let liquidityPool = await upgrades.deployProxy(
       liquidityPoolFactory,
-      [deployer.address, market.address, token.address],
+      [deployer.address, market.address, token.address, addonTreasury],
       { kind: "uups" }
     );
 
