@@ -474,6 +474,6 @@ contract CreditLineConfigurable is
         borrowerState.totalClosedLoanAmount += loan.borrowAmount;
     }
 
-     /// @inheritdoc ICreditLine
+    /// @inheritdoc ICreditLine
     function proveCreditLine() external pure {}
 }

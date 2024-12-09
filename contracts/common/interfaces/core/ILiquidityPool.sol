@@ -29,6 +29,6 @@ interface ILiquidityPool {
     /// @dev Returns the address of the liquidity pool token.
     function token() external view returns (address);
 
-     /// @dev Proves the contract is the liquidity pool one. A marker function.
+    /// @dev Proves the contract is the liquidity pool one. A marker function.
     function proveLiquidityPool() external pure;
 }
