@@ -29,6 +29,9 @@ interface Version {
   [key: string]: number; // Indexing signature to ensure that fields are iterated over in a key-value style
 }
 
+const ERROR_NAME_ADDON_TREASURY_ADDRESS_ZEROING_PROHIBITED = "AddonTreasuryAddressZeroingProhibited";
+const ERROR_NAME_ADDON_TREASURY_ZERO_ALLOWANCE = "AddonTreasuryZeroAllowance";
+const ERROR_NAME_ALREADY_CONFIGURED = "AlreadyConfigured";
 const ERROR_NAME_ALREADY_INITIALIZED = "InvalidInitialization";
 const ERROR_NAME_ARRAY_LENGTH_MISMATCH = "ArrayLengthMismatch";
 const ERROR_NAME_ENFORCED_PAUSED = "EnforcedPause";
@@ -41,6 +44,7 @@ const ERROR_NAME_ZERO_ADDRESS = "ZeroAddress";
 const ERROR_NAME_SAFE_CAST_OVERFLOWED_UINT_DOWNCAST = "SafeCastOverflowedUintDowncast";
 
 const EVENT_NAME_APPROVAL = "Approval";
+const EVENT_NAME_ADDON_TREASURY_CHANGED = "AddonTreasuryChanged";
 const EVENT_NAME_AUTO_REPAYMENT = "AutoRepayment";
 const EVENT_NAME_DEPOSIT = "Deposit";
 const EVENT_NAME_HOOK_CALL_RESULT = "HookCallResult";
@@ -56,6 +60,8 @@ const PAUSER_ROLE = ethers.id("PAUSER_ROLE");
 const ADMIN_ROLE = ethers.id("ADMIN_ROLE");
 
 const ZERO_ADDRESS = ethers.ZeroAddress;
+const MAX_ALLOWANCE = ethers.MaxUint256;
+const ZERO_ALLOWANCE = 0;
 const MINT_AMOUNT = 1000_000_000_000n;
 const DEPOSIT_AMOUNT = MINT_AMOUNT / 10n;
 const BORROW_AMOUNT = DEPOSIT_AMOUNT / 10n;
@@ -98,12 +104,13 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
   let lender: HardhatEthersSigner;
   let admin: HardhatEthersSigner;
   let attacker: HardhatEthersSigner;
+  let addonTreasury: HardhatEthersSigner;
 
   let tokenAddress: string;
   let marketAddress: string;
 
   before(async () => {
-    [deployer, lender, admin, attacker] = await ethers.getSigners();
+    [deployer, lender, admin, attacker, addonTreasury] = await ethers.getSigners();
 
     // Factories with an explicitly specified deployer account
     liquidityPoolFactory = await ethers.getContractFactory("LiquidityPoolAccountable");
@@ -123,6 +130,7 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
     token = connect(token, deployer); // Explicitly specifying the initial account
     tokenAddress = getAddress(token);
     await token.mint(lender.address, MINT_AMOUNT);
+    await token.mint(addonTreasury.address, MINT_AMOUNT);
   });
 
   async function deployLiquidityPool(): Promise<{ liquidityPool: Contract }> {
@@ -135,7 +143,8 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
     await liquidityPool.waitForDeployment();
     liquidityPool = connect(liquidityPool, lender); // Explicitly specifying the initial account
 
-    await proveTx(connect(token, lender).approve(getAddress(liquidityPool), ethers.MaxUint256));
+    await proveTx(connect(token, lender).approve(getAddress(liquidityPool), MAX_ALLOWANCE));
+    await proveTx(connect(token, addonTreasury).approve(getAddress(liquidityPool), MAX_ALLOWANCE));
     return { liquidityPool };
   }
 
@@ -199,6 +208,7 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
       expect(await liquidityPool.isAdmin(lender.address)).to.eq(false);
       expect(await liquidityPool.market()).to.eq(marketAddress);
       expect(await liquidityPool.token()).to.eq(tokenAddress);
+      expect(await liquidityPool.addonTreasury()).to.eq(ZERO_ADDRESS);
     });
 
     it("Is reverted if the market address is zero", async () => {
@@ -238,6 +248,64 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
       const { liquidityPool } = await setUpFixture(deployLiquidityPool);
       const liquidityPoolVersion = await liquidityPool.$__VERSION();
       checkEquality(liquidityPoolVersion, EXPECTED_VERSION);
+    });
+  });
+
+  describe("Function 'setAddonTreasury()", async () => {
+    it("Executes as expected and emits the correct event", async () => {
+      const { liquidityPool } = await setUpFixture(deployLiquidityPool);
+      const allowance = 1; // This allowance should be enough
+      await proveTx(connect(token, addonTreasury).approve(getAddress(liquidityPool), allowance));
+
+      await expect(liquidityPool.setAddonTreasury(addonTreasury.address))
+        .to.emit(liquidityPool, EVENT_NAME_ADDON_TREASURY_CHANGED)
+        .withArgs(addonTreasury.address, ZERO_ADDRESS);
+
+      expect(await liquidityPool.addonTreasury()).to.eq(addonTreasury.address);
+    });
+
+    it("Is reverted if caller does not have the owner role", async () => {
+      const { liquidityPool } = await setUpFixture(deployLiquidityPool);
+
+      await expect(connect(liquidityPool, attacker).setAddonTreasury(addonTreasury.address))
+        .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_ACCESS_CONTROL_UNAUTHORIZED)
+        .withArgs(attacker.address, OWNER_ROLE);
+    });
+
+    it("Is reverted if caller does not have the owner role", async () => {
+      const { liquidityPool } = await setUpFixture(deployLiquidityPool);
+
+      await expect(connect(liquidityPool, attacker).setAddonTreasury(addonTreasury.address))
+        .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_ACCESS_CONTROL_UNAUTHORIZED)
+        .withArgs(attacker.address, OWNER_ROLE);
+    });
+
+    it("Is reverted if the new addon treasury address is the same as the previous one", async () => {
+      const { liquidityPool } = await setUpFixture(deployLiquidityPool);
+
+      await expect(liquidityPool.setAddonTreasury(ZERO_ADDRESS))
+        .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_ALREADY_CONFIGURED);
+
+      await proveTx(liquidityPool.setAddonTreasury(addonTreasury.address));
+
+      await expect(liquidityPool.setAddonTreasury(addonTreasury.address))
+        .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_ALREADY_CONFIGURED);
+    });
+
+    it("Is reverted if the addon treasury address is zeroed", async () => {
+      const { liquidityPool } = await setUpFixture(deployLiquidityPool);
+      await proveTx(liquidityPool.setAddonTreasury(addonTreasury.address));
+
+      await expect(liquidityPool.setAddonTreasury(ZERO_ADDRESS))
+        .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_ADDON_TREASURY_ADDRESS_ZEROING_PROHIBITED);
+    });
+
+    it("Is reverted if the addon treasury has not provided an allowance for the pool", async () => {
+      const { liquidityPool } = await setUpFixture(deployLiquidityPool);
+      await proveTx(connect(token, addonTreasury).approve(getAddress(liquidityPool), ZERO_ALLOWANCE));
+
+      await expect(liquidityPool.setAddonTreasury(addonTreasury.address))
+        .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_ADDON_TREASURY_ZERO_ALLOWANCE);
     });
   });
 
@@ -337,7 +405,7 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
       await expect(tx1).to.emit(token, EVENT_NAME_APPROVAL);
 
       const allowanceAfter = await token.allowance(getAddress(liquidityPool), getAddress(market));
-      expect(allowanceAfter).to.eq(ethers.MaxUint256);
+      expect(allowanceAfter).to.eq(MAX_ALLOWANCE);
 
       // Second deposit must not change the allowance from the liquidity pool to the market
       const tx2: Promise<TransactionResponse> = depositAndCheck(liquidityPool, DEPOSIT_AMOUNT * 2n);
@@ -565,19 +633,49 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
   });
 
   describe("Function 'onBeforeLoanTaken()'", async () => {
-    it("Executes as expected", async () => {
-      const { liquidityPool } = await setUpFixture(deployAndConfigureLiquidityPool);
+    async function executeAndCheck(liquidityPool: Contract, addonTreasuryAddress: string) {
+      if (addonTreasuryAddress !== ZERO_ADDRESS) {
+        await proveTx(liquidityPool.setAddonTreasury(addonTreasuryAddress));
+      }
       await prepareLoan({ loanId: LOAN_ID, borrowAmount: BORROW_AMOUNT, addonAmount: ADDON_AMOUNT });
       await proveTx(liquidityPool.deposit(DEPOSIT_AMOUNT));
 
-      await expect(market.callOnBeforeLoanTakenLiquidityPool(getAddress(liquidityPool), LOAN_ID))
+      const tx = market.callOnBeforeLoanTakenLiquidityPool(getAddress(liquidityPool), LOAN_ID);
+
+      await expect(tx)
         .to.emit(market, EVENT_NAME_HOOK_CALL_RESULT)
         .withArgs(true);
 
       const actualBalances = await liquidityPool.getBalances();
 
       expect(actualBalances[0]).to.eq(DEPOSIT_AMOUNT - BORROW_AMOUNT - ADDON_AMOUNT);
-      expect(actualBalances[1]).to.eq(ADDON_AMOUNT);
+      if (addonTreasuryAddress === ZERO_ADDRESS) {
+        expect(actualBalances[1]).to.eq(ADDON_AMOUNT);
+        await expect(tx).to.changeTokenBalances(
+          token,
+          [liquidityPool, addonTreasury],
+          [0, 0]
+        );
+      } else {
+        expect(actualBalances[1]).to.eq(0);
+        await expect(tx).to.changeTokenBalances(
+          token,
+          [liquidityPool, addonTreasury],
+          [-ADDON_AMOUNT, ADDON_AMOUNT]
+        );
+      }
+    }
+
+    it("Executes as expected if the addon treasury address is zero", async () => {
+      const { liquidityPool } = await setUpFixture(deployAndConfigureLiquidityPool);
+      const addonTreasuryAddress = (ZERO_ADDRESS);
+      await executeAndCheck(liquidityPool, addonTreasuryAddress);
+    });
+
+    it("Executes as expected if the addon treasury address is non-zero", async () => {
+      const { liquidityPool } = await setUpFixture(deployAndConfigureLiquidityPool);
+      const addonTreasuryAddress = (addonTreasury.address);
+      await executeAndCheck(liquidityPool, addonTreasuryAddress);
     });
 
     it("Is reverted if the contract is paused", async () => {
@@ -657,54 +755,105 @@ describe("Contract 'LiquidityPoolAccountable'", async () => {
   });
 
   describe("Function 'onAfterLoanRevocation()'", async () => {
-    async function executeAndCheck(liquidityPool: Contract, repaidAmount: bigint) {
+    async function executeAndCheck(liquidityPool: Contract, props: {
+      repaidAmount: bigint;
+      addonTreasuryAddress: string;
+    }) {
+      const { repaidAmount, addonTreasuryAddress } = props;
       const poolAddress = getAddress(liquidityPool);
       await proveTx(liquidityPool.deposit(DEPOSIT_AMOUNT));
       await prepareLoan({ loanId: LOAN_ID, borrowAmount: BORROW_AMOUNT, addonAmount: ADDON_AMOUNT, repaidAmount });
       await proveTx(market.callOnBeforeLoanTakenLiquidityPool(poolAddress, LOAN_ID));
       await proveTx(market.callOnAfterLoanPaymentLiquidityPool(poolAddress, LOAN_ID, repaidAmount));
 
-      await expect(market.callOnAfterLoanRevocationLiquidityPool(poolAddress, LOAN_ID))
+      if (addonTreasuryAddress !== ZERO_ADDRESS) {
+        await proveTx(liquidityPool.setAddonTreasury(addonTreasuryAddress));
+      }
+
+      const actualBalancesBefore: bigint[] = await liquidityPool.getBalances();
+      expect(actualBalancesBefore[0]).to.eq(DEPOSIT_AMOUNT - BORROW_AMOUNT - ADDON_AMOUNT + repaidAmount);
+      expect(actualBalancesBefore[1]).to.eq(ADDON_AMOUNT);
+
+      const tx = market.callOnAfterLoanRevocationLiquidityPool(poolAddress, LOAN_ID);
+
+      await expect(tx)
         .to.emit(market, EVENT_NAME_HOOK_CALL_RESULT)
         .withArgs(true);
 
-      const actualBalances: bigint[] = await liquidityPool.getBalances();
-      expect(actualBalances[0]).to.eq(DEPOSIT_AMOUNT);
-      expect(actualBalances[1]).to.eq(0n);
+      const actualBalancesAfter: bigint[] = await liquidityPool.getBalances();
+
+      if (addonTreasuryAddress === ZERO_ADDRESS) {
+        await expect(tx).to.changeTokenBalances(
+          token,
+          [liquidityPool, addonTreasury],
+          [0, 0]
+        );
+        expect(actualBalancesAfter[0]).to.eq(DEPOSIT_AMOUNT);
+        expect(actualBalancesAfter[1]).to.eq(0n);
+      } else {
+        await expect(tx).to.changeTokenBalances(
+          token,
+          [liquidityPool, addonTreasury],
+          [ADDON_AMOUNT, -ADDON_AMOUNT]
+        );
+        expect(actualBalancesAfter[0]).to.eq(DEPOSIT_AMOUNT);
+        expect(actualBalancesAfter[1]).to.eq(actualBalancesBefore[1]);
+      }
     }
 
-    it("Executes as expected if the borrow amount is greater than the repaid amount", async () => {
-      const { liquidityPool } = await setUpFixture(deployAndConfigureLiquidityPool);
-      const repaidAmount = BORROW_AMOUNT / 3n;
-      await executeAndCheck(liquidityPool, repaidAmount);
+    describe("Executes as expected if the addon treasure address is zero and", async () => {
+      it("The addon treasure address is zero and the repaid amount is less than the borrow amount", async () => {
+        const { liquidityPool } = await setUpFixture(deployAndConfigureLiquidityPool);
+        await executeAndCheck(liquidityPool, { repaidAmount: BORROW_AMOUNT / 3n, addonTreasuryAddress: ZERO_ADDRESS });
+      });
+
+      it("The repaid amount is greater than the borrow amount", async () => {
+        const { liquidityPool } = await setUpFixture(deployAndConfigureLiquidityPool);
+        await executeAndCheck(liquidityPool, { repaidAmount: BORROW_AMOUNT * 3n, addonTreasuryAddress: ZERO_ADDRESS });
+      });
+
+      it("The repaid amount equals the borrow amount", async () => {
+        const { liquidityPool } = await setUpFixture(deployAndConfigureLiquidityPool);
+        await executeAndCheck(liquidityPool, { repaidAmount: BORROW_AMOUNT, addonTreasuryAddress: ZERO_ADDRESS });
+      });
     });
 
-    it("Executes as expected if the borrow amount is less than the repaid amount", async () => {
-      const { liquidityPool } = await setUpFixture(deployAndConfigureLiquidityPool);
-      const repaidAmount = BORROW_AMOUNT * 3n;
-      await executeAndCheck(liquidityPool, repaidAmount);
+    describe("Executes as expected if the addon treasure address is non-zero and", async () => {
+      it("The addon treasure address is zero and the repaid amount is less than the borrow amount", async () => {
+        const { liquidityPool } = await setUpFixture(deployAndConfigureLiquidityPool);
+        const addonTreasuryAddress = addonTreasury.address;
+        await executeAndCheck(liquidityPool, { repaidAmount: BORROW_AMOUNT / 3n, addonTreasuryAddress });
+      });
+
+      it("The repaid amount is greater than the borrow amount", async () => {
+        const { liquidityPool } = await setUpFixture(deployAndConfigureLiquidityPool);
+        const addonTreasuryAddress = addonTreasury.address;
+        await executeAndCheck(liquidityPool, { repaidAmount: BORROW_AMOUNT * 3n, addonTreasuryAddress });
+      });
+
+      it("The repaid amount equals the borrow amount", async () => {
+        const { liquidityPool } = await setUpFixture(deployAndConfigureLiquidityPool);
+        const addonTreasuryAddress = addonTreasury.address;
+        await executeAndCheck(liquidityPool, { repaidAmount: BORROW_AMOUNT, addonTreasuryAddress });
+      });
     });
 
-    it("Executes as expected if the borrow amount equals the repaid amount", async () => {
-      const { liquidityPool } = await setUpFixture(deployAndConfigureLiquidityPool);
-      const repaidAmount = (BORROW_AMOUNT);
-      await executeAndCheck(liquidityPool, repaidAmount);
-    });
+    describe("Is reverted if", async () => {
+      it("The contract is paused", async () => {
+        const { liquidityPool } = await setUpFixture(deployAndConfigureLiquidityPool);
+        await proveTx(liquidityPool.pause());
 
-    it("Is reverted if the contract is paused", async () => {
-      const { liquidityPool } = await setUpFixture(deployAndConfigureLiquidityPool);
-      await proveTx(liquidityPool.pause());
+        await expect(
+          market.callOnAfterLoanRevocationLiquidityPool(getAddress(liquidityPool), LOAN_ID)
+        ).to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_ENFORCED_PAUSED);
+      });
 
-      await expect(
-        market.callOnAfterLoanRevocationLiquidityPool(getAddress(liquidityPool), LOAN_ID)
-      ).to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_ENFORCED_PAUSED);
-    });
+      it("The caller is not the market", async () => {
+        const { liquidityPool } = await setUpFixture(deployAndConfigureLiquidityPool);
 
-    it("Is reverted if the caller is not the market", async () => {
-      const { liquidityPool } = await setUpFixture(deployAndConfigureLiquidityPool);
-
-      await expect(liquidityPool.onAfterLoanRevocation(LOAN_ID))
-        .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_UNAUTHORIZED);
+        await expect(liquidityPool.onAfterLoanRevocation(LOAN_ID))
+          .to.be.revertedWithCustomError(liquidityPool, ERROR_NAME_UNAUTHORIZED);
+      });
     });
   });
 });

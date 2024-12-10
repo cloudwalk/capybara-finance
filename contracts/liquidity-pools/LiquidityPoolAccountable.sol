@@ -52,7 +52,17 @@ contract LiquidityPoolAccountable is
     uint64 internal _borrowableBalance;
 
     /// @dev The addons balance of the liquidity pool.
+    ///
+    /// It is used only if the addon amount of loans is retained on the pool contract.
+    /// If the addon amount of loans transfers to an external addon treasury this variable is kept unchanged.
+    /// See the comments of the {_addonTreasury} storage variable for more details.
     uint64 internal _addonsBalance;
+
+    /// @dev The address of the addon treasury.
+    ///
+    /// If the address is zero the addon amount of a loan is retained in the pool.
+    /// Otherwise the addon amount transfers to that treasury when a loan is taken and back when a loan is revoked.
+    address internal _addonTreasury;
 
     /// @dev This empty reserved space is put in place to allow future versions
     /// to add new variables without shifting down storage in the inheritance chain.
@@ -61,6 +71,16 @@ contract LiquidityPoolAccountable is
     // -------------------------------------------- //
     //  Errors                                      //
     // -------------------------------------------- //
+
+    /// @dev Thrown when attempting to zero the addon treasury address.
+    ///
+    /// Zeroing the addon treasury address is prohibited because this can lead to a situation where
+    /// a loan is taken when it is non-zero and revoked when it is zero, which will lead to
+    /// an incorrect value of the `_addonsBalance` variable, or a reversion if `_addonsBalance == 0`.
+    error AddonTreasuryAddressZeroingProhibited();
+
+    /// @dev Thrown when the addon treasury has not provided an allowance for the pool contract to transfer its tokens.
+    error AddonTreasuryZeroAllowance();
 
     /// @dev Thrown when the token source balance is insufficient.
     error InsufficientBalance();
@@ -211,6 +231,11 @@ contract LiquidityPoolAccountable is
         emit Rescue(token_, amount);
     }
 
+    /// @inheritdoc ILiquidityPoolAccountable
+    function setAddonTreasury(address newTreasury) external onlyRole(OWNER_ROLE) {
+        _setAddonTreasury(newTreasury);
+    }
+
     // -------------------------------------------- //
     //  Admin functions                             //
     // -------------------------------------------- //
@@ -237,7 +262,7 @@ contract LiquidityPoolAccountable is
     function onBeforeLoanTaken(uint256 loanId) external whenNotPaused onlyMarket returns (bool) {
         Loan.State memory loan = ILendingMarket(_market).getLoanState(loanId);
         _borrowableBalance -= loan.borrowAmount + loan.addonAmount;
-        _addonsBalance += loan.addonAmount;
+        _collectLoanAddon(loan.addonAmount);
         return true;
     }
 
@@ -256,7 +281,7 @@ contract LiquidityPoolAccountable is
         } else {
             _borrowableBalance = _borrowableBalance - (loan.repaidAmount - loan.borrowAmount) + loan.addonAmount;
         }
-        _addonsBalance -= loan.addonAmount;
+        _revokeLoanAddon(loan.addonAmount);
         return true;
     }
 
@@ -284,6 +309,59 @@ contract LiquidityPoolAccountable is
         return _token;
     }
 
+    /// @dev ILiquidityPool
+    function addonTreasury() external view returns (address) {
+        return _addonTreasury;
+    }
+
+    // -------------------------------------------- //
+    //  Pure functions                              //
+    // -------------------------------------------- //
+
     /// @inheritdoc ILiquidityPool
     function proveLiquidityPool() external pure {}
+
+    // -------------------------------------------- //
+    //  Internal functions                          //
+    // -------------------------------------------- //
+
+    /// @dev Sets the new address of the  addon treasury internally.
+    function _setAddonTreasury(address newTreasury) internal {
+        address oldTreasury = _addonTreasury;
+        if (oldTreasury == newTreasury) {
+            revert Error.AlreadyConfigured();
+        }
+        if (newTreasury == address(0)) {
+            revert AddonTreasuryAddressZeroingProhibited();
+        }
+        if (IERC20(_token).allowance(newTreasury, address(this)) == 0) {
+            revert AddonTreasuryZeroAllowance();
+        }
+        emit AddonTreasuryChanged(newTreasury, oldTreasury);
+        _addonTreasury = newTreasury;
+    }
+
+    /// @dev Collects the addon amount depending on the addon treasury address.
+    ///
+    /// See the comments of the {_addonTreasury} storage variable for more details.
+    function _collectLoanAddon(uint64 addonAmount) internal {
+        address addonTreasury_ = _addonTreasury;
+        if (addonTreasury_ == address(0)) {
+            _addonsBalance += addonAmount;
+        } else {
+            IERC20(_token).safeTransfer(addonTreasury_, addonAmount);
+        }
+    }
+
+    /// @dev Revokes the addon amount depending on the addon treasury address.
+    ///
+    /// See the comments of the {_addonTreasury} storage variable for more details.
+    function _revokeLoanAddon(uint64 addonAmount) internal {
+        address addonTreasury_ = _addonTreasury;
+        if (addonTreasury_ == address(0)) {
+            _addonsBalance -= addonAmount;
+        } else {
+            IERC20(_token).safeTransferFrom(addonTreasury_, address(this), addonAmount);
+        }
+    }
 }

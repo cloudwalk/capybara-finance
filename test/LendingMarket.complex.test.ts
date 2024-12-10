@@ -13,8 +13,10 @@ import {
 
 const ADMIN_ROLE = ethers.id("ADMIN_ROLE");
 
+const MAX_ALLOWANCE = ethers.MaxUint256;
+const INITIAL_BALANCE = 10n ** 15n;
+const INITIAL_DEPOSIT = 10n ** 15n;
 const PERIOD_IN_SECONDS = 86400;
-const ADDON_AMOUNT = 0;
 const PROGRAM_ID = 1;
 const NEGATIVE_TIME_OFFSET = 3 * 60 * 60; // 3 hours
 
@@ -28,7 +30,7 @@ enum ScenarioFinalAction {
   None = 0,
   FullRepayment = 1,
   Revocation = 2,
-  RepaymentCheck = 3
+  FullRepaymentCheck = 3
 }
 
 interface Fixture {
@@ -50,6 +52,7 @@ interface Fixture {
 
 interface TestScenario {
   borrowAmount: number;
+  addonAmount: number;
   durationInPeriods: number;
   interestRatePrimary: number;
   interestRateSecondary: number;
@@ -108,6 +111,7 @@ interface BorrowerConfig {
 
 const testScenarioDefault: TestScenario = {
   borrowAmount: 0,
+  addonAmount: 0,
   durationInPeriods: 180,
   interestRatePrimary: 0,
   interestRateSecondary: 0,
@@ -146,9 +150,10 @@ describe("Contract 'LendingMarket': complex tests", async () => {
   let lender: HardhatEthersSigner;
   let admin: HardhatEthersSigner;
   let borrower: HardhatEthersSigner;
+  let addonTreasury: HardhatEthersSigner;
 
   before(async () => {
-    [owner, lender, admin, borrower] = await ethers.getSigners();
+    [owner, lender, admin, borrower, addonTreasury] = await ethers.getSigners();
 
     fixture = await deployContracts();
     await configureContracts(fixture);
@@ -220,7 +225,8 @@ describe("Contract 'LendingMarket': complex tests", async () => {
   }
 
   async function configureContracts(fixture: Fixture) {
-    const { token, lendingMarket, creditLine, lendingMarketAddress, liquidityPoolAddress, creditLineAddress } = fixture;
+    const { token, lendingMarket, lendingMarketAddress, creditLine, creditLineAddress } = fixture;
+    const { liquidityPool, liquidityPoolAddress } = fixture;
     // Allowance
     await proveTx(connect(token, lender).approve(liquidityPoolAddress, ethers.MaxUint256));
     await proveTx(connect(token, borrower).approve(lendingMarketAddress, ethers.MaxUint256));
@@ -230,9 +236,21 @@ describe("Contract 'LendingMarket': complex tests", async () => {
     await proveTx(lendingMarket.registerCreditLine(creditLineAddress));
     await proveTx(lendingMarket.registerLiquidityPool(liquidityPoolAddress));
     await proveTx(lendingMarket.createProgram(creditLineAddress, liquidityPoolAddress));
+
+    // Configure addon treasure
+    await proveTx(connect(token, addonTreasury).approve(liquidityPoolAddress, MAX_ALLOWANCE));
+    await proveTx(liquidityPool.setAddonTreasury(addonTreasury.address));
+
+    // Mint token
+    await proveTx(token.mint(lender.address, INITIAL_BALANCE));
+    await proveTx(token.mint(borrower.address, INITIAL_BALANCE));
+    await proveTx(token.mint(addonTreasury.address, INITIAL_BALANCE));
+
+    // Configure liquidity pool and credit line
+    await proveTx(liquidityPool.deposit(INITIAL_DEPOSIT));
   }
 
-  async function runScenario(scenario: TestScenario) {
+  async function runScenario(scenario: TestScenario): Promise<TestScenarioContext> {
     const context: TestScenarioContext = { ...testScenarioContextDefault, scenario, fixture };
     const { token, lendingMarket, liquidityPoolAddress } = context.fixture as Fixture;
     await prepareContractsForScenario(context);
@@ -252,18 +270,15 @@ describe("Contract 'LendingMarket': complex tests", async () => {
     await checkFinalPoolBalanceForScenario(context);
     await checkLoanRepaidAmountForScenario(context);
     await executeFinalActionIfNeededForScenario(context);
+
+    return context;
   }
 
   async function prepareContractsForScenario(context: TestScenarioContext) {
-    const { token, liquidityPool, creditLine } = context.fixture as Fixture;
+    const { creditLine } = context.fixture as Fixture;
     const scenario = context.scenario;
 
-    // Mint token
-    await proveTx(token.mint(lender.address, scenario.borrowAmount));
-    await proveTx(token.mint(borrower.address, scenario.borrowAmount * 10));
-
-    // Configure liquidity pool and credit line
-    await proveTx(liquidityPool.deposit(scenario.borrowAmount));
+    // Configure credit line
     const creditLineConfig: CreditLineConfig = createCreditLineConfig(scenario);
     await proveTx(creditLine.configureCreditLine(creditLineConfig));
 
@@ -317,7 +332,7 @@ describe("Contract 'LendingMarket': complex tests", async () => {
 
   async function manageLoansForScenario(context: TestScenarioContext) {
     const scenario: TestScenario = context.scenario;
-    const { lendingMarket } = context.fixture as Fixture;
+    const { token, lendingMarket, liquidityPool } = context.fixture as Fixture;
 
     // Close a previous loan if it is not closed already
     const loanCounter = await lendingMarket.loanCounter();
@@ -330,13 +345,27 @@ describe("Contract 'LendingMarket': complex tests", async () => {
 
     context.loanId = loanCounter;
 
+    const liquidityPoolBalancesBefore = await liquidityPool.getBalances();
+    expect(liquidityPoolBalancesBefore[1]).to.eq(0); // The addonsBalance must be zero because addonTreasury != 0
+
     const tx: Promise<TransactionResponse> = lendingMarket.takeLoanFor(
       borrower.address,
       PROGRAM_ID,
       scenario.borrowAmount,
-      ADDON_AMOUNT,
+      scenario.addonAmount,
       scenario.durationInPeriods
     );
+
+    await expect(tx).to.changeTokenBalances(
+      token,
+      [lendingMarket, liquidityPool, borrower, addonTreasury, lender],
+      [0, -(scenario.borrowAmount + scenario.addonAmount), scenario.borrowAmount, scenario.addonAmount, 0]
+    );
+
+    const liquidityPoolBalancesAfter = await liquidityPool.getBalances();
+    expect(liquidityPoolBalancesAfter[0])
+      .to.eq(Number(liquidityPoolBalancesBefore[0]) - scenario.borrowAmount - scenario.addonAmount);
+    expect(liquidityPoolBalancesAfter[1]).to.eq(0); // The addonsBalance must be zero because addonTreasury != 0
 
     const txReceipt = await proveTx(tx);
     context.loanTakingPeriod = calculateLoanPeriodIndex(await getBlockTimestamp(txReceipt.blockNumber));
@@ -362,10 +391,16 @@ describe("Contract 'LendingMarket': complex tests", async () => {
   }
 
   async function repayLoanIfNeededForScenario(context: TestScenarioContext) {
-    const { lendingMarket } = context.fixture as Fixture;
+    const { token, lendingMarket, liquidityPool } = context.fixture as Fixture;
     const repaymentAmount = context.scenario.repaymentAmounts[context.stepIndex] ?? 0;
     if (repaymentAmount != 0) {
-      await proveTx(connect(lendingMarket, borrower).repayLoan(context.loanId, repaymentAmount));
+      await expect(
+        connect(lendingMarket, borrower).repayLoan(context.loanId, repaymentAmount)
+      ).to.changeTokenBalances(
+        token,
+        [lendingMarket, liquidityPool, borrower],
+        [0, +repaymentAmount, -repaymentAmount]
+      );
     }
   }
 
@@ -374,12 +409,16 @@ describe("Contract 'LendingMarket': complex tests", async () => {
     context: TestScenarioContext
   ) {
     const { lendingMarket } = context.fixture as Fixture;
+    const scenario = context.scenario;
+    const expectedBalanceBefore = scenario.expectedOutstandingBalancesBeforeRepayment[context.stepIndex] ?? 0;
+    if (expectedBalanceBefore < 0) {
+      // Do not check is the expected balance is negative
+      return;
+    }
     const loanPreviewAfter = await lendingMarket.getLoanPreview(context.loanId, 0);
 
-    const scenario = context.scenario;
     const actualBalanceBefore = Number(loanPreviewBefore.outstandingBalance);
     const actualBalanceAfter = Number(loanPreviewAfter.outstandingBalance);
-    const expectedBalanceBefore = scenario.expectedOutstandingBalancesBeforeRepayment[context.stepIndex] ?? 0;
     const repaymentAmount = scenario.repaymentAmounts[context.stepIndex] ?? 0;
     const expectedBalanceAfter = actualBalanceBefore - repaymentAmount;
     const differenceBefore = actualBalanceBefore - expectedBalanceBefore;
@@ -418,7 +457,7 @@ describe("Contract 'LendingMarket': complex tests", async () => {
         await executeAndCheckLoanRevocationForScenario(context);
         break;
       }
-      case ScenarioFinalAction.RepaymentCheck: {
+      case ScenarioFinalAction.FullRepaymentCheck: {
         const { lendingMarket } = context.fixture as Fixture;
         await checkLoanClosedState(lendingMarket, context.loanId);
         break;
@@ -444,15 +483,26 @@ describe("Contract 'LendingMarket': complex tests", async () => {
 
   async function executeAndCheckLoanRevocationForScenario(context: TestScenarioContext) {
     const { token, lendingMarket, liquidityPool } = context.fixture as Fixture;
+    const scenario = context.scenario;
     const loanState = await lendingMarket.getLoanState(context.loanId);
-    const repaidAmount = loanState.repaidAmount - loanState.borrowAmount;
+    const refundAmount = Number(loanState.repaidAmount) - scenario.borrowAmount;
+
+    const liquidityPoolBalancesBefore = await liquidityPool.getBalances();
+    expect(liquidityPoolBalancesBefore[1]).to.eq(0); // The addonsBalance must be zero because addonTreasury != 0
+
     await expect(
       lendingMarket.revokeLoan(context.loanId)
     ).to.changeTokenBalances(
       token,
-      [lendingMarket, liquidityPool, borrower],
-      [0, -repaidAmount, repaidAmount]
+      [lendingMarket, liquidityPool, borrower, addonTreasury],
+      [0, -refundAmount + scenario.addonAmount, refundAmount, -scenario.addonAmount]
     );
+
+    const liquidityPoolBalancesAfter = await liquidityPool.getBalances();
+    expect(liquidityPoolBalancesAfter[0])
+      .to.eq(Number(liquidityPoolBalancesBefore[0]) - refundAmount + scenario.addonAmount);
+    expect(liquidityPoolBalancesAfter[1]).to.eq(0); // The addonsBalance must be zero because addonTreasury != 0
+
     await checkLoanRepaidAmountForScenario(context);
     await checkLoanClosedState(lendingMarket, context.loanId);
   }
@@ -467,7 +517,9 @@ describe("Contract 'LendingMarket': complex tests", async () => {
 
   describe("Complex scenarios", async () => {
     it("Scenario 1: a typical loan with short freezing after defaulting and full repayment at the end", async () => {
-      const borrowAmount = 1e9; // 1000 BRLC
+      const principalAmount = 1e9; // 1000 BRLC
+      const addonAmount = Math.floor(principalAmount * 0.2);
+      const borrowAmount = principalAmount - addonAmount;
       const interestRatePrimary = 2_724_943; // 170 % annual
       const interestRateSecondary = 4_067440; // 340 % annual
 
@@ -489,6 +541,7 @@ describe("Contract 'LendingMarket': complex tests", async () => {
       const scenario: TestScenario = {
         ...testScenarioDefault,
         borrowAmount,
+        addonAmount,
         interestRatePrimary,
         interestRateSecondary,
         repaymentAmounts,
@@ -500,7 +553,9 @@ describe("Contract 'LendingMarket': complex tests", async () => {
     });
 
     it("Scenario 2: a typical loan with short freezing and repayments only after defaulting", async () => {
-      const borrowAmount = 1e9; // 1000 BRLC
+      const principalAmount = 1e9; // 1000 BRLC, no addon amount
+      const addonAmount = 0;
+      const borrowAmount = principalAmount - addonAmount;
       const interestRatePrimary = 2_724_943; // 170 % annual
       const interestRateSecondary = 4_067440; // 340 % annual
 
@@ -527,13 +582,15 @@ describe("Contract 'LendingMarket': complex tests", async () => {
         repaymentAmounts,
         expectedOutstandingBalancesBeforeRepayment,
         frozenStepIndexes,
-        finalAction: ScenarioFinalAction.RepaymentCheck
+        finalAction: ScenarioFinalAction.FullRepaymentCheck
       };
       await runScenario(scenario);
     });
 
     it("Scenario 3: a big loan with big rates, lots of small repayments and revocation at the end", async () => {
-      const borrowAmount = 1e12; // 1000_000 BRLC
+      const principalAmount = 1e12; // 1000_000 BRLC
+      const addonAmount = Math.floor(principalAmount * 0.1);
+      const borrowAmount = principalAmount - addonAmount;
       const interestRatePrimary = 4_219_472; // 365 % annual
       const interestRateSecondary = 5_814_801; // 730 % annual
 
@@ -555,6 +612,7 @@ describe("Contract 'LendingMarket': complex tests", async () => {
       const scenario: TestScenario = {
         ...testScenarioDefault,
         borrowAmount,
+        addonAmount,
         interestRatePrimary,
         interestRateSecondary,
         repaymentAmounts,
@@ -566,7 +624,9 @@ describe("Contract 'LendingMarket': complex tests", async () => {
     });
 
     it("Scenario 4: a small loan with low rates, lots of repayments leading to the full repayment", async () => {
-      const borrowAmount = 1e6; // 1 BRLC
+      const principalAmount = 1e6; // 1 BRLC
+      const addonAmount = 1e4;
+      const borrowAmount = principalAmount - addonAmount;
       const interestRatePrimary = 261_157; // 10 % annual
       const interestRateSecondary = 499_635; // 20 % annual
 
@@ -587,12 +647,13 @@ describe("Contract 'LendingMarket': complex tests", async () => {
       const scenario: TestScenario = {
         ...testScenarioDefault,
         borrowAmount,
+        addonAmount,
         interestRatePrimary,
         interestRateSecondary,
         repaymentAmounts,
         expectedOutstandingBalancesBeforeRepayment,
         frozenStepIndexes,
-        finalAction: ScenarioFinalAction.RepaymentCheck
+        finalAction: ScenarioFinalAction.FullRepaymentCheck
       };
       await runScenario(scenario);
     });
