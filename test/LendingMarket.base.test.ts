@@ -132,7 +132,7 @@ const NEGATIVE_TIME_OFFSET = 3 * 60 * 60; // 3 hours
 const COOLDOWN_IN_PERIODS = 3;
 const EXPECTED_VERSION: Version = {
   major: 1,
-  minor: 2,
+  minor: 3,
   patch: 0
 };
 
