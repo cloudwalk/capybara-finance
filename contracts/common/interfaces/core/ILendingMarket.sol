@@ -7,6 +7,22 @@ import { Loan } from "../../libraries/Loan.sol";
 /// @title ILendingMarket interface
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @dev Defines the lending market contract functions and events.
+///
+/// There can be two types of loans:
+/// - Common loans: a single loan that is taken by a borrower.
+/// - Installment loans: a loan that is taken by a borrower in the form of multiple sub-loans.
+///
+/// Common loans are represented by a single loan with a unique ID.
+///
+/// Installment loans are represented by multiple sub-loans with unique IDs.
+/// The ID of any sub-loan can be used as the ID of the installment loan.
+///
+/// There is no difference in the logic and storage of the common loans and sub-loans of an installment loan.
+/// The names are introduced only for clarity and to distinguish between the two types of loans.
+/// If no additional information is provided, the term "loan" refers to a common loan as well as a sub-loan.
+///
+/// The ID of the first sub-loan and the total number of sub-loans of an installment loan is stored in the `firstInstallmentId`
+/// and `instalmentCount` fields of the loan structure. For common loans, these fields are set to 0.
 interface ILendingMarket {
     // -------------------------------------------- //
     //  Events                                      //
@@ -24,7 +40,13 @@ interface ILendingMarket {
         uint256 durationInPeriods
     );
 
-    /// @dev TODO
+    /// @dev Emitted when an installment loan is taken in the form of multiple sub-loans.
+    /// @param firstInstallmentId The ID of the first installment.
+    /// @param borrower The address of the borrower.
+    /// @param programId The ID of the lending program.
+    /// @param installmentCount The total number of installments.
+    /// @param totalBorrowAmount The total amount borrowed.
+    /// @param totalAddonAmount The total addon amount of the loan.
     event InstallmentLoanTaken(
         uint256 indexed firstInstallmentId,
         address indexed borrower,
@@ -259,25 +281,33 @@ interface ILendingMarket {
 
     /// @dev Gets the stored state of a given loan.
     /// @param loanId The unique identifier of the loan to check.
-    /// @return The stored state of the loan (see the Loan.State struct).
+    /// @return The stored state of the loan (see the `Loan.State` struct).
     function getLoanState(uint256 loanId) external view returns (Loan.State memory);
 
-    /// @dev TODO
+    /// @dev Gets the stored state of a batch of loans.
+    /// @param loanIds The unique identifiers of the loans to check.
+    /// @return The stored states of the loans (see the `Loan.State` struct).
     function getLoanStateBatch(uint256[] calldata loanIds) external view returns (Loan.State[] memory);
 
     /// @dev Gets the loan preview at a specific timestamp.
     /// @param loanId The unique identifier of the loan to check.
     /// @param timestamp The timestamp to get the loan preview for.
-    /// @return The preview state of the loan (see the Loan.Preview struct).
+    /// @return The preview state of the loan (see the `Loan.Preview` struct).
     function getLoanPreview(uint256 loanId, uint256 timestamp) external view returns (Loan.Preview memory);
 
-    /// @dev TODO
+    /// @dev Gets the loan preview at a specific timestamp for a batch of loans.
+    /// @param loanIds The unique identifiers of the loans to check.
+    /// @param timestamp The timestamp to get the loan preview for. If 0, the current timestamp is used.
+    /// @return The preview states of the loans (see the `Loan.Preview` struct).
     function getLoanPreviewBatch(
         uint256[] calldata loanIds,
         uint256 timestamp
     ) external view returns (Loan.Preview[] memory);
 
-    /// @dev TODO
+    /// @dev Gets the installment loan preview at a specific timestamp.
+    /// @param loanId The unique identifier of any sub-loan of the installment loan to check.
+    /// @param timestamp The timestamp to get the installment loan preview for. If 0, the current timestamp is used.
+    /// @return The preview state of the installment loan (see the `Loan.InstallmentLoanPreview` struct).
     function getInstallmentLoanPreview(
         uint256 loanId,
         uint256 timestamp

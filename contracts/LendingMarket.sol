@@ -25,6 +25,8 @@ import { LendingMarketStorage } from "./LendingMarketStorage.sol";
 /// @title LendingMarket contract
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @dev Implementation of the lending market contract.
+///
+/// See additional notes in the comments of the interface `ILendingMarket.sol`.
 contract LendingMarket is
     LendingMarketStorage,
     Initializable,
@@ -43,7 +45,7 @@ contract LendingMarket is
     //  Errors                                      //
     // -------------------------------------------- //
 
-    /// @dev TODO
+    /// @dev Thrown when the loan ID exceeds the maximum allowed value.
     error LoanIdExcess();
 
     /// @dev Thrown when the loan does not exist.
@@ -79,10 +81,10 @@ contract LendingMarket is
     /// @dev Thrown when the provided address does not belong to a contract of expected type or a contract at all.
     error ContractAddressInvalid();
 
-    /// @dev TODO
+    /// @dev Thrown when the provided duration array is invalid.
     error DurationArrayInvalid();
 
-    /// @dev TODO
+    /// @dev Thrown when the installment count exceeds the maximum allowed value.
     error InstallmentCountExcess();
 
     // -------------------------------------------- //
@@ -793,7 +795,11 @@ contract LendingMarket is
     //  Internal functions                          //
     // -------------------------------------------- //
 
-    /// @dev TODO
+    /// @dev Validates the main parameters of the loan.
+    /// @param borrower The address of the borrower.
+    /// @param programId The ID of the lending program.
+    /// @param borrowAmount The amount to borrow.
+    /// @param addonAmount The addon amount of the loan.
     function _checkMainLoanParameters(
         address borrower,
         uint32 programId,
@@ -817,24 +823,29 @@ contract LendingMarket is
         }
     }
 
-    /// @dev TODO
+    /// @dev Checks if the sender is authorized for the given program.
+    /// @param sender The address to check.
+    /// @param programId The ID of the lending program.
     function _checkSender(address sender, uint32 programId) internal view {
         if (!isProgramLenderOrAlias(programId, sender)) {
             revert Error.Unauthorized();
         }
     }
 
-    /// @dev TODO
-    function _sumArray(uint256[] calldata amounts) internal pure returns (uint256) {
-        uint256 len = amounts.length;
+    /// @dev Calculates the sum of all elements in an calldata array.
+    /// @param values Array of amounts to sum.
+    /// @return The total sum of all array elements.
+    function _sumArray(uint256[] calldata values) internal pure returns (uint256) {
+        uint256 len = values.length;
         uint256 sum = 0;
         for (uint256 i = 0; i < len; ++len) {
-            sum += amounts[i];
+            sum += values[i];
         }
         return sum;
     }
 
-    /// @dev TODO
+    /// @dev Validates the loan durations in the array.
+    /// @param durationInPeriods Array of loan durations in periods.
     function _checkDurationArray(uint256[] calldata durationInPeriods) internal pure {
         uint256 len = durationInPeriods.length;
         uint256 previousDuration = 0;
@@ -846,14 +857,18 @@ contract LendingMarket is
         }
     }
 
-    /// @dev TODO
+    /// @dev Ensures the installment count is within the valid range.
+    /// @param installmentCount The number of installments to check.
     function _checkInstallmentCount(uint256 installmentCount) internal pure {
         if (installmentCount > type(uint16).max) {
             revert InstallmentCountExcess();
         }
     }
 
-    /// @dev TODO
+    /// @dev Updates the loan installment data in storage.
+    /// @param loanId The ID of the loan to update.
+    /// @param firstInstallmentId The ID of the first installment.
+    /// @param installmentCount The total number of installments.
     function _updateLoanInstallmentData(
         uint256 loanId, // Tools: this comment prevents Prettier from formatting into a single line.
         uint256 firstInstallmentId,
@@ -864,7 +879,8 @@ contract LendingMarket is
         loan.instalmentCount = uint16(installmentCount); // Unchecked conversion is safe due to contract logic
     }
 
-    /// @dev TODO
+    /// @dev Validates that the loan ID is within the valid range.
+    /// @param id The loan ID to check.
     function _checkLoanId(uint256 id) internal pure {
         if (id > type(uint40).max) {
             revert LoanIdExcess();
@@ -924,7 +940,10 @@ contract LendingMarket is
         }
     }
 
-    /// @dev TODO
+    /// @dev Calculates the loan preview.
+    /// @param loanId The ID of the loan.
+    /// @param timestamp The timestamp to calculate the preview at.
+    /// @return The loan preview.
     function _getLoanPreview(uint256 loanId, uint256 timestamp) internal view returns (Loan.Preview memory) {
         Loan.Preview memory preview;
         Loan.State storage loan = _loans[loanId];
@@ -935,13 +954,20 @@ contract LendingMarket is
         return preview;
     }
 
-    /// @dev TODO
+    /// @dev Calculates the due period index for a loan.
+    /// @param startTimestamp The start timestamp of the loan.
+    /// @param durationInPeriods The duration of the loan in periods.
+    /// @return The due period index.
     function _getDuePeriodIndex(uint256 startTimestamp, uint256 durationInPeriods) internal pure returns (uint256) {
         uint256 startPeriodIndex = _periodIndex(startTimestamp, Constants.PERIOD_IN_SECONDS);
         return startPeriodIndex + durationInPeriods;
     }
 
-    /// @dev TODO
+    /// @dev Checks if a loan is defaulted.
+    /// @param timestamp The timestamp to check.
+    /// @param startTimestamp The start timestamp of the loan.
+    /// @param durationInPeriods The duration of the loan in periods.
+    /// @return True if the loan is defaulted, false otherwise.
     function _isLoanDefaulted(
         uint256 timestamp,
         uint256 startTimestamp,

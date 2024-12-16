@@ -28,8 +28,8 @@ library Loan {
         uint64 trackedBalance;        // The borrow balance of the loan that is tracked over its lifetime.
         uint32 trackedTimestamp;      // The timestamp when the loan was last paid or its balance was updated.
         uint32 freezeTimestamp;       // The timestamp when the loan was frozen. Zero value for unfrozen loans.
-        uint40 firstInstallmentId;    // TODO
-        uint16 instalmentCount;       // TODO
+        uint40 firstInstallmentId;    // The ID of the first installment for sub-loans or zero for common loans.
+        uint16 instalmentCount;       // The total number of installments for sub-loans or zero for common loans.
         // uint8 __reserved;          // Reserved for future use.
     }
 
@@ -51,12 +51,12 @@ library Loan {
         uint256 outstandingBalance; // The outstanding balance of the loan at the previewed period.
     }
 
-    /// @dev TODO
+    /// @dev A struct that defines the preview of an installment loan.
     struct InstallmentLoanPreview {
-        uint256 firstInstallmentId;
-        uint256 instalmentCount;
-        uint256 periodIndex;
-        uint256 totalTrackedBalance;
-        uint256 totalOutstandingBalance;
+        uint256 firstInstallmentId;      // The ID of the first installment of the installment loan.
+        uint256 instalmentCount;         // The total number of installments of the installment loan.
+        uint256 periodIndex;             // The period index that matches the preview timestamp.
+        uint256 totalTrackedBalance;     // The total tracked balance of all sub-loans of the installment loan.
+        uint256 totalOutstandingBalance; // The total outstanding balance of all sub-loans of the installment loan.
     }
 }
