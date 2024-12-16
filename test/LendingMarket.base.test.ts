@@ -35,6 +35,8 @@ interface LoanState {
   trackedBalance: number;
   trackedTimestamp: number;
   freezeTimestamp: number;
+  firstInstallmentId: number;
+  instalmentCount: number;
 
   [key: string]: string | number; // Index signature
 }
@@ -157,7 +159,9 @@ const defaultLoanState: LoanState = {
   repaidAmount: 0,
   trackedBalance: 0,
   trackedTimestamp: 0,
-  freezeTimestamp: 0
+  freezeTimestamp: 0,
+  firstInstallmentId: 0,
+  instalmentCount: 0
 };
 
 async function deployAndConnectContract(

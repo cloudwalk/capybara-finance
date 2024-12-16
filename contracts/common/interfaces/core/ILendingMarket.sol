@@ -24,6 +24,16 @@ interface ILendingMarket {
         uint256 durationInPeriods
     );
 
+    /// @dev TODO
+    event InstallmentLoanTaken(
+        uint256 indexed firstInstallmentId,
+        address indexed borrower,
+        uint256 indexed programId,
+        uint256 installmentCount,
+        uint256 totalBorrowAmount,
+        uint256 totalAddonAmount
+    );
+
     /// @dev Emitted when a loan is repaid (fully or partially).
     /// @param loanId The unique identifier of the loan.
     /// @param repayer The address of the repayer (borrower or third-party).
@@ -257,6 +267,12 @@ interface ILendingMarket {
     /// @param timestamp The timestamp to get the loan preview for.
     /// @return The preview state of the loan (see the Loan.Preview struct).
     function getLoanPreview(uint256 loanId, uint256 timestamp) external view returns (Loan.Preview memory);
+
+    /// @dev TODO
+    function getInstallmentLoanPreview(
+        uint256 loanId,
+        uint256 timestamp
+    ) external view returns (Loan.InstallmentLoanPreview memory);
 
     /// @dev Checks if the provided account is a lender or an alias for a lender of a given loan.
     /// @param loanId The unique identifier of the loan to check.

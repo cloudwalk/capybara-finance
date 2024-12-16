@@ -160,6 +160,15 @@ contract LendingMarketMock is ILendingMarket {
         revert Error.NotImplemented();
     }
 
+    function getInstallmentLoanPreview(
+        uint256 loanId,
+        uint256 timestamp
+    ) external pure returns (Loan.InstallmentLoanPreview memory) {
+        loanId; // To prevent compiler warning about unused variable
+        timestamp; // To prevent compiler warning about unused variable
+        revert Error.NotImplemented();
+    }
+
     function isLenderOrAlias(uint256 loanId, address account) external pure returns (bool) {
         loanId; // To prevent compiler warning about unused variable
         account; // To prevent compiler warning about unused variable

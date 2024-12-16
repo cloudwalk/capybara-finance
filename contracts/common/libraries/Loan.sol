@@ -28,6 +28,9 @@ library Loan {
         uint64 trackedBalance;        // The borrow balance of the loan that is tracked over its lifetime.
         uint32 trackedTimestamp;      // The timestamp when the loan was last paid or its balance was updated.
         uint32 freezeTimestamp;       // The timestamp when the loan was frozen. Zero value for unfrozen loans.
+        uint40 firstInstallmentId;    // TODO
+        uint16 instalmentCount;       // TODO
+        // uint8 __reserved;          // Reserved for future use.
     }
 
     /// @dev A struct that defines the terms of the loan.
@@ -46,5 +49,14 @@ library Loan {
         uint256 periodIndex;        // The period index that matches the preview timestamp.
         uint256 trackedBalance;     // The tracked balance of the loan at the previewed period.
         uint256 outstandingBalance; // The outstanding balance of the loan at the previewed period.
+    }
+
+    /// @dev TODO
+    struct InstallmentLoanPreview {
+        uint256 firstInstallmentId;
+        uint256 instalmentCount;
+        uint256 periodIndex;
+        uint256 totalTrackedBalance;
+        uint256 totalOutstandingBalance;
     }
 }
