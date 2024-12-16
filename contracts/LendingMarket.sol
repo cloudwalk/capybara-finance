@@ -202,7 +202,7 @@ contract LendingMarket is
         uint256[] calldata borrowAmounts,
         uint256[] calldata addonAmounts,
         uint256[] calldata durationInPeriods
-    ) external whenNotPaused returns (uint256 firstInstallmentId, uint256 installmentCount)  {
+    ) external whenNotPaused returns (uint256 firstInstallmentId, uint256 installmentCount) {
         uint256 totalBorrowAmount = _sumArray(borrowAmounts);
         uint256 totalAddonAmount = _sumArray(addonAmounts);
         installmentCount = borrowAmounts.length;
@@ -855,7 +855,7 @@ contract LendingMarket is
 
     /// @dev TODO
     function _updateLoanInstallmentData(
-        uint256 loanId,
+        uint256 loanId, // Tools: this comment prevents Prettier from formatting into a single line.
         uint256 firstInstallmentId,
         uint256 installmentCount
     ) internal {
@@ -865,7 +865,7 @@ contract LendingMarket is
     }
 
     /// @dev TODO
-    function _checkLoanId(uint256 id) internal pure{
+    function _checkLoanId(uint256 id) internal pure {
         if (id > type(uint40).max) {
             revert LoanIdExcess();
         }
@@ -936,10 +936,7 @@ contract LendingMarket is
     }
 
     /// @dev TODO
-    function _getDuePeriodIndex(
-        uint256 startTimestamp,
-        uint256 durationInPeriods
-    ) internal pure returns (uint256) {
+    function _getDuePeriodIndex(uint256 startTimestamp, uint256 durationInPeriods) internal pure returns (uint256) {
         uint256 startPeriodIndex = _periodIndex(startTimestamp, Constants.PERIOD_IN_SECONDS);
         return startPeriodIndex + durationInPeriods;
     }
