@@ -166,7 +166,7 @@ contract LendingMarket is
         uint256 borrowAmount,
         uint256 durationInPeriods
     ) external whenNotPaused returns (uint256) {
-        address borrower = _msgSender();
+        address borrower = msg.sender;
         _checkMainLoanParameters(borrower, programId, borrowAmount, 0);
         return
             _takeLoan(
