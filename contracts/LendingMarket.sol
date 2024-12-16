@@ -60,6 +60,12 @@ contract LendingMarket is
     /// @dev Thrown when the loan is already frozen.
     error LoanAlreadyFrozen();
 
+    /// @dev Thrown when the loan is common but another type of loan is expected.
+    error LoanIsCommon();
+
+    /// @dev Thrown when the loan is an installment one but another type of loan is expected.
+    error LoanWithInstallments();
+
     /// @dev Thrown when the credit line is not configured.
     error CreditLineLenderNotConfigured();
 
@@ -103,10 +109,9 @@ contract LendingMarket is
     /// @dev Throws if the loan does not exist or has already been repaid.
     /// @param loanId The unique identifier of the loan to check.
     modifier onlyOngoingLoan(uint256 loanId) {
-        if (_loans[loanId].token == address(0)) {
-            revert LoanNotExist();
-        }
-        if (_loans[loanId].trackedBalance == 0) {
+        Loan.State storage loan = _loans[loanId];
+        _checkLoanExistence(loan);
+        if (_isRepaid(loan)) {
             revert LoanAlreadyRepaid();
         }
         _;
@@ -579,26 +584,44 @@ contract LendingMarket is
     /// @inheritdoc ILendingMarket
     function revokeLoan(uint256 loanId) external whenNotPaused onlyOngoingLoan(loanId) {
         Loan.State storage loan = _loans[loanId];
-        address sender = msg.sender;
+        _checkLoanType(loan, uint256(Loan.Type.Common));
+        _revokeLoan(loanId, loan);
+    }
 
-        if (sender == loan.borrower) {
-            uint256 currentPeriodIndex = _periodIndex(_blockTimestamp(), Constants.PERIOD_IN_SECONDS);
-            uint256 startPeriodIndex = _periodIndex(loan.startTimestamp, Constants.PERIOD_IN_SECONDS);
-            if (currentPeriodIndex - startPeriodIndex >= Constants.COOLDOWN_IN_PERIODS) {
-                revert CooldownPeriodHasPassed();
+    /// @inheritdoc ILendingMarket
+    function revokeInstallmentLoan(uint256 loanId) external whenNotPaused {
+        Loan.State storage loan = _loans[loanId];
+        _checkLoanExistence(loan);
+        _checkLoanType(loan, uint256(Loan.Type.Installment));
+
+        loanId = loan.firstInstallmentId;
+        uint256 endLoanId = loanId + loan.instalmentCount;
+        uint256 revokedSubLoanCount = 0;
+
+        for(; loanId < endLoanId; ++loanId) {
+            loan = _loans[loanId];
+            if (!_isRepaid(loan)) {
+                _revokeLoan(loanId, loan);
+                ++revokedSubLoanCount;
             }
-            _revokeLoan(loanId, loan);
-        } else if (isLenderOrAlias(loanId, msg.sender)) {
-            _revokeLoan(loanId, loan);
-        } else {
-            revert Error.Unauthorized();
         }
+
+        if (revokedSubLoanCount == 0) {
+            revert LoanAlreadyRepaid();
+        }
+
+        emit InstallmentLoanRevoked(
+            loan.firstInstallmentId,
+            loan.instalmentCount
+        );
     }
 
     /// @dev Updates the loan state and makes the necessary transfers when revoking a loan.
     /// @param loanId The unique identifier of the loan to revoke.
     /// @param loan The storage state of the loan to update.
     function _revokeLoan(uint256 loanId, Loan.State storage loan) internal {
+        _checkLoanRevocationPossibility(loan);
+
         address creditLine = _programCreditLines[loan.programId];
         address liquidityPool = _programLiquidityPools[loan.programId];
 
@@ -888,6 +911,44 @@ contract LendingMarket is
         }
     }
 
+    /// @dev Checks if the loan can be revoked.
+    /// @param loan The storage state of the loan.  
+    function _checkLoanRevocationPossibility(Loan.State storage loan) internal view {
+        address sender = msg.sender;
+        if (sender == loan.borrower) {
+            uint256 currentPeriodIndex = _periodIndex(_blockTimestamp(), Constants.PERIOD_IN_SECONDS);
+            uint256 startPeriodIndex = _periodIndex(loan.startTimestamp, Constants.PERIOD_IN_SECONDS);
+            if (currentPeriodIndex - startPeriodIndex >= Constants.COOLDOWN_IN_PERIODS) {
+                revert CooldownPeriodHasPassed();
+            }
+        } else if (!isProgramLenderOrAlias(loan.programId, sender)) {
+            revert Error.Unauthorized();
+        }
+    }
+
+    /// @dev Checks if the loan exists.
+    /// @param loan The storage state of the loan.
+    function _checkLoanExistence(Loan.State storage loan) internal view {
+        if (loan.token == address(0)) {
+            revert LoanNotExist();
+        }
+    }
+
+    /// @dev Checks if the loan type is correct.
+    /// @param loan The storage state of the loan.
+    /// @param loanType The type of the loan according to the `Loan.Type` enum.
+    function _checkLoanType(Loan.State storage loan, uint256 loanType) internal view {
+        if (loan.instalmentCount == 0) {
+            if (loanType != uint256(Loan.Type.Common)) {
+                revert LoanIsCommon();
+            }
+        } else {
+            if (loanType != uint256(Loan.Type.Installment)) {
+                revert LoanWithInstallments();
+            }
+        }
+    }
+
     /// @dev Calculates the outstanding balance of a loan.
     /// @param loan The loan to calculate the outstanding balance for.
     /// @param timestamp The timestamp to calculate the outstanding balance at.
@@ -980,6 +1041,13 @@ contract LendingMarket is
             return true;
         }
         return false;
+    }
+
+    /// @dev Checks if the loan is repaid.
+    /// @param loan The storage state of the loan.
+    /// @return True if the loan is repaid, false otherwise.
+    function _isRepaid(Loan.State storage loan) internal view returns (bool) {
+        return loan.trackedBalance == 0;
     }
 
     /// @dev Calculates the period index that corresponds the specified timestamp.

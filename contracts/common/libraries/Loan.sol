@@ -6,6 +6,16 @@ pragma solidity 0.8.24;
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @dev Defines the common types used for loan management.
 library Loan {
+    /// @dev The type of a loan.
+    ///
+    /// Possible values:
+    /// - Common = 0 ------- A common loan.
+    /// - Installment = 1 -- An installment loan.
+    enum Type {
+        Common,
+        Installment
+    }
+
     /// @dev A struct that defines the stored state of a loan.
     struct State {
         // Slot1

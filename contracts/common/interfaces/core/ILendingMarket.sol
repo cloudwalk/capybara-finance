@@ -41,7 +41,7 @@ interface ILendingMarket {
     );
 
     /// @dev Emitted when an installment loan is taken in the form of multiple sub-loans.
-    /// @param firstInstallmentId The ID of the first installment.
+    /// @param firstInstallmentId The ID of the first sub-loan of the installment loan.
     /// @param borrower The address of the borrower.
     /// @param programId The ID of the lending program.
     /// @param installmentCount The total number of installments.
@@ -81,6 +81,14 @@ interface ILendingMarket {
     /// @dev Emitted when a loan is revoked.
     /// @param loanId The unique identifier of the loan.
     event LoanRevoked(uint256 indexed loanId);
+
+    /// @dev Emitted when an installment loan is revoked.
+    /// @param firstInstallmentId The ID of the first sub-loan of the installment loan.
+    /// @param installmentCount The total number of installments.
+    event InstallmentLoanRevoked(
+        uint256 indexed firstInstallmentId,
+        uint256 installmentCount
+    );
 
     /// @dev Emitted when the duration of the loan is updated.
     /// @param loanId The unique identifier of the loan.
@@ -246,9 +254,13 @@ interface ILendingMarket {
     //  Borrower OR Lender functions                //
     // -------------------------------------------- //
 
-    /// @dev Revokes a loan.
+    /// @dev Revokes a common loan.
     /// @param loanId The unique identifier of the loan to revoke.
     function revokeLoan(uint256 loanId) external;
+
+    /// @dev Revokes an installment loan.
+    /// @param loanId The unique identifier of any sub-loan of the installment loan to revoke.
+    function revokeInstallmentLoan(uint256 loanId) external;
 
     // -------------------------------------------- //
     //  View functions                              //
