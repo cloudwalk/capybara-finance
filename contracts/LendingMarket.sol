@@ -723,16 +723,16 @@ contract LendingMarket is
         Loan.State storage loan = _loans[loanId];
         Loan.InstallmentLoanPreview memory preview;
         preview.instalmentCount = loan.instalmentCount;
-        uint256 lastInstallmentId = loanId;
+        uint256 endInstallmentId = loanId;
         if (preview.instalmentCount > 0) {
             loanId = loan.firstInstallmentId;
             preview.firstInstallmentId = loanId;
-            lastInstallmentId = loanId + preview.instalmentCount;
+            endInstallmentId = loanId + preview.instalmentCount;
         } else {
             preview.firstInstallmentId = loanId;
         }
 
-        for (; loanId <= lastInstallmentId; ++loanId) {
+        for (; loanId < endInstallmentId; ++loanId) {
             Loan.Preview memory singleLoanPreview = _getLoanPreview(loanId, timestamp);
             preview.periodIndex = singleLoanPreview.periodIndex;
             preview.totalTrackedBalance += singleLoanPreview.trackedBalance;
