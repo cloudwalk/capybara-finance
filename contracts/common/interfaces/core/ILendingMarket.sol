@@ -262,11 +262,20 @@ interface ILendingMarket {
     /// @return The stored state of the loan (see the Loan.State struct).
     function getLoanState(uint256 loanId) external view returns (Loan.State memory);
 
+    /// @dev TODO
+    function getLoanStateBatch(uint256[] calldata loanIds) external view returns (Loan.State[] memory);
+
     /// @dev Gets the loan preview at a specific timestamp.
     /// @param loanId The unique identifier of the loan to check.
     /// @param timestamp The timestamp to get the loan preview for.
     /// @return The preview state of the loan (see the Loan.Preview struct).
     function getLoanPreview(uint256 loanId, uint256 timestamp) external view returns (Loan.Preview memory);
+
+    /// @dev TODO
+    function getLoanPreviewBatch(
+        uint256[] calldata loanIds,
+        uint256 timestamp
+    ) external view returns (Loan.Preview[] memory);
 
     /// @dev TODO
     function getInstallmentLoanPreview(
