@@ -203,6 +203,7 @@ contract LendingMarket is
             );
     }
 
+    /// @inheritdoc ILendingMarket
     function takeInstallmentLoanFor(
         address borrower,
         uint32 programId,

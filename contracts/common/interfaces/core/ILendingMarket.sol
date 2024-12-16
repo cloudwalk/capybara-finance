@@ -168,7 +168,7 @@ interface ILendingMarket {
     //  Borrower functions                          //
     // -------------------------------------------- //
 
-    /// @dev Takes a loan.
+    /// @dev Takes a common loan.
     /// @param programId The identifier of the program to take the loan from.
     /// @param borrowAmount The desired amount of tokens to borrow.
     /// @param durationInPeriods The desired duration of the loan in periods.
@@ -179,7 +179,7 @@ interface ILendingMarket {
         uint256 durationInPeriods
     ) external returns (uint256);
 
-    /// @dev Takes a loan for a provided account. Can be called only by an account with a special role.
+    /// @dev Takes a common loan for a provided account. Can be called only by an account with a special role.
     /// @param borrower The account for whom the loan is taken.
     /// @param programId The identifier of the program to take the loan from.
     /// @param borrowAmount The desired amount of tokens to borrow.
@@ -193,6 +193,22 @@ interface ILendingMarket {
         uint256 addonAmount,
         uint256 durationInPeriods
     ) external returns (uint256);
+
+    /// @dev Takes an installment loan for a provided account. Can be called only by an account with a special role.
+    /// @param borrower The account for whom the loan is taken.
+    /// @param programId The identifier of the program to take the loan from.
+    /// @param borrowAmounts The desired amounts of tokens to borrow for each installment.
+    /// @param addonAmounts The off-chain calculated addon amounts for each installment.
+    /// @param durationInPeriods The desired duration of each installment in periods.
+    /// @return firstInstallmentId The unique identifier of the first sub-loan of the installment loan.
+    /// @return installmentCount The total number of installments.
+    function takeInstallmentLoanFor(
+        address borrower,
+        uint32 programId,
+        uint256[] calldata borrowAmounts,
+        uint256[] calldata addonAmounts,
+        uint256[] calldata durationInPeriods
+    ) external returns (uint256 firstInstallmentId, uint256 installmentCount);
 
     /// @dev Repays a loan.
     /// @param loanId The unique identifier of the loan to repay.

@@ -79,6 +79,23 @@ contract LendingMarketMock is ILendingMarket {
         revert Error.NotImplemented();
     }
 
+    function takeInstallmentLoanFor(
+        address borrower,
+        uint32 programId,
+        uint256[] calldata borrowAmounts,
+        uint256[] calldata addonAmounts,
+        uint256[] calldata durationInPeriods
+    ) external pure returns (uint256 firstInstallmentId, uint256 installmentCount) {
+        borrower; // To prevent compiler warning about unused variable
+        programId; // To prevent compiler warning about unused variable
+        borrowAmounts; // To prevent compiler warning about unused variable
+        addonAmounts; // To prevent compiler warning about unused variable
+        durationInPeriods; // To prevent compiler warning about unused variable
+        firstInstallmentId = 0;
+        installmentCount = 0;
+        revert Error.NotImplemented();
+    }
+
     function repayLoan(uint256 loanId, uint256 repayAmount) external {
         loanId; // To prevent compiler warning about unused variable
         repayAmount; // To prevent compiler warning about unused variable
