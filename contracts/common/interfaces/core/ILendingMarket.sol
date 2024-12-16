@@ -263,6 +263,11 @@ interface ILendingMarket {
     /// @param account The address to check whether it's a lender or an alias.
     function isLenderOrAlias(uint256 loanId, address account) external view returns (bool);
 
+    /// @dev Checks if the provided account is a lender or an alias for a lender of a given lending program.
+    /// @param programId The identifier of the program to check.
+    /// @param account The address to check whether it's a lender or an alias.
+    function isProgramLenderOrAlias(uint32 programId, address account) external view returns (bool);
+
     /// @dev Checks if the provided account is an alias for a lender.
     /// @param lender The address of the lender to check alias for.
     /// @param account The address to check whether it's an alias or not.

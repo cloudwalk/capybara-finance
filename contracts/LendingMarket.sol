@@ -173,7 +173,7 @@ contract LendingMarket is
         uint256 addonAmount,
         uint256 durationInPeriods
     ) external whenNotPaused returns (uint256) {
-        if (!_isLenderOrAlias(programId, msg.sender)) {
+        if (!isProgramLenderOrAlias(programId, msg.sender)) {
             revert Error.Unauthorized();
         }
         if (borrower == address(0)) {
@@ -624,7 +624,13 @@ contract LendingMarket is
 
     /// @inheritdoc ILendingMarket
     function isLenderOrAlias(uint256 loanId, address account) public view returns (bool) {
-        return _isLenderOrAlias(_loans[loanId].programId, account);
+        return isProgramLenderOrAlias(_loans[loanId].programId, account);
+    }
+
+    /// @inheritdoc ILendingMarket
+    function isProgramLenderOrAlias(uint32 programId, address account) public view returns (bool) {
+        address lender = _programLenders[programId];
+        return account == lender || _hasAlias[lender][account];
     }
 
     /// @inheritdoc ILendingMarket
@@ -691,14 +697,6 @@ contract LendingMarket is
     // -------------------------------------------- //
     //  Internal functions                          //
     // -------------------------------------------- //
-
-    /// @dev Checks if the provided account is a lender or an alias for a lender of a given lending program.
-    /// @param programId The identifier of the program to check.
-    /// @param account The address to check whether it's a lender or an alias.
-    function _isLenderOrAlias(uint32 programId, address account) public view returns (bool) {
-        address lender = _programLenders[programId];
-        return account == lender || _hasAlias[lender][account];
-    }
 
     /// @dev Calculates the outstanding balance of a loan.
     /// @param loan The loan to calculate the outstanding balance for.

@@ -182,6 +182,13 @@ describe("Contract 'LendingMarketMock'", async () => {
         .to.be.revertedWithCustomError(lendingMarket, ERROR_NAME_NOT_IMPLEMENTED);
     });
 
+    it("Function 'isProgramLenderOrAlias()'", async () => {
+      const { lendingMarket } = await setUpFixture(deployLendingMarketMock);
+
+      await expect(lendingMarket.isProgramLenderOrAlias(MOCK_PROGRAM_ID, MOCK_ADDRESS))
+        .to.be.revertedWithCustomError(lendingMarket, ERROR_NAME_NOT_IMPLEMENTED);
+    });
+
     it("Function 'hasAlias()'", async () => {
       const { lendingMarket } = await setUpFixture(deployLendingMarketMock);
 
