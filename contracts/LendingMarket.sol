@@ -223,7 +223,7 @@ contract LendingMarket is
                 int256(addonAmounts[i]),
                 durationInPeriods[i]
             );
-            if (loanId == 0) {
+            if (i == 0) {
                 firstInstallmentId = loanId;
             }
             _updateLoanInstallmentData(loanId, firstInstallmentId, installmentCount);
@@ -854,6 +854,7 @@ contract LendingMarket is
             if (duration < previousDuration) {
                 revert DurationArrayInvalid();
             }
+            previousDuration = duration;
         }
     }
 
