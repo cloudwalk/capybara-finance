@@ -1029,24 +1029,6 @@ contract LendingMarket is
         return startPeriodIndex + durationInPeriods;
     }
 
-    /// @dev Checks if a loan is defaulted.
-    /// @param timestamp The timestamp to check.
-    /// @param startTimestamp The start timestamp of the loan.
-    /// @param durationInPeriods The duration of the loan in periods.
-    /// @return True if the loan is defaulted, false otherwise.
-    function _isLoanDefaulted(
-        uint256 timestamp,
-        uint256 startTimestamp,
-        uint256 durationInPeriods
-    ) internal pure returns (bool) {
-        uint256 duePeriodIndex = _getDuePeriodIndex(startTimestamp, durationInPeriods);
-        uint256 currentPeriodIndex = _periodIndex(timestamp, Constants.PERIOD_IN_SECONDS);
-        if (currentPeriodIndex > duePeriodIndex) {
-            return true;
-        }
-        return false;
-    }
-
     /// @dev Checks if the loan is repaid.
     /// @param loan The storage state of the loan.
     /// @return True if the loan is repaid, false otherwise.
