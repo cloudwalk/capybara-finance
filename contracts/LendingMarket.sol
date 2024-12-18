@@ -60,11 +60,10 @@ contract LendingMarket is
     /// @dev Thrown when the loan is already frozen.
     error LoanAlreadyFrozen();
 
-    /// @dev Thrown when the loan is common but another type of loan is expected.
-    error LoanIsCommon();
-
-    /// @dev Thrown when the loan is an installment one but another type of loan is expected.
-    error LoanWithInstallments();
+    /// @dev Thrown when the loan type according to the provided ID does not match the expected one.
+    /// @param actualType The actual type of the loan.
+    /// @param expectedType The expected type of the loan.
+    error LoanTypeUnexpected(Loan.Type actualType, Loan.Type expectedType);
 
     /// @dev Thrown when the credit line is not configured.
     error CreditLineLenderNotConfigured();
@@ -942,11 +941,11 @@ contract LendingMarket is
     function _checkLoanType(Loan.State storage loan, uint256 loanType) internal view {
         if (loan.instalmentCount == 0) {
             if (loanType != uint256(Loan.Type.Common)) {
-                revert LoanIsCommon();
+                revert LoanTypeUnexpected(Loan.Type(loanType), Loan.Type.Common);
             }
         } else {
             if (loanType != uint256(Loan.Type.Installment)) {
-                revert LoanWithInstallments();
+                revert LoanTypeUnexpected(Loan.Type(loanType), Loan.Type.Installment);
             }
         }
     }
