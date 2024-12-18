@@ -887,8 +887,8 @@ contract LendingMarket is
 
     /// @dev Ensures the installment count is within the valid range.
     /// @param installmentCount The number of installments to check.
-    function _checkInstallmentCount(uint256 installmentCount) internal pure {
-        if (installmentCount > type(uint16).max) {
+    function _checkInstallmentCount(uint256 installmentCount) internal view {
+        if (installmentCount > _installmentCountMax()) {
             revert InstallmentCountExcess();
         }
     }
@@ -1062,6 +1062,11 @@ contract LendingMarket is
     /// @dev Returns the current block timestamp with the time offset applied.
     function _blockTimestamp() internal view virtual returns (uint256) {
         return block.timestamp - Constants.NEGATIVE_TIME_OFFSET;
+    }
+
+    /// @dev
+    function _installmentCountMax() internal view virtual returns (uint256) {
+        return Constants.INSTALLMENT_COUNT_MAX;
     }
 
     /// @inheritdoc ILendingMarket
