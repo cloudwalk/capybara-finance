@@ -862,7 +862,7 @@ contract LendingMarket is
     function _sumArray(uint256[] calldata values) internal pure returns (uint256) {
         uint256 len = values.length;
         uint256 sum = 0;
-        for (uint256 i = 0; i < len; ++len) {
+        for (uint256 i = 0; i < len; ++i) {
             sum += values[i];
         }
         return sum;
