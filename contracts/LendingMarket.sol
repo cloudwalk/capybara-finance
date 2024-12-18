@@ -940,15 +940,21 @@ contract LendingMarket is
 
     /// @dev Checks if the loan type is correct.
     /// @param loan The storage state of the loan.
-    /// @param loanType The type of the loan according to the `Loan.Type` enum.
-    function _checkLoanType(Loan.State storage loan, uint256 loanType) internal view {
+    /// @param expectedLoanType The expected type of the loan according to the `Loan.Type` enum.
+    function _checkLoanType(Loan.State storage loan, uint256 expectedLoanType) internal view {
         if (loan.instalmentCount == 0) {
-            if (loanType != uint256(Loan.Type.Common)) {
-                revert LoanTypeUnexpected(Loan.Type(loanType), Loan.Type.Common);
+            if (expectedLoanType != uint256(Loan.Type.Common)) {
+                revert LoanTypeUnexpected(
+                    Loan.Type.Common, // actual
+                    Loan.Type.Installment // expected
+                );
             }
         } else {
-            if (loanType != uint256(Loan.Type.Installment)) {
-                revert LoanTypeUnexpected(Loan.Type(loanType), Loan.Type.Installment);
+            if (expectedLoanType != uint256(Loan.Type.Installment)) {
+                revert LoanTypeUnexpected(
+                    Loan.Type.Installment, // actual
+                    Loan.Type.Common // expected
+                );
             }
         }
     }
