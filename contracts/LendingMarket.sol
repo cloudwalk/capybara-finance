@@ -875,8 +875,8 @@ contract LendingMarket is
     /// @param durationsInPeriods Array of loan durations in periods.
     function _checkDurationArray(uint256[] calldata durationsInPeriods) internal pure {
         uint256 len = durationsInPeriods.length;
-        uint256 previousDuration = 0;
-        for (uint256 i = 0; i < len; ++i) {
+        uint256 previousDuration = durationsInPeriods[0];
+        for (uint256 i = 1; i < len; ++i) {
             uint256 duration = durationsInPeriods[i];
             if (duration < previousDuration) {
                 revert DurationArrayInvalid();
