@@ -10,7 +10,7 @@ library Loan {
     ///
     /// Possible values:
     /// - Common = 0 ------- A common loan.
-    /// - Installment = 1 -- An installment loan.
+    /// - Installment = 1 -- A sub-loan of an installment loan.
     enum Type {
         Common,
         Installment

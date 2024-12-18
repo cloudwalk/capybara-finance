@@ -597,17 +597,18 @@ contract LendingMarket is
 
         loanId = loan.firstInstallmentId;
         uint256 endLoanId = loanId + loan.instalmentCount;
-        uint256 revokedSubLoanCount = 0;
+        uint256 ongoingSubLoanCount = 0;
 
         for(; loanId < endLoanId; ++loanId) {
             loan = _loans[loanId];
             if (!_isRepaid(loan)) {
-                _revokeLoan(loanId, loan);
-                ++revokedSubLoanCount;
+                ++ongoingSubLoanCount;
             }
+            _revokeLoan(loanId, loan);
         }
 
-        if (revokedSubLoanCount == 0) {
+        // If all the sub-loans are repaid the revocation is prohibited
+        if (ongoingSubLoanCount == 0) {
             revert LoanAlreadyRepaid();
         }
 
