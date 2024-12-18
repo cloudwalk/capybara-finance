@@ -199,7 +199,7 @@ interface ILendingMarket {
     /// @param programId The identifier of the program to take the loan from.
     /// @param borrowAmounts The desired amounts of tokens to borrow for each installment.
     /// @param addonAmounts The off-chain calculated addon amounts for each installment.
-    /// @param durationInPeriods The desired duration of each installment in periods.
+    /// @param durationsInPeriods The desired duration of each installment in periods.
     /// @return firstInstallmentId The unique identifier of the first sub-loan of the installment loan.
     /// @return installmentCount The total number of installments.
     function takeInstallmentLoanFor(
@@ -207,7 +207,7 @@ interface ILendingMarket {
         uint32 programId,
         uint256[] calldata borrowAmounts,
         uint256[] calldata addonAmounts,
-        uint256[] calldata durationInPeriods
+        uint256[] calldata durationsInPeriods
     ) external returns (uint256 firstInstallmentId, uint256 installmentCount);
 
     /// @dev Repays a loan.

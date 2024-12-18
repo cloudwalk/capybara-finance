@@ -208,7 +208,7 @@ contract LendingMarket is
         uint32 programId,
         uint256[] calldata borrowAmounts,
         uint256[] calldata addonAmounts,
-        uint256[] calldata durationInPeriods
+        uint256[] calldata durationsInPeriods
     ) external whenNotPaused returns (uint256 firstInstallmentId, uint256 installmentCount) {
         uint256 totalBorrowAmount = _sumArray(borrowAmounts);
         uint256 totalAddonAmount = _sumArray(addonAmounts);
@@ -216,7 +216,7 @@ contract LendingMarket is
 
         _checkSender(_msgSender(), programId);
         _checkMainLoanParameters(borrower, programId, totalBorrowAmount, totalAddonAmount);
-        _checkDurationArray(durationInPeriods);
+        _checkDurationArray(durationsInPeriods);
         _checkInstallmentCount(installmentCount);
         // Arrays are not checked for emptiness because if the loan amount is zero, the transaction is reverted earlier
 
@@ -226,7 +226,7 @@ contract LendingMarket is
                 programId,
                 borrowAmounts[i],
                 int256(addonAmounts[i]),
-                durationInPeriods[i]
+                durationsInPeriods[i]
             );
             if (i == 0) {
                 firstInstallmentId = loanId;
@@ -869,12 +869,12 @@ contract LendingMarket is
     }
 
     /// @dev Validates the loan durations in the array.
-    /// @param durationInPeriods Array of loan durations in periods.
-    function _checkDurationArray(uint256[] calldata durationInPeriods) internal pure {
-        uint256 len = durationInPeriods.length;
+    /// @param durationsInPeriods Array of loan durations in periods.
+    function _checkDurationArray(uint256[] calldata durationsInPeriods) internal pure {
+        uint256 len = durationsInPeriods.length;
         uint256 previousDuration = 0;
         for (uint256 i = 0; i < len; ++i) {
-            uint256 duration = durationInPeriods[i];
+            uint256 duration = durationsInPeriods[i];
             if (duration < previousDuration) {
                 revert DurationArrayInvalid();
             }
