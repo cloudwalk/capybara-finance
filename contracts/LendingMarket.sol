@@ -190,7 +190,7 @@ contract LendingMarket is
         uint256 addonAmount,
         uint256 durationInPeriods
     ) external whenNotPaused returns (uint256) {
-        _checkSender(_msgSender(), programId);
+        _checkSender(msg.sender, programId);
         _checkMainLoanParameters(borrower, programId, borrowAmount, addonAmount);
         return
             _takeLoan(
@@ -214,7 +214,7 @@ contract LendingMarket is
         uint256 totalAddonAmount = _sumArray(addonAmounts);
         installmentCount = borrowAmounts.length;
 
-        _checkSender(_msgSender(), programId);
+        _checkSender(msg.sender, programId);
         _checkMainLoanParameters(borrower, programId, totalBorrowAmount, totalAddonAmount);
         _checkDurationArray(durationsInPeriods);
         _checkInstallmentCount(installmentCount);
