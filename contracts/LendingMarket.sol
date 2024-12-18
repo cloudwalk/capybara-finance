@@ -218,6 +218,9 @@ contract LendingMarket is
         _checkMainLoanParameters(borrower, programId, totalBorrowAmount, totalAddonAmount);
         _checkDurationArray(durationsInPeriods);
         _checkInstallmentCount(installmentCount);
+        if (addonAmounts.length != installmentCount || durationsInPeriods.length != installmentCount) {
+            revert Error.ArrayLengthMismatch();
+        }
         // Arrays are not checked for emptiness because if the loan amount is zero, the transaction is reverted earlier
 
         for (uint256 i = 0; i < installmentCount; ++i) {
