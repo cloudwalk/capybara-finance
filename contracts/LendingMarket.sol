@@ -280,7 +280,7 @@ contract LendingMarket is
         if (addonAmount >= 0) {
             terms.addonAmount = uint256(addonAmount).toUint64();
         }
-        uint256 totalBorrowAmount = borrowAmount + terms.addonAmount;
+        uint256 principalAmount = borrowAmount + terms.addonAmount;
         uint32 blockTimestamp = _blockTimestamp().toUint32();
 
         _loans[id] = Loan.State({
@@ -292,7 +292,7 @@ contract LendingMarket is
             interestRatePrimary: terms.interestRatePrimary,
             interestRateSecondary: terms.interestRateSecondary,
             borrowAmount: borrowAmount.toUint64(),
-            trackedBalance: totalBorrowAmount.toUint64(),
+            trackedBalance: principalAmount.toUint64(),
             repaidAmount: 0,
             trackedTimestamp: blockTimestamp,
             freezeTimestamp: 0,
@@ -306,7 +306,7 @@ contract LendingMarket is
 
         IERC20(terms.token).safeTransferFrom(liquidityPool, borrower, borrowAmount);
 
-        emit LoanTaken(id, borrower, totalBorrowAmount, terms.durationInPeriods);
+        emit LoanTaken(id, borrower, principalAmount, terms.durationInPeriods);
 
         return id;
     }

@@ -34,12 +34,12 @@ interface ILendingMarket {
     /// @dev Emitted when a loan is taken.
     /// @param loanId The unique identifier of the loan.
     /// @param borrower The address of the borrower of the loan.
-    /// @param borrowAmount The initial total amount of the loan, including the addon.
+    /// @param principalAmount The initial principal amount of the loan, including the borrow amount and addon.
     /// @param durationInPeriods The duration of the loan in periods.
     event LoanTaken(
         uint256 indexed loanId, // Tools: this comment prevents Prettier from formatting into a single line.
         address indexed borrower,
-        uint256 borrowAmount,
+        uint256 principalAmount,
         uint256 durationInPeriods
     );
 
