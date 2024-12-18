@@ -13,6 +13,11 @@ import {
 } from "../test-utils/eth";
 import { checkEquality, maxUintForBits, roundMath, setUpFixture } from "../test-utils/common";
 
+enum LoanType {
+  Common = 0,
+  Installment = 1
+}
+
 interface LoanTerms {
   token: string;
   addonAmount: number;
@@ -53,10 +58,12 @@ interface Fixture {
   market: Contract;
   marketUnderLender: Contract;
   marketAddress: string;
-  loanId: number;
-  initialLoanTerms: LoanTerms;
-  initialLoanState: LoanState;
-  loanStartPeriodIndex: number;
+  commonLoanId: number;
+  commonLoanInitialState: LoanState;
+  commonLoanStartPeriod: number;
+  installmentLoanIds: number[];
+  installmentLoanInitialStates: LoanState[];
+  installmentLoanStartPeriodIndex: number;
 }
 
 interface Version {
@@ -116,6 +123,7 @@ const EVENT_NAME_PAUSED = "Paused";
 const EVENT_NAME_UNPAUSED = "Unpaused";
 const EVENT_NAME_LOAN_REVOKED = "LoanRevoked";
 const EVENT_NAME_ON_AFTER_LOAN_REVOCATION = "OnAfterLoanRevocationCalled";
+const EVENT_NAME_LOAN_TYPE_UNEXPECTED = "LoanTypeUnexpected";
 
 const OWNER_ROLE = ethers.id("OWNER_ROLE");
 
@@ -146,14 +154,6 @@ const EXPECTED_VERSION: Version = {
   major: 1,
   minor: 3,
   patch: 0
-};
-
-const defaultLoanTerms: LoanTerms = {
-  token: ZERO_ADDRESS,
-  addonAmount: 0,
-  durationInPeriods: 0,
-  interestRatePrimary: 0,
-  interestRateSecondary: 0
 };
 
 const defaultLoanState: LoanState = {
@@ -270,6 +270,35 @@ describe("Contract 'LendingMarket': base tests", async () => {
     };
   }
 
+  function createInstallmentLoanStates(timestamp: number, firstInstallmentId: number, props: {
+    borrowAmounts: number[];
+    addonAmounts: number[];
+    durations: number[];
+  } = { borrowAmounts: BORROW_AMOUNTS, addonAmounts: ADDON_AMOUNTS, durations: DURATIONS_IN_PERIODS }): LoanState[] {
+    const timestampWithOffset = calculateTimestampWithOffset(timestamp);
+    const loanStates: LoanState[] = [];
+    for (let i = 0; i < props.borrowAmounts.length; ++i) {
+      const loanState = {
+        ...defaultLoanState,
+        programId: PROGRAM_ID,
+        borrowAmount: props.borrowAmounts[i],
+        addonAmount: props.addonAmounts[i],
+        startTimestamp: timestampWithOffset,
+        durationInPeriods: DURATIONS_IN_PERIODS[i],
+        token: tokenAddress,
+        borrower: borrower.address,
+        interestRatePrimary: INTEREST_RATE_PRIMARY,
+        interestRateSecondary: INTEREST_RATE_SECONDARY,
+        trackedBalance: props.borrowAmounts[i] + props.addonAmounts[i],
+        trackedTimestamp: timestampWithOffset,
+        firstInstallmentId,
+        instalmentCount: props.borrowAmounts.length
+      };
+      loanStates.push(loanState);
+    }
+    return loanStates;
+  }
+
   function calculateOutstandingBalance(originalBalance: number, numberOfPeriods: number, interestRate: number): number {
     return Math.round(originalBalance * Math.pow(1 + interestRate / INTEREST_RATE_FACTOR, numberOfPeriods));
   }
@@ -363,10 +392,12 @@ describe("Contract 'LendingMarket': base tests", async () => {
       market,
       marketUnderLender,
       marketAddress,
-      loanId: -1,
-      initialLoanTerms: defaultLoanTerms,
-      initialLoanState: defaultLoanState,
-      loanStartPeriodIndex: -1
+      commonLoanId: -1,
+      commonLoanInitialState: defaultLoanState,
+      commonLoanStartPeriod: -1,
+      installmentLoanIds: [],
+      installmentLoanInitialStates: [],
+      installmentLoanStartPeriodIndex: -1
     };
   }
 
@@ -398,20 +429,39 @@ describe("Contract 'LendingMarket': base tests", async () => {
     return fixture;
   }
 
-  async function deployLendingMarketAndTakeCommonLoan(): Promise<Fixture> {
+  async function deployLendingMarketAndTakeLoans(): Promise<Fixture> {
     const fixture = await deployLendingMarketAndConfigureItForLoan();
     const { market, marketUnderLender } = fixture;
 
-    fixture.loanId = Number(await market.loanCounter());
-    const txReceipt = await proveTx(marketUnderLender.takeLoanFor(
+    // Take a common loan
+    fixture.commonLoanId = Number(await market.loanCounter());
+    const txReceipt1 = await proveTx(marketUnderLender.takeLoanFor(
       borrower.address,
       PROGRAM_ID,
       BORROW_AMOUNT,
       ADDON_AMOUNT,
       DURATION_IN_PERIODS
     ));
-    fixture.initialLoanState = createLoanState(await getBlockTimestamp(txReceipt.blockNumber));
-    fixture.loanStartPeriodIndex = calculatePeriodIndex(fixture.initialLoanState.startTimestamp);
+    fixture.commonLoanInitialState = createLoanState(await getBlockTimestamp(txReceipt1.blockNumber));
+    fixture.commonLoanStartPeriod = calculatePeriodIndex(fixture.commonLoanInitialState.startTimestamp);
+
+    // Take an installment loan
+    fixture.installmentLoanIds.push(Number(await market.loanCounter()));
+    for (let i = 1; i < INSTALLMENT_COUNT; ++i) {
+      fixture.installmentLoanIds.push(fixture.installmentLoanIds[0] + i);
+    }
+    const txReceipt2 = await proveTx(marketUnderLender.takeInstallmentLoanFor(
+      borrower.address,
+      PROGRAM_ID,
+      BORROW_AMOUNTS,
+      ADDON_AMOUNTS,
+      DURATIONS_IN_PERIODS
+    ));
+
+    const timestamp = await getBlockTimestamp(txReceipt2.blockNumber);
+    fixture.installmentLoanInitialStates = createInstallmentLoanStates(timestamp, fixture.installmentLoanIds[0]);
+    fixture.installmentLoanStartPeriodIndex =
+      calculatePeriodIndex(fixture.installmentLoanInitialStates[0].startTimestamp);
     return fixture;
   }
 
@@ -598,7 +648,7 @@ describe("Contract 'LendingMarket': base tests", async () => {
     });
 
     it("Is reverted if the provided address is not a contract", async () => {
-      const { market } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+      const { market } = await setUpFixture(deployLendingMarketAndTakeLoans);
       const wrongCreditLineAddress = "0x0000000000000000000000000000000000000001";
 
       await expect(market.registerCreditLine(wrongCreditLineAddress))
@@ -606,7 +656,7 @@ describe("Contract 'LendingMarket': base tests", async () => {
     });
 
     it("Is reverted if the provided address is not a credit line contract", async () => {
-      const { market } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+      const { market } = await setUpFixture(deployLendingMarketAndTakeLoans);
       const wrongCreditLineAddress = (tokenAddress);
 
       await expect(market.registerCreditLine(wrongCreditLineAddress))
@@ -650,7 +700,7 @@ describe("Contract 'LendingMarket': base tests", async () => {
     });
 
     it("Is reverted if the provided address is not a contract", async () => {
-      const { market } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+      const { market } = await setUpFixture(deployLendingMarketAndTakeLoans);
       const wrongLiquidityPoolAddress = "0x0000000000000000000000000000000000000001";
 
       await expect(market.registerLiquidityPool(wrongLiquidityPoolAddress))
@@ -658,7 +708,7 @@ describe("Contract 'LendingMarket': base tests", async () => {
     });
 
     it("Is reverted if the provided address is not a liquidity pool contract", async () => {
-      const { market } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+      const { market } = await setUpFixture(deployLendingMarketAndTakeLoans);
       const wrongLiquidityPoolAddress = (tokenAddress);
 
       await expect(market.registerLiquidityPool(wrongLiquidityPoolAddress))
@@ -1216,15 +1266,11 @@ describe("Contract 'LendingMarket': base tests", async () => {
       );
       const timestamp = await getTxTimestamp(tx);
       const actualLoans: LoanState[] = await market.getLoanStateBatch(expectedLoanIds);
-      const expectedLoans: LoanState[] = expectedLoanIds.map((_id, i) => createLoanState(
+      const expectedLoans: LoanState[] = createInstallmentLoanStates(
         timestamp,
-        { borrowAmount: borrowAmounts[i], addonAmount: addonAmounts[i] }
-      ));
-      expectedLoans.forEach((loan, i) => {
-        loan.firstInstallmentId = expectedLoanIds[0];
-        loan.instalmentCount = installmentCount;
-        loan.durationInPeriods = durationsInPeriods[i];
-      });
+        expectedLoanIds[0],
+        { borrowAmounts, addonAmounts, durations: durationsInPeriods }
+      );
 
       for (let i = 0; i < installmentCount; ++i) {
         checkEquality(actualLoans[i], expectedLoans[i], i);
@@ -1440,7 +1486,7 @@ describe("Contract 'LendingMarket': base tests", async () => {
     it("Is reverted if the length of input arrays mismatches", async () => {
       const { market, marketUnderLender } = await setUpFixture(deployLendingMarketAndConfigureItForLoan);
       const wrongAddonAmounts = [...ADDON_AMOUNTS, 0];
-      const wrongDurations = [...DURATIONS_IN_PERIODS, DURATIONS_IN_PERIODS[INSTALLMENT_COUNT-1] + 1];
+      const wrongDurations = [...DURATIONS_IN_PERIODS, DURATIONS_IN_PERIODS[INSTALLMENT_COUNT - 1] + 1];
 
       await expect(
         marketUnderLender.takeInstallmentLoanFor(
@@ -1504,8 +1550,8 @@ describe("Contract 'LendingMarket': base tests", async () => {
       repaymentAmount: number | bigint,
       payerKind: PayerKind
     ) {
-      const expectedLoanState: LoanState = { ...fixture.initialLoanState };
-      const { market, marketAddress, loanId } = fixture;
+      const expectedLoanState: LoanState = { ...fixture.commonLoanInitialState };
+      const { market, marketAddress, commonLoanId: loanId } = fixture;
       let tx: Promise<TransactionResponse>;
       let payer: HardhatEthersSigner;
       switch (payerKind) {
@@ -1547,41 +1593,41 @@ describe("Contract 'LendingMarket': base tests", async () => {
 
     describe("Executes as expected if", async () => {
       it("There is a partial repayment from the borrower on the same period the loan is taken", async () => {
-        const fixture = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+        const fixture = await setUpFixture(deployLendingMarketAndTakeLoans);
         await repayLoanAndCheck(fixture, REPAYMENT_AMOUNT, PayerKind.Borrower);
       });
 
       it("There is a partial repayment from a stranger before the loan is defaulted", async () => {
-        const fixture = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
-        const periodIndex = fixture.loanStartPeriodIndex + fixture.initialLoanState.durationInPeriods / 2;
+        const fixture = await setUpFixture(deployLendingMarketAndTakeLoans);
+        const periodIndex = fixture.commonLoanStartPeriod + fixture.commonLoanInitialState.durationInPeriods / 2;
         await increaseBlockTimestampToPeriodIndex(periodIndex);
         await repayLoanAndCheck(fixture, REPAYMENT_AMOUNT, PayerKind.Stranger);
       });
 
       it("There is a partial repayment from a liquidity pool after the loan is defaulted", async () => {
-        const fixture = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
-        const periodIndex = fixture.loanStartPeriodIndex + fixture.initialLoanState.durationInPeriods + 1;
+        const fixture = await setUpFixture(deployLendingMarketAndTakeLoans);
+        const periodIndex = fixture.commonLoanStartPeriod + fixture.commonLoanInitialState.durationInPeriods + 1;
         await increaseBlockTimestampToPeriodIndex(periodIndex);
         await repayLoanAndCheck(fixture, REPAYMENT_AMOUNT, PayerKind.LiquidityPool);
       });
 
       it("There is a full repayment through the amount matches the outstanding balance", async () => {
-        const fixture = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
-        const futureTimestamp = await increaseBlockTimestampToPeriodIndex(fixture.loanStartPeriodIndex + 1);
-        const loanPreview: LoanPreview = defineLoanPreview(fixture.initialLoanState, futureTimestamp);
+        const fixture = await setUpFixture(deployLendingMarketAndTakeLoans);
+        const futureTimestamp = await increaseBlockTimestampToPeriodIndex(fixture.commonLoanStartPeriod + 1);
+        const loanPreview: LoanPreview = defineLoanPreview(fixture.commonLoanInitialState, futureTimestamp);
         await repayLoanAndCheck(fixture, loanPreview.outstandingBalance, PayerKind.Borrower);
       });
 
       it("There is a full repayment through the amount equals max uint256 value", async () => {
-        const fixture = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
-        await increaseBlockTimestampToPeriodIndex(fixture.loanStartPeriodIndex + 1);
+        const fixture = await setUpFixture(deployLendingMarketAndTakeLoans);
+        await increaseBlockTimestampToPeriodIndex(fixture.commonLoanStartPeriod + 1);
         await repayLoanAndCheck(fixture, FULL_REPAYMENT_AMOUNT, PayerKind.Borrower);
       });
     });
 
     describe("Is reverted if", async () => {
       it("The contract is paused", async () => {
-        const { market, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+        const { market, commonLoanId: loanId } = await setUpFixture(deployLendingMarketAndTakeLoans);
         await proveTx(market.pause());
 
         await expect(market.repayLoan(loanId, REPAYMENT_AMOUNT))
@@ -1589,15 +1635,15 @@ describe("Contract 'LendingMarket': base tests", async () => {
       });
 
       it("The loan does not exist", async () => {
-        const { market, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
-        const wrongLoanId = loanId + 1;
+        const { market, commonLoanId: loanId } = await setUpFixture(deployLendingMarketAndTakeLoans);
+        const wrongLoanId = loanId + 123;
 
         await expect(market.repayLoan(wrongLoanId, REPAYMENT_AMOUNT))
           .to.be.revertedWithCustomError(market, ERROR_NAME_LOAN_NOT_EXIST);
       });
 
       it("The loan is already repaid", async () => {
-        const { market, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+        const { market, commonLoanId: loanId } = await setUpFixture(deployLendingMarketAndTakeLoans);
         await proveTx(connect(market, borrower).repayLoan(loanId, FULL_REPAYMENT_AMOUNT));
 
         await expect(market.repayLoan(loanId, REPAYMENT_AMOUNT))
@@ -1605,7 +1651,7 @@ describe("Contract 'LendingMarket': base tests", async () => {
       });
 
       it("The repayment amount is zero", async () => {
-        const { market, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+        const { market, commonLoanId: loanId } = await setUpFixture(deployLendingMarketAndTakeLoans);
         const wrongRepaymentAmount = 0;
 
         await expect(market.repayLoan(loanId, wrongRepaymentAmount))
@@ -1613,7 +1659,7 @@ describe("Contract 'LendingMarket': base tests", async () => {
       });
 
       it("The repayment amount is not rounded according to the accuracy factor", async () => {
-        const { market, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+        const { market, commonLoanId: loanId } = await setUpFixture(deployLendingMarketAndTakeLoans);
         const wrongRepaymentAmount = REPAYMENT_AMOUNT - 1;
 
         await expect(market.repayLoan(loanId, wrongRepaymentAmount))
@@ -1621,7 +1667,7 @@ describe("Contract 'LendingMarket': base tests", async () => {
       });
 
       it("The repayment amount is bigger than outstanding balance", async () => {
-        const { market, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+        const { market, commonLoanId: loanId } = await setUpFixture(deployLendingMarketAndTakeLoans);
         const wrongRepaymentAmount = BORROW_AMOUNT + ADDON_AMOUNT + ACCURACY_FACTOR;
 
         await expect(market.repayLoan(loanId, wrongRepaymentAmount))
@@ -1632,8 +1678,9 @@ describe("Contract 'LendingMarket': base tests", async () => {
 
   describe("Function 'freeze()'", async () => {
     it("Executes as expected and emits the correct event", async () => {
-      const { market, initialLoanState, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
-      const expectedLoanState = { ...initialLoanState };
+      const fixture = await setUpFixture(deployLendingMarketAndTakeLoans);
+      const { market, commonLoanId: loanId } = fixture;
+      const expectedLoanState = { ...fixture.commonLoanInitialState };
 
       // Can be called by an alias
       await connect(market, alias).freeze.staticCall(loanId);
@@ -1647,22 +1694,22 @@ describe("Contract 'LendingMarket': base tests", async () => {
     });
 
     it("Is reverted if the contract is paused", async () => {
-      const { market, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+      const { market, commonLoanId: loanId } = await setUpFixture(deployLendingMarketAndTakeLoans);
       await proveTx(market.pause());
 
       await expect(market.freeze(loanId)).to.be.revertedWithCustomError(market, ERROR_NAME_ENFORCED_PAUSED);
     });
 
     it("Is reverted if the loan does not exist", async () => {
-      const { market, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
-      const wrongLoanId = loanId + 1;
+      const { market, commonLoanId: loanId } = await setUpFixture(deployLendingMarketAndTakeLoans);
+      const wrongLoanId = loanId + 123;
 
       await expect(market.freeze(wrongLoanId))
         .to.be.revertedWithCustomError(market, ERROR_NAME_LOAN_NOT_EXIST);
     });
 
     it("Is reverted if the loan is already repaid", async () => {
-      const { market, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+      const { market, commonLoanId: loanId } = await setUpFixture(deployLendingMarketAndTakeLoans);
       await proveTx(connect(market, borrower).repayLoan(loanId, FULL_REPAYMENT_AMOUNT));
 
       await expect(market.freeze(loanId))
@@ -1670,14 +1717,14 @@ describe("Contract 'LendingMarket': base tests", async () => {
     });
 
     it("Is reverted if the caller is not the lender or an alias", async () => {
-      const { market, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+      const { market, commonLoanId: loanId } = await setUpFixture(deployLendingMarketAndTakeLoans);
 
       await expect(connect(market, attacker).freeze(loanId))
         .to.be.revertedWithCustomError(market, ERROR_NAME_UNAUTHORIZED);
     });
 
     it("Is reverted if the loan is already frozen", async () => {
-      const { marketUnderLender, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+      const { marketUnderLender, commonLoanId: loanId } = await setUpFixture(deployLendingMarketAndTakeLoans);
       await proveTx(marketUnderLender.freeze(loanId));
 
       await expect(marketUnderLender.freeze(loanId))
@@ -1691,8 +1738,8 @@ describe("Contract 'LendingMarket': base tests", async () => {
       unfreezingTimestamp: number;
       repaymentAmountWhileFreezing: number;
     }) {
-      const { marketUnderLender, loanId } = fixture;
-      const expectedLoanState = { ...fixture.initialLoanState };
+      const { marketUnderLender, commonLoanId: loanId } = fixture;
+      const expectedLoanState = { ...fixture.commonLoanInitialState };
       const { freezingTimestamp, unfreezingTimestamp, repaymentAmountWhileFreezing } = props;
       const frozenInterval = unfreezingTimestamp - freezingTimestamp;
 
@@ -1704,7 +1751,7 @@ describe("Contract 'LendingMarket': base tests", async () => {
 
       if (props.repaymentAmountWhileFreezing != 0) {
         await increaseBlockTimestampTo(freezingTimestamp + frozenInterval / 2);
-        tx = connect(marketUnderLender, borrower).repayLoan(fixture.loanId, repaymentAmountWhileFreezing);
+        tx = connect(marketUnderLender, borrower).repayLoan(fixture.commonLoanId, repaymentAmountWhileFreezing);
         processRepayment(expectedLoanState, {
           repaymentAmount: repaymentAmountWhileFreezing,
           repaymentTimestamp: await getTxTimestamp(tx)
@@ -1732,8 +1779,8 @@ describe("Contract 'LendingMarket': base tests", async () => {
 
     describe("Executes as expected if", async () => {
       it("Unfreezing is done at the same loan period as the freezing", async () => {
-        const fixture = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
-        const startTimestamp = removeTimestampOffset(fixture.initialLoanState.startTimestamp);
+        const fixture = await setUpFixture(deployLendingMarketAndTakeLoans);
+        const startTimestamp = removeTimestampOffset(fixture.commonLoanInitialState.startTimestamp);
         await freezeUnfreezeAndCheck(fixture, {
           freezingTimestamp: startTimestamp,
           unfreezingTimestamp: startTimestamp + PERIOD_IN_SECONDS / 2,
@@ -1742,9 +1789,9 @@ describe("Contract 'LendingMarket': base tests", async () => {
       });
 
       it("Unfreezing is done some periods after the freezing", async () => {
-        const fixture = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
-        const loanState = fixture.initialLoanState;
-        const startTimestamp = removeTimestampOffset(fixture.initialLoanState.startTimestamp);
+        const fixture = await setUpFixture(deployLendingMarketAndTakeLoans);
+        const loanState = fixture.commonLoanInitialState;
+        const startTimestamp = removeTimestampOffset(fixture.commonLoanInitialState.startTimestamp);
         const freezingTimestamp = startTimestamp + (loanState.durationInPeriods / 4) * PERIOD_IN_SECONDS;
         const unfreezingTimestamp = startTimestamp + (loanState.durationInPeriods / 2) * PERIOD_IN_SECONDS;
         await freezeUnfreezeAndCheck(fixture, {
@@ -1755,9 +1802,9 @@ describe("Contract 'LendingMarket': base tests", async () => {
       });
 
       it("Unfreezing is done some periods after the freezing and after a repayment", async () => {
-        const fixture = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
-        const loanState = fixture.initialLoanState;
-        const startTimestamp = removeTimestampOffset(fixture.initialLoanState.startTimestamp);
+        const fixture = await setUpFixture(deployLendingMarketAndTakeLoans);
+        const loanState = fixture.commonLoanInitialState;
+        const startTimestamp = removeTimestampOffset(fixture.commonLoanInitialState.startTimestamp);
         const freezingTimestamp = startTimestamp + (loanState.durationInPeriods - 1) * PERIOD_IN_SECONDS;
         const unfreezingTimestamp = startTimestamp + (loanState.durationInPeriods * 2) * PERIOD_IN_SECONDS;
         await freezeUnfreezeAndCheck(fixture, {
@@ -1769,48 +1816,49 @@ describe("Contract 'LendingMarket': base tests", async () => {
     });
 
     it("Is reverted if the contract is paused", async () => {
-      const { market, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+      const { market, commonLoanId: loanId } = await setUpFixture(deployLendingMarketAndTakeLoans);
       await proveTx(market.pause());
 
       await expect(market.unfreeze(loanId)).to.be.revertedWithCustomError(market, ERROR_NAME_ENFORCED_PAUSED);
     });
 
     it("Is reverted if the loan does not exist", async () => {
-      const { market, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
-      const wrongLoanId = loanId + 1;
+      const { market, commonLoanId: loanId } = await setUpFixture(deployLendingMarketAndTakeLoans);
+      const wrongLoanId = loanId + 123;
 
       await expect(market.unfreeze(wrongLoanId))
         .to.be.revertedWithCustomError(market, ERROR_NAME_LOAN_NOT_EXIST);
     });
 
     it("Is reverted if the loan is already repaid", async () => {
-      const { market, marketUnderLender, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+      const { market, commonLoanId: loanId } = await setUpFixture(deployLendingMarketAndTakeLoans);
       await proveTx(connect(market, borrower).repayLoan(loanId, FULL_REPAYMENT_AMOUNT));
 
-      await expect(marketUnderLender.unfreeze(loanId))
+      await expect(connect(market, lender).unfreeze(loanId))
         .to.be.revertedWithCustomError(market, ERROR_NAME_LOAN_ALREADY_REPAID);
     });
 
     it("Is reverted if the caller is not the lender or an alias", async () => {
-      const { market, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+      const { market, commonLoanId: loanId } = await setUpFixture(deployLendingMarketAndTakeLoans);
 
       await expect(connect(market, attacker).unfreeze(loanId))
         .to.be.revertedWithCustomError(market, ERROR_NAME_UNAUTHORIZED);
     });
 
     it("Is reverted if the loan is not frozen", async () => {
-      const { market, marketUnderLender, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+      const { marketUnderLender, commonLoanId: loanId } = await setUpFixture(deployLendingMarketAndTakeLoans);
 
       await expect(marketUnderLender.unfreeze(loanId))
-        .to.be.revertedWithCustomError(market, ERROR_NAME_LOAN_NOT_FROZEN);
+        .to.be.revertedWithCustomError(marketUnderLender, ERROR_NAME_LOAN_NOT_FROZEN);
     });
   });
 
   describe("Function 'updateLoanDuration()'", async () => {
     it("Executes as expected and emits the correct event", async () => {
-      const { marketUnderLender, initialLoanState, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
-      const newDuration = initialLoanState.durationInPeriods + 1;
-      const expectedLoanState: LoanState = { ...initialLoanState };
+      const fixture = await setUpFixture(deployLendingMarketAndTakeLoans);
+      const { marketUnderLender, commonLoanId: loanId } = fixture;
+      const newDuration = fixture.commonLoanInitialState.durationInPeriods + 1;
+      const expectedLoanState: LoanState = { ...fixture.commonLoanInitialState };
       expectedLoanState.durationInPeriods = newDuration;
 
       // Can be called by an alias
@@ -1824,7 +1872,7 @@ describe("Contract 'LendingMarket': base tests", async () => {
     });
 
     it("Is reverted if the contract is paused", async () => {
-      const { market, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+      const { market, commonLoanId: loanId } = await setUpFixture(deployLendingMarketAndTakeLoans);
       await proveTx(market.pause());
 
       await expect(market.updateLoanDuration(loanId, DURATION_IN_PERIODS))
@@ -1832,15 +1880,15 @@ describe("Contract 'LendingMarket': base tests", async () => {
     });
 
     it("Is reverted if the loan does not exist", async () => {
-      const { market, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
-      const wrongLoanId = loanId + 1;
+      const { market, commonLoanId: loanId } = await setUpFixture(deployLendingMarketAndTakeLoans);
+      const wrongLoanId = loanId + 123;
 
       await expect(market.updateLoanDuration(wrongLoanId, DURATION_IN_PERIODS))
         .to.be.revertedWithCustomError(market, ERROR_NAME_LOAN_NOT_EXIST);
     });
 
     it("Is reverted if the loan is already repaid", async () => {
-      const { market, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+      const { market, commonLoanId: loanId } = await setUpFixture(deployLendingMarketAndTakeLoans);
       await proveTx(connect(market, borrower).repayLoan(loanId, FULL_REPAYMENT_AMOUNT));
 
       await expect(market.updateLoanDuration(loanId, DURATION_IN_PERIODS))
@@ -1848,15 +1896,16 @@ describe("Contract 'LendingMarket': base tests", async () => {
     });
 
     it("Is reverted if the caller is not the lender or an alias", async () => {
-      const { market, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+      const { market, commonLoanId: loanId } = await setUpFixture(deployLendingMarketAndTakeLoans);
 
       await expect(connect(market, attacker).updateLoanDuration(loanId, DURATION_IN_PERIODS))
         .to.be.revertedWithCustomError(market, ERROR_NAME_UNAUTHORIZED);
     });
 
     it("Is reverted if the new duration is the same as the previous one or less", async () => {
-      const { marketUnderLender, initialLoanState, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
-      let newDuration = initialLoanState.durationInPeriods;
+      const fixture = await setUpFixture(deployLendingMarketAndTakeLoans);
+      const { marketUnderLender, commonLoanId: loanId } = fixture;
+      let newDuration = fixture.commonLoanInitialState.durationInPeriods;
 
       await expect(
         marketUnderLender.updateLoanDuration(loanId, newDuration)
@@ -1869,21 +1918,23 @@ describe("Contract 'LendingMarket': base tests", async () => {
     });
 
     it("Is reverted if the new duration is greater than 32-bit unsigned integer", async () => {
-      const { market, marketUnderLender, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+      const fixture = await setUpFixture(deployLendingMarketAndTakeLoans);
+      const { marketUnderLender, commonLoanId: loanId } = fixture;
       const newDuration = maxUintForBits(32) + 1n;
 
       await expect(marketUnderLender.updateLoanDuration(loanId, newDuration))
-        .to.be.revertedWithCustomError(market, ERROR_NAME_SAFE_CAST_OVERFLOWED_UINT_DOWNCAST)
+        .to.be.revertedWithCustomError(marketUnderLender, ERROR_NAME_SAFE_CAST_OVERFLOWED_UINT_DOWNCAST)
         .withArgs(32, newDuration);
     });
   });
 
   describe("Function 'updateLoanInterestRatePrimary()'", async () => {
     it("Executes as expected and emits the correct event", async () => {
-      const { marketUnderLender, initialLoanState, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
-      const oldInterestRate = initialLoanState.interestRatePrimary;
+      const fixture = await setUpFixture(deployLendingMarketAndTakeLoans);
+      const { marketUnderLender, commonLoanId: loanId } = fixture;
+      const oldInterestRate = fixture.commonLoanInitialState.interestRatePrimary;
       const newInterestRate = oldInterestRate - 1;
-      const expectedLoanState = { ...initialLoanState };
+      const expectedLoanState = { ...fixture.commonLoanInitialState };
       expectedLoanState.interestRatePrimary = newInterestRate;
 
       // Can be executed by an alias
@@ -1897,7 +1948,7 @@ describe("Contract 'LendingMarket': base tests", async () => {
     });
 
     it("Is reverted if the contract is paused", async () => {
-      const { market, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+      const { market, commonLoanId: loanId } = await setUpFixture(deployLendingMarketAndTakeLoans);
       await proveTx(market.pause());
 
       await expect(
@@ -1906,8 +1957,8 @@ describe("Contract 'LendingMarket': base tests", async () => {
     });
 
     it("Is reverted if the loan does not exist", async () => {
-      const { market, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
-      const wrongLoanId = loanId + 1;
+      const { market, commonLoanId: loanId } = await setUpFixture(deployLendingMarketAndTakeLoans);
+      const wrongLoanId = loanId + 123;
 
       await expect(
         market.updateLoanInterestRatePrimary(wrongLoanId, INTEREST_RATE_PRIMARY)
@@ -1915,7 +1966,7 @@ describe("Contract 'LendingMarket': base tests", async () => {
     });
 
     it("Is reverted if the loan is already repaid", async () => {
-      const { marketUnderLender, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+      const { marketUnderLender, commonLoanId: loanId } = await setUpFixture(deployLendingMarketAndTakeLoans);
       await proveTx(connect(marketUnderLender, borrower).repayLoan(loanId, FULL_REPAYMENT_AMOUNT));
 
       await expect(
@@ -1924,7 +1975,8 @@ describe("Contract 'LendingMarket': base tests", async () => {
     });
 
     it("Is reverted if the caller is not the lender or an alias", async () => {
-      const { market, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+      const fixture = await setUpFixture(deployLendingMarketAndTakeLoans);
+      const { market, commonLoanId: loanId } = fixture;
 
       await expect(
         connect(market, attacker).updateLoanInterestRatePrimary(loanId, INTEREST_RATE_PRIMARY)
@@ -1932,8 +1984,9 @@ describe("Contract 'LendingMarket': base tests", async () => {
     });
 
     it("Is is reverted if the new interest rate is the same as the previous one or greater", async () => {
-      const { marketUnderLender, initialLoanState, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
-      let newInterestRate = initialLoanState.interestRatePrimary;
+      const fixture = await setUpFixture(deployLendingMarketAndTakeLoans);
+      const { marketUnderLender, commonLoanId: loanId } = fixture;
+      let newInterestRate = fixture.commonLoanInitialState.interestRatePrimary;
 
       await expect(
         marketUnderLender.updateLoanInterestRatePrimary(loanId, newInterestRate)
@@ -1948,10 +2001,11 @@ describe("Contract 'LendingMarket': base tests", async () => {
 
   describe("Function 'updateLoanInterestRateSecondary()'", async () => {
     it("Executes as expected and emits the correct event", async () => {
-      const { marketUnderLender, initialLoanState, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
-      const oldInterestRate = initialLoanState.interestRateSecondary;
+      const fixture = await setUpFixture(deployLendingMarketAndTakeLoans);
+      const { marketUnderLender, commonLoanId: loanId } = fixture;
+      const oldInterestRate = fixture.commonLoanInitialState.interestRateSecondary;
       const newInterestRate = oldInterestRate - 1;
-      const expectedLoanState = { ...initialLoanState };
+      const expectedLoanState = { ...fixture.commonLoanInitialState };
       expectedLoanState.interestRateSecondary = newInterestRate;
 
       // Can be executed by an alias
@@ -1965,7 +2019,8 @@ describe("Contract 'LendingMarket': base tests", async () => {
     });
 
     it("Is reverted if the contract is paused", async () => {
-      const { market, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+      const fixture = await setUpFixture(deployLendingMarketAndTakeLoans);
+      const { market, commonLoanId: loanId } = fixture;
       await proveTx(market.pause());
 
       await expect(
@@ -1974,31 +2029,35 @@ describe("Contract 'LendingMarket': base tests", async () => {
     });
 
     it("Is reverted if the loan does not exist", async () => {
-      const { market, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
-      const wrongLoanId = loanId + 1;
+      const fixture = await setUpFixture(deployLendingMarketAndTakeLoans);
+      const { market, commonLoanId: loanId } = fixture;
+      const wrongLoanId = loanId + 123;
 
       await expect(market.updateLoanInterestRateSecondary(wrongLoanId, INTEREST_RATE_SECONDARY))
         .to.be.revertedWithCustomError(market, ERROR_NAME_LOAN_NOT_EXIST);
     });
 
     it("Is reverted if the loan is already repaid", async () => {
-      const { market, marketUnderLender, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
-      await proveTx(connect(market, borrower).repayLoan(loanId, FULL_REPAYMENT_AMOUNT));
+      const fixture = await setUpFixture(deployLendingMarketAndTakeLoans);
+      const { marketUnderLender, commonLoanId: loanId } = fixture;
+      await proveTx(connect(marketUnderLender, borrower).repayLoan(loanId, FULL_REPAYMENT_AMOUNT));
 
       await expect(marketUnderLender.updateLoanInterestRateSecondary(loanId, INTEREST_RATE_SECONDARY))
-        .to.be.revertedWithCustomError(market, ERROR_NAME_LOAN_ALREADY_REPAID);
+        .to.be.revertedWithCustomError(marketUnderLender, ERROR_NAME_LOAN_ALREADY_REPAID);
     });
 
     it("Is reverted if the caller is not the lender or an alias", async () => {
-      const { market, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+      const fixture = await setUpFixture(deployLendingMarketAndTakeLoans);
+      const { market, commonLoanId: loanId } = fixture;
 
       await expect(connect(market, attacker).updateLoanInterestRateSecondary(loanId, INTEREST_RATE_SECONDARY))
         .to.be.revertedWithCustomError(market, ERROR_NAME_UNAUTHORIZED);
     });
 
     it("Is is reverted if the new interest rate is the same as the previous one or greater", async () => {
-      const { marketUnderLender, initialLoanState, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
-      let newInterestRate = initialLoanState.interestRateSecondary;
+      const fixture = await setUpFixture(deployLendingMarketAndTakeLoans);
+      const { marketUnderLender, commonLoanId: loanId } = fixture;
+      let newInterestRate = fixture.commonLoanInitialState.interestRateSecondary;
 
       await expect(marketUnderLender.updateLoanInterestRateSecondary(loanId, newInterestRate))
         .to.be.revertedWithCustomError(marketUnderLender, ERROR_NAME_INAPPROPRIATE_INTEREST_RATE);
@@ -2014,7 +2073,7 @@ describe("Contract 'LendingMarket': base tests", async () => {
       currentLoanState: LoanState;
       revoker: HardhatEthersSigner;
     }) {
-      const { market, loanId } = fixture;
+      const { market, commonLoanId: loanId } = fixture;
       const expectedLoanState = { ...props.currentLoanState };
       const borrowerBalanceChange = expectedLoanState.repaidAmount - expectedLoanState.borrowAmount;
 
@@ -2044,24 +2103,24 @@ describe("Contract 'LendingMarket': base tests", async () => {
 
     describe("Executes as expected and emits correct event if", async () => {
       it("Is called by the borrower before the cooldown expiration and with no repayments", async () => {
-        const fixture = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+        const fixture = await setUpFixture(deployLendingMarketAndTakeLoans);
         const timestamp = removeTimestampOffset(
-          fixture.initialLoanState.startTimestamp + (COOLDOWN_IN_PERIODS - 1) * PERIOD_IN_SECONDS
+          fixture.commonLoanInitialState.startTimestamp + (COOLDOWN_IN_PERIODS - 1) * PERIOD_IN_SECONDS
         );
         await increaseBlockTimestampTo(timestamp);
-        await revokeAndCheck(fixture, { currentLoanState: fixture.initialLoanState, revoker: borrower });
+        await revokeAndCheck(fixture, { currentLoanState: fixture.commonLoanInitialState, revoker: borrower });
       });
 
       it("Is called by the lender with a repayment that is less than the borrow amount", async () => {
-        const fixture = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+        const fixture = await setUpFixture(deployLendingMarketAndTakeLoans);
 
-        const loanState = { ...fixture.initialLoanState };
-        const repaymentAmount = Number(roundMath(fixture.initialLoanState.borrowAmount / 2, ACCURACY_FACTOR));
-        const tx = await proveTx(connect(fixture.market, borrower).repayLoan(fixture.loanId, repaymentAmount));
+        const loanState = { ...fixture.commonLoanInitialState };
+        const repaymentAmount = Number(roundMath(fixture.commonLoanInitialState.borrowAmount / 2, ACCURACY_FACTOR));
+        const tx = await proveTx(connect(fixture.market, borrower).repayLoan(fixture.commonLoanId, repaymentAmount));
         processRepayment(loanState, { repaymentAmount, repaymentTimestamp: await getBlockTimestamp(tx.blockNumber) });
 
         const timestamp = removeTimestampOffset(
-          fixture.initialLoanState.startTimestamp + (COOLDOWN_IN_PERIODS) * PERIOD_IN_SECONDS + 1
+          fixture.commonLoanInitialState.startTimestamp + (COOLDOWN_IN_PERIODS) * PERIOD_IN_SECONDS + 1
         );
         await increaseBlockTimestampTo(timestamp);
 
@@ -2069,29 +2128,29 @@ describe("Contract 'LendingMarket': base tests", async () => {
       });
 
       it("Is called by the lender with a repayment that equals the borrow amount", async () => {
-        const fixture = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+        const fixture = await setUpFixture(deployLendingMarketAndTakeLoans);
 
-        const loanState = { ...fixture.initialLoanState };
-        const repaymentAmount = fixture.initialLoanState.borrowAmount;
-        const tx = await proveTx(connect(fixture.market, borrower).repayLoan(fixture.loanId, repaymentAmount));
+        const loanState = { ...fixture.commonLoanInitialState };
+        const repaymentAmount = fixture.commonLoanInitialState.borrowAmount;
+        const tx = await proveTx(connect(fixture.market, borrower).repayLoan(fixture.commonLoanId, repaymentAmount));
         processRepayment(loanState, { repaymentAmount, repaymentTimestamp: await getBlockTimestamp(tx.blockNumber) });
 
-        const timestamp = removeTimestampOffset(fixture.initialLoanState.startTimestamp + PERIOD_IN_SECONDS / 2);
+        const timestamp = removeTimestampOffset(fixture.commonLoanInitialState.startTimestamp + PERIOD_IN_SECONDS / 2);
         await increaseBlockTimestampTo(timestamp);
 
         await revokeAndCheck(fixture, { currentLoanState: loanState, revoker: lender });
       });
 
       it("Is called by the lender with a repayment that is greater than the borrow amount", async () => {
-        const fixture = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+        const fixture = await setUpFixture(deployLendingMarketAndTakeLoans);
 
-        const loanState = { ...fixture.initialLoanState };
-        const repaymentAmount = fixture.initialLoanState.borrowAmount + ACCURACY_FACTOR;
-        const tx = await proveTx(connect(fixture.market, borrower).repayLoan(fixture.loanId, repaymentAmount));
+        const loanState = { ...fixture.commonLoanInitialState };
+        const repaymentAmount = fixture.commonLoanInitialState.borrowAmount + ACCURACY_FACTOR;
+        const tx = await proveTx(connect(fixture.market, borrower).repayLoan(fixture.commonLoanId, repaymentAmount));
         processRepayment(loanState, { repaymentAmount, repaymentTimestamp: await getBlockTimestamp(tx.blockNumber) });
 
         const timestamp = removeTimestampOffset(
-          fixture.initialLoanState.startTimestamp + (COOLDOWN_IN_PERIODS) * PERIOD_IN_SECONDS
+          fixture.commonLoanInitialState.startTimestamp + (COOLDOWN_IN_PERIODS) * PERIOD_IN_SECONDS
         );
         await increaseBlockTimestampTo(timestamp);
 
@@ -2101,7 +2160,8 @@ describe("Contract 'LendingMarket': base tests", async () => {
 
     describe("Is reverted if", async () => {
       it("The contract is paused", async () => {
-        const { market, marketUnderLender, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+        const fixture = await setUpFixture(deployLendingMarketAndTakeLoans);
+        const { market, marketUnderLender, commonLoanId: loanId } = fixture;
         await proveTx(market.pause());
 
         await expect(marketUnderLender.revokeLoan(loanId))
@@ -2109,24 +2169,38 @@ describe("Contract 'LendingMarket': base tests", async () => {
       });
 
       it("The loan does not exist", async () => {
-        const { market, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+        const fixture = await setUpFixture(deployLendingMarketAndTakeLoans);
+        const { market, commonLoanId: loanId } = fixture;
 
-        await expect(market.revokeLoan(loanId + 1))
+        await expect(market.revokeLoan(loanId + 123))
           .to.be.revertedWithCustomError(market, ERROR_NAME_LOAN_NOT_EXIST);
       });
 
       it("The loan is already repaid", async () => {
-        const { market, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+        const { market, commonLoanId: loanId } = await setUpFixture(deployLendingMarketAndTakeLoans);
         await proveTx(connect(market, borrower).repayLoan(loanId, FULL_REPAYMENT_AMOUNT));
 
         await expect(market.revokeLoan(loanId))
           .to.be.revertedWithCustomError(market, ERROR_NAME_LOAN_ALREADY_REPAID);
       });
 
+      it("The loan is a sub-loan of an installment loan", async () => {
+        const fixture = await setUpFixture(deployLendingMarketAndTakeLoans);
+        const { market, installmentLoanIds: [loanId] } = fixture;
+
+        await expect(market.revokeLoan(loanId))
+          .to.be.revertedWithCustomError(market, EVENT_NAME_LOAN_TYPE_UNEXPECTED)
+          .withArgs(
+            LoanType.Installment, // actual
+            LoanType.Common // expected
+          );
+      });
+
       it("The cooldown period has passed when it is called by the borrower", async () => {
-        const { market, initialLoanState, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+        const fixture = await setUpFixture(deployLendingMarketAndTakeLoans);
+        const { market, commonLoanInitialState, commonLoanId: loanId } = fixture;
         const timestampAfterCooldown =
-          removeTimestampOffset(initialLoanState.startTimestamp) + COOLDOWN_IN_PERIODS * PERIOD_IN_SECONDS;
+          removeTimestampOffset(commonLoanInitialState.startTimestamp) + COOLDOWN_IN_PERIODS * PERIOD_IN_SECONDS;
         await increaseBlockTimestampTo(timestampAfterCooldown);
 
         await expect(connect(market, borrower).revokeLoan(loanId))
@@ -2134,7 +2208,7 @@ describe("Contract 'LendingMarket': base tests", async () => {
       });
 
       it("The caller is not the lender, the borrower, and an alias", async () => {
-        const { market, loanId } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+        const { market, commonLoanId: loanId } = await setUpFixture(deployLendingMarketAndTakeLoans);
 
         await expect(connect(market, attacker).revokeLoan(loanId))
           .to.be.revertedWithCustomError(market, ERROR_NAME_UNAUTHORIZED);
@@ -2144,7 +2218,7 @@ describe("Contract 'LendingMarket': base tests", async () => {
 
   describe("Pure functions", async () => {
     it("Function 'calculateOutstandingBalance()' executes as expected", async () => {
-      const { market } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
+      const { market } = await setUpFixture(deployLendingMarketAndTakeLoans);
       const actualBalance = await market.calculateOutstandingBalance(
         BORROW_AMOUNT,
         DURATION_IN_PERIODS,
@@ -2161,8 +2235,8 @@ describe("Contract 'LendingMarket': base tests", async () => {
     });
 
     it("Function 'calculatePeriodIndex()' executes as expected", async () => {
-      const { market, initialLoanState } = await setUpFixture(deployLendingMarketAndTakeCommonLoan);
-      const timestamp = initialLoanState.startTimestamp;
+      const { market, commonLoanInitialState } = await setUpFixture(deployLendingMarketAndTakeLoans);
+      const timestamp = commonLoanInitialState.startTimestamp;
 
       const actualPeriodIndex = await market.calculatePeriodIndex(timestamp, PERIOD_IN_SECONDS);
       const expectedPeriodIndex = calculatePeriodIndex(timestamp);
