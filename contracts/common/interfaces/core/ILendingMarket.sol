@@ -8,21 +8,24 @@ import { Loan } from "../../libraries/Loan.sol";
 /// @author CloudWalk Inc. (See https://cloudwalk.io)
 /// @dev Defines the lending market contract functions and events.
 ///
-/// There can be two types of loans:
-/// - Common loans: a single loan that is taken by a borrower.
-/// - Installment loans: a loan that is taken by a borrower in the form of multiple sub-loans.
+/// The lending market supports two types of loans:
 ///
-/// Common loans are represented by a single loan with a unique ID.
+/// 1. Common Loans:
+/// - A single, standalone loan.
+/// - Represented by one loan entity on the smart-contract side with a unique ID.
+/// - Has `firstInstallmentId` and `installmentCount` set to 0 in the loan structure.
 ///
-/// Installment loans are represented by multiple sub-loans with unique IDs.
-/// The ID of any sub-loan can be used as the ID of the installment loan.
+/// 2. Installment Loans:
+/// - A loan split into multiple installments (sub-loans).
+/// - Each installment is a separate loan entity on the smart-contract side with its own unique ID.
+/// - All installments are represented by the same loan structure as common loans.
+/// - The `firstInstallmentId` field stores the ID of the first installment.
+/// - The `installmentCount` field stores the total number of installments.
+/// - Any installment ID can be used to reference the whole installment loan.
 ///
-/// There is no difference in the logic and storage of the common loans and sub-loans of an installment loan.
-/// The names are introduced only for clarity and to distinguish between the two types of loans.
-/// If no additional information is provided, the term "loan" refers to a common loan as well as a sub-loan.
-///
-/// The ID of the first sub-loan and the total number of sub-loans of an installment loan is stored in the `firstInstallmentId`
-/// and `instalmentCount` fields of the loan structure. For common loans, these fields are set to 0.
+/// Note: Throughout the code, the terms "loan" (without additional specification), "sub-loan", and "installment"
+/// are used interchangeably since they all represent the same underlying loan
+/// structure in the smart contract.
 interface ILendingMarket {
     // -------------------------------------------- //
     //  Events                                      //
