@@ -62,11 +62,35 @@ library Loan {
     }
 
     /// @dev A struct that defines the preview of an installment loan.
+    ///
+    /// The structure can be returned for both common and installment loans.
+    ///
+    /// The purpose of the fields in the case of installment loans:
+    ///
+    /// - firstInstallmentId ------- The first installment ID.
+    /// - instalmentCount ---------- The total number of installments.
+    /// - periodIndex -------------- The period index that matches the preview timestamp.
+    /// - totalTrackedBalance ------ The total tracked balance of all installments.
+    /// - totalOutstandingBalance -- The total outstanding balance of all installments.
+    ///
+    /// The purpose of the fields in the case of common loans:
+    ///
+    /// - firstInstallmentId ------- The ID of the loan.
+    /// - instalmentCount ---------- The total number of installments that always equals zero.
+    /// - periodIndex -------------- The period index that matches the preview timestamp.
+    /// - totalTrackedBalance ------ The tracked balance of the loan.
+    /// - totalOutstandingBalance -- The outstanding balance of the loan.
+    ///
+    /// Notes:
+    ///
+    /// 1. The `totalTrackedBalance` fields calculates as the sum of tracked balances of all installments.
+    /// 2. The `totalOutstandingBalance` fields calculates as the sum of rounded tracked balances
+    ///    of all installments according to the `ACCURACY_FACTOR` constant.
     struct InstallmentLoanPreview {
-        uint256 firstInstallmentId;      // The ID of the first installment of the installment loan.
-        uint256 instalmentCount;         // The total number of installments of the installment loan.
-        uint256 periodIndex;             // The period index that matches the preview timestamp.
-        uint256 totalTrackedBalance;     // The total tracked balance of all sub-loans of the installment loan.
-        uint256 totalOutstandingBalance; // The total outstanding balance of all sub-loans of the installment loan.
+        uint256 firstInstallmentId;      
+        uint256 instalmentCount;
+        uint256 periodIndex;
+        uint256 totalTrackedBalance;
+        uint256 totalOutstandingBalance;
     }
 }
