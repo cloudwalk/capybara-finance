@@ -19,6 +19,8 @@ interface LoanState {
   trackedBalance: bigint;
   trackedTimestamp: bigint;
   freezeTimestamp: bigint;
+  firstInstallmentId: bigint;
+  instalmentCount: bigint;
 }
 
 interface Version {
@@ -89,7 +91,9 @@ const defaultLoanState: LoanState = {
   repaidAmount: 0n,
   trackedBalance: 0n,
   trackedTimestamp: 0n,
-  freezeTimestamp: 0n
+  freezeTimestamp: 0n,
+  firstInstallmentId: 0n,
+  instalmentCount: 0n
 };
 
 describe("Contract 'LiquidityPoolAccountable'", async () => {
