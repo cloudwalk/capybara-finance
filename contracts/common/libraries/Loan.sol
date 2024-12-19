@@ -9,10 +9,10 @@ library Loan {
     /// @dev The type of a loan.
     ///
     /// Possible values:
-    /// - Common = 0 ------- A common loan.
+    /// - Ordinary = 0 ----- An ordinary loan.
     /// - Installment = 1 -- A sub-loan of an installment loan.
     enum Type {
-        Common,
+        Ordinary,
         Installment
     }
 
@@ -38,8 +38,8 @@ library Loan {
         uint64 trackedBalance;        // The borrow balance of the loan that is tracked over its lifetime.
         uint32 trackedTimestamp;      // The timestamp when the loan was last paid or its balance was updated.
         uint32 freezeTimestamp;       // The timestamp when the loan was frozen. Zero value for unfrozen loans.
-        uint40 firstInstallmentId;    // The ID of the first installment for sub-loans or zero for common loans.
-        uint16 instalmentCount;       // The total number of installments for sub-loans or zero for common loans.
+        uint40 firstInstallmentId;    // The ID of the first installment for sub-loans or zero for ordinary loans.
+        uint16 instalmentCount;       // The total number of installments for sub-loans or zero for ordinary loans.
         // uint8 __reserved;          // Reserved for future use.
     }
 
@@ -63,7 +63,7 @@ library Loan {
 
     /// @dev A struct that defines the preview of an installment loan.
     ///
-    /// The structure can be returned for both common and installment loans.
+    /// The structure can be returned for both ordinary and installment loans.
     ///
     /// The purpose of the fields in the case of installment loans:
     ///
@@ -73,7 +73,7 @@ library Loan {
     /// - totalTrackedBalance ------ The total tracked balance of all installments.
     /// - totalOutstandingBalance -- The total outstanding balance of all installments.
     ///
-    /// The purpose of the fields in the case of common loans:
+    /// The purpose of the fields in the case of ordinary loans:
     ///
     /// - firstInstallmentId ------- The ID of the loan.
     /// - instalmentCount ---------- The total number of installments that always equals zero.

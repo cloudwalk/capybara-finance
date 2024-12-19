@@ -587,7 +587,7 @@ contract LendingMarket is
     /// @inheritdoc ILendingMarket
     function revokeLoan(uint256 loanId) external whenNotPaused onlyOngoingLoan(loanId) {
         Loan.State storage loan = _loans[loanId];
-        _checkLoanType(loan, uint256(Loan.Type.Common));
+        _checkLoanType(loan, uint256(Loan.Type.Ordinary));
         _revokeLoan(loanId, loan);
     }
 
@@ -943,9 +943,9 @@ contract LendingMarket is
     /// @param expectedLoanType The expected type of the loan according to the `Loan.Type` enum.
     function _checkLoanType(Loan.State storage loan, uint256 expectedLoanType) internal view {
         if (loan.instalmentCount == 0) {
-            if (expectedLoanType != uint256(Loan.Type.Common)) {
+            if (expectedLoanType != uint256(Loan.Type.Ordinary)) {
                 revert LoanTypeUnexpected(
-                    Loan.Type.Common, // actual
+                    Loan.Type.Ordinary, // actual
                     Loan.Type.Installment // expected
                 );
             }
@@ -953,7 +953,7 @@ contract LendingMarket is
             if (expectedLoanType != uint256(Loan.Type.Installment)) {
                 revert LoanTypeUnexpected(
                     Loan.Type.Installment, // actual
-                    Loan.Type.Common // expected
+                    Loan.Type.Ordinary // expected
                 );
             }
         }
