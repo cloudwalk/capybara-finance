@@ -89,7 +89,7 @@ interface ILendingMarket {
     /// @param firstInstallmentId The ID of the first sub-loan of the installment loan.
     /// @param installmentCount The total number of installments.
     event InstallmentLoanRevoked(
-        uint256 indexed firstInstallmentId,
+        uint256 indexed firstInstallmentId, // Tools: this comment prevents Prettier from formatting into a single line.
         uint256 installmentCount
     );
 

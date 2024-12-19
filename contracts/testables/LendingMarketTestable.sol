@@ -12,7 +12,7 @@ contract LendingMarketTestable is LendingMarket {
     uint256 public installmentCountMax;
 
     /// @dev Sets a new loan ID counter for testing.
-    /// @param newValue The new loan ID counter value.  
+    /// @param newValue The new loan ID counter value.
     function setLoanIdCounter(uint256 newValue) external {
         _loanIdCounter = newValue;
     }
@@ -38,7 +38,7 @@ contract LendingMarketTestable is LendingMarket {
     }
 
     /// @dev Overrides the same name function in the lending market contract to return the testable value if set.
-    /// @return The maximum number of installments. 
+    /// @return The maximum number of installments.
     function _installmentCountMax() internal view override returns (uint256) {
         if (installmentCountMax == 0) {
             return super._installmentCountMax();

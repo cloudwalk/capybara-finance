@@ -601,7 +601,7 @@ contract LendingMarket is
         uint256 lastLoanId = loanId + loan.instalmentCount - 1;
         uint256 ongoingSubLoanCount = 0;
 
-        for(; loanId <= lastLoanId; ++loanId) {
+        for (; loanId <= lastLoanId; ++loanId) {
             loan = _loans[loanId];
             if (!_isRepaid(loan)) {
                 ++ongoingSubLoanCount;
@@ -615,7 +615,7 @@ contract LendingMarket is
         }
 
         emit InstallmentLoanRevoked(
-            loan.firstInstallmentId,
+            loan.firstInstallmentId, // Tools: this comment prevents Prettier from formatting into a single line.
             loan.instalmentCount
         );
     }
@@ -916,7 +916,7 @@ contract LendingMarket is
     }
 
     /// @dev Checks if the loan can be revoked.
-    /// @param loan The storage state of the loan.  
+    /// @param loan The storage state of the loan.
     function _checkLoanRevocationPossibility(Loan.State storage loan) internal view {
         address sender = msg.sender;
         if (sender == loan.borrower) {
