@@ -54,6 +54,16 @@ interface LoanPreview {
   [key: string]: number; // Index signature
 }
 
+interface InstallmentLoanPreview {
+  firstInstallmentId: number;
+  instalmentCount: number;
+  periodIndex: number;
+  totalTrackedBalance: number;
+  totalOutstandingBalance: number;
+
+  [key: string]: number; // Index signature
+}
+
 interface Fixture {
   market: Contract;
   marketUnderLender: Contract;
@@ -355,6 +365,21 @@ describe("Contract 'LendingMarket': base tests", async () => {
       periodIndex,
       trackedBalance: outstandingBalance,
       outstandingBalance: Number(roundMath(outstandingBalance, ACCURACY_FACTOR))
+    };
+  }
+
+  function defineInstallmentLoanPreview(loanStates: LoanState[], timestamp: number): InstallmentLoanPreview {
+    const loanPreviews: LoanPreview[] = loanStates.map(state => defineLoanPreview(state, timestamp));
+    return {
+      firstInstallmentId: loanStates[0].firstInstallmentId,
+      instalmentCount: loanStates[0].instalmentCount,
+      periodIndex: loanPreviews[0].periodIndex,
+      totalTrackedBalance: loanPreviews
+        .map(preview => preview.trackedBalance)
+        .reduce((sum, amount) => sum + amount),
+      totalOutstandingBalance: loanPreviews
+        .map(preview => preview.outstandingBalance)
+        .reduce((sum, amount) => sum + amount)
     };
   }
 
@@ -2349,6 +2374,147 @@ describe("Contract 'LendingMarket': base tests", async () => {
         await expect(connect(market, attacker).revokeInstallmentLoan(loanId))
           .to.be.revertedWithCustomError(market, ERROR_NAME_UNAUTHORIZED);
       });
+    });
+  });
+
+  describe("View functions", async () => {
+    // This section tests only those functions that have not been previously used in other sections.
+    it("Function 'getLoanPreview()' executes as expected", async () => {
+      const fixture = await setUpFixture(deployLendingMarketAndTakeLoans);
+      const { market } = fixture;
+
+      const loanIds = [fixture.commonLoanId, fixture.installmentLoanIds[fixture.installmentLoanIds.length - 1]];
+      const loanStates = [
+        fixture.commonLoanInitialState,
+        fixture.installmentLoanInitialStates[fixture.installmentLoanIds.length - 1]
+      ];
+      const minDuration = Math.min(...loanStates.map(state => state.durationInPeriods));
+      const maxDuration = Math.max(...loanStates.map(state => state.durationInPeriods));
+      expect(minDuration).to.be.greaterThan(0);
+
+      // The loan at the latest block timestamp
+      let timestamp = await getLatestBlockTimestamp();
+      let expectedLoanPreviews: LoanPreview[] = loanStates.map(state => defineLoanPreview(state, timestamp));
+      let actualLoanPreviews: LoanPreview[] = [];
+      for (const loanId of loanIds) {
+        actualLoanPreviews.push(await market.getLoanPreview(loanId, 0));
+      }
+      for (let i = 0; i < loanIds.length; ++i) {
+        checkEquality(actualLoanPreviews[i], expectedLoanPreviews[i], i);
+      }
+
+      // The loan at the middle of its duration
+      timestamp += Math.floor(minDuration / 2) * PERIOD_IN_SECONDS;
+      expectedLoanPreviews = loanStates.map(state => defineLoanPreview(state, timestamp));
+      actualLoanPreviews = [];
+      for (const loanId of loanIds) {
+        actualLoanPreviews.push(await market.getLoanPreview(loanId, timestamp));
+      }
+      for (let i = 0; i < loanIds.length; ++i) {
+        checkEquality(actualLoanPreviews[i], expectedLoanPreviews[i], i);
+      }
+
+      // The loan after defaulting
+      timestamp += maxDuration * PERIOD_IN_SECONDS;
+      expectedLoanPreviews = loanStates.map(state => defineLoanPreview(state, timestamp));
+      actualLoanPreviews = [];
+      for (const loanId of loanIds) {
+        actualLoanPreviews.push(await market.getLoanPreview(loanId, timestamp));
+      }
+      for (let i = 0; i < loanIds.length; ++i) {
+        checkEquality(actualLoanPreviews[i], expectedLoanPreviews[i], i);
+      }
+    });
+
+    it("Function 'getLoanPreviewBatch()' executes as expected", async () => {
+      const fixture = await setUpFixture(deployLendingMarketAndTakeLoans);
+      const { market } = fixture;
+
+      const loanIds = [fixture.commonLoanId, fixture.installmentLoanIds[fixture.installmentLoanIds.length - 1]];
+      const loanStates = [
+        fixture.commonLoanInitialState,
+        fixture.installmentLoanInitialStates[fixture.installmentLoanIds.length - 1]
+      ];
+      const minDuration = Math.min(...loanStates.map(state => state.durationInPeriods));
+      const maxDuration = Math.max(...loanStates.map(state => state.durationInPeriods));
+      expect(minDuration).to.be.greaterThan(0);
+
+      // The loans at the latest block timestamp
+      let timestamp = await getLatestBlockTimestamp();
+      let expectedLoanPreviews: LoanPreview[] = loanStates.map(state => defineLoanPreview(state, timestamp));
+      let actualLoanPreviews = await market.getLoanPreviewBatch(loanIds, 0);
+      expect(actualLoanPreviews.length).to.eq(expectedLoanPreviews.length);
+      for (let i = 0; i < expectedLoanPreviews.length; ++i) {
+        checkEquality(actualLoanPreviews[i], expectedLoanPreviews[i], i);
+      }
+
+      // The loans at the middle of its duration
+      timestamp += Math.floor(minDuration / 2) * PERIOD_IN_SECONDS;
+      expectedLoanPreviews = loanStates.map(state => defineLoanPreview(state, timestamp));
+      actualLoanPreviews = await market.getLoanPreviewBatch(loanIds, calculateTimestampWithOffset(timestamp));
+      expect(actualLoanPreviews.length).to.eq(expectedLoanPreviews.length);
+      for (let i = 0; i < expectedLoanPreviews.length; ++i) {
+        checkEquality(actualLoanPreviews[i], expectedLoanPreviews[i], i);
+      }
+
+      // The loans after defaulting
+      timestamp += maxDuration * PERIOD_IN_SECONDS;
+      expectedLoanPreviews = loanStates.map(state => defineLoanPreview(state, timestamp));
+      actualLoanPreviews = await market.getLoanPreviewBatch(loanIds, calculateTimestampWithOffset(timestamp));
+      expect(actualLoanPreviews.length).to.eq(expectedLoanPreviews.length);
+      for (let i = 0; i < expectedLoanPreviews.length; ++i) {
+        checkEquality(actualLoanPreviews[i], expectedLoanPreviews[i], i);
+      }
+    });
+
+    it("Function 'getInstallmentLoanPreview()' executes as expected for a common loan", async () => {
+      const fixture = await setUpFixture(deployLendingMarketAndTakeLoans);
+      const { market, commonLoanInitialState: loanState, commonLoanId: loanId } = fixture;
+
+      // The loan at the latest block timestamp
+      let timestamp = await getLatestBlockTimestamp();
+      let expectedLoanPreview: InstallmentLoanPreview = defineInstallmentLoanPreview([loanState], timestamp);
+      let actualLoanPreview = await market.getInstallmentLoanPreview(loanId, 0);
+      checkEquality(actualLoanPreview, expectedLoanPreview);
+
+      // The loan at the middle of its duration
+      timestamp += Math.floor(loanState.durationInPeriods / 2) * PERIOD_IN_SECONDS;
+      expectedLoanPreview = defineInstallmentLoanPreview([loanState], timestamp);
+      actualLoanPreview = await market.getInstallmentLoanPreview(loanId, calculateTimestampWithOffset(timestamp));
+      checkEquality(actualLoanPreview, expectedLoanPreview);
+
+      // The loan after defaulting
+      timestamp += loanState.durationInPeriods * PERIOD_IN_SECONDS;
+      expectedLoanPreview = defineInstallmentLoanPreview([loanState], timestamp);
+      actualLoanPreview = await market.getInstallmentLoanPreview(loanId, calculateTimestampWithOffset(timestamp));
+      checkEquality(actualLoanPreview, expectedLoanPreview);
+    });
+
+    it("Function 'getInstallmentLoanPreview()' executes as expected for an installment loan", async () => {
+      const fixture = await setUpFixture(deployLendingMarketAndTakeLoans);
+      const { market, installmentLoanInitialStates: loanStates } = fixture;
+      const loanId = fixture.installmentLoanIds.length > 1
+        ? fixture.installmentLoanIds[1]
+        : fixture.installmentLoanIds[0];
+      const maxDuration = Math.max(...loanStates.map(state => state.durationInPeriods));
+
+      // The loan at the latest block timestamp
+      let timestamp = await getLatestBlockTimestamp();
+      let expectedLoanPreview: InstallmentLoanPreview = defineInstallmentLoanPreview(loanStates, timestamp);
+      let actualLoanPreview = await market.getInstallmentLoanPreview(loanId, 0);
+      checkEquality(actualLoanPreview, expectedLoanPreview);
+
+      // The loan at the middle of its duration
+      timestamp += Math.floor(maxDuration / 2) * PERIOD_IN_SECONDS;
+      expectedLoanPreview = defineInstallmentLoanPreview(loanStates, timestamp);
+      actualLoanPreview = await market.getInstallmentLoanPreview(loanId, calculateTimestampWithOffset(timestamp));
+      checkEquality(actualLoanPreview, expectedLoanPreview);
+
+      // The loan after defaulting
+      timestamp += maxDuration * PERIOD_IN_SECONDS;
+      expectedLoanPreview = defineInstallmentLoanPreview(loanStates, timestamp);
+      actualLoanPreview = await market.getInstallmentLoanPreview(loanId, calculateTimestampWithOffset(timestamp));
+      checkEquality(actualLoanPreview, expectedLoanPreview);
     });
   });
 
