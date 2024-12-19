@@ -164,7 +164,7 @@ const DURATIONS_IN_PERIODS: number[] = [0, DURATION_IN_PERIODS / 2, DURATION_IN_
 
 const EXPECTED_VERSION: Version = {
   major: 1,
-  minor: 3,
+  minor: 4,
   patch: 0
 };
 
