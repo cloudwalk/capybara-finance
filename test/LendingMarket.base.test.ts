@@ -114,6 +114,7 @@ const ERROR_NAME_DURATION_ARRAY_INVALID = "DurationArrayInvalid";
 const ERROR_NAME_INSTALLMENT_COUNT_EXCESS = "InstallmentCountExcess";
 const ERROR_NAME_ARRAY_LENGTH_MISMATCH = "ArrayLengthMismatch";
 const ERROR_NAME_LOAN_TYPE_UNEXPECTED = "LoanTypeUnexpected";
+const ERROR_NAME_LOAN_ID_EXCESS = "LoanIdExcess";
 
 const EVENT_NAME_CREDIT_LINE_REGISTERED = "CreditLineRegistered";
 const EVENT_NAME_LENDER_ALIAS_CONFIGURED = "LenderAliasConfigured";
@@ -1220,6 +1221,21 @@ describe("Contract 'LendingMarket': base tests", async () => {
         )
       ).to.be.revertedWithCustomError(marketUnderLender, ERROR_NAME_LIQUIDITY_POOL_LENDER_NOT_CONFIGURED);
     });
+
+    it("Is reverted if the loan ID counter is greater than the max allowed value", async () => {
+      const { marketUnderLender } = await setUpFixture(deployLendingMarketAndConfigureItForLoan);
+      await proveTx(marketUnderLender.setLoanIdCounter(maxUintForBits(40) + 1n));
+
+      await expect(
+        marketUnderLender.takeLoanFor(
+          borrower.address,
+          PROGRAM_ID,
+          BORROW_AMOUNT,
+          ADDON_AMOUNT,
+          DURATION_IN_PERIODS
+        )
+      ).to.be.revertedWithCustomError(marketUnderLender, ERROR_NAME_LOAN_ID_EXCESS);
+    });
   });
 
   describe("Function 'takeInstallmentLoanFor()'", async () => {
@@ -1567,6 +1583,21 @@ describe("Contract 'LendingMarket': base tests", async () => {
           DURATIONS_IN_PERIODS
         )
       ).to.be.revertedWithCustomError(marketUnderLender, ERROR_NAME_LIQUIDITY_POOL_LENDER_NOT_CONFIGURED);
+    });
+
+    it("Is reverted if the loan ID counter is greater than the max allowed value", async () => {
+      const { marketUnderLender } = await setUpFixture(deployLendingMarketAndConfigureItForLoan);
+      await proveTx(marketUnderLender.setLoanIdCounter(maxUintForBits(40) + 2n - BigInt(INSTALLMENT_COUNT)));
+
+      await expect(
+        marketUnderLender.takeInstallmentLoanFor(
+          borrower.address,
+          PROGRAM_ID,
+          BORROW_AMOUNTS,
+          ADDON_AMOUNTS,
+          DURATIONS_IN_PERIODS
+        )
+      ).to.be.revertedWithCustomError(marketUnderLender, ERROR_NAME_LOAN_ID_EXCESS);
     });
   });
 

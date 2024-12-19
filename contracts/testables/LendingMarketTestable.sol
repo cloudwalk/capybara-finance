@@ -11,6 +11,12 @@ contract LendingMarketTestable is LendingMarket {
     /// @dev The maximum number of installments. Non-zero value overrides the constant in Constants.sol.
     uint256 public installmentCountMax;
 
+    /// @dev Sets a new loan ID counter for testing.
+    /// @param newValue The new loan ID counter value.  
+    function setLoanIdCounter(uint256 newValue) external {
+        _loanIdCounter = newValue;
+    }
+
     /// @dev Sets a new credit line address for a lending program.
     /// @param programId The ID of the lending program.
     /// @param newCreditLine The new address of the credit line to set.
