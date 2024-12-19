@@ -598,10 +598,10 @@ contract LendingMarket is
         _checkLoanType(loan, uint256(Loan.Type.Installment));
 
         loanId = loan.firstInstallmentId;
-        uint256 endLoanId = loanId + loan.instalmentCount;
+        uint256 lastLoanId = loanId + loan.instalmentCount - 1;
         uint256 ongoingSubLoanCount = 0;
 
-        for(; loanId < endLoanId; ++loanId) {
+        for(; loanId <= lastLoanId; ++loanId) {
             loan = _loans[loanId];
             if (!_isRepaid(loan)) {
                 ++ongoingSubLoanCount;
@@ -727,16 +727,16 @@ contract LendingMarket is
         Loan.State storage loan = _loans[loanId];
         Loan.InstallmentLoanPreview memory preview;
         preview.instalmentCount = loan.instalmentCount;
-        uint256 endInstallmentId = loanId;
+        uint256 lastInstallmentId = loanId;
         if (preview.instalmentCount > 0) {
             loanId = loan.firstInstallmentId;
             preview.firstInstallmentId = loanId;
-            endInstallmentId = loanId + preview.instalmentCount;
+            lastInstallmentId = loanId + preview.instalmentCount - 1;
         } else {
             preview.firstInstallmentId = loanId;
         }
 
-        for (; loanId < endInstallmentId; ++loanId) {
+        for (; loanId <= lastInstallmentId; ++loanId) {
             Loan.Preview memory singleLoanPreview = _getLoanPreview(loanId, timestamp);
             preview.periodIndex = singleLoanPreview.periodIndex;
             preview.totalTrackedBalance += singleLoanPreview.trackedBalance;
